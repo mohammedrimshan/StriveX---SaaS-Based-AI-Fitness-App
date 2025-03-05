@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR_GITHUB_REPO.git"
+    "url": "git+https://github.com/mohammedrimshan/StriveX---SaaS-Based-AI-Fitness-App"
   },
   "keywords": ["fitness", "AI", "workout", "diet", "training"],
   "author": "Your Name",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/YOUR_GITHUB_REPO/issues"
+    "url": "https://github.com/mohammedrimshan/StriveX---SaaS-Based-AI-Fitness-App/issues"
   },
-  "homepage": "https://github.com/YOUR_GITHUB_REPO#readme",
+  "homepage": "https://github.com/mohammedrimshan/StriveX---SaaS-Based-AI-Fitness-App#readme",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
