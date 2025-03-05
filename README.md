@@ -1,6 +1,8 @@
 <div align="center">
-  <img src="/api/placeholder/600/200" alt="StriveX Logo" width="600" height="200" />
-  
+  <div align="center">
+  <img src="new.png" alt="StriveX Logo" width="200" height="200" />
+</div>
+
   # StriveX - SaaS-Based AI Fitness App 💪🤖
 
   ## Transform Your Fitness Journey with Intelligent Technology
@@ -99,7 +101,7 @@ StriveX is more than just an app—it's your personal AI-powered fitness compani
 ### Installation Steps
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/strivex.git
+git clone https://github.com/mohammedrimshan/StriveX---SaaS-Based-AI-Fitness-App.git
 cd strivex
 
 # Install dependencies
