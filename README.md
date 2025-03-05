@@ -11,7 +11,6 @@
     <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT" />
   </div>
 
-  ![App Demo Walkthrough](/api/placeholder/800/400)
 </div>
 
 ## 🌟 Revolutionizing Fitness with AI and Expertise
