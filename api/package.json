@@ -13,7 +13,13 @@
     "type": "git",
     "url": "git+https://github.com/mohammedrimshan/StriveX---SaaS-Based-AI-Fitness-App"
   },
-  "keywords": ["fitness", "AI", "workout", "diet", "training"],
+  "keywords": [
+    "fitness",
+    "AI",
+    "workout",
+    "diet",
+    "training"
+  ],
   "author": "Your Name",
   "license": "ISC",
   "bugs": {
@@ -26,6 +32,7 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
+    "envalid": "^8.0.0",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "google-auth-library": "^9.15.1",
