@@ -28,6 +28,7 @@
   "homepage": "https://github.com/mohammedrimshan/StriveX---SaaS-Based-AI-Fitness-App#readme",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
