@@ -11,7 +11,7 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
   private strategies: Record<string, IRegisterStrategy>;
 
   constructor(
-    @inject("UserRegisterStrategy")
+    @inject("ClientRegisterStrategy")
     private userRegister: IRegisterStrategy
   ) {
     this.strategies = {

@@ -2,7 +2,7 @@ import { container } from "tsyringe";
 
 
 //*===== Controller Imports ======*//
-import { RegisterUserController } from "@/interfaceAdapters/controllers/auth/register.controller";
+import { RegisterUserController } from "../../interfaceAdapters/controllers/auth/register.controller";
 
 
 

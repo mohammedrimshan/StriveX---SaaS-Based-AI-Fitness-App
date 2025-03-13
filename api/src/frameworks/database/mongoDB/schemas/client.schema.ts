@@ -12,8 +12,8 @@ export const clientSchema = new Schema<IClientModel>(
       password: { type: String, required: true },
       role: { type: String, enum: ROLES, required: true },
       profileImage: { type: String },
-      height: { type: Number, required: true },
-      weight: { type: Number, required: true },
+      height: { type: Number, required: false },
+      weight: { type: Number, required: false },
       status: { type: String, default: "active" },
     },
     {

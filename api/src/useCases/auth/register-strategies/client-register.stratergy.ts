@@ -9,9 +9,9 @@ import { generateUniqueId } from "@/frameworks/security/uniqueuid.bcrypt";
 import { IUserEntity } from "@/entities/models/user.entity";
 
 @injectable()
-export class UserRegisterStrategy implements IRegisterStrategy {
+export class ClientRegisterStrategy implements IRegisterStrategy {
   constructor(
-    @inject("IUserRepository") private userRepository: IClientRepository,
+    @inject("IClientRepository") private userRepository: IClientRepository,
     @inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
   ) {}
 

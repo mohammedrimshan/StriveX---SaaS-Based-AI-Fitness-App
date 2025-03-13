@@ -15,7 +15,8 @@ const adminSchema = z.object({
 
 
 const userSchema = z.object({
-  name: nameSchema, 
+  firstName: nameSchema, 
+  lastName: nameSchema,
   email: strongEmailRegex, 
   phone: phoneNumberSchema, 
   password: passwordSchema, 

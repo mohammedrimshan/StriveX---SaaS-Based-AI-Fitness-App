@@ -9,8 +9,8 @@ export interface IUserEntity {
   password: string;
   role: TRole;
   profileImage?: string;
-  height: number;
-  weight: number;
+  height?: number;
+  weight?: number;
   status?: string;
   createdAt: Date;
   updatedAt: Date;
