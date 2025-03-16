@@ -6,6 +6,11 @@ import { IRedisTokenRepository } from "../../entities/repositoryInterfaces/redis
 import { RedisTokenRepository } from "../../interfaceAdapters/repositories/redis/redis-token.repository";
 import { IOtpRepository } from "../../entities/repositoryInterfaces/auth/otp-repository.interface";
 import { OtpRepository } from "@/interfaceAdapters/repositories/auth/otp.repository";
+import { IRefreshTokenRepository } from "@/entities/repositoryInterfaces/auth/refresh-token-repository.interface";
+import { RefreshTokenRepository } from "@/interfaceAdapters/repositories/auth/refresh-token.respository";
+
+
+
 
 export class RepositoryRegistry{
     static registerRepositories():void{
@@ -20,6 +25,11 @@ export class RepositoryRegistry{
         container.register<IRedisTokenRepository>("IRedisTokenRepository", {
 			useClass: RedisTokenRepository,
 		});
+
+        container.register<IRefreshTokenRepository>("IRefreshTokenRepository", {
+			useClass: RefreshTokenRepository,
+		});
+
         
     }
 }

@@ -4,6 +4,7 @@ import {
   registerController,
   sendOtpEmailController,
   verifyOtpController,
+  loginController,
 } from "../../di/resolver";
 export class AuthRoutes extends BaseRoute {
   constructor() {
@@ -15,11 +16,15 @@ export class AuthRoutes extends BaseRoute {
       registerController.handle(req, res);
     });
 
-    this.router.post("/send-otp", (req: Request, res: Response) => {
+    router.post("/signin", (req: Request, res: Response) => {
+			loginController.handle(req, res);
+		});
+    
+    router.post("/send-otp", (req: Request, res: Response) => {
       sendOtpEmailController.handle(req, res);
     });
 
-    this.router.post("/verify-otp", (req: Request, res: Response) => {
+    router.post("/verify-otp", (req: Request, res: Response) => {
       verifyOtpController.handle(req, res);
     });
   }
