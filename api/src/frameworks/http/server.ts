@@ -7,6 +7,7 @@ import morgan from 'morgan'
 
 import { config } from '../../shared/config'
 import { AuthRoutes } from '../routes/auth/auth.route'
+import { PrivateRoutes } from "../routes/private/private.route";
 
 import { notFound } from '@/interfaceAdapters/middlewares/not-found.middleware'
 import { errorHandler } from '../../interfaceAdapters/middlewares/error.middlewares'
@@ -50,6 +51,7 @@ export class Server{
 
 	private configureRoutes(): void {
 		this._app.use("/api/v1/auth", new AuthRoutes().router);
+		this._app.use("/api/v1/pvt", new PrivateRoutes().router)
 		this._app.use("*", notFound);
 	}
 

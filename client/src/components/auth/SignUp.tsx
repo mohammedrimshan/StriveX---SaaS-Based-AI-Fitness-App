@@ -8,7 +8,7 @@ import { UserRole } from "@/types/UserRole";
 import { User } from "@/types/User";
 import { useFormik } from "formik";
 import { signupSchema } from "@/utils/validations/signup.validator";
-import { Header } from "@/components/common/Header/PublicHeader";
+// import { Header } from "@/components/common/Header/PublicHeader";
 import OTPModal from "@/components/modals/OTPModal";
 import { useSendOTPMutation } from "@/hooks/auth/useSendOTP";
 import { useVerifyOTPMutation } from "@/hooks/auth/useVerifyOTP";
@@ -96,7 +96,7 @@ const SignUp = ({ userType, onSubmit, setLogin, isLoading }: SignUpProps) => {
 
 	return (
 		<>
-			<Header />
+			{/* <Header /> */}
 			<motion.div className="min-h-screen flex flex-col md:flex-row">
 				{/* Left Section with Image */}
 				<div className="hidden md:flex w-1/2 bg-[var(--bg-violet)] relative overflow-hidden justify-center items-end">

@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { Header } from "../components/common/Header/PublicHeader"
+// Remove this import since we're handling header in ClientLayout
+// import { Header } from "../components/common/Header/PublicHeader"
 import { Footer } from "@/components/common/Footer"
 import { HeroSection } from "@/components/landing/hero-section"
 import { ServicesSection } from "@/components/landing/service-section"
@@ -10,7 +11,6 @@ import { DataDrivenSection } from "@/components/landing/data-driven-section"
 import { SuccessStoriesSection } from "@/components/landing/success-stories-section"
 import { TransformSection } from "@/components/landing/transform-section"
 import { ChallengesSection } from "@/components/landing/challenges-section"
-import { BrowserRouter as Router } from 'react-router-dom'
 
 export default function Home() {
   const smokeRef = useRef<HTMLDivElement>(null)
@@ -36,7 +36,7 @@ export default function Home() {
   return (
     <div className="relative overflow-hidden">
       <div ref={smokeRef} className="smoke-effect fixed inset-0 pointer-events-none z-0" />
-      <Header />
+      {/* Remove the Header component from here */}
       <main>
         <HeroSection />
         <ServicesSection />

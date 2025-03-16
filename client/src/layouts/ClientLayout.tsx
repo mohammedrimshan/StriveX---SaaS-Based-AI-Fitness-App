@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { PrivateHeader } from "@/components/common/Header/PrivateHeader";
+import { Header as PublicHeader } from "@/components/common/Header/PublicHeader";
 import { AppSidebar } from "@/components/sidebars/SideBar";
 import { useLogout } from "@/hooks/auth/useLogout";
 import { logoutClient } from "@/services/auth/authService";
@@ -15,7 +16,8 @@ export const ClientLayout = () => {
 	const { successToast, errorToast } = useToaster();
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const user = useSelector((state: RootState) => state.client.client)
+	const user = useSelector((state: RootState) => state.client.client);
+	const isLoggedIn = !!user; // Check if user exists
 	const { mutate: logoutReq } = useLogout(logoutClient);
 
 	const handleLogout = () => {
@@ -33,23 +35,29 @@ export const ClientLayout = () => {
 
 	return (
 		<div className="flex flex-col min-h-screen">
-			{/* Header */}
-			<PrivateHeader
-				className="z-40"
-				userName={user?.firstName}
-				// userLocation={userLocation}
-				onLogout={handleLogout}
-				// userAvatar={userAvatar}
-				notifications={notifications}
-				onSidebarToggle={() => setIsSideBarVisible(!isSideBarVisible)}
-			/>
+			{/* Conditional Header Rendering */}
+			{isLoggedIn ? (
+				<PrivateHeader
+					className="z-40"
+					userName={user?.firstName}
+					onLogout={handleLogout}
+					notifications={notifications}
+					onSidebarToggle={() => setIsSideBarVisible(!isSideBarVisible)}
+				/>
+			) : (
+				<PublicHeader />
+			)}
 
-			{/* Main content area with sidebar and outlet */}
-			<AppSidebar
-				isVisible={isSideBarVisible}
-				onClose={() => setIsSideBarVisible(false)}
-				handleLogout={handleLogout}
-			/>
+			{/* Show sidebar only for logged in users */}
+			{isLoggedIn && (
+				<AppSidebar
+					isVisible={isSideBarVisible}
+					onClose={() => setIsSideBarVisible(false)}
+					handleLogout={handleLogout}
+					role="client"
+				/>
+			)}
+			
 			{/* Main content */}
 			<Outlet />
 		</div>

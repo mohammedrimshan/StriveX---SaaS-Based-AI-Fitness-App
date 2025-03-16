@@ -4,7 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useFormik } from "formik";
 import sgn2 from "@/assets/common/sgn2.jpg";
-import { Header } from "@/components/common/Header/PublicHeader";
+// import { Header } from "@/components/common/Header/PublicHeader";
 import { signinSchema } from "@/utils/validations/signin.validator";
 import { UserRole } from "@/types/UserRole";
 import { motion } from "framer-motion";
@@ -55,7 +55,7 @@ const SignIn = ({
 
 	return (
 		<>
-			<Header />
+			{/* <Header /> */}
 			<div className="min-h-screen flex flex-col md:flex-row">
 				{/* Left Section with Image */}
 				<div className="hidden md:flex w-1/2 bg-[var(--bg-violet)] relative overflow-hidden justify-center items-end">

@@ -1,4 +1,5 @@
 import { container } from "tsyringe";
+import { BlockStatusMiddleware } from "../../interfaceAdapters/middlewares/block-status.middleware";
 
 
 //*===== Controller Imports ======*//
@@ -12,6 +13,11 @@ import { RefreshTokenController } from "../../interfaceAdapters/controllers/auth
 
 export class ControllerRegistry{
     static registerController():void{
+
+        container.register("BlockStatusMiddleware", {
+			useClass: BlockStatusMiddleware,
+		});
+
         container.register("RegisterUserController",{
             useClass : RegisterUserController
         })

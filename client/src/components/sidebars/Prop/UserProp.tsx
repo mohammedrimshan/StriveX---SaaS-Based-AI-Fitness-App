@@ -1,44 +1,123 @@
-import { useState } from "react";
-import { AppSidebar } from "@/components/sidebars/SideBar";
-import { PrivateHeader } from "@/components/common/Header/PrivateHeader";
 import { 
-  Dumbbell, HomeIcon, Activity, Calendar, 
-  Bot, CreditCard, HelpCircle 
+  HomeIcon, 
+  Dumbbell, 
+  Bot, 
+  Activity, 
+  Calendar, 
+  CreditCard,
+  HelpCircle,
+  Settings,
+  Users,
+  LayoutDashboard
 } from "lucide-react";
 
-export default function DashboardLayout({ children }) {
-  const [sidebarVisible, setSidebarVisible] = useState(false);
+const navItems = {
+  client: [
+    {
+      title: "Dashboard",
+      icon: HomeIcon,
+      path: "/dashboard",
+    },
+    {
+      title: "Workouts",
+      icon: Dumbbell,
+      path: "/workouts",
+    },
+    {
+      title: "AI Diet & Work Out",
+      icon: Bot,
+      path: "/ai-planner",
+    },
+    {
+      title: "Progress Tracker",
+      icon: Activity,
+      path: "/progress",
+    },
+    {
+      title: "Calendar",
+      icon: Calendar,
+      path: "/calendar",
+    },
+    {
+      title: "Subscription",
+      icon: CreditCard,
+      path: "/subscription",
+    },
+    {
+      title: "Support",
+      icon: HelpCircle,
+      path: "/support",
+    },
+    {
+      title: "Settings",
+      icon: Settings,
+      path: "/settings",
+    },
+  ],
+  trainer: [
+    {
+      title: "Dashboard",
+      icon: LayoutDashboard,
+      path: "/trainer/dashboard",
+    },
+    {
+      title: "Clients",
+      icon: Users,
+      path: "/trainer/clients",
+    },
+    {
+      title: "Schedule",
+      icon: Calendar,
+      path: "/trainer/schedule",
+    },
+    {
+      title: "Workout Plans",
+      icon: Dumbbell,
+      path: "/trainer/workout-plans",
+    },
+    {
+      title: "Earnings",
+      icon: CreditCard,
+      path: "/trainer/earnings",
+    },
+    {
+      title: "Settings",
+      icon: Settings,
+      path: "/trainer/settings",
+    },
+  ],
+  admin: [
+    {
+      title: "Dashboard",
+      icon: LayoutDashboard,
+      path: "/admin/dashboard",
+    },
+    {
+      title: "Manage Clients",
+      icon: Users,
+      path: "/admin/clients",
+    },
+    {
+      title: "Manage Trainers",
+      icon: Users,
+      path: "/admin/trainers",
+    }, 
+    {
+      title: "Subscriptions",
+      icon: CreditCard,
+      path: "/admin/subscriptions",
+    },
+    {
+      title: "Analytics", 
+      icon: Activity,
+      path: "/admin/analytics",
+    },
+    {
+      title: "Settings",
+      icon: Settings,
+      path: "/admin/settings",
+    },
+  ],
+};
 
-  const navItems = [
-    { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
-    { name: "Workouts", href: "/workouts", icon: Dumbbell },
-    { name: "AI Diet & Work Out", href: "/ai-planner", icon: Bot },
-    { name: "Progress Tracker", href: "/progress", icon: Activity },
-    { name: "Calendar", href: "/calendar", icon: Calendar },
-    { name: "Subscription", href: "/subscription", icon: CreditCard },
-    { name: "Support", href: "/support", icon: HelpCircle },
-  ];
-
-  const handleLogout = () => {
-    // Your logout logic here
-    console.log("Logging out...");
-  };
-
-  return (
-    <div className="min-h-screen bg-background">
-      <PrivateHeader 
-        onSidebarToggle={() => setSidebarVisible(true)}
-        onLogout={handleLogout}
-      />
-      <AppSidebar 
-        isVisible={sidebarVisible}
-        onClose={() => setSidebarVisible(false)}
-        handleLogout={handleLogout}
-        navItems={navItems}
-      />
-      <main className="pt-16 px-4 container mx-auto">
-        {children}
-      </main>
-    </div>
-  );
-}
+export default navItems;

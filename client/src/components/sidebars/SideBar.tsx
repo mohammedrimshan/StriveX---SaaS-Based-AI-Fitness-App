@@ -4,19 +4,14 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dumbbell } from "lucide-react";
+import SideBarItems from "./Prop/UserProp";
+import ConfirmationModal from "@/components/modals/ConfirmationModal";
 
 interface NavItemProps {
   item: {
-    name: string;
-    href: string;
+    title: string;
+    path: string;
     icon: React.ElementType;
   };
   isActive: boolean;
@@ -28,16 +23,16 @@ const NavItem = ({ item, isActive, onClick }: NavItemProps) => {
 
   return (
     <Link
-      href={item.href}
+      href={item.path}
       className={cn(
         "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
         isActive
-          ? "bg-primary text-white font-medium"
-          : "text-foreground/70 hover:bg-accent/10 hover:text-primary"
+          ? "bg-violet-600 text-white font-medium"
+          : "text-foreground/70 hover:bg-violet-100/10 hover:text-violet-400"
       )}
       onClick={onClick}>
       <Icon className="h-5 w-5" />
-      <span>{item.name}</span>
+      <span>{item.title}</span>
     </Link>
   );
 };
@@ -47,11 +42,7 @@ interface SidebarProps {
   onClose: () => void;
   handleLogout?: () => void;
   className?: string;
-  navItems?: Array<{
-    name: string;
-    href: string;
-    icon: React.ElementType;
-  }>;
+  role: "admin" | "client" | "trainer";
 }
 
 export function AppSidebar({
@@ -59,11 +50,12 @@ export function AppSidebar({
   onClose,
   handleLogout,
   className,
-  navItems = [],
+  role = "client",
 }: SidebarProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] =
-    useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  
+  const navItems = SideBarItems[role];
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -101,7 +93,6 @@ export function AppSidebar({
     if (handleLogout) {
       handleLogout();
     }
-    setIsConfirmationModalOpen(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem("activeItem");
     }
@@ -124,20 +115,22 @@ export function AppSidebar({
       </AnimatePresence>
 
       {/* Sidebar */}
-      <div
+      <motion.div
+        initial={{ x: "-100%" }}
+        animate={{ x: isVisible ? 0 : "-100%" }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={cn(
-          "fixed left-0 z-50 h-full w-64 transform transition-transform duration-300 ease-in-out",
-          isVisible ? "translate-x-0" : "-translate-x-full",
+          "fixed left-0 z-50 h-full w-64 shadow-lg",
           className
         )}>
-        <div className="flex flex-col h-full bg-background border-r border-border shadow-lg">
+        <div className="flex flex-col h-full bg-background border-r border-border">
           {/* Sidebar Header */}
           <div className="flex justify-between items-center px-6 py-3.5 border-b border-border">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 text-primary">
+              <div className="h-8 w-8 text-violet-500">
                 <Dumbbell className="h-8 w-8" />
               </div>
-              <span className="text-2xl font-bold gradient-text">
+              <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-purple-600">
                 StriveX
               </span>
             </div>
@@ -145,7 +138,7 @@ export function AppSidebar({
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="text-foreground hover:text-primary hover:bg-transparent">
+              className="text-foreground hover:text-violet-500 hover:bg-transparent">
               <ArrowLeftCircle className="h-6 w-6" />
             </Button>
           </div>
@@ -178,37 +171,20 @@ export function AppSidebar({
             </Button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Confirmation Modal for Logout */}
-      <Dialog
-        open={isConfirmationModalOpen}
-        onOpenChange={setIsConfirmationModalOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-background text-foreground border-border">
-          <DialogHeader>
-            <DialogTitle>Logout</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Are you sure you want to logout from StriveX?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setIsConfirmationModalOpen(false)}
-              className="border-border text-foreground hover:bg-accent/10 hover:text-foreground">
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={onConfirmLogout}
-              className="bg-red-600 hover:bg-red-700">
-              Logout
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => setIsConfirmationModalOpen(false)}
+        onConfirm={onConfirmLogout}
+        title="Logout from StriveX"
+        description="Are you sure you want to sign out from your account? You'll need to log back in to access your workouts and progress."
+        confirmText="Sign Out"
+        cancelText="Cancel"
+        isDarkMode={true}
+        icon="logout"
+      />
     </>
   );
 }
-
-import { Dumbbell } from "lucide-react";

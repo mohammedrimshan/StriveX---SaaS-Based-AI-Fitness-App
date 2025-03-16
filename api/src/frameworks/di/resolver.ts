@@ -6,8 +6,15 @@ import { VerifyOtpController } from "@/interfaceAdapters/controllers/auth/verify
 import { LoginUserController } from "../../interfaceAdapters/controllers/auth/login.controller";
 import { LogoutUserController } from "../../interfaceAdapters/controllers/auth/logout.controller";
 import { RefreshTokenController } from "../../interfaceAdapters/controllers/auth/refresh-token.controller";
+import { BlockStatusMiddleware } from "./../../interfaceAdapters/middlewares/block-status.middleware";
+
 
 DependancyInjection.registerAll();
+
+
+export const blockStatusMiddleware = container.resolve(BlockStatusMiddleware);
+
+
 export const registerController = container.resolve(RegisterUserController);
 
 export const sendOtpEmailController = container.resolve(SendOtpEmailController);
