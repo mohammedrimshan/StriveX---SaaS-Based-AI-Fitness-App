@@ -4,6 +4,7 @@ import { strongEmailRegex } from "../../../../shared/validations/email.validatio
 import { passwordSchema } from "../../../../shared/validations/password.validation";
 import { nameSchema } from "../../../../shared/validations/name.validation";
 import { phoneNumberSchema } from "../../../../shared/validations/phone.validation";
+import client from "@/frameworks/cache/redis.client";
 
 
 const adminSchema = z.object({
@@ -18,9 +19,10 @@ const userSchema = z.object({
   firstName: nameSchema, 
   lastName: nameSchema,
   email: strongEmailRegex, 
-  phone: phoneNumberSchema, 
+  phoneNumber: phoneNumberSchema, 
   password: passwordSchema, 
-  role: z.literal("user"), 
+  confirmPassword: passwordSchema,
+  role: z.literal("client"), 
 });
 
 
@@ -37,6 +39,6 @@ const trainerSchema = z.object({
 
 export const userSchemas = {
   admin: adminSchema,
-  user: userSchema,
+  client: userSchema,
   trainer: trainerSchema,
 };

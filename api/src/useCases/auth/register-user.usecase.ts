@@ -12,21 +12,23 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
 
   constructor(
     @inject("ClientRegisterStrategy")
-    private userRegister: IRegisterStrategy
+    private clientRegister: IRegisterStrategy
   ) {
     this.strategies = {
-      user: this.userRegister,
+      client: this.clientRegister,
     };
   }
 
-  async execute(user: UserDTO): Promise<void> {
-    const strategy = this.strategies[user.role];
+  async execute(client: UserDTO): Promise<void> {
+    console.log("Received Role:", client.role);
+    console.log("Available Strategies:", Object.keys(this.strategies));
+    const strategy = this.strategies[client.role];
     if (!strategy) {
       throw new CustomError(
         ERROR_MESSAGES.INVALID_ROLE,
         HTTP_STATUS.FORBIDDEN
       );
     }
-    await strategy.register(user);
+    await strategy.register(client);
   }
 }

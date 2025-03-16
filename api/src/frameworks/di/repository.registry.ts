@@ -4,13 +4,18 @@ import { IClientRepository } from "../../entities/repositoryInterfaces/client/cl
 import { ClientRepository } from "../../interfaceAdapters/repositories/client/client.repository";
 import { IRedisTokenRepository } from "../../entities/repositoryInterfaces/redis/redis-token-repository.interface";
 import { RedisTokenRepository } from "../../interfaceAdapters/repositories/redis/redis-token.repository";
-
+import { IOtpRepository } from "../../entities/repositoryInterfaces/auth/otp-repository.interface";
+import { OtpRepository } from "@/interfaceAdapters/repositories/auth/otp.repository";
 
 export class RepositoryRegistry{
     static registerRepositories():void{
         container.register<IClientRepository>("IClientRepository",{
             useClass:ClientRepository
         })
+
+        container.register<IOtpRepository>("IOtpRepository", {
+			useClass: OtpRepository,
+		});
 
         container.register<IRedisTokenRepository>("IRedisTokenRepository", {
 			useClass: RedisTokenRepository,

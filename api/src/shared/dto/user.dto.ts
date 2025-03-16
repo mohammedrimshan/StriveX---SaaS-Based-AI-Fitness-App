@@ -15,9 +15,9 @@ export interface ClientDTO {
   firstName: string; 
   lastName: string;
   email: string; 
-  phone: string; 
+  phoneNumber: string; 
   password: string; 
-  role: "user"; 
+  role: "client"; 
 }
 
 

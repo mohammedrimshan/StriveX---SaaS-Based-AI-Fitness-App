@@ -21,6 +21,8 @@ export class RegisterUserController {
   async handle(req: Request, res: Response): Promise<void> {
     try {
       const { role } = req.body as UserDTO;
+      console.log("Signup Request Body:", req.body);
+
       const schema = userSchemas[role];
 
       if (!schema) {
@@ -41,6 +43,7 @@ export class RegisterUserController {
       });
     } catch (error) {
       if (error instanceof ZodError) {
+        console.log("Validation Errors:", error.errors); 
         const errors = error.errors.map((err) => ({
           message: err.message,
         }));
@@ -54,6 +57,11 @@ export class RegisterUserController {
       }
 
       if (error instanceof CustomError) {
+        console.log("Custom error details:", {
+          message: error.message,
+          statusCode: error.statusCode,
+          stack: error.stack
+        });
         res.status(error.statusCode).json({
           success: false,
           message: error.message,
