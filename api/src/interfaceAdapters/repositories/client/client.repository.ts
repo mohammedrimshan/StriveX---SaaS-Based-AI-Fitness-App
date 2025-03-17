@@ -28,4 +28,47 @@ export class ClientRepository implements IClientRepository{
             id:client._id.toString(),
         } as IClientEntity
     }
+    async find(
+		filter: any,
+		skip: number,
+		limit: number
+	): Promise<{ user: IClientEntity[] | []; total: number }> {
+		const [user, total] = await Promise.all([
+			ClientModel.find(filter)
+				.sort({ createdAt: -1 })
+				.skip(skip)
+				.limit(limit),
+			ClientModel.countDocuments(filter),
+		]);
+
+		return {
+			user,
+			total,
+		};
+	}
+
+	async updateByEmail(
+		email: string,
+		updates: Partial<IClientEntity>
+	): Promise<IClientEntity | null> {
+		const client = await ClientModel.findOneAndUpdate(
+			{ email },
+			{ $set: updates },
+			{ new: true }
+		).lean();
+		if (!client) return null;
+
+		return {
+			...client,
+			id: client._id.toString(),
+		} as IClientEntity;
+	}
+
+	async findByIdAndUpdateStatus(id: any, status: string): Promise<void> {
+		await ClientModel.findByIdAndUpdate(id, {
+			$set: {
+				status: status,
+			},
+		});
+	}
 }

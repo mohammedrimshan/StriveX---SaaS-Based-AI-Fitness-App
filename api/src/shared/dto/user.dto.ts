@@ -3,7 +3,8 @@ import { TRole } from "../constants";
 
 export interface AdminDTO {
   adminId?: string; 
-  name: string; 
+  firstName: string; 
+  lastName: string; 
   email: string; 
   password: string; 
   role: "admin"; 

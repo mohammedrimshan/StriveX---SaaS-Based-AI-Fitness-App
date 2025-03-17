@@ -12,12 +12,12 @@ export class LoginUserUseCase implements ILoginUserUseCase {
 	constructor(
 		@inject("ClientLoginStrategy") private clientLogin: ILoginStrategy,
 		// @inject("TrainerLoginStrategy") private trainerLogin: ILoginStrategy,
-		// @inject("AdminLoginStrategy") private adminLogin: ILoginStrategy
+		 @inject("AdminLoginStrategy") private adminLogin: ILoginStrategy
 	) {
 		this.strategies = {
 			client: clientLogin,
 			// trainer: trainerLogin,
-			// admin: adminLogin
+			 admin: adminLogin
 		};
 	}
 

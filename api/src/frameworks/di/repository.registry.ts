@@ -1,22 +1,25 @@
 import { container } from "tsyringe";
 
 import { IClientRepository } from "../../entities/repositoryInterfaces/client/client-repository.interface";
-import { ClientRepository } from "../../interfaceAdapters/repositories/client/client.repository";
+import { ClientRepository } from "@/interfaceAdapters/repositories/client/client.repository";
 import { IRedisTokenRepository } from "../../entities/repositoryInterfaces/redis/redis-token-repository.interface";
 import { RedisTokenRepository } from "../../interfaceAdapters/repositories/redis/redis-token.repository";
 import { IOtpRepository } from "../../entities/repositoryInterfaces/auth/otp-repository.interface";
 import { OtpRepository } from "@/interfaceAdapters/repositories/auth/otp.repository";
 import { IRefreshTokenRepository } from "@/entities/repositoryInterfaces/auth/refresh-token-repository.interface";
 import { RefreshTokenRepository } from "@/interfaceAdapters/repositories/auth/refresh-token.respository";
+import { IAdminRepository } from "@/entities/repositoryInterfaces/admin/admin-repository.interface";
+import { AdminRepository } from "@/interfaceAdapters/repositories/admin/admin.repository";
 
 
 
 
 export class RepositoryRegistry{
     static registerRepositories():void{
-        container.register<IClientRepository>("IClientRepository",{
-            useClass:ClientRepository
-        })
+        container.register<IClientRepository>("IClientRepository", {
+			useClass: ClientRepository,
+		});
+
 
         container.register<IOtpRepository>("IOtpRepository", {
 			useClass: OtpRepository,
@@ -30,6 +33,8 @@ export class RepositoryRegistry{
 			useClass: RefreshTokenRepository,
 		});
 
-        
+        container.register<IAdminRepository>("IAdminRepository", {
+			useClass: AdminRepository
+		})
     }
 }

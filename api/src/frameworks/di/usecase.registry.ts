@@ -4,8 +4,13 @@ import { IBcrypt } from "../../frameworks/security/bcrypt.interface";
 import { PasswordBcrypt } from "../../frameworks/security/password.bcrypt";
 import { OtpBcrypt } from "../security/otp.bcrypt";
 
+import { IRegisterStrategy } from "@/useCases/auth/register-strategies/register-strategy.interface";
 import { ClientRegisterStrategy } from "../../useCases/auth/register-strategies/client-register.stratergy";
 import { ClientLoginStrategy } from "@/useCases/auth/login-strategies/client-login.strategy";
+import { AdminRegisterStrategy } from "@/useCases/auth/register-strategies/admin-register.strategy";
+import { AdminLoginStrategy } from "@/useCases/auth/login-strategies/admin-login.strategy";
+
+
 import { IOtpService } from "../../entities/services/otp-service.interface";
 import { OtpService } from "../../interfaceAdapters/services/otp.service";
 import { IEmailService } from "../../entities/services/email-service.interface";
@@ -67,6 +72,14 @@ export class UseCaseRegistry {
 
 		container.register("ClientLoginStrategy", {
 			useClass: ClientLoginStrategy,
+		});
+
+		container.register<IRegisterStrategy>("AdminRegisterStrategy", {
+			useClass: AdminRegisterStrategy,
+		  });
+	  
+		container.register("AdminLoginStrategy", {
+			useClass: AdminLoginStrategy,
 		});
 
 		//* ====== Register UseCases ====== *//

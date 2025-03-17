@@ -8,7 +8,8 @@ import client from "@/frameworks/cache/redis.client";
 
 
 const adminSchema = z.object({
-  name: nameSchema, 
+  firstName: nameSchema, 
+  lastName: nameSchema,
   email: strongEmailRegex, 
   password: passwordSchema, 
   role: z.literal("admin"), 

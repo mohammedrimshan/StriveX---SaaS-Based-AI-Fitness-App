@@ -4,10 +4,11 @@ interface Admin {
 	id: string;
 	firstName: string;
 	lastName: string;
+	phoneNumber:string;
 	email: string;
 	role: string;
 	profileImage: string;
-	isAdmin: boolean;
+	isAdmin?: boolean;
 }
 
 interface AdminState {

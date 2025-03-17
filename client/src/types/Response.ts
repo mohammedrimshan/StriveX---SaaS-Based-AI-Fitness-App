@@ -14,5 +14,6 @@ export interface IAuthResponse extends IAxiosResponse {
       role: UserRole;
       profileImage: string;
       phoneNumber: string;
+      isAdmin?:boolean
    }
 }
