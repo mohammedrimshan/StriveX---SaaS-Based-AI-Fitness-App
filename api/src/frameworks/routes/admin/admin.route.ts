@@ -1,42 +1,42 @@
 
 import { Request, RequestHandler, Response } from "express";
 
-
 import {
 	authorizeRole,
 	decodeToken,
 	verifyAuth,
 } from "../../../interfaceAdapters/middlewares/auth.middleware";
-import {
-	blockStatusMiddleware,
-	logoutController,
-	refreshTokenController
-} from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
 
-export class ClientRoutes extends BaseRoute {
+
+import {
+	blockStatusMiddleware,
+	logoutController,
+	refreshTokenController,
+} from "../../di/resolver";
+
+export class AdminRoutes extends BaseRoute {
 	constructor() {
 		super();
 	}
 	protected initializeRoutes(): void {
-		let router = this.router;
+    let router = this.router;
+		
 		// logout
-		router.post(
-			"/client/logout",
+	    router.post(
+			"/admin/logout",
 			verifyAuth,
-			authorizeRole(["client"]),
-			blockStatusMiddleware.checkStatus as RequestHandler,
+			authorizeRole(["admin"]),
 			(req: Request, res: Response) => {
 				logoutController.handle(req, res);
 			}
 		);
 
 		router.post(
-			"/client/refresh-token",
+			"/admin/refresh-token",
 			decodeToken,
 			(req: Request, res: Response) => {
-				console.log("refreshing client", req.body);
 				refreshTokenController.handle(req, res);
 			}
 		);

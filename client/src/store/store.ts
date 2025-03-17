@@ -1,5 +1,5 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import { persistStore, persistReducer } from "redux-persist";
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import clientReducer from "./slices/client.slice";
 import trainerReducer from "./slices/trainer.slice";
@@ -9,7 +9,7 @@ import adminReducer from "./slices/admin.slice";
 const rootPersistConfig = {
   key: "session",
   storage,
-  whitelist: ["client", "trainer"], 
+  whitelist: ["client", "trainer", "admin"],
 };
 
 // Combine reducers
@@ -28,7 +28,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }),
 });

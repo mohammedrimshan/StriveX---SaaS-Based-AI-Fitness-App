@@ -46,12 +46,12 @@ export const AdminAuthRoute = ({
 }: ProtectedRouteProps) => {
 	const userRole = useSelector((state: RootState) => state.admin.admin?.role);
 	if (!userRole) {
-		return <Navigate to="/" />;
+		return <Navigate to="/admin" replace />;
 	}
 
 	return allowedRoles.includes(userRole) ? (
 		element
 	) : (
-		<Navigate to="/unauthorized" />
+		<Navigate to="/unauthorized" replace />
 	);
 };
