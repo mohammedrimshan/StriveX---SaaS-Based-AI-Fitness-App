@@ -6,6 +6,10 @@ export interface User {
   email: string;
   phoneNumber: string;
   role?: UserRole;
+  profileImage?: string;
+	status: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface ILoginData {
@@ -14,18 +18,16 @@ export interface ILoginData {
   role: UserRole;
 }
 
-export interface IAdmin {
-  email: string;
-  password: string;
-  role: "admin";
+export interface IAdmin extends User {
+	isAdmin?: boolean;
 }
 
-export interface IClient {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  role: "client";
+export interface IClient extends User{
+  id: string;
+  isActive?: boolean;
+  specialization?: string;
+  preferences?: string[];
+  status: string;
 }
 
 export interface ITrainer {

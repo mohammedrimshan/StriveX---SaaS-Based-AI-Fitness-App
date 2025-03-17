@@ -36,6 +36,10 @@ import { IRevokeRefreshTokenUseCase } from "../../entities/useCaseInterfaces/aut
 import { RevokeRefreshTokenUseCase } from "../../useCases/auth/revoke-refresh-token.usecase";
 import { IRefreshTokenUseCase } from "../../entities/useCaseInterfaces/auth/refresh-token-usecase.interface";
 import { RefreshTokenUseCase } from "../../useCases/auth/refresh-token.usecase";
+import { IGetAllUsersUseCase } from "@/entities/useCaseInterfaces/admin/get-all-users-usecase.interface";
+import { GetAllUsersUseCase } from "@/useCases/user/get-all-users.usecase";
+import { UpdateUserStatusUseCase } from "@/useCases/user/update-user-status.usecase";
+import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-user-status-usecase.interface";
 
 export class UseCaseRegistry {
 	static registerUseCases(): void {
@@ -117,5 +121,16 @@ export class UseCaseRegistry {
 		container.register<IRefreshTokenUseCase>("IRefreshTokenUseCase", {
 			useClass: RefreshTokenUseCase,
 		});
+
+		container.register<IGetAllUsersUseCase>("IGetAllUsersUseCase", {
+			useClass: GetAllUsersUseCase,
+		});
+
+		container.register<IUpdateUserStatusUseCase>(
+			"IUpdateUserStatusUseCase",
+			{
+				useClass: UpdateUserStatusUseCase,
+			}
+		);
 	}
 }

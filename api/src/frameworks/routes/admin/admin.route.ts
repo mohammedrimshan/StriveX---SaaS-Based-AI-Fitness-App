@@ -14,6 +14,7 @@ import {
 	blockStatusMiddleware,
 	logoutController,
 	refreshTokenController,
+    userController
 } from "../../di/resolver";
 
 export class AdminRoutes extends BaseRoute {
@@ -30,6 +31,24 @@ export class AdminRoutes extends BaseRoute {
 			authorizeRole(["admin"]),
 			(req: Request, res: Response) => {
 				logoutController.handle(req, res);
+			}
+		);
+
+        router.get(
+			"/admin/users",
+			verifyAuth,
+			authorizeRole(["admin"]),
+			(req: Request, res: Response) => {
+				userController.getAllUsers(req, res);
+			}
+		);
+
+        router.patch(
+			"/admin/user-status",
+			verifyAuth,
+			authorizeRole(["admin"]),
+			(req: Request, res: Response) => {
+				userController.updateUserStatus(req, res);
 			}
 		);
 
