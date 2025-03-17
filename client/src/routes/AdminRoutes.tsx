@@ -4,7 +4,7 @@ import { AdminAuthRoute } from "@/utils/protected/ProtectedRoute";
 import { NoAdminAuthRoute } from "@/utils/protected/PublicRoute";
 import { Route, Routes } from "react-router-dom";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
-
+import UserManagement from "@/pages/admin/AdminUserManagement";
 export const AdminRoutes = () => {
 	return (
 		<Routes>
@@ -24,6 +24,7 @@ export const AdminRoutes = () => {
 					/>
 				}>
 				<Route path="dashboard" element={<AdminDashboard />} />
+				<Route path="clients" element={<UserManagement />} />
 				{/* Add more admin routes here as needed */}
 			</Route>
 		</Routes>
