@@ -10,8 +10,8 @@ import { IRefreshTokenRepository } from "@/entities/repositoryInterfaces/auth/re
 import { RefreshTokenRepository } from "@/interfaceAdapters/repositories/auth/refresh-token.respository";
 import { IAdminRepository } from "@/entities/repositoryInterfaces/admin/admin-repository.interface";
 import { AdminRepository } from "@/interfaceAdapters/repositories/admin/admin.repository";
-
-
+import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
+import { TrainerRepository } from "@/interfaceAdapters/repositories/trainer/trainer.repository";
 
 
 export class RepositoryRegistry{
@@ -35,6 +35,11 @@ export class RepositoryRegistry{
 
         container.register<IAdminRepository>("IAdminRepository", {
 			useClass: AdminRepository
-		})
+		});
+       
+        container.register<ITrainerRepository>("ITrainerRepository", {
+			useClass: TrainerRepository
+		});
+
     }
 }

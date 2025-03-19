@@ -14,11 +14,14 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
     @inject("ClientRegisterStrategy")
     private clientRegister: IRegisterStrategy,
     @inject("AdminRegisterStrategy")
-    private adminRegister: IRegisterStrategy
+    private adminRegister: IRegisterStrategy,
+    @inject("TrainerRegisterStrategy")
+    private trainerRegister: IRegisterStrategy,
   ) {
     this.strategies = {
       client: this.clientRegister,
       admin: this.adminRegister,
+      trainer : this.trainerRegister
     };
   }
 

@@ -1,11 +1,12 @@
 import { TRole } from "../../shared/constants";
 
 export interface IUserEntity {
+  clientId: string;
   id?: string;
   firstName?: string;
   lastName?: string;
   email: string;
-  phone?: string;
+  phoneNumber?: string;
   password: string;
   role: TRole;
   profileImage?: string;

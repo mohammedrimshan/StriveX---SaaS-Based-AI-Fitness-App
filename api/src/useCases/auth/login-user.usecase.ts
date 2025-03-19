@@ -16,8 +16,8 @@ export class LoginUserUseCase implements ILoginUserUseCase {
 	) {
 		this.strategies = {
 			client: clientLogin,
-			// trainer: trainerLogin,
-			 admin: adminLogin
+			//trainer: trainerLogin,
+			admin: adminLogin
 		};
 	}
 

@@ -38,7 +38,7 @@ export class ClientRegisterStrategy implements IRegisterStrategy {
         firstName,
         lastName,
         email,
-        phone:phoneNumber,
+        phoneNumber,
         password: hashedPassword ?? "",
         clientId,
         role: "client",

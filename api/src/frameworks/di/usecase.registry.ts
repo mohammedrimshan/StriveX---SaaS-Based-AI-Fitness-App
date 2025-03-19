@@ -9,7 +9,7 @@ import { ClientRegisterStrategy } from "../../useCases/auth/register-strategies/
 import { ClientLoginStrategy } from "@/useCases/auth/login-strategies/client-login.strategy";
 import { AdminRegisterStrategy } from "@/useCases/auth/register-strategies/admin-register.strategy";
 import { AdminLoginStrategy } from "@/useCases/auth/login-strategies/admin-login.strategy";
-
+import { TrainerRegisterStrategy } from "@/useCases/auth/register-strategies/trainer-register.strategy";
 
 import { IOtpService } from "../../entities/services/otp-service.interface";
 import { OtpService } from "../../interfaceAdapters/services/otp.service";
@@ -85,6 +85,11 @@ export class UseCaseRegistry {
 		container.register("AdminLoginStrategy", {
 			useClass: AdminLoginStrategy,
 		});
+
+		container.register<IRegisterStrategy>("TrainerRegisterStrategy", {
+			useClass: TrainerRegisterStrategy,
+		});
+	  
 
 		//* ====== Register UseCases ====== *//
 		container.register<IRegisterUserUseCase>("IRegisterUserUseCase", {

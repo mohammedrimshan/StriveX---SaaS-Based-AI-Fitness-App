@@ -6,6 +6,8 @@ export const ROLES = {
 
 export type TRole = "client" | "trainer" | "admin";
 
+export type TrainerApprovalStatus = "pending" | "approved" | "rejected";
+
 export const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,

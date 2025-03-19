@@ -1,4 +1,5 @@
 import { TRole } from "../constants";
+import { TrainerApprovalStatus } from "@/shared/constants";
 
 
 export interface AdminDTO {
@@ -24,14 +25,15 @@ export interface ClientDTO {
 
 export interface TrainerDTO {
   trainerId?: string; 
-  name: string; 
-  email: string; 
-  phone: string; 
-  password: string; 
-  experience: number; 
-  skills: string[]; 
-  status?: "Pending" | "Approved" | "Rejected"; 
-  role: "trainer"; 
+  firstName: string; 
+  lastName: string;  
+  email: string;
+  phoneNumber: string;
+  password: string;
+  experience: number;
+  skills: string[];
+  status?: TrainerApprovalStatus; 
+  role: "trainer";
 }
 
 

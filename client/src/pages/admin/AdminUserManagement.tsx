@@ -71,6 +71,7 @@ export default function UsersPage() {
   )
   
   const clients = data?.users || []
+  console.log(clients)
   const totalPages = data?.totalPages || 1
   
   // Handle user status toggle

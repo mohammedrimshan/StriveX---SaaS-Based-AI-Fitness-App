@@ -28,12 +28,13 @@ const userSchema = z.object({
 
 
 const trainerSchema = z.object({
-  name: nameSchema, 
+  firstName: nameSchema, 
+  lastName: nameSchema,
   email: strongEmailRegex, 
-  phone: phoneNumberSchema, 
+  phoneNumber: phoneNumberSchema, 
   password: passwordSchema, 
-  experience: z.number().int().min(0).max(50), 
-  skills: z.array(z.string().min(1)).min(1), 
+  experience: z.number().int().min(0).max(50).optional(), 
+  skills: z.array(z.string().min(1)).min(1).optional(), 
   role: z.literal("trainer"), 
 });
 
