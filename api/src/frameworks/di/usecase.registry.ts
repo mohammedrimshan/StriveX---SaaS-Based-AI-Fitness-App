@@ -10,6 +10,7 @@ import { ClientLoginStrategy } from "@/useCases/auth/login-strategies/client-log
 import { AdminRegisterStrategy } from "@/useCases/auth/register-strategies/admin-register.strategy";
 import { AdminLoginStrategy } from "@/useCases/auth/login-strategies/admin-login.strategy";
 import { TrainerRegisterStrategy } from "@/useCases/auth/register-strategies/trainer-register.strategy";
+import { TrainerLoginStrategy } from "@/useCases/auth/login-strategies/trainer-login.strategy";
 
 import { IOtpService } from "../../entities/services/otp-service.interface";
 import { OtpService } from "../../interfaceAdapters/services/otp.service";
@@ -42,100 +43,101 @@ import { UpdateUserStatusUseCase } from "@/useCases/user/update-user-status.usec
 import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-user-status-usecase.interface";
 
 export class UseCaseRegistry {
-	static registerUseCases(): void {
-		//* ====== Register Bcrypts ====== *//
-		container.register<IBcrypt>("IPasswordBcrypt", {
-			useClass: PasswordBcrypt,
-		});
+  static registerUseCases(): void {
+    //* ====== Register Bcrypts ====== *//
+    container.register<IBcrypt>("IPasswordBcrypt", {
+      useClass: PasswordBcrypt,
+    });
 
-		container.register<IBcrypt>("IOtpBcrypt", {
-			useClass: OtpBcrypt,
-		});
+    container.register<IBcrypt>("IOtpBcrypt", {
+      useClass: OtpBcrypt,
+    });
 
-		//* ====== Register Services ====== *//
-		container.register<IEmailService>("IEmailService", {
-			useClass: EmailService,
-		});
+    //* ====== Register Services ====== *//
+    container.register<IEmailService>("IEmailService", {
+      useClass: EmailService,
+    });
 
-		container.register<IOtpService>("IOtpService", {
-			useClass: OtpService,
-		});
+    container.register<IOtpService>("IOtpService", {
+      useClass: OtpService,
+    });
 
-		container.register<IUserExistenceService>("IUserExistenceService", {
-			useClass: UserExistenceService,
-		});
+    container.register<IUserExistenceService>("IUserExistenceService", {
+      useClass: UserExistenceService,
+    });
 
-		container.register<ITokenService>("ITokenService", {
-			useClass: JWTService,
-		});
+    container.register<ITokenService>("ITokenService", {
+      useClass: JWTService,
+    });
 
-		//* ====== Register Strategies ====== *//
-		container.register("ClientRegisterStrategy", {
-			useClass: ClientRegisterStrategy,
-		});
+    //* ====== Register Strategies ====== *//
+    container.register("ClientRegisterStrategy", {
+      useClass: ClientRegisterStrategy,
+    });
 
-		container.register("ClientLoginStrategy", {
-			useClass: ClientLoginStrategy,
-		});
+    container.register("ClientLoginStrategy", {
+      useClass: ClientLoginStrategy,
+    });
 
-		container.register<IRegisterStrategy>("AdminRegisterStrategy", {
-			useClass: AdminRegisterStrategy,
-		  });
-	  
-		container.register("AdminLoginStrategy", {
-			useClass: AdminLoginStrategy,
-		});
+    container.register<IRegisterStrategy>("AdminRegisterStrategy", {
+      useClass: AdminRegisterStrategy,
+    });
 
-		container.register<IRegisterStrategy>("TrainerRegisterStrategy", {
-			useClass: TrainerRegisterStrategy,
-		});
-	  
+    container.register("AdminLoginStrategy", {
+      useClass: AdminLoginStrategy,
+    });
 
-		//* ====== Register UseCases ====== *//
-		container.register<IRegisterUserUseCase>("IRegisterUserUseCase", {
-			useClass: RegisterUserUseCase,
-		});
+    container.register<IRegisterStrategy>("TrainerRegisterStrategy", {
+      useClass: TrainerRegisterStrategy,
+    });
 
-		container.register<ISendOtpEmailUseCase>("ISendOtpEmailUseCase", {
-			useClass: SendOtpEmailUseCase,
-		});
+    container.register("TrainerLoginStrategy", {
+      useClass: TrainerLoginStrategy,
+    });
 
-		container.register<IVerifyOtpUseCase>("IVerifyOtpUseCase", {
-			useClass: VerifyOtpUseCase,
-		});
+    //* ====== Register UseCases ====== *//
+    container.register<IRegisterUserUseCase>("IRegisterUserUseCase", {
+      useClass: RegisterUserUseCase,
+    });
 
-		container.register<ILoginUserUseCase>("ILoginUserUseCase", {
-			useClass: LoginUserUseCase,
-		});
+    container.register<ISendOtpEmailUseCase>("ISendOtpEmailUseCase", {
+      useClass: SendOtpEmailUseCase,
+    });
 
-		container.register<IGenerateTokenUseCase>("IGenerateTokenUseCase", {
-			useClass: GenerateTokenUseCase,
-		});
+    container.register<IVerifyOtpUseCase>("IVerifyOtpUseCase", {
+      useClass: VerifyOtpUseCase,
+    });
 
-		container.register<IBlackListTokenUseCase>("IBlackListTokenUseCase", {
-			useClass: BlackListTokenUseCase,
-		});
+    container.register<ILoginUserUseCase>("ILoginUserUseCase", {
+      useClass: LoginUserUseCase,
+    });
 
-		container.register<IRevokeRefreshTokenUseCase>(
-			"IRevokeRefreshTokenUseCase",
-			{
-				useClass: RevokeRefreshTokenUseCase,
-			}
-		);
+    container.register<IGenerateTokenUseCase>("IGenerateTokenUseCase", {
+      useClass: GenerateTokenUseCase,
+    });
 
-		container.register<IRefreshTokenUseCase>("IRefreshTokenUseCase", {
-			useClass: RefreshTokenUseCase,
-		});
+    container.register<IBlackListTokenUseCase>("IBlackListTokenUseCase", {
+      useClass: BlackListTokenUseCase,
+    });
 
-		container.register<IGetAllUsersUseCase>("IGetAllUsersUseCase", {
-			useClass: GetAllUsersUseCase,
-		});
+    container.register<IRevokeRefreshTokenUseCase>(
+      "IRevokeRefreshTokenUseCase",
+      {
+        useClass: RevokeRefreshTokenUseCase,
+      }
+    );
 
-		container.register<IUpdateUserStatusUseCase>(
-			"IUpdateUserStatusUseCase",
-			{
-				useClass: UpdateUserStatusUseCase,
-			}
-		);
-	}
+    container.register<IRefreshTokenUseCase>("IRefreshTokenUseCase", {
+      useClass: RefreshTokenUseCase,
+    });
+
+    container.register<IGetAllUsersUseCase>("IGetAllUsersUseCase", {
+      useClass: GetAllUsersUseCase,
+    });
+
+    
+    container.register<IUpdateUserStatusUseCase>("IUpdateUserStatusUseCase", {
+      useClass: UpdateUserStatusUseCase,
+    });
+  }
 }

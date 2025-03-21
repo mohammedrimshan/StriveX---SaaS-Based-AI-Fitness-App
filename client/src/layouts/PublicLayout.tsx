@@ -1,4 +1,4 @@
-import { Header } from '@/components/common/Header/PublicHeader'
+import { Header } from '@/components/headers/Header/PublicHeader'
 import { Outlet } from "react-router-dom";
 
 

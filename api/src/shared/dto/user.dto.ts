@@ -1,6 +1,6 @@
 import { TRole } from "../constants";
 import { TrainerApprovalStatus } from "@/shared/constants";
-
+import { Gender } from "../constants";
 
 export interface AdminDTO {
   adminId?: string; 
@@ -31,7 +31,9 @@ export interface TrainerDTO {
   phoneNumber: string;
   password: string;
   experience: number;
+  dateOfBirth:string;
   skills: string[];
+  gender?:Gender
   status?: TrainerApprovalStatus; 
   role: "trainer";
 }

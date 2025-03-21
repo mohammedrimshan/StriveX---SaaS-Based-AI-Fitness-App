@@ -7,6 +7,9 @@ export interface User {
   phoneNumber: string;
   role?: UserRole;
   profileImage?: string;
+  dateOfBirth?: string; 
+  experience?: string;  
+  gender?: string;      
 	status: string;
 	createdAt: Date;
 	updatedAt: Date;

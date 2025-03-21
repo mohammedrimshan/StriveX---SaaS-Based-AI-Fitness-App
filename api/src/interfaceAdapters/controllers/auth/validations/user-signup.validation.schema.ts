@@ -7,6 +7,11 @@ import { phoneNumberSchema } from "../../../../shared/validations/phone.validati
 import client from "@/frameworks/cache/redis.client";
 
 
+
+
+export const GenderEnum = z.enum(["male", "female", "other"]);
+
+
 const adminSchema = z.object({
   firstName: nameSchema, 
   lastName: nameSchema,
@@ -27,15 +32,30 @@ const userSchema = z.object({
 });
 
 
-const trainerSchema = z.object({
+export const trainerSchema = z.object({
   firstName: nameSchema, 
   lastName: nameSchema,
   email: strongEmailRegex, 
   phoneNumber: phoneNumberSchema, 
   password: passwordSchema, 
-  experience: z.number().int().min(0).max(50).optional(), 
-  skills: z.array(z.string().min(1)).min(1).optional(), 
   role: z.literal("trainer"), 
+  dateOfBirth: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, "Invalid date format (DD-MM-YYYY)").optional(),
+  gender: GenderEnum.optional(),
+  experience: z.number().int().min(0).max(50).optional(),
+  skills: z.array(z.string().min(1)).min(1).optional(),
+  qualifications: z.array(z.string().min(1)).optional(),
+  specialization: z.array(z.string().min(1)).optional(),
+  certifications: z.array(z.string().min(1)).optional(),
+  approvedByAdmin: z.boolean().optional(),
+  approvalStatus: z.enum(["pending", "approved", "rejected"]).default("pending"),
+});
+
+
+export const postRegisterValidationSchema = trainerSchema.pick({
+  dateOfBirth: true,
+  gender: true,
+  experience: true,
+  skills: true
 });
 
 

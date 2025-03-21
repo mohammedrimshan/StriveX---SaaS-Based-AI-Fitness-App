@@ -28,7 +28,7 @@ export const NoTrainerAuthRoute = ({ element }: NoAuthRouteProps) => {
 	}
 
 	if (user) {
-		return <Navigate to="/trainer/dashboard" />;
+		return <Navigate to="/trainer/profileform" />;
 	}
 
 	return element;

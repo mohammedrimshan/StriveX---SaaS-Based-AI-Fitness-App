@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { PrivateHeader } from "@/components/common/Header/PrivateHeader";
-import { Header as PublicHeader } from "@/components/common/Header/PublicHeader";
+import { PrivateHeader } from "@/components/headers/Header/PrivateHeader";
+import { Header as PublicHeader } from "@/components/headers/Header/PublicHeader";
 import { AppSidebar } from "@/components/sidebars/SideBar";
 import { useLogout } from "@/hooks/auth/useLogout";
 import { logoutTrainer } from "@/services/auth/authService";

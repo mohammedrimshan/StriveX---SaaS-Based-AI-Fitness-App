@@ -2,7 +2,7 @@ import { inject, injectable } from "tsyringe";
 import { PaginatedUsers } from "@/entities/models/paginated-users.entity";
 import { IGetAllUsersUseCase } from "@/entities/useCaseInterfaces/admin/get-all-users-usecase.interface";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
-
+import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
 
@@ -11,6 +11,8 @@ export class GetAllUsersUseCase implements IGetAllUsersUseCase {
 	constructor(
 		@inject("IClientRepository")
 		private clientRepository: IClientRepository,
+		@inject("ITrainerRepository")
+		private trainerRepository: ITrainerRepository,
 	) {}
 	async execute(
 		userType: string,
@@ -47,7 +49,21 @@ export class GetAllUsersUseCase implements IGetAllUsersUseCase {
 			};
 
 			return response;
+		}if (userType === "trainer") {
+			const { trainers, total } = await this.trainerRepository.find(
+				filter,
+				skip,
+				limit
+			);
+
+			const response: PaginatedUsers = {
+				user:trainers,
+				total: Math.ceil(total / validPageSize),
+			};
+
+			return response;
 		}
+
 		throw new CustomError(
 			"Invalid user type. Expected 'client' or 'Trainer'.",
 			HTTP_STATUS.BAD_REQUEST

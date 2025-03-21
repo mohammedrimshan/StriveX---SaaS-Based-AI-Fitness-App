@@ -1,7 +1,6 @@
 import { container } from "tsyringe";
 import { BlockStatusMiddleware } from "../../interfaceAdapters/middlewares/block-status.middleware";
 
-
 //*===== Controller Imports ======*//
 import { RegisterUserController } from "../../interfaceAdapters/controllers/auth/register.controller";
 import { SendOtpEmailController } from "@/interfaceAdapters/controllers/auth/send-otp-email.controller";
@@ -10,37 +9,34 @@ import { LoginUserController } from "../../interfaceAdapters/controllers/auth/lo
 import { LogoutUserController } from "../../interfaceAdapters/controllers/auth/logout.controller";
 import { RefreshTokenController } from "../../interfaceAdapters/controllers/auth/refresh-token.controller";
 
+export class ControllerRegistry {
+  static registerController(): void {
+    container.register("BlockStatusMiddleware", {
+      useClass: BlockStatusMiddleware,
+    });
 
-export class ControllerRegistry{
-    static registerController():void{
+    container.register("RegisterUserController", {
+      useClass: RegisterUserController,
+    });
 
-        container.register("BlockStatusMiddleware", {
-			useClass: BlockStatusMiddleware,
-		});
+    container.register("SendOtpEmailController", {
+      useClass: SendOtpEmailController,
+    });
 
-        container.register("RegisterUserController",{
-            useClass : RegisterUserController
-        })
+    container.register("VerifyOtpController", {
+      useClass: VerifyOtpController,
+    });
 
-        container.register("SendOtpEmailController", {
-			useClass: SendOtpEmailController,
-		});
+    container.register("LoginUserController", {
+      useClass: LoginUserController,
+    });
 
-		container.register("VerifyOtpController", {
-			useClass: VerifyOtpController,
-		});
+    container.register("RefreshTokenController", {
+      useClass: RefreshTokenController,
+    });
 
-        container.register("LoginUserController", {
-			useClass: LoginUserController,
-		});
-
-        container.register("RefreshTokenController", {
-			useClass: RefreshTokenController,
-		});
-
-		container.register("LogoutUserController", {
-			useClass: LogoutUserController,
-		});
-
-    }
+    container.register("LogoutUserController", {
+      useClass: LogoutUserController,
+    });
+  }
 }

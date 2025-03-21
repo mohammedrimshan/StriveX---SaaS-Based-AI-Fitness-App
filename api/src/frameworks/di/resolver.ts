@@ -8,13 +8,13 @@ import { LogoutUserController } from "../../interfaceAdapters/controllers/auth/l
 import { RefreshTokenController } from "../../interfaceAdapters/controllers/auth/refresh-token.controller";
 import { BlockStatusMiddleware } from "./../../interfaceAdapters/middlewares/block-status.middleware";
 import { UserController } from "@/interfaceAdapters/controllers/user.controller";
+import { TrainerController } from "@/interfaceAdapters/controllers/trainer.controller";
 
 DependancyInjection.registerAll();
 
-
 export const blockStatusMiddleware = container.resolve(BlockStatusMiddleware);
 
-export const userController = container.resolve(UserController)
+export const userController = container.resolve(UserController);
 
 export const registerController = container.resolve(RegisterUserController);
 
@@ -27,3 +27,5 @@ export const loginController = container.resolve(LoginUserController);
 export const refreshTokenController = container.resolve(RefreshTokenController);
 
 export const logoutController = container.resolve(LogoutUserController);
+
+export const trainerController = container.resolve(TrainerController);

@@ -13,33 +13,30 @@ import { AdminRepository } from "@/interfaceAdapters/repositories/admin/admin.re
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { TrainerRepository } from "@/interfaceAdapters/repositories/trainer/trainer.repository";
 
+export class RepositoryRegistry {
+  static registerRepositories(): void {
+    container.register<IClientRepository>("IClientRepository", {
+      useClass: ClientRepository,
+    });
 
-export class RepositoryRegistry{
-    static registerRepositories():void{
-        container.register<IClientRepository>("IClientRepository", {
-			useClass: ClientRepository,
-		});
+    container.register<IOtpRepository>("IOtpRepository", {
+      useClass: OtpRepository,
+    });
 
+    container.register<IRedisTokenRepository>("IRedisTokenRepository", {
+      useClass: RedisTokenRepository,
+    });
 
-        container.register<IOtpRepository>("IOtpRepository", {
-			useClass: OtpRepository,
-		});
+    container.register<IRefreshTokenRepository>("IRefreshTokenRepository", {
+      useClass: RefreshTokenRepository,
+    });
 
-        container.register<IRedisTokenRepository>("IRedisTokenRepository", {
-			useClass: RedisTokenRepository,
-		});
+    container.register<IAdminRepository>("IAdminRepository", {
+      useClass: AdminRepository,
+    });
 
-        container.register<IRefreshTokenRepository>("IRefreshTokenRepository", {
-			useClass: RefreshTokenRepository,
-		});
-
-        container.register<IAdminRepository>("IAdminRepository", {
-			useClass: AdminRepository
-		});
-       
-        container.register<ITrainerRepository>("ITrainerRepository", {
-			useClass: TrainerRepository
-		});
-
-    }
+    container.register<ITrainerRepository>("ITrainerRepository", {
+      useClass: TrainerRepository,
+    });
+  }
 }

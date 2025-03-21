@@ -7,42 +7,51 @@ import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { IBcrypt } from "@/frameworks/security/bcrypt.interface";
 import { generateUniqueId } from "@/frameworks/security/uniqueuid.bcrypt";
 import { IUserEntity } from "@/entities/models/user.entity";
-
+import { Request, Response } from "express";
+import { trainerSchema } from "@/interfaceAdapters/controllers/auth/validations/user-signup.validation.schema";
+import { TrainerApprovalStatus } from "@/shared/constants";
 @injectable()
 export class TrainerRegisterStrategy implements IRegisterStrategy {
   constructor(
-    @inject("ITrainerRepository") private userRepository: ITrainerRepository,
-    @inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
+    @inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt,
+    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository
   ) {}
 
   async register(user: UserDTO): Promise<IUserEntity | void> {
     if (user.role !== "trainer") {
-      throw new CustomError(
-        "Invalid role for user registration",
-        HTTP_STATUS.BAD_REQUEST
-      );
+      throw new CustomError("Invalid role for user registration", HTTP_STATUS.BAD_REQUEST);
     }
 
-    const existingTrainer = await this.userRepository.findByEmail(user.email);
+    const existingTrainer = await this.trainerRepository.findByEmail(user.email);
     if (existingTrainer) {
       throw new CustomError(ERROR_MESSAGES.EMAIL_EXISTS, HTTP_STATUS.CONFLICT);
     }
 
-    const { firstName, lastName, email, phoneNumber, password } = user as TrainerDTO;
+    const validationResult = trainerSchema.safeParse(user);
+    if (!validationResult.success) {
+      throw new CustomError("Invalid input data", HTTP_STATUS.BAD_REQUEST);
+    }
+
+    const { firstName, lastName, email, phoneNumber, password, dateOfBirth, gender, experience, skills } = user as TrainerDTO;
 
     let hashedPassword = password ? await this.passwordBcrypt.hash(password) : "";
-
     const clientId = generateUniqueId("trainer");
 
-    const savedTrainer = await this.userRepository.save({
+    const savedTrainer = await this.trainerRepository.save({
       firstName,
       lastName,
       email,
       phoneNumber,
       password: hashedPassword,
+      dateOfBirth,
+      gender,
+      experience,
+      skills,
       clientId,
       role: "trainer",
+      approvalStatus: TrainerApprovalStatus.PENDING, // Set default approval status
     });
+
 
     if (!savedTrainer) return;
 

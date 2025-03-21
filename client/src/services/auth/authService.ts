@@ -5,8 +5,8 @@ import { clientAxiosInstance } from "@/api/client.axios";
 import { trainerAxiosInstance } from "@/api/trainer.axios";
 import { adminAxiosInstance } from "@/api/admin.axios";
 
-export const signup = async (user: UserDTO): Promise<IAxiosResponse> => {
-	const response = await authAxiosInstance.post<IAxiosResponse>(
+export const signup = async (user: UserDTO): Promise<IAuthResponse> => {
+	const response = await authAxiosInstance.post<IAuthResponse>(
 		"/signup",
 		user
 	);

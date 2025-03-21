@@ -1,12 +1,15 @@
 import { IUserEntity } from "./user.entity";
 import { TrainerApprovalStatus } from "@/shared/constants";
-
+import { Gender } from "@/shared/constants";
 
 export interface ITrainerEntity extends IUserEntity {
-  qualifications: string[]; 
-  experience: number; 
+  dateOfBirth?: string;
+  gender?: Gender;
+  qualifications?: string[]; 
+  experience?: number; 
+  skills?: string[];
   specialization?: string[]; 
   certifications?: string[]; 
-  approvedByAdmin: boolean; 
+  approvedByAdmin?: boolean; 
   approvalStatus: TrainerApprovalStatus;
 }

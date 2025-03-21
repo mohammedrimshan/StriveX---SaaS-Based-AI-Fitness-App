@@ -6,7 +6,15 @@ export const ROLES = {
 
 export type TRole = "client" | "trainer" | "admin";
 
-export type TrainerApprovalStatus = "pending" | "approved" | "rejected";
+export enum TrainerApprovalStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+}
+
+
+export type Gender = "male" | "female" | "other";
+
 
 export const HTTP_STATUS = {
   OK: 200,
@@ -97,6 +105,7 @@ export const ERROR_MESSAGES = {
   FILE_SIZE_EXCEEDED: "File size exceeded maximum limit",
   UPLOAD_FAILED: "Failed to upload file",
   BLOCKED: "Your account has been blocked.",
+  UPDATE_FAILED:"Updation Failed"
 } as const;
 
 export const VERIFICATION_MAIL_CONTENT = (otp: string) => `

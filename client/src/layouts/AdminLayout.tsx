@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { PrivateHeader } from "@/components/common/Header/PrivateHeader";
+import { PrivateHeader } from "@/components/headers/Header/PrivateHeader";
 import { AppSidebar } from "@/components/sidebars/SideBar";
 import { useLogout } from "@/hooks/auth/useLogout";
 import { useDispatch, useSelector } from "react-redux";
