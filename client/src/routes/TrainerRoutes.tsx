@@ -3,8 +3,7 @@ import { TrainerLayout } from "@/layouts/TrainerLayout";
 import { TrainerAuthRoute } from "@/utils/protected/ProtectedRoute";
 import { NoTrainerAuthRoute } from "@/utils/protected/PublicRoute";
 import { Route, Routes } from "react-router-dom";
-import TrainerPostRegistrationForm from "@/pages/trainer/ProfileFrom";
-import { FormProvider } from "@/pages/trainer/ProfileFrom";
+
 
 export const TrainerRoutes = () => {
 	return (
@@ -14,14 +13,6 @@ export const TrainerRoutes = () => {
 				index
 				element={<NoTrainerAuthRoute element={<TrainerAuth />} />}
 			/>
-			<Route
-        path="profileform"
-            element={
-              <FormProvider>
-                <TrainerPostRegistrationForm />
-              </FormProvider>
-            }
-      />
 			{/* All protected admin routes inside the layout */}
 			<Route
 				path="/"
