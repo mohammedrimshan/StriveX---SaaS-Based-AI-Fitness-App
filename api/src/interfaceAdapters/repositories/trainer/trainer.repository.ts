@@ -97,13 +97,31 @@ export class TrainerRepository implements ITrainerRepository {
 
   async updateApprovalStatus(
     id: string,
-    status: TrainerApprovalStatus
+    status: TrainerApprovalStatus,
+    rejectionReason?: string,
+    approvedByAdmin?: boolean
   ): Promise<ITrainerEntity | null> {
+    // Prepare the update object with all relevant fields
+    const updateData: Partial<ITrainerEntity> = {
+      approvalStatus: status,
+    };
+
+    // Include rejectionReason if provided (for rejections)
+    if (rejectionReason !== undefined) {
+      updateData.rejectionReason = rejectionReason;
+    }
+
+    // Include approvedByAdmin if provided (true for approvals, false for rejections)
+    if (approvedByAdmin !== undefined) {
+      updateData.approvedByAdmin = approvedByAdmin;
+    }
+
     const trainer = await TrainerModel.findByIdAndUpdate(
       id,
-      { $set: { approvalStatus: status } },
-      { new: true }
+      { $set: updateData },
+      { new: true } // Return the updated document
     ).lean();
+
     if (!trainer) return null;
 
     return {

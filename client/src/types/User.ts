@@ -33,12 +33,11 @@ export interface IClient extends User{
   status: string;
 }
 
-export interface ITrainer {
+export interface ITrainer extends User {
   firstName: string;
   lastName: string;
   email: string;
   phoneNumber: string;
-  role: "trainer";
 }
 
 export type UserDTO = IAdmin | IClient | ITrainer;

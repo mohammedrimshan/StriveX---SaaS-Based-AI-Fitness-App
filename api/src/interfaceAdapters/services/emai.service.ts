@@ -47,6 +47,12 @@ export class EmailService implements IEmailService {
 	// }
 
 	async sendEmail(to: string, subject: string, content: string): Promise<void> {
-		
+		const mailOptions = {
+			from: `"StriveX" <${config.nodemailer.EMAIL_USER}>`,
+			to,
+			subject,
+			html: content, // Use HTML content directly
+		  };
+		  await this.transporter.sendMail(mailOptions);
 	}
 }

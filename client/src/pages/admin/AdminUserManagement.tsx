@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, UserCheck, UserX, SpaceIcon as Yoga, Dumbbell, Brain, Heart, MonitorIcon as Running, RefreshCw, Download, CheckCircle2, XCircle, UsersIcon, Mail, Phone } from 'lucide-react'
+import { Search, UserCheck, UserX, SpaceIcon as Yoga, Dumbbell, Brain, Heart, MonitorIcon as Running, 
+  RefreshCw, Download, CheckCircle2, XCircle, UsersIcon, Mail, Phone, Medal, Clock } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -30,7 +31,7 @@ import { useToaster } from "@/hooks/ui/useToaster"
 import { useAllUsersQuery } from "@/hooks/admin/useAllUsers"
 import { useUpdateUserStatusMutation } from "@/hooks/admin/useUpdateUserStatus"
 import { getAllUsers } from "@/services/admin/adminService"
-import { IClient } from "@/types/User"
+import { IClient, ITrainer } from "@/types/User"
 
 // Define specialization types and their icons
 const specializationIcons = {
@@ -41,7 +42,7 @@ const specializationIcons = {
   "Running": Running
 }
 
-export default function UsersPage() {
+export default function UsersPage({ userType = "client" }: { userType?: "client" | "trainer" }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
   const [currentPage, setCurrentPage] = useState(1)
@@ -62,22 +63,36 @@ export default function UsersPage() {
   }, [searchQuery])
   
   // Fetch users data from backend
-  const { data, isLoading, isError, refetch } = useAllUsersQuery<IClient>(
+  const { data, isLoading, isError, refetch } = useAllUsersQuery<IClient | ITrainer>(
     getAllUsers,
     currentPage,
     limit,
     debouncedSearch,
-    "client"
+    userType
   )
   
-  const clients = data?.users || []
-  console.log(clients)
-  const totalPages = data?.totalPages || 1
+  // Filter trainers based on approval status and admin approval
+  const filteredUsers = data?.users.filter(user => {
+    if (userType === "trainer") {
+      const trainer = user as ITrainer
+      return trainer.approvalStatus === "approved" && trainer.approvedByAdmin === true
+    }
+    return true // No filtering for clients
+  }) || []
+
+  const totalFilteredUsers = filteredUsers.length
+  const totalPages = Math.ceil(totalFilteredUsers / limit) || 1
+
+  useEffect(() => {
+    if (userType === "trainer" && filteredUsers.length > 0) {
+      console.log("Approved Trainers List:", filteredUsers)
+    }
+  }, [userType, filteredUsers])
   
   // Handle user status toggle
-  const handleStatusToggle = (client: IClient) => {
+  const handleStatusToggle = (user: IClient | ITrainer) => {
     updateUserStatus(
-      { userType: "client", userId: client.id },
+      { userType, userId: user.id },
       {
         onSuccess: (data) => {
           successToast(data.message)
@@ -95,9 +110,15 @@ export default function UsersPage() {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
   }
   
-  // Get user specialization
-  const getUserSpecialization = (client: IClient) => {
-    return client.specialization || client.preferences?.[0] || "Workout"
+  // Get user specialization (for client) or discipline (for trainer)
+  const getUserSpecialization = (user: IClient | ITrainer) => {
+    if (userType === "client") {
+      const client = user as IClient
+      return client.specialization || client.preferences?.[0] || "Workout"
+    } else {
+      const trainer = user as ITrainer
+      return trainer.discipline || trainer.specialization?.[0] || trainer.skills?.[0] || "Workout"
+    }
   }
   
   return (
@@ -116,12 +137,21 @@ export default function UsersPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex items-center gap-3"
           >
-            <div className="bg-violet-100 p-2 rounded-lg">
-              <UsersIcon className="h-6 w-6 text-violet-600" />
+            <div className={`p-2 rounded-lg ${userType === "client" ? "bg-violet-100" : "bg-orange-100"}`}>
+              <UsersIcon className={`h-6 w-6 ${userType === "client" ? "text-violet-600" : "text-orange-600"}`} />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-            <Badge variant="outline" className="ml-2 bg-violet-50 text-violet-700 border-violet-200">
-              {data?.users.length || 0} total
+            <h1 className="text-2xl font-bold tracking-tight">
+              {userType === "client" ? "Users" : "Trainers"}
+            </h1>
+            <Badge 
+              variant="outline" 
+              className={`ml-2 ${
+                userType === "client" 
+                  ? "bg-violet-50 text-violet-700 border-violet-200" 
+                  : "bg-orange-50 text-orange-700 border-orange-200"
+              }`}
+            >
+              {totalFilteredUsers || 0} total
             </Badge>
           </motion.div>
           
@@ -174,19 +204,24 @@ export default function UsersPage() {
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search users by name, email or phone..."
+              placeholder={`Search ${userType === "client" ? "users" : "trainers"} by name, email or phone...`}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
                 setCurrentPage(1) // Reset to first page on search
               }}
-              className="pl-10 border-violet-200 focus-visible:ring-violet-500"
+              className={`pl-10 ${
+                userType === "client" 
+                  ? "border-violet-200 focus-visible:ring-violet-500" 
+                  : "border-orange-200 focus-visible:ring-orange-500"
+              }`}
             />
           </div>
           
           <UserFilters 
             activeFilters={activeFilters}
             setActiveFilters={setActiveFilters}
+            userType={userType}
           />
         </motion.div>
         
@@ -197,25 +232,31 @@ export default function UsersPage() {
           transition={{ duration: 0.5, delay: 0.5 }}
           className="w-full"
         >
-          <Card className="border-violet-100 overflow-hidden w-full">
+          <Card className={`overflow-hidden w-full ${
+            userType === "client" ? "border-violet-100" : "border-orange-100"
+          }`}>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader className="bg-violet-50">
-                    <TableRow className="hover:bg-violet-50/80 border-violet-100">
-                      <TableHead className="w-12 text-violet-700">#</TableHead>
-                      <TableHead className="text-violet-700">User Name</TableHead>
-                      <TableHead className="text-violet-700">Email</TableHead>
-                      <TableHead className="text-violet-700">Phone</TableHead>
-                      <TableHead className="text-violet-700">Specialization</TableHead>
-                      <TableHead className="text-violet-700">Status</TableHead>
-                      <TableHead className="text-right text-violet-700">Action</TableHead>
+                  <TableHeader className={userType === "client" ? "bg-violet-50" : "bg-orange-50"}>
+                    <TableRow className="border-b">
+                      <TableHead className={`w-12 text-${userType === "client" ? "violet" : "orange"}-700`}>#</TableHead>
+                      <TableHead className={`text-${userType === "client" ? "violet" : "orange"}-700`}>Name</TableHead>
+                      <TableHead className={`text-${userType === "client" ? "violet" : "orange"}-700`}>Email</TableHead>
+                      <TableHead className={`text-${userType === "client" ? "violet" : "orange"}-700`}>Phone</TableHead>
+                      {userType === "client" ? (
+                        <TableHead className="text-violet-700">Specialization</TableHead>
+                      ) : (
+                        <TableHead className="text-orange-700">Experience</TableHead>
+                      )}
+                      <TableHead className={`text-${userType === "client" ? "violet" : "orange"}-700`}>Status</TableHead>
+                      <TableHead className={`text-right text-${userType === "client" ? "violet" : "orange"}-700`}>Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading ? (
                       Array.from({ length: 5 }).map((_, index) => (
-                        <TableRow key={`skeleton-${index}`} className="hover:bg-violet-50/50 border-violet-100">
+                        <TableRow key={`skeleton-${index}`} className="border-b">
                           <TableCell><Skeleton className="h-6 w-6" /></TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -235,71 +276,96 @@ export default function UsersPage() {
                         <TableCell colSpan={7} className="h-32 text-center">
                           <div className="flex flex-col items-center justify-center text-muted-foreground">
                             <XCircle className="h-12 w-12 mb-2 text-red-400" />
-                            <p className="text-lg font-medium">Error loading users</p>
+                            <p className="text-lg font-medium">Error loading {userType === "client" ? "users" : "trainers"}</p>
                             <p className="text-sm">Please try refreshing the page</p>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ) : clients.length === 0 ? (
+                    ) : filteredUsers.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="h-32 text-center">
                           <div className="flex flex-col items-center justify-center text-muted-foreground">
-                            <UsersIcon className="h-12 w-12 mb-2 text-violet-200" />
-                            <p className="text-lg font-medium">No users found</p>
-                            <p className="text-sm">Try adjusting your search or filters</p>
+                            {userType === "trainer" ? (
+                              <>
+                                <Clock className="h-12 w-12 mb-2 text-orange-200" />
+                                <p className="text-lg font-medium">No approved trainers found</p>
+                                <p className="text-sm">Only trainers with approved status are shown</p>
+                              </>
+                            ) : (
+                              <>
+                                <UsersIcon className="h-12 w-12 mb-2 text-violet-200" />
+                                <p className="text-lg font-medium">No users found</p>
+                                <p className="text-sm">Try adjusting your search or filters</p>
+                              </>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
                     ) : (
                       <AnimatePresence mode="wait">
-                        {clients.map((client, index) => {
-                          const specialization = getUserSpecialization(client)
-                          const SpecIcon = specializationIcons[specialization as keyof typeof specializationIcons] || Dumbbell
-                          const status = client.status || (client.isActive !== false ? "active" : "blocked")
+                        {filteredUsers.map((user, index) => {
+                          const specialization = getUserSpecialization(user);
+                          const SpecIcon = userType === "client" 
+                            ? (specializationIcons[specialization as keyof typeof specializationIcons] || Dumbbell)
+                            : Medal;
+                          
+                          const status = user.status || (user.isActive !== false ? "active" : "blocked");
+                          const baseColor = userType === "client" ? "violet" : "orange";
                           
                           return (
                             <motion.tr
-                              key={client.id}
+                              key={user.id}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -10 }}
                               transition={{ duration: 0.3, delay: index * 0.05 }}
-                              className="hover:bg-violet-50/50 border-violet-100 group"
+                              className="border-b hover:bg-gray-50 group"
                             >
                               <TableCell className="font-medium">
                                 {(currentPage - 1) * limit + index + 1}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-3">
-                                  <Avatar className="border-2 border-violet-100 h-10 w-10 transition-all group-hover:border-violet-300">
-                                    <AvatarImage src={client.profileImage} alt={`${client.firstName} ${client.lastName}`} />
-                                    <AvatarFallback className="bg-violet-100 text-violet-700">
-                                      {getInitials(client.firstName, client.lastName)}
+                                  <Avatar className={`border-2 border-${baseColor}-100 h-10 w-10 transition-all group-hover:border-${baseColor}-300`}>
+                                    <AvatarImage src={user.profileImage} alt={`${user.firstName} ${user.lastName}`} />
+                                    <AvatarFallback className={`bg-${baseColor}-100 text-${baseColor}-700`}>
+                                      {getInitials(user.firstName, user.lastName)}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div className="font-medium">{`${client.firstName} ${client.lastName}`}</div>
+                                  <div className="font-medium">{`${user.firstName} ${user.lastName}`}</div>
                                 </div>
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4 text-violet-400" />
-                                  <span className="text-sm">{client.email}</span>
+                                  <Mail className={`h-4 w-4 text-${baseColor}-400`} />
+                                  <span className="text-sm">{user.email}</span>
                                 </div>
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <Phone className="h-4 w-4 text-violet-400" />
-                                  <span className="text-sm">{client.phoneNumber || "Not provided"}</span>
+                                  <Phone className={`h-4 w-4 text-${baseColor}-400`} />
+                                  <span className="text-sm">{user.phoneNumber || "Not provided"}</span>
                                 </div>
                               </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <div className="bg-violet-100 p-1 rounded-md">
-                                    <SpecIcon className="h-4 w-4 text-violet-600" />
+                              {userType === "client" ? (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <div className="bg-violet-100 p-1 rounded-md">
+                                      <SpecIcon className="h-4 w-4 text-violet-600" />
+                                    </div>
+                                    <span>{specialization}</span>
                                   </div>
-                                  <span>{specialization}</span>
-                                </div>
-                              </TableCell>
+                                </TableCell>
+                              ) : (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <div className="bg-orange-100 p-1 rounded-md">
+                                      <Medal className="h-4 w-4 text-orange-600" />
+                                    </div>
+                                    <span>{(user as ITrainer).experience || 0} years</span>
+                                  </div>
+                                </TableCell>
+                              )}
                               <TableCell>
                                 <Badge 
                                   variant="outline" 
@@ -320,7 +386,7 @@ export default function UsersPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleStatusToggle(client)}
+                                  onClick={() => handleStatusToggle(user)}
                                   className={`
                                     transition-all duration-300
                                     ${status === "active"
@@ -337,7 +403,7 @@ export default function UsersPage() {
                                 </Button>
                               </TableCell>
                             </motion.tr>
-                          )
+                          );
                         })}
                       </AnimatePresence>
                     )}
@@ -349,7 +415,7 @@ export default function UsersPage() {
         </motion.div>
         
         {/* Pagination */}
-        {!isLoading && clients.length > 0 && (
+        {!isLoading && filteredUsers.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -360,7 +426,7 @@ export default function UsersPage() {
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
-              className="text-violet-600"
+              className={`text-${userType === "client" ? "violet" : "orange"}-600`}
             />
           </motion.div>
         )}

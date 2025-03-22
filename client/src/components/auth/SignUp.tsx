@@ -139,8 +139,7 @@ const currentValidationSchema = getValidationSchema(userType, currentStep);
           setCurrentStep(3);
           return;
         }
-      }
-      
+      }  
       // Final submission - validate all fields with the complete schema
       const formattedValues = { ...values };
       

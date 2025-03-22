@@ -20,6 +20,8 @@ export interface ITrainerRepository {
   ): Promise<ITrainerEntity | null>;
   updateApprovalStatus(
     id: string,
-    status: TrainerApprovalStatus
+    status: TrainerApprovalStatus,
+    rejectionReason?: string,
+    approvedByAdmin?: boolean
   ): Promise<ITrainerEntity | null>;
 }

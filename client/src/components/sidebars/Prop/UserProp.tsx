@@ -8,6 +8,7 @@ import {
   HelpCircle,
   Settings,
   Users,
+  UserCheck ,
   LayoutDashboard
 } from "lucide-react";
 
@@ -101,6 +102,11 @@ const navItems = {
       title: "Manage Trainers",
       icon: Users,
       path: "/admin/trainers",
+    }, 
+    {
+      title: "Trainer Verification",
+      icon: UserCheck,
+      path: "/admin/trainerverification",
     }, 
     {
       title: "Subscriptions",

@@ -14,7 +14,8 @@ import {
 	blockStatusMiddleware,
 	logoutController,
 	refreshTokenController,
-    userController
+    userController,
+	trainerController
 } from "../../di/resolver";
 
 export class AdminRoutes extends BaseRoute {
@@ -57,6 +58,15 @@ export class AdminRoutes extends BaseRoute {
 			decodeToken,
 			(req: Request, res: Response) => {
 				refreshTokenController.handle(req, res);
+			}
+		);
+
+		router.patch(
+			"/admin/trainer-approval",
+			verifyAuth,
+			authorizeRole(["admin"]), 
+			(req: Request, res: Response) => {
+				trainerController.trainerVerification(req, res);
 			}
 		);
 	}

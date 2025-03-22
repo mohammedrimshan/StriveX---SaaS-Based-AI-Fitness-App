@@ -12,4 +12,5 @@ export interface ITrainerEntity extends IUserEntity {
   certifications?: string[]; 
   approvedByAdmin?: boolean; 
   approvalStatus: TrainerApprovalStatus;
+  rejectionReason?: string;
 }

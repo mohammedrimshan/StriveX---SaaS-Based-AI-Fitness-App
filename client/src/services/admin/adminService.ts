@@ -52,3 +52,24 @@ export const updateUserStatus = async (data: {
 	);
 	return response.data;
 };
+
+export const updateTrainerApprovalStatus = async ({ 
+	trainerId, 
+	status, 
+	reason 
+  }: { trainerId: string; status: string; reason?: string }) => {
+	try {
+	  const payload = {
+		clientId: trainerId,
+		approvalStatus: status.toLowerCase(),
+		rejectionReason: reason
+	  };
+	  console.log("Sending to backend:", payload);
+	  const response = await adminAxiosInstance.patch('/admin/trainer-approval', payload);
+	  console.log("Backend response:", response.data);
+	  return response.data;
+	} catch (error: any) {
+	  console.error("API Error:", error.response?.data);
+	  throw new Error(error.response?.data?.message || "Failed to change trainer approval status");
+	}
+  };

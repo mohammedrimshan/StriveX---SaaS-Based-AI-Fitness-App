@@ -41,6 +41,8 @@ import { IGetAllUsersUseCase } from "@/entities/useCaseInterfaces/admin/get-all-
 import { GetAllUsersUseCase } from "@/useCases/user/get-all-users.usecase";
 import { UpdateUserStatusUseCase } from "@/useCases/user/update-user-status.usecase";
 import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-user-status-usecase.interface";
+import { TrainerVerificationUseCase } from "@/useCases/trainer/trainer-verification.usecase";
+import { ITrainerVerificationUseCase } from "@/entities/useCaseInterfaces/admin/trainer-verification-usecase.interface";
 
 export class UseCaseRegistry {
   static registerUseCases(): void {
@@ -139,5 +141,10 @@ export class UseCaseRegistry {
     container.register<IUpdateUserStatusUseCase>("IUpdateUserStatusUseCase", {
       useClass: UpdateUserStatusUseCase,
     });
+
+    container.register<ITrainerVerificationUseCase>(
+      "ITrainerVerificationUseCase",
+      { useClass: TrainerVerificationUseCase }
+    );
   }
 }

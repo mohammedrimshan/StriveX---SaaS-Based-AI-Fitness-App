@@ -113,7 +113,7 @@ export const VERIFICATION_MAIL_CONTENT = (otp: string) => `
 <!-- Logo Text Section -->
 <div style="text-align: center; margin-bottom: 30px;">
   <h1 style="font-size: 48px; font-weight: bold; margin: 0;">
-    🏋️‍♀️ <span style="color: #6A36CD;">AI Fitness Hub</span> 🏋️‍♂️
+    🏋️‍♀️ <span style="color: #6A36CD;">StriveX</span> 🏋️‍♂️
   </h1>
 </div>
 
@@ -164,17 +164,121 @@ export const VERIFICATION_MAIL_CONTENT = (otp: string) => `
 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e6e0fa; text-align: center;">
   <p style="font-size: 14px; color: #777;">
     Need assistance? We're here for you! 💬<br>
-    Contact us at <a href="mailto:support@aifitnesshub.com" style="color: #8A2BE2; text-decoration: none; font-weight: bold;">support@aifitnesshub.com</a>
+    Contact us at <a href="mailto:support@StriveX.com" style="color: #8A2BE2; text-decoration: none; font-weight: bold;">support@aifitnesshub.com</a>
   </p>
 </div>
 
 <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
   <p style="margin-bottom: 5px;">
-    Follow us: 📱 <span style="color: #6A36CD; font-weight: bold;">@AIFitnessHub</span>
+    Follow us: 📱 <span style="color: #6A36CD; font-weight: bold;">@StriveX</span>
   </p>
   <p style="margin: 0;">
-    © ${new Date().getFullYear()} AI Fitness Hub. All rights reserved.
+    © ${new Date().getFullYear()} StriveX. All rights reserved.
   </p>
 </div>
+</div>
+`;
+
+
+
+// api\src\shared\constants.ts
+export const APPROVAL_MAIL_CONTENT = (trainerName: string) => `
+<div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
+  <!-- Logo Text Section -->
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 48px; font-weight: bold; margin: 0;">
+      🏋️‍♀️ <span style="color: #6A36CD;">StriveX</span> 🏋️‍♂️
+    </h1>
+  </div>
+
+  <h2 style="color: #8A2BE2; text-align: center; margin-bottom: 30px; font-weight: 600;">
+    🎉 Congratulations, ${trainerName}! 🎉
+  </h2>
+
+  <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: #555;">
+    We’re thrilled to inform you that your trainer application has been <strong>approved</strong>! Welcome to the StriveX team. 🌟 You’re now part of a community dedicated to transforming lives through fitness.
+  </p>
+
+  <div style="background: linear-gradient(135deg, #28A745 0%, #218838 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);">
+    <h1 style="color: white; font-size: 36px; margin: 0; font-weight: bold;">
+      Approved ✅
+    </h1>
+    <p style="color: #f0f0f0; font-size: 15px; margin-top: 10px;">
+      Your journey as a StriveX trainer starts now!
+    </p>
+  </div>
+
+  <div style="margin-top: 25px; padding: 20px; background-color: white; border-radius: 8px; text-align: center;">
+    <p style="font-size: 16px; color: #6A36CD; margin-bottom: 15px; font-weight: bold;">
+      Next Steps:
+    </p>
+    <ul style="list-style: none; padding: 0; text-align: left; margin: 0 20px;">
+      <li style="margin-bottom: 10px; padding-left: 25px; position: relative;">
+        <span style="position: absolute; left: 0;">📝</span> Set up your trainer profile
+      </li>
+      <li style="margin-bottom: 10px; padding-left: 25px; position: relative;">
+        <span style="position: absolute; left: 0;">🏋️</span> Create your training programs
+      </li>
+      <li style="padding-left: 25px; position: relative;">
+        <span style="position: absolute; left: 0;">🌍</span> Connect with clients
+      </li>
+    </ul>
+  </div>
+
+  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e6e0fa; text-align: center;">
+    <p style="font-size: 14px; color: #777;">
+      Questions? Contact us at <a href="mailto:support@strivex.com" style="color: #8A2BE2; text-decoration: none; font-weight: bold;">support@strivex.com</a>
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
+    <p style="margin: 0;">
+      © ${new Date().getFullYear()} StriveX. All rights reserved.
+    </p>
+  </div>
+</div>
+`;
+
+export const REJECTION_MAIL_CONTENT = (trainerName: string, rejectionReason: string) => `
+<div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
+  <!-- Logo Text Section -->
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 48px; font-weight: bold; margin: 0;">
+      🏋️‍♀️ <span style="color: #6A36CD;">StriveX</span> 🏋️‍♂️
+    </h1>
+  </div>
+
+  <h2 style="color: #DC3545; text-align: center; margin-bottom: 30px; font-weight: 600;">
+    Application Update for ${trainerName}
+  </h2>
+
+  <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: #555;">
+    Thank you for applying to become a trainer at StriveX. After careful review, we regret to inform you that your application has been <strong>rejected</strong>.
+  </p>
+
+  <div style="background: linear-gradient(135deg, #DC3545 0%, #C82333 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);">
+    <h1 style="color: white; font-size: 36px; margin: 0; font-weight: bold;">
+      Rejected ❌
+    </h1>
+    <p style="color: #f0f0f0; font-size: 15px; margin-top: 10px;">
+      Reason: ${rejectionReason}
+    </p>
+  </div>
+
+  <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: #555;">
+    We appreciate your interest in joining our team. If you have any questions or would like feedback, feel free to reach out.
+  </p>
+
+  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e6e0fa; text-align: center;">
+    <p style="font-size: 14px; color: #777;">
+      Contact us at <a href="mailto:support@strivex.com" style="color: #8A2BE2; text-decoration: none; font-weight: bold;">support@strivex.com</a>
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
+    <p style="margin: 0;">
+      © ${new Date().getFullYear()} StriveX. All rights reserved.
+    </p>
+  </div>
 </div>
 `;

@@ -28,6 +28,7 @@ export const trainerSchema = new Schema<ITrainerModel>(
       enum: Object.values(TrainerApprovalStatus), // Use the enum values dynamically
       default: TrainerApprovalStatus.PENDING, // Use the enum's default value
     },
+    rejectionReason: {type: String,required: false},
     approvedByAdmin: { type: Boolean, default: false },
     status: { type: String, default: "active" },
   },
