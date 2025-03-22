@@ -11,12 +11,14 @@ import { signinSchema } from "@/utils/validations/signin.validator";
 import { UserRole } from "@/types/UserRole";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-
+import { CredentialResponse } from "@react-oauth/google";
+import { GoogleAuthButton } from "./googleAuth";
 interface SignInProps {
   userType: UserRole;
   onSubmit: (data: { email: string; password: string }) => void;
   setRegister?: () => void;
   isLoading: boolean;
+  handleGoogleAuth: (credential: CredentialResponse) => void;
 }
 
 const SignIn = ({
@@ -24,6 +26,7 @@ const SignIn = ({
   onSubmit,
   setRegister,
   isLoading,
+  handleGoogleAuth,
 }: SignInProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -280,21 +283,9 @@ const SignIn = ({
                   <div className="text-center my-4 text-muted-foreground text-xs">
                     OR
                   </div>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<FcGoogle />}
-                    sx={{
-                      borderColor: "var(--violet)",
-                      color: "var(--violet)",
-                      "&:hover": {
-                        borderColor: "var(--violet-hover)",
-                        color: "var(--violet-hover)",
-                      },
-                    }}
-                  >
-                    Google
-                  </Button>
+                  <GoogleAuthButton
+										handleGoogleSuccess={handleGoogleAuth}
+									/>
                 </>
               )}
             </form>

@@ -20,19 +20,21 @@ export interface ClientDTO {
   phoneNumber: string; 
   password: string; 
   role: "client"; 
+  googleId?: string;
 }
 
 
 export interface TrainerDTO {
   trainerId?: string; 
+  googleId?: string;
   firstName: string; 
   lastName: string;  
   email: string;
-  phoneNumber: string;
-  password: string;
-  experience: number;
-  dateOfBirth:string;
-  skills: string[];
+  phoneNumber?: string;
+  password?: string;
+  experience?: number;
+  dateOfBirth?:string;
+  skills?: string[];
   gender?:Gender
   status?: TrainerApprovalStatus; 
   role: "trainer";

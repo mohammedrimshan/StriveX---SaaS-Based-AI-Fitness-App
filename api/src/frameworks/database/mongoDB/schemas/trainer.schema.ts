@@ -7,6 +7,7 @@ export const GENDER_ENUM = ["male", "female", "other"];
 export const trainerSchema = new Schema<ITrainerModel>(
   {
     clientId: { type: String, required: true },
+    googleId: { type: String },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -25,8 +26,8 @@ export const trainerSchema = new Schema<ITrainerModel>(
     certifications: { type: [String], default: [] },
     approvalStatus: {
       type: String,
-      enum: Object.values(TrainerApprovalStatus), // Use the enum values dynamically
-      default: TrainerApprovalStatus.PENDING, // Use the enum's default value
+      enum: Object.values(TrainerApprovalStatus), 
+      default: TrainerApprovalStatus.PENDING, 
     },
     rejectionReason: {type: String,required: false},
     approvedByAdmin: { type: Boolean, default: false },

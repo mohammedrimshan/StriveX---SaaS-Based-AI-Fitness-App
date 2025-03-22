@@ -7,9 +7,9 @@ import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { IBcrypt } from "@/frameworks/security/bcrypt.interface";
 import { generateUniqueId } from "@/frameworks/security/uniqueuid.bcrypt";
 import { IUserEntity } from "@/entities/models/user.entity";
-import { Request, Response } from "express";
 import { trainerSchema } from "@/interfaceAdapters/controllers/auth/validations/user-signup.validation.schema";
 import { TrainerApprovalStatus } from "@/shared/constants";
+
 @injectable()
 export class TrainerRegisterStrategy implements IRegisterStrategy {
   constructor(
@@ -17,7 +17,7 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
     @inject("ITrainerRepository") private trainerRepository: ITrainerRepository
   ) {}
 
-  async register(user: UserDTO): Promise<IUserEntity | void> {
+  async register(user: UserDTO): Promise<IUserEntity | null> {
     if (user.role !== "trainer") {
       throw new CustomError("Invalid role for user registration", HTTP_STATUS.BAD_REQUEST);
     }
@@ -52,9 +52,10 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
       approvalStatus: TrainerApprovalStatus.PENDING, // Set default approval status
     });
 
+    if (!savedTrainer) {
+      return null; // Explicitly return null if save fails
+    }
 
-    if (!savedTrainer) return;
-
-    return savedTrainer;
+    return savedTrainer; // Return the saved trainer entity
   }
 }

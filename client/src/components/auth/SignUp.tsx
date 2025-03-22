@@ -16,12 +16,15 @@ import { useToaster } from "@/hooks/ui/useToaster";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { CredentialResponse } from "@react-oauth/google";
+import { GoogleAuthButton } from "./googleAuth";
 
 interface SignUpProps {
 	userType: UserRole;
 	onSubmit: (data: UserType) => void;
 	setLogin?: () => void;
 	isLoading: boolean;
+	handleGoogleAuth: (credential: CredentialResponse) => void;
 }
 
 // Define skills options
@@ -36,7 +39,7 @@ const skillOptions = [
 	"HIIT"
 ];
 
-const SignUp = ({ userType, onSubmit, setLogin, isLoading }: SignUpProps) => {
+const SignUp = ({ userType, onSubmit, setLogin, isLoading ,handleGoogleAuth, }: SignUpProps) => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
@@ -834,20 +837,9 @@ const currentValidationSchema = getValidationSchema(userType, currentStep);
 							<div className="text-center my-4 text-muted-foreground text-xs">
 								OR
 							</div>
-							<Button
-								fullWidth
-								variant="outlined"
-								startIcon={<FcGoogle />}
-								sx={{
-									borderColor: "var(--violet)",
-									color: "var(--violet)",
-									"&:hover": {
-										borderColor: "var(--violet-hover)",
-										color: "var(--violet-hover)",
-									},
-								}}>
-								Google
-							</Button>
+							<GoogleAuthButton
+								handleGoogleSuccess={handleGoogleAuth}
+							/>
 						</form>
 					</motion.div>
 				</div>

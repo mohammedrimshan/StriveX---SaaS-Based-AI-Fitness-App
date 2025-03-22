@@ -9,6 +9,7 @@ import { RefreshTokenController } from "../../interfaceAdapters/controllers/auth
 import { BlockStatusMiddleware } from "./../../interfaceAdapters/middlewares/block-status.middleware";
 import { UserController } from "@/interfaceAdapters/controllers/user.controller";
 import { TrainerController } from "@/interfaceAdapters/controllers/trainer.controller";
+import { AuthController } from "@/interfaceAdapters/controllers/auth/google-auth.controller";
 
 DependancyInjection.registerAll();
 
@@ -29,3 +30,5 @@ export const refreshTokenController = container.resolve(RefreshTokenController);
 export const logoutController = container.resolve(LogoutUserController);
 
 export const trainerController = container.resolve(TrainerController);
+
+export const authController = container.resolve(AuthController);

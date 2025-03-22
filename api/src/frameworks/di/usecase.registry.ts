@@ -12,6 +12,8 @@ import { AdminLoginStrategy } from "@/useCases/auth/login-strategies/admin-login
 import { TrainerRegisterStrategy } from "@/useCases/auth/register-strategies/trainer-register.strategy";
 import { TrainerLoginStrategy } from "@/useCases/auth/login-strategies/trainer-login.strategy";
 
+
+
 import { IOtpService } from "../../entities/services/otp-service.interface";
 import { OtpService } from "../../interfaceAdapters/services/otp.service";
 import { IEmailService } from "../../entities/services/email-service.interface";
@@ -43,6 +45,8 @@ import { UpdateUserStatusUseCase } from "@/useCases/user/update-user-status.usec
 import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-user-status-usecase.interface";
 import { TrainerVerificationUseCase } from "@/useCases/trainer/trainer-verification.usecase";
 import { ITrainerVerificationUseCase } from "@/entities/useCaseInterfaces/admin/trainer-verification-usecase.interface";
+import { GoogleUseCase } from "@/useCases/auth/google-auth.usecase";
+import { IGoogleUseCase } from "@/entities/useCaseInterfaces/auth/google-auth.usecase.interface";
 
 export class UseCaseRegistry {
   static registerUseCases(): void {
@@ -140,6 +144,10 @@ export class UseCaseRegistry {
     
     container.register<IUpdateUserStatusUseCase>("IUpdateUserStatusUseCase", {
       useClass: UpdateUserStatusUseCase,
+    });
+
+    container.register<IGoogleUseCase>("IGoogleUseCase", {
+      useClass: GoogleUseCase,
     });
 
     container.register<ITrainerVerificationUseCase>(

@@ -8,7 +8,7 @@ import { VerifyOtpController } from "@/interfaceAdapters/controllers/auth/verify
 import { LoginUserController } from "../../interfaceAdapters/controllers/auth/login.controller";
 import { LogoutUserController } from "../../interfaceAdapters/controllers/auth/logout.controller";
 import { RefreshTokenController } from "../../interfaceAdapters/controllers/auth/refresh-token.controller";
-
+import { AuthController } from "@/interfaceAdapters/controllers/auth/google-auth.controller";
 export class ControllerRegistry {
   static registerController(): void {
     container.register("BlockStatusMiddleware", {
@@ -37,6 +37,10 @@ export class ControllerRegistry {
 
     container.register("LogoutUserController", {
       useClass: LogoutUserController,
+    });
+
+    container.register("AuthController", {
+      useClass: AuthController,
     });
   }
 }

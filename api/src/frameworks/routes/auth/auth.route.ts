@@ -5,6 +5,7 @@ import {
   sendOtpEmailController,
   verifyOtpController,
   loginController,
+  authController
 } from "../../di/resolver";
 export class AuthRoutes extends BaseRoute {
   constructor() {
@@ -20,6 +21,11 @@ export class AuthRoutes extends BaseRoute {
 			loginController.handle(req, res);
 		});
     
+    router.post("/google-auth", (req: Request, res: Response) => {
+			authController.handle(req, res);
+		});
+
+
     router.post("/send-otp", (req: Request, res: Response) => {
       sendOtpEmailController.handle(req, res);
     });

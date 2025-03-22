@@ -11,43 +11,43 @@ import { IUserEntity } from "@/entities/models/user.entity";
 @injectable()
 export class ClientRegisterStrategy implements IRegisterStrategy {
   constructor(
-    @inject("IClientRepository") private userRepository: IClientRepository,
+    @inject("IClientRepository") private clientRepository: IClientRepository,
     @inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
   ) {}
 
-  async register(user: UserDTO): Promise<IUserEntity | void> {
-    if (user.role === "client") {
-      const existingUser = await this.userRepository.findByEmail(user.email);
-      if (existingUser) {
-        throw new CustomError(
-          ERROR_MESSAGES.EMAIL_EXISTS,
-          HTTP_STATUS.CONFLICT
-        );
-      }
-
-      const { firstName, lastName, email, phoneNumber, password } = user as ClientDTO;
-
-      let hashedPassword = null;
-      if (password) {
-        hashedPassword = await this.passwordBcrypt.hash(password);
-      }
-
-      const clientId = generateUniqueId("client");
-
-      return await this.userRepository.save({
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-        password: hashedPassword ?? "",
-        clientId,
-        role: "client",
-      });
-    } else {
-      throw new CustomError(
-        "Invalid role for user registration",
-        HTTP_STATUS.BAD_REQUEST
-      );
+  async register(user: UserDTO): Promise<IUserEntity | null> {
+    if (user.role !== "client") {
+      throw new CustomError("Invalid role for client registration", HTTP_STATUS.BAD_REQUEST);
     }
+
+    const existingClient = await this.clientRepository.findByEmail(user.email);
+    if (existingClient) {
+      throw new CustomError(ERROR_MESSAGES.EMAIL_EXISTS, HTTP_STATUS.CONFLICT);
+    }
+
+    const { firstName, lastName, email, password ,phoneNumber ,googleId} = user as ClientDTO;
+    let hashedPassword = password ? await this.passwordBcrypt.hash(password) : "";
+    const clientId = generateUniqueId("client");
+
+
+    const isGoogleAuth = !!googleId;
+    const finalPassword = isGoogleAuth ? undefined : hashedPassword ?? ""; 
+    const finalPhoneNumber = phoneNumber || (isGoogleAuth ? undefined : "");
+    const savedClient = await this.clientRepository.save({
+      firstName,
+      lastName,
+      email,
+      password: finalPassword,
+      clientId,
+      phoneNumber: finalPhoneNumber,
+      role: "client",
+      googleId: googleId || undefined,
+    });
+
+    if (!savedClient) {
+      return null; 
+    }
+
+    return savedClient; 
   }
 }

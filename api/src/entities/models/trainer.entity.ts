@@ -13,4 +13,5 @@ export interface ITrainerEntity extends IUserEntity {
   approvedByAdmin?: boolean; 
   approvalStatus: TrainerApprovalStatus;
   rejectionReason?: string;
+  googleId?: string;
 }
