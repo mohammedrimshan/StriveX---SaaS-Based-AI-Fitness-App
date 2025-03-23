@@ -7,8 +7,7 @@ import {
 } from "../../../interfaceAdapters/middlewares/auth.middleware";
 import {
     blockStatusMiddleware,
-    logoutController,
-    refreshTokenController,
+    authController,
     trainerController
 } from "../../di/resolver";
 
@@ -29,7 +28,7 @@ export class TrainerRoutes extends BaseRoute {
             authorizeRole(["trainer"]),
             blockStatusMiddleware.checkStatus as RequestHandler,
             (req: Request, res: Response) => {
-                logoutController.handle(req, res);
+               authController.logout(req, res);
             }
         );
 
@@ -38,7 +37,7 @@ export class TrainerRoutes extends BaseRoute {
             decodeToken,
             (req: Request, res: Response) => {
                 console.log("refreshing trainer", req.body);
-                refreshTokenController.handle(req, res);
+                authController.handleTokenRefresh(req, res);
             }
         );
     }

@@ -9,8 +9,7 @@ import {
 } from "../../../interfaceAdapters/middlewares/auth.middleware";
 import {
 	blockStatusMiddleware,
-	logoutController,
-	refreshTokenController
+	authController
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -28,7 +27,7 @@ export class ClientRoutes extends BaseRoute {
 			authorizeRole(["client"]),
 			blockStatusMiddleware.checkStatus as RequestHandler,
 			(req: Request, res: Response) => {
-				logoutController.handle(req, res);
+				authController.logout(req, res);
 			}
 		);
 
@@ -37,7 +36,7 @@ export class ClientRoutes extends BaseRoute {
 			decodeToken,
 			(req: Request, res: Response) => {
 				console.log("refreshing client", req.body);
-				refreshTokenController.handle(req, res);
+				authController.handleTokenRefresh(req, res);
 			}
 		);
 	}

@@ -1,10 +1,6 @@
 import { Request, Response } from "express";
 import { BaseRoute } from "../base.route";
 import {
-  registerController,
-  sendOtpEmailController,
-  verifyOtpController,
-  loginController,
   authController
 } from "../../di/resolver";
 export class AuthRoutes extends BaseRoute {
@@ -14,24 +10,24 @@ export class AuthRoutes extends BaseRoute {
   protected initializeRoutes(): void {
     let router = this.router;
     router.post("/signup", (req: Request, res: Response) => {
-      registerController.handle(req, res);
+      authController.register(req, res);
     });
 
     router.post("/signin", (req: Request, res: Response) => {
-			loginController.handle(req, res);
+			authController.login(req, res);
 		});
     
     router.post("/google-auth", (req: Request, res: Response) => {
-			authController.handle(req, res);
+			authController.authenticateWithGoogle(req, res);
 		});
 
 
     router.post("/send-otp", (req: Request, res: Response) => {
-      sendOtpEmailController.handle(req, res);
+      authController.sendOtpEmail(req, res);
     });
 
     router.post("/verify-otp", (req: Request, res: Response) => {
-      verifyOtpController.handle(req, res);
+      authController.verifyOtp(req, res);
     });
   }
 }
