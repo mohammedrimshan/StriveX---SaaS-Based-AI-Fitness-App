@@ -282,3 +282,61 @@ export const REJECTION_MAIL_CONTENT = (trainerName: string, rejectionReason: str
   </div>
 </div>
 `;
+
+
+export const PASSWORD_RESET_MAIL_CONTENT = (resetLink: string) => `
+<div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
+  <!-- Logo Text Section -->
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 48px; font-weight: bold; margin: 0;">
+      🏋️‍♀️ <span style="color: #6A36CD;">StriveX</span> 🏋️‍♂️
+    </h1>
+  </div>
+
+  <h2 style="color: #8A2BE2; text-align: center; margin-bottom: 30px; font-weight: 600;">
+    🔐 Password Reset Request 🔐
+  </h2>
+
+  <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: #555;">
+    We received a request to reset your password for your StriveX account. Click the button below to create a new password.
+  </p>
+
+  <div style="background: linear-gradient(135deg, #9370DB 0%, #6A36CD 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; box-shadow: 0 4px 8px rgba(106, 54, 205, 0.2);">
+    <a href="${resetLink}" style="display: inline-block; background-color: white; color: #6A36CD; font-size: 18px; font-weight: bold; text-decoration: none; padding: 15px 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+      Reset Password
+    </a>
+    <p style="color: #f0f0f0; font-size: 15px; margin-top: 15px;">
+      ⏱️ This link expires in 15 minutes
+    </p>
+  </div>
+
+  <div style="background-color: white; border-left: 4px solid #FF9800; padding: 15px; margin: 20px 0; border-radius: 4px;">
+    <p style="font-size: 15px; color: #555; margin: 0;">
+      🔒 If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+    </p>
+  </div>
+
+  <p style="font-size: 14px; line-height: 1.5; color: #555; margin-top: 20px;">
+    Having trouble with the button? Copy and paste the URL below into your web browser:
+  </p>
+  <div style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 20px; word-break: break-all;">
+    <a href="${resetLink}" style="color: #6A36CD; font-size: 14px; text-decoration: none;">${resetLink}</a>
+  </div>
+
+  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e6e0fa; text-align: center;">
+    <p style="font-size: 14px; color: #777;">
+      Need assistance? We're here for you! 💬<br>
+      Contact us at <a href="mailto:support@strivex.com" style="color: #8A2BE2; text-decoration: none; font-weight: bold;">support@strivex.com</a>
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
+    <p style="margin-bottom: 5px;">
+      Follow us: 📱 <span style="color: #6A36CD; font-weight: bold;">@StriveX</span>
+    </p>
+    <p style="margin: 0;">
+      © ${new Date().getFullYear()} StriveX. All rights reserved.
+    </p>
+  </div>
+</div>
+`;

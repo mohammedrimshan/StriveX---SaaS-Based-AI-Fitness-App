@@ -4,6 +4,9 @@ import { ClientLayout } from "@/layouts/ClientLayout";
 import { AuthRoute } from "@/utils/protected/ProtectedRoute";
 import { NoAuthRoute } from "@/utils/protected/PublicRoute";
 import LandingPage from "@/components/Landing";
+import ForgotPassword from "@/components/auth/ForgotPassword";
+import ResetPassword from "@/components/auth/ResetPassword";
+
 
 export const ClientRoutes = () => {
 	return (
@@ -23,6 +26,24 @@ export const ClientRoutes = () => {
 				
 				{/* Add more protected routes as needed */}
 			</Route>
+			<Route
+				path="/forgot-password"
+				element={
+					<NoAuthRoute
+						element={
+							<ForgotPassword role="client" signInPath="/" />
+						}
+					/>
+				}
+			/>
+			<Route
+				path="/reset-password/:token"
+				element={
+					<NoAuthRoute
+						element={<ResetPassword role="client" signInPath="/" />}
+					/>
+				}
+			/>
 		</Routes>
 	);
 };

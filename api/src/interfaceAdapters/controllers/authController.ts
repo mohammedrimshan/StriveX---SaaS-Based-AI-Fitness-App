@@ -10,45 +10,63 @@ import { IRefreshTokenUseCase } from "@/entities/useCaseInterfaces/auth/refresh-
 import { IRegisterUserUseCase } from "@/entities/useCaseInterfaces/auth/register-usecase.interface";
 import { ISendOtpEmailUseCase } from "@/entities/useCaseInterfaces/auth/send-otp-usecase.interface";
 import { IVerifyOtpUseCase } from "@/entities/useCaseInterfaces/auth/verify-otp-usecase.interface";
-import { setAuthCookies, clearAuthCookies, updateCookieWithAccessToken } from "@/shared/utils/cookieHelper";
-import { SUCCESS_MESSAGES, HTTP_STATUS, ERROR_MESSAGES } from "@/shared/constants";
-import { ZodError } from "zod";
-import { CustomError } from "@/entities/utils/custom.error";
+import {
+  setAuthCookies,
+  clearAuthCookies,
+  updateCookieWithAccessToken,
+} from "@/shared/utils/cookieHelper";
+import {
+  SUCCESS_MESSAGES,
+  HTTP_STATUS,
+  ERROR_MESSAGES,
+} from "@/shared/constants";
 import { LoginUserDTO, UserDTO } from "@/shared/dto/user.dto";
 import { loginSchema } from "./auth/validations/user-login.validation.schema";
 import { userSchemas } from "./auth/validations/user-signup.validation.schema";
 import { otpMailValidationSchema } from "./auth/validations/otp-mail.validation.schema";
 import { CustomRequest } from "../middlewares/auth.middleware";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
+import { IForgotPasswordUseCase } from "@/entities/useCaseInterfaces/auth/forgot-password-usecase.interface";
+import { forgotPasswordValidationSchema } from "./auth/validations/forgot-password.validation.schema";
+import { IResetPasswordUseCase } from "@/entities/useCaseInterfaces/auth/reset-password-usecase.interface";
+import { resetPasswordValidationSchema } from "./auth/validations/reset-password.validation.schema";
 
 @injectable()
 export class AuthController implements IAuthController {
   constructor(
     @inject("IGoogleUseCase")
-     private googleUseCase: IGoogleUseCase,
+    private googleUseCase: IGoogleUseCase,
     @inject("IGenerateTokenUseCase")
-     private generateTokenUseCase: IGenerateTokenUseCase,
+    private generateTokenUseCase: IGenerateTokenUseCase,
     @inject("ILoginUserUseCase")
-     private loginUserUseCase: ILoginUserUseCase,
+    private loginUserUseCase: ILoginUserUseCase,
     @inject("IBlackListTokenUseCase")
-     private blackListTokenUseCase: IBlackListTokenUseCase,
+    private blackListTokenUseCase: IBlackListTokenUseCase,
     @inject("IRevokeRefreshTokenUseCase")
-     private revokeRefreshToken: IRevokeRefreshTokenUseCase,
+    private revokeRefreshToken: IRevokeRefreshTokenUseCase,
     @inject("IRefreshTokenUseCase")
-     private refreshTokenUseCase: IRefreshTokenUseCase,
+    private refreshTokenUseCase: IRefreshTokenUseCase,
     @inject("IRegisterUserUseCase")
-     private registerUserUseCase: IRegisterUserUseCase,
+    private registerUserUseCase: IRegisterUserUseCase,
     @inject("ISendOtpEmailUseCase")
-     private sendOtpEmailUseCase: ISendOtpEmailUseCase,
+    private sendOtpEmailUseCase: ISendOtpEmailUseCase,
     @inject("IVerifyOtpUseCase")
-     private verifyOtpUseCase: IVerifyOtpUseCase
+    private verifyOtpUseCase: IVerifyOtpUseCase,
+    @inject("IForgotPasswordUseCase")
+    private forgotPasswordUseCase: IForgotPasswordUseCase,
+    @inject("IResetPasswordUseCase")
+    private resetPasswordUseCase: IResetPasswordUseCase
   ) {}
 
   //*                  🔑 Google Authentication
   async authenticateWithGoogle(req: Request, res: Response): Promise<void> {
     try {
       const { credential, client_id, role } = req.body;
-      const user = await this.googleUseCase.execute(credential, client_id, role);
+      const user = await this.googleUseCase.execute(
+        credential,
+        client_id,
+        role
+      );
       if (!user.id || !user.email || !user.role) {
         throw new Error("User ID, email, or role is missing");
       }
@@ -82,14 +100,23 @@ export class AuthController implements IAuthController {
 
   //*                  🔔 Forgot Password
   async forgotPassword(req: Request, res: Response): Promise<void> {
-    // try {
-    //   res.status(HTTP_STATUS.NOT_IMPLEMENTED).json({
-    //     success: false,
-    //     message: "Forgot password functionality is not implemented yet.",
-    //   });
-    // } catch (error) {
-    //   handleErrorResponse(res, error);
-    // }
+    try {
+      const validatedData = forgotPasswordValidationSchema.parse(req.body);
+      if (!validatedData) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: ERROR_MESSAGES.VALIDATION_ERROR,
+        });
+      }
+      await this.forgotPasswordUseCase.execute(validatedData);
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.EMAIL_SENT_SUCCESSFULLY,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
   }
 
   //*                  🛠️ User Login
@@ -173,11 +200,7 @@ export class AuthController implements IAuthController {
       const refreshToken = (req as CustomRequest).user.refresh_token;
       const newTokens = this.refreshTokenUseCase.execute(refreshToken);
       const accessTokenName = `${newTokens.role}_access_token`;
-      updateCookieWithAccessToken(
-        res,
-        newTokens.accessToken,
-        accessTokenName
-      );
+      updateCookieWithAccessToken(res, newTokens.accessToken, accessTokenName);
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
@@ -225,14 +248,23 @@ export class AuthController implements IAuthController {
 
   //*                  🔒 Reset Password
   async resetPassword(req: Request, res: Response): Promise<void> {
-    // try {
-    //   res.status(HTTP_STATUS.NOT_IMPLEMENTED).json({
-    //     success: false,
-    //     message: "Reset password functionality is not implemented yet.",
-    //   });
-    // } catch (error) {
-    //   this.handleErrorResponse(res, error);
-    // }
+    try {
+      const validatedData = resetPasswordValidationSchema.parse(req.body);
+      if (!validatedData) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: ERROR_MESSAGES.VALIDATION_ERROR,
+        });
+      }
+
+      await this.resetPasswordUseCase.execute(validatedData);
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
   }
 
   //*                  📧 Send OTP Email

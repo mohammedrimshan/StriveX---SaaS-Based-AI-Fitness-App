@@ -6,6 +6,8 @@ import { Route, Routes } from "react-router-dom";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserManagement from "@/pages/admin/AdminUserManagement";
 import TrainerVerificationPage from "@/pages/admin/TrainerVerification";
+import ResetPassword from "@/components/auth/ResetPassword";
+import ForgotPassword from "@/components/auth/ForgotPassword";
 
 export const AdminRoutes = () => {
 	return (
@@ -31,6 +33,27 @@ export const AdminRoutes = () => {
 				<Route path="trainerverification" element={<TrainerVerificationPage />} />
 				{/* Add more admin routes here as needed */}
 			</Route>
+			{/*//? Forgot and reset pages */}
+			<Route
+				path="/forgot-password"
+				element={
+					<NoAdminAuthRoute
+						element={
+							<ForgotPassword role="admin" signInPath="/admin" />
+						}
+					/>
+				}
+			/>
+			<Route
+				path="/reset-password/:token"
+				element={
+					<NoAdminAuthRoute
+						element={
+							<ResetPassword role="admin" signInPath="/admin" />
+						}
+					/>
+				}
+			/>
 		</Routes>
 	);
 };

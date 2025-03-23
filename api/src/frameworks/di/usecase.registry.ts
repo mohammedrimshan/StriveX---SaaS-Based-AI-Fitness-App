@@ -12,8 +12,6 @@ import { AdminLoginStrategy } from "@/useCases/auth/login-strategies/admin-login
 import { TrainerRegisterStrategy } from "@/useCases/auth/register-strategies/trainer-register.strategy";
 import { TrainerLoginStrategy } from "@/useCases/auth/login-strategies/trainer-login.strategy";
 
-
-
 import { IOtpService } from "../../entities/services/otp-service.interface";
 import { OtpService } from "../../interfaceAdapters/services/otp.service";
 import { IEmailService } from "../../entities/services/email-service.interface";
@@ -47,6 +45,10 @@ import { TrainerVerificationUseCase } from "@/useCases/trainer/trainer-verificat
 import { ITrainerVerificationUseCase } from "@/entities/useCaseInterfaces/admin/trainer-verification-usecase.interface";
 import { GoogleUseCase } from "@/useCases/auth/google-auth.usecase";
 import { IGoogleUseCase } from "@/entities/useCaseInterfaces/auth/google-auth.usecase.interface";
+import { IForgotPasswordUseCase } from "@/entities/useCaseInterfaces/auth/forgot-password-usecase.interface";
+import { ForgotPasswordUseCase } from "@/useCases/auth/forgot-password.usecase";
+import { IResetPasswordUseCase } from "@/entities/useCaseInterfaces/auth/reset-password-usecase.interface";
+import { ResetPasswordUseCase } from "@/useCases/auth/reset-password.usecase";
 
 export class UseCaseRegistry {
   static registerUseCases(): void {
@@ -141,7 +143,6 @@ export class UseCaseRegistry {
       useClass: GetAllUsersUseCase,
     });
 
-    
     container.register<IUpdateUserStatusUseCase>("IUpdateUserStatusUseCase", {
       useClass: UpdateUserStatusUseCase,
     });
@@ -154,5 +155,13 @@ export class UseCaseRegistry {
       "ITrainerVerificationUseCase",
       { useClass: TrainerVerificationUseCase }
     );
+
+    container.register<IForgotPasswordUseCase>("IForgotPasswordUseCase", {
+      useClass: ForgotPasswordUseCase,
+    });
+
+    container.register<IResetPasswordUseCase>("IResetPasswordUseCase", {
+      useClass: ResetPasswordUseCase,
+    });
   }
 }

@@ -3,6 +3,8 @@ import { TrainerLayout } from "@/layouts/TrainerLayout";
 import { TrainerAuthRoute } from "@/utils/protected/ProtectedRoute";
 import { NoTrainerAuthRoute } from "@/utils/protected/PublicRoute";
 import { Route, Routes } from "react-router-dom";
+import ForgotPassword from "@/components/auth/ForgotPassword";
+import ResetPassword from "@/components/auth/ResetPassword";
 
 
 export const TrainerRoutes = () => {
@@ -26,6 +28,30 @@ export const TrainerRoutes = () => {
 				<Route path="clients" element={"hello"} />
 				{/* Add more admin routes here as needed */}
 			</Route>
+
+			<Route
+				path="/forgot-password"
+				element={
+					<NoTrainerAuthRoute
+						element={
+							<ForgotPassword
+								role="trainer"
+								signInPath="/trainer"
+							/>
+						}
+					/>
+				}
+			/>
+			<Route
+				path="/reset-password/:token"
+				element={
+					<NoTrainerAuthRoute
+						element={
+							<ResetPassword role="trainer" signInPath="/trainer" />
+						}
+					/>
+				}
+			/>
 		</Routes>
 	);
 };
