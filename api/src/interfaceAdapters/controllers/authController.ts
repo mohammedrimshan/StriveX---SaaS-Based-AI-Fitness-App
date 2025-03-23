@@ -30,6 +30,8 @@ import { IForgotPasswordUseCase } from "@/entities/useCaseInterfaces/auth/forgot
 import { forgotPasswordValidationSchema } from "./auth/validations/forgot-password.validation.schema";
 import { IResetPasswordUseCase } from "@/entities/useCaseInterfaces/auth/reset-password-usecase.interface";
 import { resetPasswordValidationSchema } from "./auth/validations/reset-password.validation.schema";
+import { ZodError } from "zod";
+
 
 @injectable()
 export class AuthController implements IAuthController {
@@ -173,27 +175,48 @@ export class AuthController implements IAuthController {
   //*                  🚪 User Logout
   async logout(req: Request, res: Response): Promise<void> {
     try {
-      await this.blackListTokenUseCase.execute(
-        (req as CustomRequest).user.access_token
-      );
-
-      await this.revokeRefreshToken.execute(
-        (req as CustomRequest).user.refresh_token
-      );
-
       const user = (req as CustomRequest).user;
+      console.log("User data in logout:", {
+        id: user.id,
+        role: user.role,
+        access_token: user.access_token,
+        refresh_token: user.refresh_token,
+      });
+  
+      if (!user.access_token || !user.refresh_token) {
+        throw new Error("Missing access or refresh token");
+      }
+  
+      await this.blackListTokenUseCase.execute(user.access_token);
+      console.log("Access token blacklisted");
+  
+      await this.revokeRefreshToken.execute(user.refresh_token);
+      console.log("Refresh token revoked");
+  
       const accessTokenName = `${user.role}_access_token`;
       const refreshTokenName = `${user.role}_refresh_token`;
       clearAuthCookies(res, accessTokenName, refreshTokenName);
+      console.log("Cookies cleared");
+  
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.LOGOUT_SUCCESS,
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Logout error:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          details: error instanceof ZodError ? error.errors : null,
+        });
+      } else {
+        console.error("Logout error (non-Error type):", error);
+      }
       handleErrorResponse(res, error);
     }
   }
-
+  
   //*                  🔄 Token Refresh
   handleTokenRefresh(req: Request, res: Response): void {
     try {

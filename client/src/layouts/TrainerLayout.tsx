@@ -17,6 +17,7 @@ export const TrainerLayout = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = useSelector((state: RootState) => state.trainer.trainer);
+    console.log(user)
     const isLoggedIn = !!user; // Check if user exists
     const { mutate: logoutReq } = useLogout(logoutTrainer);
 

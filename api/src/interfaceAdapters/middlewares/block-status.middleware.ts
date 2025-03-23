@@ -6,12 +6,14 @@ import { CustomRequest } from "./auth.middleware";
 import { NextFunction, Response } from "express";
 import { ERROR_MESSAGES, HTTP_STATUS } from "../../shared/constants";
 import { clearAuthCookies } from "../../shared/utils/cookieHelper";
-
+import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 @injectable()
 export class BlockStatusMiddleware {
 	constructor(
 		@inject("IClientRepository")
 		private readonly clientRepository: IClientRepository,
+		@inject("ITrainerRepository")
+		private readonly trainerRepository: ITrainerRepository,
 		@inject("IBlackListTokenUseCase")
 		private readonly blacklistTokenUseCase: IBlackListTokenUseCase,
 		@inject("IRevokeRefreshTokenUseCase")
@@ -42,6 +44,16 @@ export class BlockStatusMiddleware {
 					return;
 				}
 				status = client.status;
+			}else if (role === "trainer") {
+				const trainer = await this.trainerRepository.findById(id);
+				if (!trainer) {
+					res.status(HTTP_STATUS.NOT_FOUND).json({
+						success: false,
+						message: ERROR_MESSAGES.USER_NOT_FOUND,
+					});
+					return;
+				}
+				status = trainer.status;
 			} else{
 				res.status(HTTP_STATUS.BAD_REQUEST).json({
 					success: false,

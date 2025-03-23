@@ -46,11 +46,13 @@ export const logoutClient = async (): Promise<IAxiosResponse> => {
 
 export const logoutTrainer = async (): Promise<IAxiosResponse> => {
 	const response = await trainerAxiosInstance.post("/trainer/logout");
+	console.log(response)
 	return response.data;
 };
 
 export const logoutAdmin = async (): Promise<IAxiosResponse> => {
 	const response = await adminAxiosInstance.post("/admin/logout");
+	console.log(response)
 	return response.data;
 };
 

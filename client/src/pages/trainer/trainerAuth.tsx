@@ -48,7 +48,7 @@ export const TrainerAuth = () => {
                 onSuccess: (data) => {
                     successToast(data.message);
                     dispatch(trainerLogin(data.user));
-                    navigate("/tainerlanding");
+                    navigate("/trainerhome");
                     setIsLoginLoading(false);
                 },
                 onError: (error: any) => {

@@ -25,6 +25,7 @@ export const verifyAuth = async (
 ) => {
 	try {
 		const token = extractToken(req);
+		console.log("Token extracted:", extractToken(req));
 		if (!token) {
 			res.status(HTTP_STATUS.UNAUTHORIZED).json({
 				success: false,
@@ -42,6 +43,7 @@ export const verifyAuth = async (
 		const user = tokenService.verifyAccessToken(
 			token.access_token
 		) as CustomJwtPayload;
+		console.log("User after verification:", user);
 		if (!user || !user.id) {
 			res.status(HTTP_STATUS.UNAUTHORIZED).json({
 				message: ERROR_MESSAGES.TOKEN_EXPIRED,
@@ -97,6 +99,7 @@ const isBlacklisted = async (token: string): Promise<boolean> => {
 export const authorizeRole = (allowedRoles: string[]) => {
 	return (req: Request, res: Response, next: NextFunction) => {
 		const user = (req as CustomRequest).user;
+		console.log(user.role)
 		if (!user || !allowedRoles.includes(user.role)) {
 			res.status(HTTP_STATUS.FORBIDDEN).json({
 				success: false,

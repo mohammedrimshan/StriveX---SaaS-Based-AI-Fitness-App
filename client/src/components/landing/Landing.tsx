@@ -4,13 +4,13 @@ import { useEffect, useRef } from "react"
 // Remove this import since we're handling header in ClientLayout
 // import { Header } from "../components/common/Header/PublicHeader"
 import { Footer } from "@/components/common/Footer"
-import { HeroSection } from "@/components/landing/hero-section"
-import { ServicesSection } from "@/components/landing/service-section"
-import { PremiumSection } from "@/components/landing/premium-section"
-import { DataDrivenSection } from "@/components/landing/data-driven-section"
-import { SuccessStoriesSection } from "@/components/landing/success-stories-section"
-import { TransformSection } from "@/components/landing/transform-section"
-import { ChallengesSection } from "@/components/landing/challenges-section"
+import { HeroSection } from "@/components/landing/UserlandingPages/hero-section"
+import { ServicesSection } from "@/components/landing/UserlandingPages/service-section"
+import { PremiumSection } from "@/components/landing/UserlandingPages/premium-section"
+import { DataDrivenSection } from "@/components/landing/UserlandingPages/data-driven-section"
+import { SuccessStoriesSection } from "@/components/landing/UserlandingPages/success-stories-section"
+import { TransformSection } from "@/components/landing/UserlandingPages/transform-section"
+import { ChallengesSection } from "@/components/landing/UserlandingPages/challenges-section"
 
 export default function Home() {
   const smokeRef = useRef<HTMLDivElement>(null)

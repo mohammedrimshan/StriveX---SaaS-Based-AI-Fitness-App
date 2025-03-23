@@ -3,7 +3,7 @@ import { ClientAuth } from "@/pages/client/clientAuth";
 import { ClientLayout } from "@/layouts/ClientLayout";
 import { AuthRoute } from "@/utils/protected/ProtectedRoute";
 import { NoAuthRoute } from "@/utils/protected/PublicRoute";
-import LandingPage from "@/components/Landing";
+import LandingPage from "@/components/landing/Landing";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import ResetPassword from "@/components/auth/ResetPassword";
 
