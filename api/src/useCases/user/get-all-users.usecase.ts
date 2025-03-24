@@ -8,65 +8,53 @@ import { HTTP_STATUS } from "@/shared/constants";
 
 @injectable()
 export class GetAllUsersUseCase implements IGetAllUsersUseCase {
-	constructor(
-		@inject("IClientRepository")
-		private clientRepository: IClientRepository,
-		@inject("ITrainerRepository")
-		private trainerRepository: ITrainerRepository,
-	) {}
-	async execute(
-		userType: string,
-		pageNumber: number,
-		pageSize: number,
-		searchTerm: string
-	): Promise<PaginatedUsers> {
-		let filter: any = {};
-		if (userType) {
-			filter.role = userType;
-		}
+  constructor(
+    @inject("IClientRepository") private clientRepository: IClientRepository,
+    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository
+  ) {}
 
-		if (searchTerm) {
-			filter.$or = [
-				{ firstName: { $regex: searchTerm, $options: "i" } },
-				{ lastName: { $regex: searchTerm, $options: "i" } },
-				{ email: { $regex: searchTerm, $options: "i" } },
-			];
-		}
-		const validPageNumber = Math.max(1, pageNumber || 1);
-		const validPageSize = Math.max(1, pageSize || 10);
-		const skip = (validPageNumber - 1) * validPageSize;
-		const limit = validPageSize;
-		if (userType === "client") {
-			const { user, total } = await this.clientRepository.find(
-				filter,
-				skip,
-				limit
-			);
+  async execute(
+    userType: string,
+    pageNumber: number,
+    pageSize: number,
+    searchTerm: string
+  ): Promise<PaginatedUsers> {
+    let filter: any = {};
+    if (userType) {
+      filter.role = userType; // Already normalized in controller
+    }
 
-			const response: PaginatedUsers = {
-				user,
-				total: Math.ceil(total / validPageSize),
-			};
+    if (searchTerm) {
+      filter.$or = [
+        { firstName: { $regex: searchTerm, $options: "i" } },
+        { lastName: { $regex: searchTerm, $options: "i" } },
+        { email: { $regex: searchTerm, $options: "i" } },
+      ];
+    }
 
-			return response;
-		}if (userType === "trainer") {
-			const { trainers, total } = await this.trainerRepository.find(
-				filter,
-				skip,
-				limit
-			);
+    const validPageNumber = Math.max(1, pageNumber);
+    const validPageSize = Math.max(1, pageSize);
+    const skip = (validPageNumber - 1) * validPageSize;
+    const limit = validPageSize;
 
-			const response: PaginatedUsers = {
-				user:trainers,
-				total: Math.ceil(total / validPageSize),
-			};
+    if (userType === "client") {
+      const { user, total } = await this.clientRepository.find(filter, skip, limit);
+      return {
+        user,
+        total: Math.ceil(total / validPageSize),
+      };
+    }
+    if (userType === "trainer") {
+      const { trainers, total } = await this.trainerRepository.find(filter, skip, limit);
+      return {
+        user: trainers, // Normalized to 'user' for PaginatedUsers
+        total: Math.ceil(total / validPageSize),
+      };
+    }
 
-			return response;
-		}
-
-		throw new CustomError(
-			"Invalid user type. Expected 'client' or 'Trainer'.",
-			HTTP_STATUS.BAD_REQUEST
-		);
-	}
+    throw new CustomError(
+      "Invalid user type. Expected 'client' or 'trainer'.",
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
 }

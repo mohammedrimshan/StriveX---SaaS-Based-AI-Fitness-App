@@ -13,6 +13,7 @@ export interface User {
 	status: string;
 	createdAt: Date;
 	updatedAt: Date;
+  isActive?: boolean;
 }
 
 export interface ILoginData {

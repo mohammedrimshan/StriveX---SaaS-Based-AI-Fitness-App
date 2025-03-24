@@ -17,7 +17,7 @@ export const ClientLayout = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const user = useSelector((state: RootState) => state.client.client);
-	const isLoggedIn = !!user; // Check if user exists
+	const isLoggedIn = !!user; 
 	const { mutate: logoutReq } = useLogout(logoutClient);
 
 	const handleLogout = () => {

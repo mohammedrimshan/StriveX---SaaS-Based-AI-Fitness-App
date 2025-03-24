@@ -19,7 +19,7 @@ export class TrainerController implements ITrainerController {
   /** 🔹 Get all trainers with pagination and search */
   async getAllTrainers(req: Request, res: Response): Promise<void> {
     try {
-      const { page = 1, limit = 10, search = "", userType } = req.query;
+      const { page = 1, limit = 5, search = "", userType } = req.query;
       const pageNumber = Number(page);
       const pageSize = Number(limit);
       const userTypeString = typeof userType === "string" ? userType : "trainer";
@@ -61,10 +61,10 @@ export class TrainerController implements ITrainerController {
   /** 🔹 Verify and approve/reject trainer */
   async trainerVerification(req: Request, res: Response): Promise<void> {
     try {
-      console.log("Received body:", req.body); // Log the raw body
+      console.log("Received body:", req.body); 
       const { clientId, approvalStatus, rejectionReason } = req.body;
       
-      console.log("Extracted:", { clientId, approvalStatus, rejectionReason }); // Log extracted values
+      console.log("Extracted:", { clientId, approvalStatus, rejectionReason }); 
   
       if (!clientId || !approvalStatus) {
         throw new CustomError("Client ID and approval status are required", HTTP_STATUS.BAD_REQUEST);

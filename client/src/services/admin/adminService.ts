@@ -22,7 +22,7 @@ export type IUpdateAdminData = Pick<
 export const getAllUsers = async <T extends IClient | ITrainer>({
 	userType,
 	page = 1,
-	limit = 10,
+	limit = 5,
 	search = "",
 }: FetchUsersParams): Promise<UsersResponse<T>> => {
 	const response = await adminAxiosInstance.get("/admin/users", {

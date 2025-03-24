@@ -27,7 +27,7 @@ export const getTrainerDashboardStats = async (): Promise<any> => {
 };
 
 // Get trainer clients
-export const getTrainerClients = async (page: number = 1, limit: number = 10): Promise<any> => {
+export const getTrainerClients = async (page: number = 1, limit: number = 5): Promise<any> => {
   const response = await trainerAxiosInstance.get('/trainer/clients', {
     params: { page, limit }
   });
@@ -35,7 +35,7 @@ export const getTrainerClients = async (page: number = 1, limit: number = 10): P
 };
 
 // Get trainer sessions
-export const getTrainerSessions = async (page: number = 1, limit: number = 10): Promise<any> => {
+export const getTrainerSessions = async (page: number = 1, limit: number = 5): Promise<any> => {
   const response = await trainerAxiosInstance.get('/trainer/sessions', {
     params: { page, limit }
   });

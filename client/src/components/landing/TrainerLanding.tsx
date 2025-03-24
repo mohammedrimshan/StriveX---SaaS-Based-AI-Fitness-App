@@ -6,7 +6,7 @@ import Benefits from "./TrainerLandingPages/Benefits";
 import CallToAction from "./TrainerLandingPages/CallToAction";
 import HowItWorks from "./TrainerLandingPages/HowItWorks";
 import Testimonials from "./TrainerLandingPages/Testimonial";
-
+import TrainerStats from "./TrainerLandingPages/TrainerStats";
 const TrainerLanding = () => {
   useEffect(() => {
     // Smooth scroll for anchor links
@@ -38,8 +38,10 @@ const TrainerLanding = () => {
     <div className="min-h-screen antialiased">
       <main>
         <Hero />
+        <TrainerStats />
         <Benefits />
         <HowItWorks />
+     
         <Testimonials />
         <CallToAction />
       </main>

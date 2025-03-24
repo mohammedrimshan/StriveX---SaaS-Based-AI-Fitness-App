@@ -64,7 +64,7 @@ export default function TrainerVerification() {
   const [selectedTrainer, setSelectedTrainer] = useState<ITrainer | null>(null);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
 
-  const limit = 10;
+  const limit = 5;
   const { successToast, errorToast } = useToaster();
 
   // Handle debounced search
