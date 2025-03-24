@@ -11,7 +11,8 @@ interface JWTPayloadData {
 }
 
 export interface ResetTokenPayload extends JwtPayload {
-	email: string
+	email: string;
+	role?: string;
 }
 
 @injectable()
@@ -74,11 +75,11 @@ export class JWTService implements ITokenService {
 			return null;
 		}
 	}
-	generateResetToken(email: string): string {
-		return jwt.sign({ email }, this.resetSecret, {
-			expiresIn: this.resetExpiresIn as ms.StringValue,
+	generateResetToken(email: string, role: string): string {
+		return jwt.sign({ email, role }, this.resetSecret, {
+		  expiresIn: this.resetExpiresIn as ms.StringValue,
 		});
-	}
+	  }
 
 	verifyResetToken(token: string): ResetTokenPayload | null {
 		try {

@@ -34,7 +34,7 @@ export const config = {
         RESET_SECRET_KEY: process.env.JWT_RESET_KEY || "reset-secret-key",
         ACCESS_EXPIRES_IN: env.JWT_ACCESS_EXPIRES_IN,
         REFRESH_EXPIRES_IN: env.JWT_REFRESH_EXPIRES_IN,
-        RESET_EXPIRES_IN: process.env.JWT_RESET_EXPIRES_IN || "5m",
+        RESET_EXPIRES_IN: process.env.JWT_RESET_EXPIRES_IN || "24h",
     },
     redis: {
         REDIS_USERNAME: env.REDIS_USERNAME,

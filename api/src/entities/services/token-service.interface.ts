@@ -14,7 +14,7 @@ export interface ITokenService {
 	verifyAccessToken(token: string): string | JwtPayload | null;
 	verifyRefreshToken(token: string): string | JwtPayload | null;
 	decodeAccessToken(token: string): JwtPayload | null;
-	generateResetToken(email: string): string;
+	generateResetToken(email: string, role: string): string;
 	verifyResetToken(token: string): JwtPayload | null;
 	decodeResetToken(token: string): JwtPayload | null;
 }

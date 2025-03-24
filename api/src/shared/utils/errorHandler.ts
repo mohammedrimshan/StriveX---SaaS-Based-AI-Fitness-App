@@ -4,6 +4,7 @@ import { CustomError } from "@/entities/utils/custom.error";
 import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 
 export function handleErrorResponse(res: Response, error: unknown): void {
+  console.error(error);
   if (error instanceof ZodError) {
     const errors = error.errors.map((err) => ({
       message: err.message,

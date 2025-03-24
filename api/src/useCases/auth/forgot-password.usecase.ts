@@ -44,8 +44,7 @@ export class ForgotPasswordUseCase implements IForgotPasswordUseCase {
 			throw new CustomError(ERROR_MESSAGES.EMAIL_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
 
-		const resetToken = this.tokenService.generateResetToken(email);
-
+		const resetToken = this.tokenService.generateResetToken(email, role);
 		try {
 			await this.redisTokenRepository.storeResetToken(user.id ?? "", resetToken);
 		} catch (error) {
