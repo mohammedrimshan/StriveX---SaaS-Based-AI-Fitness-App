@@ -25,7 +25,6 @@ import Reset from '@/assets/common/reset.jpg'
 // Import your hooks (maintain the same functionality)
 import { useResetPasswordMutation } from "@/hooks/auth/useResetPassword";
 import { useToaster } from "@/hooks/ui/useToaster";
-
 interface ResetPasswordProps {
   role: string;
   signInPath: string;

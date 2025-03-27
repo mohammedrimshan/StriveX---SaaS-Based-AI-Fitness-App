@@ -16,6 +16,7 @@ export class ClientLoginStrategy implements ILoginStrategy {
 	) {}
 	async login(user: LoginUserDTO): Promise<Partial<IClientEntity>> {
 		const client = await this.clientRepository.findByEmail(user.email);
+		console.log(client,"Cl")
 		if (!client) {
 			throw new CustomError(
 				ERROR_MESSAGES.USER_NOT_FOUND,

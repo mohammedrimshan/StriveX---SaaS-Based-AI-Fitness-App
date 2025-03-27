@@ -6,7 +6,7 @@ import { NoAuthRoute } from "@/utils/protected/PublicRoute";
 import LandingPage from "@/components/landing/Landing";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import ResetPassword from "@/components/auth/ResetPassword";
-
+import ProfileForm from "@/pages/client/ProfileForm";
 
 export const ClientRoutes = () => {
 	return (
@@ -22,6 +22,9 @@ export const ClientRoutes = () => {
 				{/* Protected routes */}
 				<Route path="/home" element={
 					<AuthRoute allowedRoles={["client"]} element={<LandingPage />} />
+				} />
+				<Route path="/profile" element={
+					<AuthRoute allowedRoles={["client"]} element={<ProfileForm />} />
 				} />
 				
 				{/* Add more protected routes as needed */}

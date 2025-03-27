@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Bell,
@@ -39,12 +39,20 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useEffect, useState } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
 
+// Extend the existing interface to include userType
 interface HeaderProps {
   userName?: string;
   userLocation?: string;
   userAvatar?: string;
+  userType?: 'admin' | 'trainer' | 'member';
   notifications?: number;
   onSidebarToggle?: () => void;
   onLogout: () => void;
@@ -55,6 +63,7 @@ export function PrivateHeader({
   userName = "Alex Johnson",
   userLocation = "New York, US",
   userAvatar = "",
+  userType = 'member', // Default to member
   notifications = 3,
   onSidebarToggle,
   onLogout,
@@ -73,55 +82,115 @@ export function PrivateHeader({
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const searchItems = [
-    {
-      category: "Workouts",
-      items: [
-        {
-          id: 1,
-          name: "Full Body HIIT",
-          type: "workout",
-          difficulty: "Intermediate",
-        },
-        {
-          id: 2,
-          name: "Upper Body Strength",
-          type: "workout",
-          difficulty: "Advanced",
-        },
-        { 
-          id: 3, 
-          name: "Core Foundations", 
-          type: "workout", 
-          difficulty: "Beginner" 
-        },
-      ],
-    },
-    {
-      category: "Nutrition",
-      items: [
-        { id: 4, name: "Protein Meal Plan", type: "nutrition", calories: "1800 cal" },
-        { id: 5, name: "Keto Diet Guide", type: "nutrition", calories: "2000 cal" },
-        { id: 6, name: "Vegetarian Recipes", type: "nutrition", calories: "1600 cal" },
-      ],
-    },
-  ];
+  // Dynamic search items based on user type
+  const getSearchItems = () => {
+    switch(userType) {
+      case 'admin':
+        return [
+          {
+            category: "Admin Management",
+            items: [
+              { id: 1, name: "User Management", type: "admin", tag: "System" },
+              { id: 2, name: "Facility Settings", type: "admin", tag: "Configuration" },
+              { id: 3, name: "Billing & Subscriptions", type: "admin", tag: "Finance" },
+            ]
+          }
+        ];
+      case 'trainer':
+        return [
+          {
+            category: "Training Resources",
+            items: [
+              { id: 1, name: "Client Schedules", type: "trainer", tag: "Planning" },
+              { id: 2, name: "Workout Templates", type: "trainer", tag: "Resources" },
+              { id: 3, name: "Performance Tracking", type: "trainer", tag: "Analytics" },
+            ]
+          }
+        ];
+      case 'member':
+      default:
+        return [
+          {
+            category: "Workouts",
+            items: [
+              {
+                id: 1,
+                name: "Full Body HIIT",
+                type: "workout",
+                difficulty: "Intermediate",
+              },
+              {
+                id: 2,
+                name: "Upper Body Strength",
+                type: "workout",
+                difficulty: "Advanced",
+              },
+              {
+                id: 3,
+                name: "Core Foundations",
+                type: "workout",
+                difficulty: "Beginner",
+              },
+            ],
+          },
+          {
+            category: "Nutrition",
+            items: [
+              {
+                id: 4,
+                name: "Protein Meal Plan",
+                type: "nutrition",
+                calories: "1800 cal",
+              },
+              {
+                id: 5,
+                name: "Keto Diet Guide",
+                type: "nutrition",
+                calories: "2000 cal",
+              },
+              {
+                id: 6,
+                name: "Vegetarian Recipes",
+                type: "nutrition",
+                calories: "1600 cal",
+              },
+            ],
+          }
+        ];
+    }
+  };
+
+  const searchItems = getSearchItems();
+  const navigate = useNavigate();
+
+  // Dynamic profile navigation
+  const handleProfile = () => {
+    switch(userType) {
+      case 'admin':
+        navigate("/admin/profile");
+        break;
+      case 'trainer':
+        navigate("/trainer/profile");
+        break;
+      case 'member':
+      default:
+        navigate("/profile");
+    }
+  };
 
   return (
     <header
       className={cn(
         "fixed top-0 left-0 right-0 h-16 border-b border-border bg-background shadow-md z-50",
         className
-      )}>
+      )}
+    >
       <div className="container flex h-full items-center px-4">
         {/* Hamburger menu button */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onSidebarToggle}>
+              <Button variant="ghost" size="icon" onClick={onSidebarToggle}>
                 <Menu className="h-6 w-6" />
               </Button>
             </TooltipTrigger>
@@ -132,9 +201,7 @@ export function PrivateHeader({
         {/* Logo */}
         <div className="ml-2 mr-8 flex items-center space-x-2">
           <Dumbbell className="h-7 w-7 text-primary" />
-          <span className="text-2xl font-bold gradient-text">
-            StriveX
-          </span>
+          <span className="text-2xl font-bold gradient-text">StriveX</span>
         </div>
 
         {/* Search */}
@@ -145,10 +212,17 @@ export function PrivateHeader({
                 <Button
                   variant="outline"
                   onClick={() => setOpen(true)}
-                  className="w-full justify-between text-muted-foreground">
+                  className="w-full justify-between text-muted-foreground"
+                >
                   <div className="flex items-center">
                     <Search className="mr-2 h-4 w-4" />
-                    <span>Search workouts or nutrition plans...</span>
+                    <span>
+                      {userType === 'admin' 
+                        ? "Search users, settings..." 
+                        : userType === 'trainer' 
+                        ? "Search clients, workouts..." 
+                        : "Search workouts or nutrition plans..."}
+                    </span>
                   </div>
                   <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground">
                     <span className="text-xs">⌘</span>K
@@ -164,25 +238,27 @@ export function PrivateHeader({
               <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
                 {searchItems.map((group) => (
-                  <CommandGroup
-                    key={group.category}
-                    heading={group.category}>
+                  <CommandGroup key={group.category} heading={group.category}>
                     {group.items.map((item) => (
                       <CommandItem
                         key={item.id}
                         onSelect={() => {
                           setOpen(false);
-                        }}>
+                        }}
+                      >
                         <div className="flex items-center justify-between w-full">
                           <span>{item.name}</span>
                           {item.type === "workout" ? (
-                            <Badge variant="secondary" className="bg-primary/20 text-primary">
+                            <Badge
+                              variant="secondary"
+                              className="bg-primary/20 text-primary"
+                            >
                               {item.difficulty}
                             </Badge>
+                          ) : item.type === "nutrition" ? (
+                            <Badge variant="outline">{item.calories}</Badge>
                           ) : (
-                            <Badge variant="outline">
-                              {item.calories}
-                            </Badge>
+                            <Badge variant="outline">{item.tag}</Badge>
                           )}
                         </div>
                       </CommandItem>
@@ -194,14 +270,13 @@ export function PrivateHeader({
           </CommandDialog>
         </div>
 
+
         {/* Right Section */}
         <div className="ml-8 flex items-center space-x-6">
           {/* User Info */}
           <div className="hidden md:flex items-center space-x-4">
             <div className="flex flex-col items-end">
-              <span className="text-sm font-medium">
-                Hi, {userName}
-              </span>
+              <span className="text-sm font-medium">Hi, {userName}</span>
               <div className="flex items-center text-xs text-muted-foreground">
                 <MapPin className="mr-1 h-3 w-3" />
                 {userLocation}
@@ -225,16 +300,13 @@ export function PrivateHeader({
                         )}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent
-                      className="w-80"
-                      align="end">
+                    <PopoverContent className="w-80" align="end">
                       <div className="space-y-2">
                         <h4 className="font-medium leading-none">
                           Notifications
                         </h4>
                         <p className="text-sm text-muted-foreground">
-                          You have {notifications} unread
-                          notifications.
+                          You have {notifications} unread notifications.
                         </p>
                         <div className="border-t border-border pt-2 mt-2">
                           {/* Sample notifications */}
@@ -283,10 +355,7 @@ export function PrivateHeader({
                     <DropdownMenuTrigger asChild>
                       <div className="cursor-pointer">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={userAvatar}
-                            alt={userName}
-                          />
+                          <AvatarImage src={userAvatar} alt={userName} />
                           <AvatarFallback className="bg-primary text-white">
                             {userName
                               .split(" ")
@@ -296,15 +365,14 @@ export function PrivateHeader({
                         </Avatar>
                       </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-56"
-                      align="end">
-                      <DropdownMenuLabel>
-                        My Account
-                      </DropdownMenuLabel>
+                    <DropdownMenuContent className="w-56" align="end">
+                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuGroup>
-                        <DropdownMenuItem className="cursor-pointer">
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={handleProfile}
+                        >
                           <User className="mr-2 h-4 w-4" />
                           <span>Profile</span>
                         </DropdownMenuItem>
@@ -320,7 +388,8 @@ export function PrivateHeader({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="cursor-pointer text-red-500 hover:bg-red-500/10 focus:bg-red-500/10"
-                        onClick={onLogout}>
+                        onClick={onLogout}
+                      >
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
                       </DropdownMenuItem>

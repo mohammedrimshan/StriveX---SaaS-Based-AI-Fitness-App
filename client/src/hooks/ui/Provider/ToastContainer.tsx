@@ -5,7 +5,7 @@ export function ToastContainer({ children }: { children: React.ReactNode }) {
 	return (
 		<>
 			{children}
-			<Toaster position="top-center" />
+			<Toaster position="top-right" />
 		</>
 	);
 }

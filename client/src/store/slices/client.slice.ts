@@ -1,11 +1,23 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface Client {
+export interface Client {
 	id: string;
 	firstName: string;
 	lastName: string;
 	email: string;
 	role: string;
+	phoneNumber:string;
+	profileImage?: string;
+	fitnessGoal?: "weightLoss" | "muscleGain" | "endurance" | "flexibility" | "maintenance";
+	experienceLevel?: "beginner" | "intermediate" | "advanced" | "expert";
+	activityLevel?: "sedentary" | "light" | "moderate" | "active" | "veryActive";
+	healthConditions?: string[];
+	waterIntake?: number;
+	dietPreference?: string;
+	preferredWorkout?:string;
+	workoutExperience?:string;
+	height?: number;
+	weight?: number;
 }
 
 interface ClientState {

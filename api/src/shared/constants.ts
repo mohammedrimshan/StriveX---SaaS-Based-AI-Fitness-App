@@ -15,6 +15,31 @@ export enum TrainerApprovalStatus {
 
 export type Gender = "male" | "female" | "other";
 
+export const FITNESS_GOALS = [
+  "weightLoss",
+  "muscleGain",
+  "endurance",
+  "flexibility",
+  "maintenance",
+] as const;
+export type FitnessGoal = typeof FITNESS_GOALS[number];
+
+export const EXPERIENCE_LEVELS = [
+  "beginner",
+  "intermediate",
+  "advanced",
+  "expert",
+] as const;
+export type ExperienceLevel = typeof EXPERIENCE_LEVELS[number];
+
+export const ACTIVITY_LEVELS = [
+  "sedentary",
+  "light",
+  "moderate",
+  "active",
+  "veryActive",
+] as const;
+export type ActivityLevel = typeof ACTIVITY_LEVELS[number];
 
 export const HTTP_STATUS = {
   OK: 200,

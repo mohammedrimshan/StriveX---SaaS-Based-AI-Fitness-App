@@ -4,77 +4,57 @@ import { ZodError } from "zod";
 import { IUserController } from "@/entities/controllerInterfaces/client-controller.interface";
 import { IGetAllUsersUseCase } from "@/entities/useCaseInterfaces/admin/get-all-users-usecase.interface";
 import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-user-status-usecase.interface";
+import { IUpdateUserProfileUseCase } from "@/entities/useCaseInterfaces/users/update-user-profile-usecase.interface";
+import { IUpdateClientPasswordUseCase } from "@/entities/useCaseInterfaces/users/change-logged-in-user-password-usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
-import {
-  ERROR_MESSAGES,
-  HTTP_STATUS,
-  SUCCESS_MESSAGES,
-} from "@/shared/constants";
+import { ERROR_MESSAGES, HTTP_STATUS, SUCCESS_MESSAGES } from "@/shared/constants";
+import { handleErrorResponse } from "@/shared/utils/errorHandler";
+import { IClientEntity } from "@/entities/models/client.entity";
+import { CustomRequest } from "../middlewares/auth.middleware";
 
 @injectable()
 export class UserController implements IUserController {
   constructor(
-    @inject("IGetAllUsersUseCase")
-    private getAllUsersUseCase: IGetAllUsersUseCase,
-    @inject("IUpdateUserStatusUseCase")
-    private updateUserStatusUseCase: IUpdateUserStatusUseCase
+    @inject("IGetAllUsersUseCase") private getAllUsersUseCase: IGetAllUsersUseCase,
+    @inject("IUpdateUserStatusUseCase") private updateUserStatusUseCase: IUpdateUserStatusUseCase,
+    @inject("IUpdateUserProfileUseCase") private updateUserProfileUseCase: IUpdateUserProfileUseCase,
+    @inject("IUpdateClientPasswordUseCase") private changeUserPasswordUseCase: IUpdateClientPasswordUseCase
   ) {}
 
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
       const { page = "1", limit = "5", search = "", userType } = req.query;
 
-      // Parse and validate query params
       const pageNumber = parseInt(page as string, 10);
       const pageSize = parseInt(limit as string, 10);
       const userTypeString = typeof userType === "string" ? userType.toLowerCase() : "client";
       const searchTermString = typeof search === "string" ? search.trim() : "";
 
       if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError(
-          "Invalid page or limit value. Must be positive numbers.",
-          HTTP_STATUS.BAD_REQUEST
-        );
+        throw new CustomError(ERROR_MESSAGES.VALIDATION_ERROR, HTTP_STATUS.BAD_REQUEST);
       }
+
       const { user, total } = await this.getAllUsersUseCase.execute(
         userTypeString,
         pageNumber,
         pageSize,
         searchTermString
       );
+
       res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
       res.set("Pragma", "no-cache");
       res.set("Expires", "0");
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
-        users: user, 
-        totalPages: total, 
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        users: user,
+        totalPages: total,
         currentPage: pageNumber,
         totalUsers: user.length === 0 ? 0 : (pageNumber - 1) * pageSize + user.length,
       });
     } catch (error) {
-      if (error instanceof ZodError) {
-        const errors = error.errors.map((err) => ({ message: err.message }));
-        res.status(HTTP_STATUS.BAD_REQUEST).json({
-          success: false,
-          message: ERROR_MESSAGES.VALIDATION_ERROR,
-          errors,
-        });
-        return;
-      }
-      if (error instanceof CustomError) {
-        res.status(error.statusCode).json({
-          success: false,
-          message: error.message,
-        });
-        return;
-      }
-      console.error("Error in getAllUsers:", error);
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: ERROR_MESSAGES.SERVER_ERROR,
-      });
+      handleErrorResponse(res, error);
     }
   }
 
@@ -82,24 +62,16 @@ export class UserController implements IUserController {
     try {
       const { userType, userId } = req.query as { userType: string; userId: any };
 
-      // Validate inputs
       if (!userType || !userId) {
-        throw new CustomError(
-          "userType and userId are required.",
-          HTTP_STATUS.BAD_REQUEST
-        );
+        throw new CustomError(ERROR_MESSAGES.MISSING_PARAMETERS, HTTP_STATUS.BAD_REQUEST);
       }
 
       if (!["client", "trainer"].includes(userType.toLowerCase())) {
-        throw new CustomError(
-          "Invalid userType. Must be 'client' or 'trainer'.",
-          HTTP_STATUS.BAD_REQUEST
-        );
+        throw new CustomError(ERROR_MESSAGES.INVALID_ROLE, HTTP_STATUS.BAD_REQUEST);
       }
 
       await this.updateUserStatusUseCase.execute(userType.toLowerCase(), userId);
 
-      // Disable caching for consistency
       res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
       res.set("Pragma", "no-cache");
       res.set("Expires", "0");
@@ -109,27 +81,90 @@ export class UserController implements IUserController {
         message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
       });
     } catch (error) {
-      if (error instanceof ZodError) {
-        const errors = error.errors.map((err) => ({ message: err.message }));
-        res.status(HTTP_STATUS.BAD_REQUEST).json({
-          success: false,
-          message: ERROR_MESSAGES.VALIDATION_ERROR,
-          errors,
-        });
-        return;
+      handleErrorResponse(res, error);
+    }
+  }
+
+  async updateUserProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.params.userId;
+      const profileData = req.body;
+
+      if (!userId) {
+        throw new CustomError(ERROR_MESSAGES.ID_NOT_PROVIDED, HTTP_STATUS.BAD_REQUEST);
       }
-      if (error instanceof CustomError) {
-        res.status(error.statusCode).json({
-          success: false,
-          message: error.message,
-        });
-        return;
+
+      const allowedFields: (keyof Partial<IClientEntity>)[] = [
+        "firstName",
+        "lastName",
+        "email",
+        "phoneNumber",
+        "profileImage",
+        "height",
+        "weight",
+        "fitnessGoal",
+        "experienceLevel",
+        "activityLevel",
+        "healthConditions",
+        "waterIntake",
+        "dietPreference",
+      ];
+
+      const updates: Partial<IClientEntity> = {};
+      for (const key of allowedFields) {
+        if (profileData[key] !== undefined) {
+          updates[key] = profileData[key];
+        }
       }
-      console.error("Error in updateUserStatus:", error);
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: ERROR_MESSAGES.SERVER_ERROR,
+
+      const updatedUser = await this.updateUserProfileUseCase.execute(userId, updates);
+
+      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+      res.set("Pragma", "no-cache");
+      res.set("Expires", "0");
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.PROFILE_UPDATE_SUCCESS,
+        user: updatedUser,
       });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+  async changePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const id = (req as CustomRequest).user.id;
+      const { currentPassword, newPassword } = req.body as {
+        currentPassword: string;
+        newPassword: string;
+      };
+
+      if (!id) {
+        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+      }
+
+      if (!currentPassword || !newPassword) {
+        throw new CustomError(ERROR_MESSAGES.MISSING_FIELDS, HTTP_STATUS.BAD_REQUEST);
+      }
+
+      if (currentPassword === newPassword) {
+        throw new CustomError(ERROR_MESSAGES.SAME_CURR_NEW_PASSWORD, HTTP_STATUS.BAD_REQUEST);
+      }
+
+      await this.changeUserPasswordUseCase.execute(id, currentPassword, newPassword);
+
+      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+      res.set("Pragma", "no-cache");
+      res.set("Expires", "0");
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
     }
   }
 }

@@ -9,7 +9,8 @@ import {
 } from "../../../interfaceAdapters/middlewares/auth.middleware";
 import {
 	blockStatusMiddleware,
-	authController
+	authController,
+	userController
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -39,5 +40,28 @@ export class ClientRoutes extends BaseRoute {
 				authController.handleTokenRefresh(req, res);
 			}
 		);
+
+		router.put(
+			"/client/:userId/profile",
+			verifyAuth,
+			authorizeRole(["client"]),
+			blockStatusMiddleware.checkStatus as RequestHandler,
+			(req: Request, res: Response) => {
+				console.log("refreshing client", req.body);
+				userController.updateUserProfile(req, res);
+			}
+		);
+
+		router.put(
+			"/client/update-password",
+			verifyAuth,
+			authorizeRole(["client"]),
+			blockStatusMiddleware.checkStatus as RequestHandler,
+			(req: Request, res: Response) => {
+			console.log("refreshing client", req.body);
+			userController.changePassword(req, res);
+			}
+		  );
+	  
 	}
 }

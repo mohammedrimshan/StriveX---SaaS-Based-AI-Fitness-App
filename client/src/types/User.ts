@@ -6,9 +6,11 @@ export interface User {
   email: string;
   phoneNumber: string;
   role?: UserRole;
-  profileImage?: string;
+
   dateOfBirth?: string; 
-  experience?: string;  
+  experience?: string; 
+  height?: number;
+  weight?: number;
   gender?: string;      
 	status: string;
 	createdAt: Date;
@@ -32,6 +34,16 @@ export interface IClient extends User{
   specialization?: string;
   preferences?: string[];
   status: string;
+  googleId?: string;
+  fitnessGoal?: "weightLoss" | "muscleGain" | "endurance" | "flexibility" | "maintenance";
+  experienceLevel?: "beginner" | "intermediate" | "advanced" | "expert";
+  activityLevel?: "sedentary" | "light" | "moderate" | "active" | "veryActive";
+  healthConditions?: string[];
+  waterIntake?: number;
+  dietPreference?: string;
+  preferredWorkout?:string;
+  workoutExperience?:string;
+  profileImage?: string;
 }
 
 export interface ITrainer extends User {

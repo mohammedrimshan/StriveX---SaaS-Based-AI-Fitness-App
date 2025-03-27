@@ -86,4 +86,9 @@ export class ClientRepository implements IClientRepository {
             id: client._id.toString(),
         } as IClientEntity;
     }
+    
+    async findByIdAndUpdatePassword(id: any, password: string): Promise<void> {
+        await ClientModel.findByIdAndUpdate(id, { password });
+      }
+    
 }

@@ -20,6 +20,8 @@ import { IUserExistenceService } from "../../entities/services/user-exist-servic
 import { UserExistenceService } from "../../interfaceAdapters/services/user-existance.service";
 import { ITokenService } from "../../entities/services/token-service.interface";
 import { JWTService } from "../../interfaceAdapters/services/jwt.service";
+import { ICloudinaryService } from "@/interfaceAdapters/services/cloudinary.service";
+import { CloudinaryService } from "@/interfaceAdapters/services/cloudinary.service";
 
 import { IRegisterUserUseCase } from "../../entities/useCaseInterfaces/auth/register-usecase.interface";
 import { RegisterUserUseCase } from "../../useCases/auth/register-user.usecase";
@@ -49,7 +51,10 @@ import { IForgotPasswordUseCase } from "@/entities/useCaseInterfaces/auth/forgot
 import { ForgotPasswordUseCase } from "@/useCases/auth/forgot-password.usecase";
 import { IResetPasswordUseCase } from "@/entities/useCaseInterfaces/auth/reset-password-usecase.interface";
 import { ResetPasswordUseCase } from "@/useCases/auth/reset-password.usecase";
-
+import { IUpdateUserProfileUseCase } from "@/entities/useCaseInterfaces/users/update-user-profile-usecase.interface";
+import { UpdateUserProfileUseCase } from "@/useCases/user/update-user-profile.usecase";
+import { UpdateClientPasswordUseCase } from "@/useCases/user/change-logged-in-user-password.usecase";
+import { IUpdateClientPasswordUseCase } from "@/entities/useCaseInterfaces/users/change-logged-in-user-password-usecase.interface";
 export class UseCaseRegistry {
   static registerUseCases(): void {
     //* ====== Register Bcrypts ====== *//
@@ -76,6 +81,10 @@ export class UseCaseRegistry {
 
     container.register<ITokenService>("ITokenService", {
       useClass: JWTService,
+    });
+
+    container.register<ICloudinaryService>("ICloudinaryService", {
+      useClass: CloudinaryService,
     });
 
     //* ====== Register Strategies ====== *//
@@ -162,6 +171,14 @@ export class UseCaseRegistry {
 
     container.register<IResetPasswordUseCase>("IResetPasswordUseCase", {
       useClass: ResetPasswordUseCase,
+    });
+
+    container.register<IUpdateUserProfileUseCase>("IUpdateUserProfileUseCase",{
+      useClass:UpdateUserProfileUseCase,
+    });
+
+    container.register<IUpdateClientPasswordUseCase>("IUpdateClientPasswordUseCase",{
+      useClass:UpdateClientPasswordUseCase
     });
   }
 }

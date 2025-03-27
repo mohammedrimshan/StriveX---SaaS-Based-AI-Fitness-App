@@ -40,6 +40,7 @@ export const ClientLayout = () => {
 				<PrivateHeader
 					className="z-40"
 					userName={user?.firstName}
+					userAvatar={user?.profileImage}
 					onLogout={handleLogout}
 					notifications={notifications}
 					onSidebarToggle={() => setIsSideBarVisible(!isSideBarVisible)}
