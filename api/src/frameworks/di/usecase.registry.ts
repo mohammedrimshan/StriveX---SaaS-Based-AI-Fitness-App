@@ -55,6 +55,20 @@ import { IUpdateUserProfileUseCase } from "@/entities/useCaseInterfaces/users/up
 import { UpdateUserProfileUseCase } from "@/useCases/user/update-user-profile.usecase";
 import { UpdateClientPasswordUseCase } from "@/useCases/user/change-logged-in-user-password.usecase";
 import { IUpdateClientPasswordUseCase } from "@/entities/useCaseInterfaces/users/change-logged-in-user-password-usecase.interface";
+import { IUpdateTrainerProfileUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-profile.usecase.interface";
+import { UpdateTrainerProfileUseCase } from "@/useCases/trainer/update-trainer-profile.usecase";
+import { IGetAllCategoriesUseCase } from "@/entities/useCaseInterfaces/common/get-all-category.interface";
+import { GetAllCategoriesUseCase } from "@/useCases/common/get-all-categories.usecase";
+import { ICreateNewCategoryUseCase } from "@/entities/useCaseInterfaces/admin/create-new-category.interface";
+import { CreateNewCategoryUseCase } from "@/useCases/admin/create-new-category.usecase";
+import { IGetAllPaginatedCategoryUseCase } from "@/entities/useCaseInterfaces/admin/get-all-paginated-category-usecase.interface";
+import { GetAllPaginatedCategoryUseCase } from "@/useCases/admin/get-all-paginated-category.usecase";
+import { IUpdateCategoryStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-category-status-usecase.interface";
+import { UpdateCategoryStatusUseCase } from "@/useCases/admin/update-category-status.usecase";
+import { IUpdateCategoryUseCase } from "@/entities/useCaseInterfaces/admin/update-category-usecase.interface";
+import { UpdateCategoryUseCase } from "@/useCases/admin/update-category.usecase";
+import { IDeleteCategoryUseCase } from "@/entities/useCaseInterfaces/admin/delete-category-usecase.interface";
+import { DeleteCategoryUseCase } from "@/useCases/admin/delete-category.usecase";
 export class UseCaseRegistry {
   static registerUseCases(): void {
     //* ====== Register Bcrypts ====== *//
@@ -179,6 +193,34 @@ export class UseCaseRegistry {
 
     container.register<IUpdateClientPasswordUseCase>("IUpdateClientPasswordUseCase",{
       useClass:UpdateClientPasswordUseCase
+    });
+
+    container.register<IUpdateTrainerProfileUseCase>("IUpdateTrainerProfileUseCase",{
+      useClass:UpdateTrainerProfileUseCase
+    });
+
+    container.register<IGetAllCategoriesUseCase>("IGetAllCategoriesUseCase",{
+      useClass:GetAllCategoriesUseCase
+    });
+
+    container.register<ICreateNewCategoryUseCase>("ICreateNewCategoryUseCase",{
+      useClass:CreateNewCategoryUseCase
+    });
+
+    container.register<IGetAllPaginatedCategoryUseCase>("IGetAllPaginatedCategoryUseCase",{
+      useClass:GetAllPaginatedCategoryUseCase
+    });
+
+    container.register<IUpdateCategoryStatusUseCase>("IUpdateCategoryStatusUseCase",{
+      useClass:UpdateCategoryStatusUseCase
+    });
+
+    container.register<IUpdateCategoryUseCase>("IUpdateCategoryUseCase",{
+      useClass:UpdateCategoryUseCase
+    });
+
+    container.register<IDeleteCategoryUseCase>("IDeleteCategoryUseCase",{
+      useClass:DeleteCategoryUseCase
     });
   }
 }

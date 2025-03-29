@@ -19,6 +19,27 @@ export type IUpdateAdminData = Pick<
 	"firstName" | "lastName" | "email" | "phoneNumber" | "profileImage"
 >;
 
+export interface CategoryType {
+	_id: string;
+	title: string;
+	description?: string;
+	status: boolean;
+	categoryId?: string; 
+	createdAt?: string;
+	updatedAt?: string;
+	__v?: number;
+  }
+  
+  export interface CategoryResponse {
+	success: boolean;
+	categories: CategoryType[];
+	totalPages: number;
+	currentPage: number;
+	totalCategory: number;
+  }
+
+
+
 export const getAllUsers = async <T extends IClient | ITrainer>({
 	userType,
 	page = 1,
@@ -72,4 +93,54 @@ export const updateTrainerApprovalStatus = async ({
 	  console.error("API Error:", error.response?.data);
 	  throw new Error(error.response?.data?.message || "Failed to change trainer approval status");
 	}
+  };
+
+
+  export const getAllCategories = async ({
+	page = 1,
+	limit = 10,
+	search = "",
+  }: {
+	page: number;
+	limit: number;
+	search: string;
+  }): Promise<CategoryResponse> => {
+	const response = await adminAxiosInstance.get("/admin/categories", {
+	  params: { page, limit, search },
+	});
+	return response.data;
+  };
+  
+  export const addAndEditCategory = async (categoryData: {
+	id?: string;
+	name: string;
+	description?: string;
+  }): Promise<IAxiosResponse> => {
+	if (categoryData.id) {
+	  // Edit category (PUT)
+	  const response = await adminAxiosInstance.put(
+		`/admin/categories/${categoryData.id}`,
+		{ name: categoryData.name, description: categoryData.description }
+	  );
+	  return response.data;
+	} else {
+	  // Add new category (POST)
+	  const response = await adminAxiosInstance.post("/admin/categories", {
+		name: categoryData.name,
+		description: categoryData.description,
+	  });
+	  return response.data;
+	}
+  };
+  
+  export const toggleCategoryStatus = async (categoryId: string, status: boolean): Promise<IAxiosResponse> => {
+	const response = await adminAxiosInstance.patch(`/admin/categories/${categoryId}`, {
+	  status: status ? "false" : "true",
+	});
+	return response.data;
+  };
+  
+  export const deleteCategory = async (categoryId: string): Promise<IAxiosResponse> => {
+	const response = await adminAxiosInstance.delete(`/admin/categories/${categoryId}`);
+	return response.data;
   };

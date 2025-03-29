@@ -6,7 +6,7 @@ import { Route, Routes } from "react-router-dom";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import ResetPassword from "@/components/auth/ResetPassword";
 import TrainerLanding from "@/components/landing/TrainerLanding";
-
+import TrainerProfilePage from "@/pages/trainer/ProfileManagement";
 export const TrainerRoutes = () => {
   return (
     <Routes>
@@ -31,6 +31,9 @@ export const TrainerRoutes = () => {
             />
           }
         />
+        <Route path="/profile" element={
+                  <TrainerAuthRoute allowedRoles={["trainer"]} element={<TrainerProfilePage />} />
+                } />
         {/* <Route path="profileform" element={<TrainerPostRegistrationForm />} /> */}
         <Route path="clients" element={"hello"} />
         {/* Add more admin routes here as needed */}

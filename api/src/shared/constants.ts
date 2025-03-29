@@ -130,7 +130,9 @@ export const ERROR_MESSAGES = {
   FILE_SIZE_EXCEEDED: "File size exceeded maximum limit",
   UPLOAD_FAILED: "Failed to upload file",
   BLOCKED: "Your account has been blocked.",
-  UPDATE_FAILED:"Updation Failed"
+  UPDATE_FAILED:"Updation Failed",
+  CATEGORY_EXISTS: "Category Already Exists",
+  CATEGORY_NOT_FOUND: "Category Not Found",
 } as const;
 
 export const VERIFICATION_MAIL_CONTENT = (otp: string) => `

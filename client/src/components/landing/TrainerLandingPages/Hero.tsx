@@ -26,45 +26,7 @@ const Hero = () => {
 
   return (
     <div className="relative bg-white overflow-hidden" ref={heroRef}>
-      {/* Header */}
-      {/* <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <div className="text-violet-600 font-bold text-xl">StriveX</div>
-            </div>
-            
-            <div className="hidden md:flex items-center space-x-6">
-              <nav className="flex items-center space-x-6">
-                <a href="#" className="text-gray-700 hover:text-violet-600 font-medium">Dashboard</a>
-                <a href="#" className="text-gray-700 hover:text-violet-600 font-medium">Clients</a>
-                <a href="#" className="text-gray-700 hover:text-violet-600 font-medium">Schedule</a>
-                <a href="#" className="text-gray-700 hover:text-violet-600 font-medium">Income</a>
-                <a href="#" className="text-gray-700 hover:text-violet-600 font-medium">Resources</a>
-              </nav>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-full hover:bg-gray-100 relative">
-                <Bell className="h-5 w-5 text-gray-600" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              
-              <div className="relative">
-                <Avatar className="h-8 w-8 border-2 border-violet-200">
-                  <AvatarImage src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Trainer" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-              </div>
-              
-              <button className="md:hidden p-2 rounded-full hover:bg-gray-100">
-                <Menu className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header> */}
-
+    
       {/* Hero Content */}
       <div className="pt-24 pb-16 md:pt-32 md:pb-24">
         <div className="container mx-auto px-4">

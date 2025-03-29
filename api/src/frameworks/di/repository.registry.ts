@@ -12,7 +12,8 @@ import { IAdminRepository } from "@/entities/repositoryInterfaces/admin/admin-re
 import { AdminRepository } from "@/interfaceAdapters/repositories/admin/admin.repository";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { TrainerRepository } from "@/interfaceAdapters/repositories/trainer/trainer.repository";
-
+import { ICategoryRepository } from "@/entities/repositoryInterfaces/common/category-repository.interface";
+import { CategoryRepository } from "@/interfaceAdapters/repositories/common/category.repository";
 export class RepositoryRegistry {
   static registerRepositories(): void {
     container.register<IClientRepository>("IClientRepository", {
@@ -37,6 +38,10 @@ export class RepositoryRegistry {
 
     container.register<ITrainerRepository>("ITrainerRepository", {
       useClass: TrainerRepository,
+    });
+
+    container.register<ICategoryRepository>("ICategoryRepository", {
+      useClass: CategoryRepository,
     });
   }
 }

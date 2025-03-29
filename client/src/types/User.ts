@@ -8,7 +8,6 @@ export interface User {
   role?: UserRole;
 
   dateOfBirth?: string; 
-  experience?: string; 
   height?: number;
   weight?: number;
   gender?: string;      
@@ -26,6 +25,7 @@ export interface ILoginData {
 
 export interface IAdmin extends User {
 	isAdmin?: boolean;
+  profileImage?:string
 }
 
 export interface IClient extends User{
@@ -45,12 +45,35 @@ export interface IClient extends User{
   workoutExperience?:string;
   profileImage?: string;
 }
-
 export interface ITrainer extends User {
+  id: string; // Added to match backend and Redux
   firstName: string;
   lastName: string;
   email: string;
   phoneNumber: string;
+  profileImage?: string;
+  height?: number;
+  weight?: number;
+  dateOfBirth?: string;
+  gender?: string;
+  experience?: number;
+  skills?: string[];
+  qualifications?: string[];
+  specialization?: string[];
+  certifications?: string[];
+  approvedByAdmin?: boolean; 
+  approvalStatus?: string; 
+  rejectionReason?: string; 
+  googleId?: string;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  isListed: boolean;
+  createdAt: Date;
+}
+
 
 export type UserDTO = IAdmin | IClient | ITrainer;

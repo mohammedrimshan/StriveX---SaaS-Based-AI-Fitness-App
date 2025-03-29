@@ -10,7 +10,7 @@ export function useToaster() {
   const successToast = (message: string) =>
     toast.custom((t: Toast) => createSuccessToast(t, message), {
       position: "top-right",
-      duration: 3000, // Total duration (matches AUTO_DISMISS_DURATION + EXIT_ANIMATION_DURATION)
+      duration: 3000,
     });
 
   const createErrorToast = (t: Toast, message: string) => (

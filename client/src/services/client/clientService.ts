@@ -3,7 +3,7 @@ import { IAuthResponse } from "@/types/Response";
 import { IClient } from "@/types/User";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/client/useClientPasswordChange";
-
+import { CategoryResponse } from "../admin/adminService";
 export const updateClientProfile = async (profileData: Partial<IClient>): Promise<IAuthResponse> => {
   const response = await clientAxiosInstance.put(`/client/${profileData.id}/profile`, profileData)
   console.log(response.data)
@@ -22,5 +22,11 @@ export const updateClientPassword = async ({
     }
   );
   console.log(response.data)
+  return response.data;
+};
+export const getAllCategoriesForClient = async () => {
+  const response = await clientAxiosInstance.get<CategoryResponse>(
+    "/client/getallcategory"
+  );
   return response.data;
 };

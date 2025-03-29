@@ -32,12 +32,34 @@ export class TrainerRoutes extends BaseRoute {
             }
         );
 
+        router.put(
+                    "/trainer/:trainerId/profile",
+                    verifyAuth,
+                    authorizeRole(["trainer"]),
+                    blockStatusMiddleware.checkStatus as RequestHandler,
+                    (req: Request, res: Response) => {
+                        console.log("refreshing client", req.body);
+                        trainerController.updateTrainerProfile(req, res);
+                    }
+                );
+
         router.post(
             "/trainer/refresh-token",
             decodeToken,
             (req: Request, res: Response) => {
                 console.log("refreshing trainer", req.body);
                 authController.handleTokenRefresh(req, res);
+            }
+        );
+
+        router.get(
+            "/trainer/getallcategory",
+            verifyAuth,
+            authorizeRole(["trainer"]),
+            blockStatusMiddleware.checkStatus as RequestHandler,
+            (req: Request, res: Response) => {
+                console.log("refreshing client", req.body);
+                trainerController.getAllCategories(req, res);
             }
         );
     }

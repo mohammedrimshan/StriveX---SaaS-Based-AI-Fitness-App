@@ -9,7 +9,8 @@ import {
   Settings,
   Users,
   UserCheck ,
-  LayoutDashboard
+  LayoutDashboard,
+  FolderOpen, ListTree, Tags
 } from "lucide-react";
 
 const navItems = {
@@ -107,6 +108,11 @@ const navItems = {
       title: "Trainer Verification",
       icon: UserCheck,
       path: "/admin/trainerverification",
+    }, 
+    {
+      title: "Category Management",
+      icon: Tags,
+      path: "/admin/category",
     }, 
     {
       title: "Subscriptions",
