@@ -765,7 +765,7 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                             Loading categories...
                           </SelectItem>
                         ) : categoriesData?.categories?.length > 0 ? (
-                          categoriesData.categories.map((category) => (
+                          categoriesData?.categories.map((category) => (
                             <SelectItem key={category.categoryId} value={category.title}>
                               <div className="flex items-center gap-2">
                                 {getCategoryIcon(category.title)}

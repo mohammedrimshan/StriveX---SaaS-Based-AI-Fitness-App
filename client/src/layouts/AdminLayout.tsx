@@ -37,6 +37,7 @@ export const AdminLayout = () => {
 			{/* Header */}
 			<PrivateHeader
 				className="z-40"
+				userType="admin"
 				userName={user?.firstName}
 				onLogout={handleLogout}
 				notifications={notifications}

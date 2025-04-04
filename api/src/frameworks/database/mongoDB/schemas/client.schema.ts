@@ -4,7 +4,7 @@ import { ROLES,FITNESS_GOALS,EXPERIENCE_LEVELS,ACTIVITY_LEVELS } from "@/shared/
 
 export const clientSchema = new Schema<IClientModel>(
   {
-    clientId: { type: String, required: true },
+    clientId: { type: String, required: true,unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },

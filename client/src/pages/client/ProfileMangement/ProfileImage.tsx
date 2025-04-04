@@ -14,6 +14,7 @@ import { toast } from "react-hot-toast";
 const ProfileImage: React.FC = () => {
   const dispatch = useDispatch();
   const client = useSelector((state: RootState) => state.client.client);
+  console.log(client,"client...")
   const [isLoading, setIsLoading] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
@@ -33,7 +34,7 @@ const ProfileImage: React.FC = () => {
     // Check file type
     if (!allowedTypes.includes(file.type)) {
       toast.error("Invalid file type", {
-        description: "Only JPEG, PNG, WebP, and GIF images are allowed.",
+        //description: "Only JPEG, PNG, WebP, and GIF images are allowed.",
         icon: <AlertTriangle className="text-destructive" />
       });
       return false;
@@ -43,7 +44,7 @@ const ProfileImage: React.FC = () => {
     const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSizeInBytes) {
       toast.error("File too large", {
-        description: "Image must be less than 5MB.",
+       // description: "Image must be less than 5MB.",
         icon: <AlertTriangle className="text-destructive" />
       });
       return false;
@@ -57,7 +58,7 @@ const ProfileImage: React.FC = () => {
         img.onload = () => resolve(true);
         img.onerror = () => {
           toast.error("Invalid image", {
-            description: "The file is not a valid image.",
+            //description: "The file is not a valid image.",
             icon: <AlertTriangle className="text-destructive" />
           });
           resolve(false);

@@ -129,4 +129,7 @@ export class TrainerRepository implements ITrainerRepository {
       id: trainer._id.toString(),
     } as ITrainerEntity;
   }
+  async findByIdAndUpdatePassword(id: any, password: string): Promise<void> {
+          await TrainerModel.findByIdAndUpdate(id, { password });
+        }
 }

@@ -1,9 +1,11 @@
 import { UserRole } from "./UserRole";
+import { ITrainer } from "@/types/User";
 
-export interface IAxiosResponse {
+export interface IAxiosResponse<T = any> {
    success: boolean;
    message: string;
-}
+   data: T;
+ }
 
 export interface IAuthResponse extends IAxiosResponse {
    user: {
@@ -17,3 +19,21 @@ export interface IAuthResponse extends IAxiosResponse {
       isAdmin?:boolean
    }
 }
+
+// client\src\types\Response.ts
+export interface PaginatedTrainersResponse {
+   trainers: ITrainer[];
+   totalPages: number;
+   currentPage: number;
+   totalTrainers: number;
+   success: boolean;
+   message: string;
+ }
+ export interface PaginatedTrainersResponse {
+   trainers: ITrainer[];
+   totalPages: number;
+   currentPage: number;
+   totalTrainers: number;
+   success: boolean;
+   message: string;
+ }

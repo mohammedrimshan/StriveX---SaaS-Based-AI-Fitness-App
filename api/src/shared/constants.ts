@@ -78,6 +78,11 @@ export const SUCCESS_MESSAGES = {
   REFUND_SUCCESS: "Refund processed successfully",
   EMAIL_SENT_SUCCESSFULLY: "Email sent successfully",
   NOTIFICATION_UPDATED: "Notification preferences updated successfully",
+  WORKOUT_CREATED: "Workout created successfully",
+  WORKOUT_UPDATED: "Workout updated successfully",
+  WORKOUT_STATUS_UPDATED: "Workout status updated successfully",
+  WORKOUT_DELETED: "Workout deleted successfully",
+  PROGRESS_RECORDED: "Workout progress recorded successfully"
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -133,6 +138,9 @@ export const ERROR_MESSAGES = {
   UPDATE_FAILED:"Updation Failed",
   CATEGORY_EXISTS: "Category Already Exists",
   CATEGORY_NOT_FOUND: "Category Not Found",
+  CURRENT_PASSWORD:"Current Password Wrong",
+  WORKOUT_NOT_FOUND: "Workout not found",
+  INVALID_WORKOUT_DATA: "Invalid workout data provided"
 } as const;
 
 export const VERIFICATION_MAIL_CONTENT = (otp: string) => `

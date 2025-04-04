@@ -12,6 +12,7 @@ import { AdminLoginStrategy } from "@/useCases/auth/login-strategies/admin-login
 import { TrainerRegisterStrategy } from "@/useCases/auth/register-strategies/trainer-register.strategy";
 import { TrainerLoginStrategy } from "@/useCases/auth/login-strategies/trainer-login.strategy";
 
+
 import { IOtpService } from "../../entities/services/otp-service.interface";
 import { OtpService } from "../../interfaceAdapters/services/otp.service";
 import { IEmailService } from "../../entities/services/email-service.interface";
@@ -22,6 +23,8 @@ import { ITokenService } from "../../entities/services/token-service.interface";
 import { JWTService } from "../../interfaceAdapters/services/jwt.service";
 import { ICloudinaryService } from "@/interfaceAdapters/services/cloudinary.service";
 import { CloudinaryService } from "@/interfaceAdapters/services/cloudinary.service";
+
+import { GeminiService } from "@/interfaceAdapters/services/gemini.service";
 
 import { IRegisterUserUseCase } from "../../entities/useCaseInterfaces/auth/register-usecase.interface";
 import { RegisterUserUseCase } from "../../useCases/auth/register-user.usecase";
@@ -69,6 +72,37 @@ import { IUpdateCategoryUseCase } from "@/entities/useCaseInterfaces/admin/updat
 import { UpdateCategoryUseCase } from "@/useCases/admin/update-category.usecase";
 import { IDeleteCategoryUseCase } from "@/entities/useCaseInterfaces/admin/delete-category-usecase.interface";
 import { DeleteCategoryUseCase } from "@/useCases/admin/delete-category.usecase";
+import { IGenerateWorkoutPlanUseCase } from "@/entities/useCaseInterfaces/users/generate-workout-plans.usecase.interface";
+import { GenerateWorkoutPlanUseCase } from "@/useCases/user/generate-workoutplan.usecase";
+import { IGenerateDietPlanUseCase } from "@/entities/useCaseInterfaces/users/generate-diet-plans.usecase.interface";
+import { GenerateDietPlanUseCase } from "@/useCases/user/generate-dietplan.usecase";
+import { IGetWorkoutPlanUseCase } from "@/entities/useCaseInterfaces/users/get-workout-plans.usecase.interface";
+import { GetWorkoutPlanUseCase } from "@/useCases/user/get-workoutplan.usecase";
+import { IGetDietPlanUseCase } from "@/entities/useCaseInterfaces/users/get-diet-plans.usecase.interface";
+import { GetDietPlanUseCase } from "@/useCases/user/get-dietplan.usecase";
+import { IUpdateTrainerPasswordUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-password.usecase.interface";
+import { UpdateTrainerPasswordUseCase } from "@/useCases/trainer/change-logged-in-trainer-password.usecase";
+import { IAddWorkoutUseCase } from "@/entities/useCaseInterfaces/workout/add-workout-usecase.interface";
+import { AddWorkoutUseCase } from "@/useCases/workout/add-workout.usecase";
+import { IUpdateWorkoutUseCase } from "@/entities/useCaseInterfaces/workout/update-workout-usecase.interface";
+import { UpdateWorkoutUseCase } from "@/useCases/workout/update-workout.usecase";
+import { IToggleWorkoutStatusUseCase } from "@/entities/useCaseInterfaces/workout/toggle-workout-usecase.interface";
+import { ToggleWorkoutStatusUseCase } from "@/useCases/workout/toggle-workout-status.usecase";
+import { IDeleteWorkoutUseCase } from "@/entities/useCaseInterfaces/workout/delete-workout-usecase.interface";
+import { DeleteWorkoutUseCase } from "@/useCases/workout/delete-workout.usecase";
+import { IGetWorkoutsUseCase } from "@/entities/useCaseInterfaces/workout/get-workout-usecase.interface";
+import { GetWorkoutsUseCase } from "@/useCases/workout/get-workouts.usecase";
+import { IGetWorkoutsByCategoryUseCase } from "@/entities/useCaseInterfaces/workout/get-workout-by-category-usecase.interface";
+import { GetWorkoutsByCategoryUseCase } from "@/useCases/workout/get-workouts-by-category.usecase";
+import { IRecordProgressUseCase } from "@/entities/useCaseInterfaces/workout/record-progress-usecase.interface";
+import { RecordProgressUseCase } from "@/useCases/workout/record-progress.usecase";
+import { IGetUserProgressUseCase } from "@/entities/useCaseInterfaces/workout/get-user-progress-usecase.interface";
+import { GetUserProgressUseCase } from "@/useCases/workout/get-user-progress.usecase";
+import { IGetAllAdminWorkoutsUseCase } from "@/entities/useCaseInterfaces/workout/get-all-workouts-usecase.interface";
+import { GetAllAdminWorkoutsUseCase } from "@/useCases/workout/get-all-admin-workouts.usecase";
+import { IGetAllTrainersUseCase } from "@/entities/useCaseInterfaces/users/get-all-trainers.usecase.interface";
+import { GetAllTrainersUseCase } from "@/useCases/user/get-all-trainers.usecase";
+
 export class UseCaseRegistry {
   static registerUseCases(): void {
     //* ====== Register Bcrypts ====== *//
@@ -99,6 +133,10 @@ export class UseCaseRegistry {
 
     container.register<ICloudinaryService>("ICloudinaryService", {
       useClass: CloudinaryService,
+    });
+
+    container.register<GeminiService>("GeminiService", {
+      useClass: GeminiService,
     });
 
     //* ====== Register Strategies ====== *//
@@ -187,40 +225,118 @@ export class UseCaseRegistry {
       useClass: ResetPasswordUseCase,
     });
 
-    container.register<IUpdateUserProfileUseCase>("IUpdateUserProfileUseCase",{
-      useClass:UpdateUserProfileUseCase,
+    container.register<IUpdateUserProfileUseCase>("IUpdateUserProfileUseCase", {
+      useClass: UpdateUserProfileUseCase,
     });
 
-    container.register<IUpdateClientPasswordUseCase>("IUpdateClientPasswordUseCase",{
-      useClass:UpdateClientPasswordUseCase
+    container.register<IUpdateClientPasswordUseCase>(
+      "IUpdateClientPasswordUseCase",
+      {
+        useClass: UpdateClientPasswordUseCase,
+      }
+    );
+
+    container.register<IUpdateTrainerProfileUseCase>(
+      "IUpdateTrainerProfileUseCase",
+      {
+        useClass: UpdateTrainerProfileUseCase,
+      }
+    );
+
+    container.register<IGetAllCategoriesUseCase>("IGetAllCategoriesUseCase", {
+      useClass: GetAllCategoriesUseCase,
     });
 
-    container.register<IUpdateTrainerProfileUseCase>("IUpdateTrainerProfileUseCase",{
-      useClass:UpdateTrainerProfileUseCase
+    container.register<ICreateNewCategoryUseCase>("ICreateNewCategoryUseCase", {
+      useClass: CreateNewCategoryUseCase,
     });
 
-    container.register<IGetAllCategoriesUseCase>("IGetAllCategoriesUseCase",{
-      useClass:GetAllCategoriesUseCase
+    container.register<IGetAllPaginatedCategoryUseCase>(
+      "IGetAllPaginatedCategoryUseCase",
+      {
+        useClass: GetAllPaginatedCategoryUseCase,
+      }
+    );
+
+    container.register<IUpdateCategoryStatusUseCase>(
+      "IUpdateCategoryStatusUseCase",
+      {
+        useClass: UpdateCategoryStatusUseCase,
+      }
+    );
+
+    container.register<IUpdateCategoryUseCase>("IUpdateCategoryUseCase", {
+      useClass: UpdateCategoryUseCase,
     });
 
-    container.register<ICreateNewCategoryUseCase>("ICreateNewCategoryUseCase",{
-      useClass:CreateNewCategoryUseCase
+    container.register<IDeleteCategoryUseCase>("IDeleteCategoryUseCase", {
+      useClass: DeleteCategoryUseCase,
     });
 
-    container.register<IGetAllPaginatedCategoryUseCase>("IGetAllPaginatedCategoryUseCase",{
-      useClass:GetAllPaginatedCategoryUseCase
+    container.register<IGenerateWorkoutPlanUseCase>(
+      "IGenerateWorkoutPlanUseCase",
+      {
+        useClass: GenerateWorkoutPlanUseCase,
+      }
+    );
+
+    container.register<IGenerateDietPlanUseCase>("IGenerateDietPlanUseCase", {
+      useClass: GenerateDietPlanUseCase,
     });
 
-    container.register<IUpdateCategoryStatusUseCase>("IUpdateCategoryStatusUseCase",{
-      useClass:UpdateCategoryStatusUseCase
+    container.register<IGetWorkoutPlanUseCase>("IGetWorkoutPlanUseCase", {
+      useClass: GetWorkoutPlanUseCase,
     });
 
-    container.register<IUpdateCategoryUseCase>("IUpdateCategoryUseCase",{
-      useClass:UpdateCategoryUseCase
+    container.register<IGetDietPlanUseCase>("IGetDietPlanUseCase", {
+      useClass: GetDietPlanUseCase,
     });
 
-    container.register<IDeleteCategoryUseCase>("IDeleteCategoryUseCase",{
-      useClass:DeleteCategoryUseCase
+    container.register<IUpdateTrainerPasswordUseCase>(
+      "IUpdateTrainerPasswordUseCase",
+      {
+        useClass: UpdateTrainerPasswordUseCase,
+      }
+    );
+
+    container.register<IAddWorkoutUseCase>("IAddWorkoutUseCase", {
+      useClass: AddWorkoutUseCase,
+    });
+
+    container.register<IUpdateWorkoutUseCase>("IUpdateWorkoutUseCase", {
+      useClass: UpdateWorkoutUseCase,
+    });
+
+    container.register<IDeleteWorkoutUseCase>("IDeleteWorkoutUseCase", {
+      useClass: DeleteWorkoutUseCase,
+    });
+
+    container.register<IToggleWorkoutStatusUseCase>("IToggleWorkoutStatusUseCase", {
+      useClass: ToggleWorkoutStatusUseCase,
+    });
+
+    container.register<IGetWorkoutsUseCase>("IGetWorkoutsUseCase", {
+      useClass: GetWorkoutsUseCase,
+    });
+
+    container.register<IGetWorkoutsByCategoryUseCase>("IGetWorkoutsByCategoryUseCase", {
+      useClass: GetWorkoutsByCategoryUseCase,
+    });
+
+    container.register<IRecordProgressUseCase>("IRecordProgressUseCase", {
+      useClass: RecordProgressUseCase,
+    });
+
+    container.register<IGetUserProgressUseCase>("IGetUserProgressUseCase", {
+      useClass: GetUserProgressUseCase,
+    });
+
+    container.register<IGetAllAdminWorkoutsUseCase>("IGetAllAdminWorkoutsUseCase", {
+      useClass: GetAllAdminWorkoutsUseCase,
+    });
+
+    container.register<IGetAllTrainersUseCase>("IGetAllTrainersUseCase", {
+      useClass: GetAllTrainersUseCase,
     });
   }
 }

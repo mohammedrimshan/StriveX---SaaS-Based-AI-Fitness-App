@@ -30,6 +30,7 @@ export interface IAdmin extends User {
 
 export interface IClient extends User{
   id: string;
+  clientId?:string;
   isActive?: boolean;
   specialization?: string;
   preferences?: string[];
@@ -46,7 +47,7 @@ export interface IClient extends User{
   profileImage?: string;
 }
 export interface ITrainer extends User {
-  id: string; // Added to match backend and Redux
+  id: string; 
   firstName: string;
   lastName: string;
   email: string;

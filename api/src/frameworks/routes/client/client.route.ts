@@ -71,5 +71,100 @@ export class ClientRoutes extends BaseRoute {
         userController.getAllCategories(req, res);
       }
     );
+
+    router.post(
+      "/client/:userId/workout-plans",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        console.log("refreshing client", req.body);
+        userController.generateWork(req, res);
+      }
+    );
+
+    router.post(
+      "/client/:userId/diet-plans",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        console.log("refreshing client", req.body);
+        userController.generateDiet(req, res);
+      }
+    );
+
+    router.get(
+      "/client/:userId/workout-plans",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getWorkouts(req, res);
+      }
+    );
+
+    router.get(
+      "/client/:userId/diet-plans",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getDietplan(req, res);
+      }
+    );
+
+    router.get(
+      "/client/:userId/progress",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getUserProgress(req, res);
+      }
+    );
+
+    // Get workouts by category
+    router.get(
+      "/client/workouts/category/:categoryId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getWorkoutsByCategory(req, res);
+      }
+    );
+
+    // Get all workouts (paginated)
+    router.get(
+      "/client/workouts",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getAllWorkouts(req, res);
+      }
+    );
+
+    // Record progress
+    router.post(
+      "/client/progress",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.recordProgress(req, res);
+      }
+    );
+
+    router.get(
+      "/client/trainers",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getAllTrainers(req, res);
+      }
+    );
   }
 }

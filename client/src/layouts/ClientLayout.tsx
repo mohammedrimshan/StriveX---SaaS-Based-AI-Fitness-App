@@ -39,6 +39,7 @@ export const ClientLayout = () => {
 			{isLoggedIn ? (
 				<PrivateHeader
 					className="z-40"
+					userType="user"
 					userName={user?.firstName}
 					userAvatar={user?.profileImage}
 					onLogout={handleLogout}

@@ -26,9 +26,14 @@ const navItems = {
       path: "/workouts",
     },
     {
-      title: "AI Diet & Work Out",
+      title: "Generate Diet & Work Out",
       icon: Bot,
-      path: "/ai-planner",
+      path: "/aiplanning",
+    },
+    {
+      title: "AI Diet & WorkOut",
+      icon: Bot,
+      path: "/generated",
     },
     {
       title: "Progress Tracker",

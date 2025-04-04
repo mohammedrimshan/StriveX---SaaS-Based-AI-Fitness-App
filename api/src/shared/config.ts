@@ -21,12 +21,14 @@ const env = cleanEnv(process.env, {
     OTP_EXPIRY_IN_MINUTES: num({ default: 2 }),
     LOGGER_STATUS: str({ default: "dev" }),
     BCRYPT_SALT_ROUNDS: num({ default: 10 }),
+    GEMINI_API_KEY: str(),
 });
 
 export const config = {
     cors: { ALLOWED_ORIGIN: env.CORS_ALLOWED_ORIGIN },
     server: { PORT: env.PORT, NODE_ENV: env.NODE_ENV },
     database: { URI: env.DATABASE_URI },
+    gemini:{  GEMINI_API_KEY:env.GEMINI_API_KEY },
     nodemailer: { EMAIL_USER: env.EMAIL_USER, EMAIL_PASS: env.EMAIL_PASS },
     jwt: {
         ACCESS_SECRET_KEY: env.JWT_ACCESS_KEY,
@@ -45,4 +47,5 @@ export const config = {
     OtpExpiry: env.OTP_EXPIRY_IN_MINUTES,
     loggerStatus: env.LOGGER_STATUS,
     bcryptSaltRounds: env.BCRYPT_SALT_ROUNDS,
+  
 };

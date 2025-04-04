@@ -13,4 +13,7 @@ export interface IClientEntity extends IUserEntity {
     healthConditions?:string[];
     waterIntake?:number;
     dietPreference?: string;
+    equipmentAvailable?:string[];
+    calorieTarget?:string;
+    foodAllergies?:string[];
 }

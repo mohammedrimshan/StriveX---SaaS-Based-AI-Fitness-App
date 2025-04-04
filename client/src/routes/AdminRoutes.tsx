@@ -9,6 +9,7 @@ import TrainerVerificationPage from "@/pages/admin/TrainerVerification";
 import ResetPassword from "@/components/auth/ResetPassword";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import Categories from "@/pages/admin/Categories";
+import AdminWorkoutsPage from "@/pages/admin/Workout";
 export const AdminRoutes = () => {
 	return (
 		<Routes>
@@ -32,6 +33,7 @@ export const AdminRoutes = () => {
 				<Route path="trainers" element={<UserManagement userType="trainer"/>} />
 				<Route path="trainerverification" element={<TrainerVerificationPage />} />
 				<Route path="category" element={<Categories />} />
+				<Route path="workout" element={<AdminWorkoutsPage />} />
 				{/* Add more admin routes here as needed */}
 			</Route>
 			{/*//? Forgot and reset pages */}

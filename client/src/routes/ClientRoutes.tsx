@@ -7,6 +7,9 @@ import LandingPage from "@/components/landing/Landing";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import ResetPassword from "@/components/auth/ResetPassword";
 import ProfileForm from "@/pages/client/ProfileForm";
+import { PlanGenerator } from "@/pages/client/GenerateAi";
+import TrainersPage from "@/pages/client/TrainerList";
+
 
 export const ClientRoutes = () => {
 	return (
@@ -25,6 +28,13 @@ export const ClientRoutes = () => {
 				} />
 				<Route path="/profile" element={
 					<AuthRoute allowedRoles={["client"]} element={<ProfileForm />} />
+				} />
+				<Route path="/aiplanning" element={
+					<AuthRoute allowedRoles={["client"]} element={<PlanGenerator />} />
+				} />
+				
+				<Route path="/alltrainers" element={
+					<AuthRoute allowedRoles={["client"]} element={<TrainersPage />} />
 				} />
 				
 				{/* Add more protected routes as needed */}

@@ -3,8 +3,8 @@ import { IAuthResponse } from "@/types/Response";
 import { UserDTO } from "@/types/User";
 import { ITrainer } from "@/types/User";
 import { CategoryResponse } from "../admin/adminService";
-
-
+import { IAxiosResponse } from "@/types/Response";
+import { UpdatePasswordData } from "@/hooks/trainer/useTrainerPasswordChange";
 // // Complete trainer registration after initial signup
 // export const completeTrainerRegistration = async (userData: UserDTO): Promise<IAuthResponse> => {
 //   const response = await trainerAxiosInstance.post('/trainer/post-register', userData);
@@ -24,6 +24,23 @@ export const updateTrainerProfile = async (
 ): Promise<{ success: boolean; message: string; trainer: ITrainer }> => {
   const response = await trainerAxiosInstance.put(`/trainer/${trainerId}/profile`, profileData);
   console.log("Update trainer profile response:", response.data);
+  return response.data;
+};
+
+
+
+export const updateTrainerPassword = async ({
+  currentPassword,
+  newPassword,
+}: UpdatePasswordData) => {
+  const response = await trainerAxiosInstance.put<IAxiosResponse>(
+    "/trainer/update-password",
+    {
+      currentPassword,
+      newPassword,
+    }
+  );
+  console.log(response.data)
   return response.data;
 };
 

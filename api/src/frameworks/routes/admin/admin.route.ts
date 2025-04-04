@@ -108,5 +108,50 @@ export class AdminRoutes extends BaseRoute {
           adminController.deleteCategory(req, res);
         }
       );
+
+      router.post(
+        "/admin/workouts",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          adminController.addWorkout(req, res);
+        }
+      );
+  
+      router.delete(
+        "/admin/workouts/:workoutId",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          adminController.deleteWorkout(req, res);
+        }
+      );
+  
+      router.patch(
+        "/admin/workouts/:workoutId/status",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          adminController.toggleWorkoutStatus(req, res);
+        }
+      );
+  
+      router.put(
+        "/admin/workouts/:workoutId",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          adminController.updateWorkout(req, res);
+        }
+      );
+
+      router.get(
+        "/admin/workouts",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          adminController.getAllAdminWorkouts(req, res);
+        }
+      );
   }
 }

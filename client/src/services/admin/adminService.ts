@@ -3,6 +3,46 @@ import { FetchUsersParams, UsersResponse } from "@/hooks/admin/useAllUsers";
 import { IAxiosResponse } from "@/types/Response";
 import { IClient, ITrainer, IAdmin } from "@/types/User";
 
+export interface WorkoutExercise {
+  name: string;
+  description: string;
+  duration: number;
+  defaultRestDuration: number;
+}
+
+export interface WorkoutType {
+  _id?: string;
+  title: string;
+  description: string;
+  category: string; // Category ID
+  duration: number;
+  difficulty: "Beginner" | "Intermediate" | "Advanced";
+  imageUrl?: string;
+  exercises: WorkoutExercise[];
+  isPremium: boolean;
+  status: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface WorkoutResponse {
+  success: boolean;
+  message: string;
+  data: WorkoutType;
+}
+
+export interface WorkoutsPaginatedResponse {
+  success: boolean;
+  data: {
+    data: WorkoutType[];
+    total: number;
+    page: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    totalPages: number;
+  };
+}
 export interface UpdatePasswordData {
 	oldPassword: string;
 	newPassword: string;
@@ -142,5 +182,54 @@ export const updateTrainerApprovalStatus = async ({
   
   export const deleteCategory = async (categoryId: string): Promise<IAxiosResponse> => {
 	const response = await adminAxiosInstance.delete(`/admin/categories/${categoryId}`);
+	return response.data;
+  };
+
+  export const addWorkout = async (workoutData: WorkoutType, image?: string): Promise<WorkoutResponse> => {
+	const response = await adminAxiosInstance.post("/admin/workouts", {
+	  ...workoutData,
+	  image, // Send image as a separate field if provided
+	});
+	return response.data;
+  };
+  
+  // Update an existing workout
+  export const updateWorkout = async (
+	workoutId: string,
+	workoutData: Partial<WorkoutType>,
+	image?: string
+  ): Promise<WorkoutResponse> => {
+	const response = await adminAxiosInstance.put(`/admin/workouts/${workoutId}`, {
+	  ...workoutData,
+	  image,
+	});
+	return response.data;
+  };
+  
+  // Delete a workout
+  export const deleteWorkout = async (workoutId: string): Promise<IAxiosResponse> => {
+	const response = await adminAxiosInstance.delete(`/admin/workouts/${workoutId}`);
+	return response.data;
+  };
+  
+  // Get all workouts (paginated)
+  export const getAllWorkouts = async ({
+	page = 1,
+	limit = 10,
+	filter = {},
+  }: {
+	page: number;
+	limit: number;
+	filter: any;
+  }): Promise<WorkoutsPaginatedResponse> => {
+	const response = await adminAxiosInstance.get("/admin/workouts", {
+	  params: { page, limit, filter: JSON.stringify(filter) },
+	});
+	return response.data;
+  };
+  
+  // Toggle workout status (assuming this endpoint exists)
+  export const toggleWorkoutStatus = async (workoutId: string): Promise<WorkoutResponse> => {
+	const response = await adminAxiosInstance.patch(`/admin/workouts/${workoutId}/status`);
 	return response.data;
   };

@@ -62,5 +62,16 @@ export class TrainerRoutes extends BaseRoute {
                 trainerController.getAllCategories(req, res);
             }
         );
+
+        router.put(
+            "/trainer/update-password",
+            verifyAuth,
+            authorizeRole(["trainer"]),
+            blockStatusMiddleware.checkStatus as RequestHandler,
+            (req: Request, res: Response) => {
+              console.log("refreshing client", req.body);
+              trainerController.changePassword(req, res);
+            }
+          );
     }
 }

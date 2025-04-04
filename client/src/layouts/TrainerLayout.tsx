@@ -42,7 +42,9 @@ export const TrainerLayout = () => {
                     className="z-40"
                     userName={user?.firstName}
                     onLogout={handleLogout}
+                    userAvatar={user?.profileImage}
                     notifications={notifications}
+                    userType="trainer"
                     onSidebarToggle={() => setIsSideBarVisible(!isSideBarVisible)}
                 />
             ) : (

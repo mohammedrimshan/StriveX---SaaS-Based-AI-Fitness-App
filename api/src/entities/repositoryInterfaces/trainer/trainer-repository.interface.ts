@@ -24,4 +24,5 @@ export interface ITrainerRepository {
     rejectionReason?: string,
     approvedByAdmin?: boolean
   ): Promise<ITrainerEntity | null>;
+  findByIdAndUpdatePassword(id: any, password: string): Promise<void>;
 }
