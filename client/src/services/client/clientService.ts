@@ -6,7 +6,9 @@ import { UpdatePasswordData } from "@/hooks/client/useClientPasswordChange";
 import { CategoryResponse } from "../admin/adminService";
 import { IWorkoutDay,IWorkoutExercise,IWorkoutPlan } from "@/types/Workout";
 import { IMeal,IDietDay,IDietPlan } from "@/types/Diet";
-import { IWorkoutEntity,PaginatedResult } from "@/types/Workouts";
+// import { PaginatedResult } from "@/types/Workout";
+// import PaginatedRe
+import { IWorkoutEntity } from "../../../../api/src/entities/models/workout.entity";
 import { IProgressEntity } from "@/types/Progress";
 import { PaginatedTrainersResponse } from "@/types/Response";
 
@@ -102,8 +104,8 @@ export const getAllWorkouts = async (
   page: number = 1,
   limit: number = 10,
   filter: object = {}
-): Promise<PaginatedResult<IWorkoutEntity>> => {
-  const response = await clientAxiosInstance.get<IAxiosResponse<PaginatedResult<IWorkoutEntity>>>(
+): Promise<IWorkoutEntity> => {
+  const response = await clientAxiosInstance.get<IAxiosResponse<IWorkoutEntity>>(
     `/client/workouts`,
     {
       params: { page, limit, filter: JSON.stringify(filter) },
@@ -136,4 +138,13 @@ export const getAllTrainers = async (
   );
   console.log("All trainers:", response.data);
   return response.data; 
+};
+
+export const getAllCategoriesForClients = async () => {
+  const response = await clientAxiosInstance.get<CategoryResponse>(
+    "/client/getallcategory"
+  );
+  console.log(response.data,"fdd")
+  return response.data;
+  
 };

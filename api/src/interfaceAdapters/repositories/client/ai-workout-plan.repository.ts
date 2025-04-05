@@ -55,7 +55,6 @@ export class AiWorkoutPlanRepository implements IAiWorkoutPlanRepository {
         return result.deletedCount > 0;
     }
 }
-
 @injectable()
 export class AiDietPlanRepository implements IAiDietPlanRepository {
     async save(plan: IDietPlan): Promise<IDietPlan> {
@@ -78,7 +77,7 @@ export class AiDietPlanRepository implements IAiDietPlanRepository {
 
     async findByClientId(clientId: string): Promise<IDietPlan[]> {
         const plans = await DietPlanModel.find({ clientId }).sort({ createdAt: -1 }).lean();
-        console.log(plans,"pl")
+        console.log(plans, "pl"); // Debug log
         return plans.map(plan => ({
             ...plan,
             id: plan._id.toString()
