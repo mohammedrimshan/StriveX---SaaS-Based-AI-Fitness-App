@@ -1,4 +1,3 @@
-// PlanGenerator.tsx
 "use client";
 
 import { useState } from "react";
@@ -29,27 +28,29 @@ export function PlanGenerator() {
   const [activeTab, setActiveTab] = useState<"workout" | "diet">("workout");
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const { successToast, errorToast } = useToaster();
+  const { successToast, errorToast } = useToaster(); // Use the toaster hook
   const {
     generateWorkout,
     generateDiet,
     isGeneratingWorkout,
     isGeneratingDiet,
   } = usePlanMutations();
-  const { data: workoutPlans, isLoading: workoutLoading, isFetching: workoutFetching } = useWorkoutPlans();
-  const { data: dietPlans, isLoading: dietLoading, isFetching: dietFetching } = useDietPlans();
+  const { data: workoutPlans, isLoading: workoutLoading } = useWorkoutPlans();
+  const { data: dietPlans, isLoading: dietLoading } = useDietPlans();
 
   const handleGenerate = async () => {
     try {
       if (activeTab === "workout") {
-        const response = await generateWorkout({});
-        console.log("Workout generation response:", response);
+        await generateWorkout({});
+        console.log('Workout generated successfully'); // Debug log
       } else {
-        const response = await generateDiet({});
-        console.log("Diet generation response:", response);
+        await generateDiet({});
+        console.log('Diet generated successfully'); // Debug log
       }
       successToast(
-        `${activeTab === "workout" ? "Workout" : "Diet"} plan generated successfully!`
+        `${
+          activeTab === "workout" ? "Workout" : "Diet"
+        } plan generated successfully!`
       );
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
@@ -59,7 +60,6 @@ export function PlanGenerator() {
           ? err.message
           : (err as any)?.response?.data?.message || "Failed to generate plan";
       errorToast(errorMessage);
-      console.error("Generation error:", err);
     }
   };
 
@@ -67,35 +67,34 @@ export function PlanGenerator() {
     activeTab === "workout"
       ? isGeneratingWorkout || workoutLoading
       : isGeneratingDiet || dietLoading;
-  const isFetching = activeTab === "workout" ? workoutFetching : dietFetching;
   const latestPlan =
     activeTab === "workout"
       ? workoutPlans?.[workoutPlans.length - 1] || null
       : dietPlans?.[dietPlans.length - 1] || null;
 
-  console.log("Workout Plans:", workoutPlans);
-  console.log("Diet Plans:", dietPlans);
-  console.log("Latest Plan:", latestPlan);
-  console.log("Is Loading:", isLoading);
-  console.log("Is Fetching:", isFetching);
-
   const workoutFeatures = [
     {
-      icon: <FaHeartbeat className="group-hover:text-[#c026d3] transition-colors duration-300" />,
+      icon: (
+        <FaHeartbeat className="group-hover:text-[#c026d3] transition-colors duration-300" />
+      ),
       title: "Strength & Cardio",
       description: "Balanced approach",
       color: "#8b5cf6",
       bgColor: "#ede9fe",
     },
     {
-      icon: <FaRunning className="group-hover:text-[#c026d3] transition-colors duration-300" />,
+      icon: (
+        <FaRunning className="group-hover:text-[#c026d3] transition-colors duration-300" />
+      ),
       title: "Progressive",
       description: "Adapts to your level",
       color: "#8b5cf6",
       bgColor: "#ede9fe",
     },
     {
-      icon: <FaChartLine className="group-hover:text-[#c026d3] transition-colors duration-300" />,
+      icon: (
+        <FaChartLine className="group-hover:text-[#c026d3] transition-colors duration-300" />
+      ),
       title: "Results Focused",
       description: "Track your progress",
       color: "#8b5cf6",
@@ -105,21 +104,27 @@ export function PlanGenerator() {
 
   const dietFeatures = [
     {
-      icon: <FaAppleAlt className="group-hover:text-[#f97316] transition-colors duration-300" />,
+      icon: (
+        <FaAppleAlt className="group-hover:text-[#f97316] transition-colors duration-300" />
+      ),
       title: "Nutrient Dense",
       description: "Wholesome foods",
       color: "#f43f5e",
       bgColor: "#ffe4e6",
     },
     {
-      icon: <FaWeight className="group-hover:text-[#f97316] transition-colors duration-300" />,
+      icon: (
+        <FaWeight className="group-hover:text-[#f97316] transition-colors duration-300" />
+      ),
       title: "Macro Balanced",
       description: "Optimal ratios",
       color: "#f43f5e",
       bgColor: "#ffe4e6",
     },
     {
-      icon: <FaCheck className="group-hover:text-[#f97316] transition-colors duration-300" />,
+      icon: (
+        <FaCheck className="group-hover:text-[#f97316] transition-colors duration-300" />
+      ),
       title: "Sustainable",
       description: "Long-term success",
       color: "#f43f5e",
@@ -171,7 +176,7 @@ export function PlanGenerator() {
           <TabsContent value="workout">
             <Card className="relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-[#f5f3ff] to-[#fae8ff] rounded-3xl">
               <LoadingModal
-                isLoading={isLoading || isFetching}
+                isLoading={isLoading}
                 showSuccess={showSuccess}
                 type="workout"
                 icon={<FaDumbbell />}
@@ -202,7 +207,7 @@ export function PlanGenerator() {
                         <Button
                           onClick={handleGenerate}
                           size="lg"
-                          disabled={isLoading || isFetching || showSuccess}
+                          disabled={isLoading || showSuccess}
                           className="bg-gradient-to-r from-[#8b5cf6] to-[#c026d3] hover:from-[#7c3aed] hover:to-[#a21caf] text-white font-medium px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-lg h-auto relative overflow-hidden group"
                         >
                           <span className="absolute inset-0 w-full h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
@@ -223,7 +228,7 @@ export function PlanGenerator() {
           <TabsContent value="diet">
             <Card className="relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-[#fff1f2] to-[#ffedd5] rounded-3xl">
               <LoadingModal
-                isLoading={isLoading || isFetching}
+                isLoading={isLoading}
                 showSuccess={showSuccess}
                 type="diet"
                 icon={<FaUtensils />}
@@ -254,7 +259,7 @@ export function PlanGenerator() {
                         <Button
                           onClick={handleGenerate}
                           size="lg"
-                          disabled={isLoading || isFetching || showSuccess}
+                          disabled={isLoading || showSuccess}
                           className="bg-gradient-to-r from-[#f43f5e] to-[#f97316] hover:from-[#e11d48] hover:to-[#ea580c] text-white font-medium px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-lg h-auto relative overflow-hidden group"
                         >
                           <span className="absolute inset-0 w-full h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>

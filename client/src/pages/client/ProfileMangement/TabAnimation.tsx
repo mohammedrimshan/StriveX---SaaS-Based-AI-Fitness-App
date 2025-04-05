@@ -96,3 +96,4 @@ export const AnimatedTabTrigger = ({ children, active }: AnimatedTabTriggerProps
     </div>
   )
 }
+

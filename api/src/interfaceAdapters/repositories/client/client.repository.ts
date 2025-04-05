@@ -1,20 +1,32 @@
-// src/interfaceAdapters/repositories/client/client.repository.ts
 import { injectable } from "tsyringe";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
-import { IClientEntity } from "@/entities/models/client.entity";
 import { ClientModel } from "@/frameworks/database/mongoDB/models/client.model";
-import mongoose from "mongoose";
+import { IClientEntity } from "@/entities/models/client.entity";
 
 @injectable()
 export class ClientRepository implements IClientRepository {
     async save(data: Partial<IClientEntity>): Promise<IClientEntity> {
-        const savedClient = await ClientModel.create(data);
-        return savedClient.toObject() as IClientEntity;
+        return await ClientModel.create(data);
     }
 
     async findByEmail(email: string): Promise<IClientEntity | null> {
         const client = await ClientModel.findOne({ email }).lean();
-        return client as IClientEntity | null;
+        if (!client) return null;
+
+        return {
+            ...client,
+            id: client._id.toString(),
+        } as IClientEntity;
+    }
+
+    async findById(id: any): Promise<IClientEntity | null> {
+        const client = await ClientModel.findById(id).lean();
+        if (!client) return null;
+
+        return {
+            ...client,
+            id: client._id.toString(),
+        } as IClientEntity;
     }
 
     async find(
@@ -22,16 +34,24 @@ export class ClientRepository implements IClientRepository {
         skip: number,
         limit: number
     ): Promise<{ user: IClientEntity[] | []; total: number }> {
-        const query = ClientModel.find(filter).lean();
-        const total = await ClientModel.countDocuments(filter);
-        const user = await query.skip(skip).limit(limit);
-        return { user: user as IClientEntity[] | [], total };
-    }
+        const [users, total] = await Promise.all([
+            ClientModel.find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            ClientModel.countDocuments(filter),
+        ]);
 
-    async findById(id: any): Promise<IClientEntity | null> {
-        if (!mongoose.Types.ObjectId.isValid(id)) return null;
-        const client = await ClientModel.findById(id).lean();
-        return client as IClientEntity | null;
+        const transformedUsers = users.map(({ _id, ...rest }) => ({
+            id: _id.toString(),
+            ...rest,
+        }));
+
+        return {
+            user: transformedUsers,
+            total,
+        };
     }
 
     async updateByEmail(
@@ -43,29 +63,32 @@ export class ClientRepository implements IClientRepository {
             { $set: updates },
             { new: true }
         ).lean();
-        return client as IClientEntity | null;
+        if (!client) return null;
+
+        return {
+            ...client,
+            id: client._id.toString(),
+        } as IClientEntity;
     }
 
     async findByIdAndUpdate(
         id: any,
         updateData: Partial<IClientEntity>
     ): Promise<IClientEntity | null> {
-        if (!mongoose.Types.ObjectId.isValid(id)) return null;
         const client = await ClientModel.findByIdAndUpdate(
             id,
             { $set: updateData },
             { new: true }
         ).lean();
-        return client as IClientEntity | null;
+        if (!client) return null;
+        return {
+            ...client,
+            id: client._id.toString(),
+        } as IClientEntity;
     }
-
+    
     async findByIdAndUpdatePassword(id: any, password: string): Promise<void> {
-        if (!mongoose.Types.ObjectId.isValid(id)) return;
-        await ClientModel.findByIdAndUpdate(id, { $set: { password } });
-    }
-
-    async findByClientId(clientId: string): Promise<IClientEntity | null> {
-        const client = await ClientModel.findOne({ clientId }).lean();
-        return client as IClientEntity | null;
-    }
+        await ClientModel.findByIdAndUpdate(id, { password });
+      }
+    
 }

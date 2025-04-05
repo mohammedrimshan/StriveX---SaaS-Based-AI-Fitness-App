@@ -1,3 +1,4 @@
+
 import { inject, injectable } from "tsyringe";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
 import { IAiDietPlanRepository } from "@/entities/repositoryInterfaces/client/ai-plan-repository";
@@ -16,7 +17,7 @@ export class GenerateDietPlanUseCase implements IGenerateDietPlanUseCase {
     ) {}
 
     async execute(clientId: string): Promise<IDietPlan> {
-        const client = await this.clientRepository.findByClientId(clientId);
+        const client = await this.clientRepository.findById(clientId);
         if (!client) {
             throw new CustomError("Client not found", HTTP_STATUS.NOT_FOUND);
         }

@@ -1,4 +1,5 @@
-import { z } from "zod";
+
+import { z } from "zod"
 
 export const profileFormSchema = z.object({
   // Keep these fields the same
@@ -6,20 +7,14 @@ export const profileFormSchema = z.object({
     .string()
     .trim()
     .min(1, { message: "First name is required" })
-    .regex(/^[A-Za-z\s'-]+$/, {
-      message:
-        "First name can only contain letters, spaces, hyphens, and apostrophes",
-    })
+    .regex(/^[A-Za-z\s'-]+$/, { message: "First name can only contain letters, spaces, hyphens, and apostrophes" })
     .max(50, { message: "First name cannot exceed 50 characters" }),
 
   lastName: z
     .string()
     .trim()
     .min(1, { message: "Last name is required" })
-    .regex(/^[A-Za-z\s'-]+$/, {
-      message:
-        "Last name can only contain letters, spaces, hyphens, and apostrophes",
-    })
+    .regex(/^[A-Za-z\s'-]+$/, { message: "Last name can only contain letters, spaces, hyphens, and apostrophes" })
     .max(50, { message: "Last name cannot exceed 50 characters" }),
 
   email: z
@@ -30,10 +25,10 @@ export const profileFormSchema = z.object({
     .max(100, { message: "Email address is too long" })
     .refine(
       (email) => {
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        return emailRegex.test(email);
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        return emailRegex.test(email)
       },
-      { message: "Please enter a valid email address" }
+      { message: "Please enter a valid email address" },
     ),
 
   phoneNumber: z
@@ -42,12 +37,11 @@ export const profileFormSchema = z.object({
     .optional()
     .refine(
       (phone) => {
-        if (!phone) return true;
-        const phoneRegex =
-          /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
-        return phoneRegex.test(phone);
+        if (!phone) return true
+        const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/
+        return phoneRegex.test(phone)
       },
-      { message: "Invalid phone number format" }
+      { message: "Invalid phone number format" },
     )
     .transform((phone) => phone || undefined),
 
@@ -57,70 +51,52 @@ export const profileFormSchema = z.object({
     .number({ invalid_type_error: "Height must be a number" })
     .min(50, { message: "Height must be at least 50 cm" })
     .max(250, { message: "Height cannot exceed 250 cm" })
-    .optional(),
+    .optional(), 
 
   weight: z
     .number({ invalid_type_error: "Weight must be a number" })
     .min(10, { message: "Weight must be at least 10 kg" })
     .max(300, { message: "Weight cannot exceed 300 kg" })
-    .optional(),
+    .optional(), 
 
   fitnessGoal: z
-    .enum(
-      ["weightLoss", "muscleGain", "endurance", "flexibility", "maintenance"],
-      {
-        errorMap: () => ({ message: "Invalid fitness goal" }),
-      }
-    )
-    .optional(),
+    .enum(["weightLoss", "muscleGain", "endurance", "flexibility", "maintenance"], {
+      errorMap: () => ({ message: "Invalid fitness goal" }),
+    })
+    .optional(), 
 
   experienceLevel: z
     .enum(["beginner", "intermediate", "advanced", "expert"], {
       errorMap: () => ({ message: "Invalid experience level" }),
     })
-    .optional(),
+    .optional(), 
 
   preferredWorkout: z
     .enum(["cardio", "strength", "hiit", "yoga", "pilates", "crossfit"], {
       errorMap: () => ({ message: "Invalid workout type" }),
     })
-    .optional(),
+    .optional(), 
 
-  dietPreference: z
-    .enum([
-      "balanced",
-      "vegetarian",
-      "vegan",
-      "pescatarian",
-      "highProtein",
-      "lowCarb",
-      "lowFat",
-      "glutenFree",
-      "dairyFree",
-      "sugarFree",
-      "keto",
-      "noPreference",
-    ])
-    .optional(),
+  dietPreference: z.string().optional(),
 
   activityLevel: z
     .enum(["sedentary", "light", "moderate", "active", "veryActive"], {
       errorMap: () => ({ message: "Invalid activity level" }),
     })
-    .optional(),
+    .optional(), 
 
   healthConditions: z.array(z.string()).optional(),
-  additionalHealthCases: z.string().optional(),
+
   waterIntake: z
     .number({
       invalid_type_error: "Water intake must be a number",
     })
     .min(0, { message: "Water intake cannot be negative" })
     .max(10000, { message: "Water intake is unrealistically high" })
-    .optional(),
-});
+    .optional(), 
+})
 
-export type ProfileFormValues = z.infer<typeof profileFormSchema>;
+export type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 export const healthConditionsList = [
   { id: "hypertension", label: "Hypertension" },

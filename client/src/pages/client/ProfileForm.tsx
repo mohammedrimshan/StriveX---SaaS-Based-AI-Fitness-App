@@ -1,24 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSelector } from "react-redux";
-import {
-  User,
-  Phone,
-  Mail,
-  Ruler,
-  Weight,
-  Target,
-  Dumbbell,
-  Heart,
-  Droplet,
-  Save,
-  Utensils,
-  Activity,
-  Sparkles,
-} from "lucide-react";
+import { User, Phone, Mail, Ruler, Weight, Target, Dumbbell, Heart, Droplet, Save } from "lucide-react";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,28 +13,20 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "framer-motion";
 import { AnimatedTab, AnimatedItem } from "./ProfileMangement/TabAnimation";
-import ProfileImageUploader from "@/components/common/ImageCropper/ProfileImageUploader";
+import ProfileImage from "./ProfileMangement/ProfileImage";
 import HealthConditions from "./ProfileMangement/HealthConditions";
 import WaterIntake from "./ProfileMangement/WaterIntake";
 import ResetPassword from "./ProfileMangement/ResetPassword";
-import { profileFormSchema, type ProfileFormValues } from "@/utils/validations/profile.validator";
+import { profileFormSchema, type ProfileFormValues, healthConditionsList } from "@/utils/validations/profile.validator";
 import { useUpdateClientProfile } from "@/services/client/useUpdateProfile";
-import { useAllCategoryQuery } from "@/hooks/category/useAllCategory"; 
-import { getAllCategoriesForClients } from "@/services/client/clientService"; 
 import type { RootState } from "@/store/store";
 import { useToaster } from "@/hooks/ui/useToaster";
 
 const ProfileForm: React.FC = () => {
-  const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
+  const [profileImage, setProfileImage] = React.useState<string | undefined>(undefined);
   const { successToast, errorToast } = useToaster();
   const clientData = useSelector((state: RootState) => state.client.client);
   const mutation = useUpdateClientProfile();
-
-  // Fetch workout categories using useAllCategoryQuery
-  const { data: categoryResponse, isLoading: categoriesLoading, error: categoriesError } = useAllCategoryQuery(getAllCategoriesForClients);
-
-  // Extract categories array from the response, with a fallback
-  const categories = categoryResponse?.categories || [];
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -66,43 +44,31 @@ const ProfileForm: React.FC = () => {
       activityLevel: "moderate",
       healthConditions: [],
       waterIntake: 2000,
-      profileImage: "",
     },
   });
 
-  // Debug fetched categories
-  useEffect(() => {
-    console.log("Fetched categories:", categories);
-  }, [categories]);
-
   useEffect(() => {
     if (clientData) {
-      const newProfileImage = clientData.profileImage || "";
       form.reset({
         firstName: clientData.firstName || "",
         lastName: clientData.lastName || "",
         email: clientData.email || "",
+        profileImage: clientData.profileImage || "",
         phoneNumber: clientData.phoneNumber || "",
         height: clientData.height ?? 170,
         weight: clientData.weight ?? 70,
         fitnessGoal: clientData.fitnessGoal ?? "weightLoss",
         experienceLevel: clientData.experienceLevel ?? "beginner",
-        preferredWorkout: clientData.preferredWorkout || "cardio",
+        preferredWorkout:
+          (clientData.preferredWorkout as "cardio" | "strength" | "hiit" | "yoga" | "pilates" | "crossfit") || "cardio",
         dietPreference: clientData.dietPreference ?? "balanced",
         activityLevel: clientData.activityLevel ?? "moderate",
         healthConditions: clientData.healthConditions ?? [],
         waterIntake: clientData.waterIntake ?? 2000,
-        profileImage: newProfileImage,
       });
-      setProfileImage(newProfileImage);
+      setProfileImage(clientData.profileImage);
     }
   }, [clientData, form]);
-
-  const handleImageChange = (newImage: string | null) => {
-    const imageUrl = newImage || undefined;
-    setProfileImage(imageUrl);
-    form.setValue("profileImage", imageUrl || "");
-  };
 
   const onSubmit = async (data: ProfileFormValues) => {
     if (!clientData?.id) {
@@ -119,7 +85,7 @@ const ProfileForm: React.FC = () => {
       height: data.height ?? undefined,
       weight: data.weight ?? undefined,
       waterIntake: data.waterIntake ?? undefined,
-      profileImage: profileImage,
+      profileImage,
       id: clientData.id,
     };
 
@@ -134,46 +100,42 @@ const ProfileForm: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="w-full min-h-screen bg-white pt-20 px-4 relative overflow-hidden"
-    >
-      <div className="max-w-screen-xl mx-auto relative z-10">
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className="w-full min-h-screen bg-gradient-to-b from-[var(--bg-violet)] to-[var(--background)] pt-20 px-4"
+  >
+      <div className="max-w-screen-xl mx-auto">
         <motion.div
           initial={{ y: 20 }}
           animate={{ y: 0 }}
           transition={{ type: "spring", stiffness: 100 }}
           className="mb-6"
         >
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent tracking-tight flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-[#8b5cf6]" />
+          <h1 className="text-3xl font-bold text-[#4A1D96] tracking-tight">
             {clientData ? `Welcome, ${clientData.firstName}!` : "Profile Settings"}
           </h1>
-          <p className="text-gray-600 text-sm mt-1">Manage your account settings and preferences</p>
+          <p className="text-[#6B4F9E] text-sm mt-1">Manage your account settings and preferences</p>
         </motion.div>
 
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid grid-cols-3 mb-6 bg-gray-100 shadow-md rounded-full p-1">
+          <TabsList className="grid grid-cols-3 mb-6 bg-[var(--card)] shadow-md rounded-[var(--radius)] p-1">
             <TabsTrigger
               value="personal"
-              className="text-gray-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6d28d9] data-[state=active]:to-[#a21caf] data-[state=active]:text-white hover:bg-gray-200 rounded-full transition-all duration-300"
+              className="text-[#4A1D96] data-[state=active]:bg-[#4A1D96] data-[state=active]:text-white hover:bg-[#6B4F9E] rounded-[calc(var(--radius)-0.25rem)]"
             >
-              <User className="h-4 w-4 mr-2" />
               Personal Info
             </TabsTrigger>
             <TabsTrigger
               value="fitness"
-              className="text-gray-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6d28d9] data-[state=active]:to-[#a21caf] data-[state=active]:text-white hover:bg-gray-200 rounded-full transition-all duration-300"
+              className="text-[#4A1D96] data-[state=active]:bg-[#4A1D96] data-[state=active]:text-white hover:bg-[#6B4F9E] rounded-[calc(var(--radius)-0.25rem)]"
             >
-              <Activity className="h-4 w-4 mr-2" />
               Fitness & Health
             </TabsTrigger>
             <TabsTrigger
               value="security"
-              className="text-gray-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6d28d9] data-[state=active]:to-[#a21caf] data-[state=active]:text-white hover:bg-gray-200 rounded-full transition-all duration-300"
+              className="text-[#4A1D96] data-[state=active]:bg-[#4A1D96] data-[state=active]:text-white hover:bg-[#6B4F9E] rounded-[calc(var(--radius)-0.25rem)]"
             >
-              <Heart className="h-4 w-4 mr-2" />
               Security
             </TabsTrigger>
           </TabsList>
@@ -185,9 +147,9 @@ const ProfileForm: React.FC = () => {
                   <form onSubmit={form.handleSubmit(onSubmit)}>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                       <AnimatedItem>
-                        <Card className="md:col-span-1 bg-white shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+                        <Card className="md:col-span-1 bg-[var(--card)] shadow-lg hover:shadow-xl transition-shadow border-[var(--border)]">
                           <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-lg bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent">
+                            <CardTitle className="flex items-center gap-2 text-lg text-[#4A1D96]">
                               <User className="h-4 w-4 text-[#4A1D96]" />
                               <span>Profile Picture</span>
                             </CardTitle>
@@ -196,18 +158,18 @@ const ProfileForm: React.FC = () => {
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
-                            <ProfileImageUploader
+                            <ProfileImage
                               initialImage={profileImage}
-                              onCropComplete={handleImageChange}
+                              onImageChange={(image: string | null) => setProfileImage(image ?? undefined)}
                             />
                           </CardContent>
                         </Card>
                       </AnimatedItem>
 
                       <AnimatedItem className="md:col-span-2">
-                        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+                        <Card className="bg-[var(--card)] shadow-lg hover:shadow-xl transition-shadow border-[var(--border)]">
                           <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-lg bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent">
+                            <CardTitle className="flex items-center gap-2 text-lg text-[var(--violet)]">
                               <User className="h-4 w-4 text-[var(--violet)]" />
                               <span>Personal Information</span>
                             </CardTitle>
@@ -222,10 +184,10 @@ const ProfileForm: React.FC = () => {
                                 name="firstName"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">First Name</FormLabel>
+                                    <FormLabel className="text-xs font-medium text-[var(--violet)]">First Name</FormLabel>
                                     <FormControl>
                                       <div className="relative">
-                                        <User className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                        <User className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                         <Input
                                           placeholder="First Name"
                                           {...field}
@@ -242,10 +204,10 @@ const ProfileForm: React.FC = () => {
                                 name="lastName"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">Last Name</FormLabel>
+                                    <FormLabel className="text-xs font-medium text-[var(--violet)]">Last Name</FormLabel>
                                     <FormControl>
                                       <div className="relative">
-                                        <User className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                        <User className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                         <Input
                                           placeholder="Last Name"
                                           {...field}
@@ -264,16 +226,15 @@ const ProfileForm: React.FC = () => {
                               name="email"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">Email</FormLabel>
+                                  <FormLabel className="text-xs font-medium text-[var(--violet)]">Email</FormLabel>
                                   <FormControl>
                                     <div className="relative">
-                                      <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                      <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                       <Input
                                         type="email"
                                         placeholder="Email"
                                         {...field}
-                                        readOnly
-                                        className="pl-8 h-9 text-sm border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] bg-gray-50 cursor-not-allowed"
+                                        className="pl-8 h-9 text-sm border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)]"
                                       />
                                     </div>
                                   </FormControl>
@@ -287,10 +248,10 @@ const ProfileForm: React.FC = () => {
                               name="phoneNumber"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">Phone Number</FormLabel>
+                                  <FormLabel className="text-xs font-medium text-[var(--violet)]">Phone Number</FormLabel>
                                   <FormControl>
                                     <div className="relative">
-                                      <Phone className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                      <Phone className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                       <Input
                                         placeholder="Phone Number"
                                         {...field}
@@ -310,7 +271,7 @@ const ProfileForm: React.FC = () => {
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button
                           type="submit"
-                          className="gap-2 h-9 px-4 bg-gradient-to-r from-[#6d28d9] to-[#a21caf] hover:from-[#5b21b6] hover:to-[#86198f] text-white shadow-md"
+                          className="gap-2 h-9 px-4 bg-[var(--violet)] hover:bg-[var(--violet-hover)] text-[var(--primary-foreground)] shadow-md"
                           disabled={mutation.isPending}
                         >
                           {mutation.isPending ? (
@@ -339,9 +300,9 @@ const ProfileForm: React.FC = () => {
                     <div className="space-y-5">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <AnimatedItem>
-                          <Card className="h-full bg-white shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+                          <Card className="h-full bg-[var(--card)] shadow-lg hover:shadow-xl transition-shadow border-[var(--border)]">
                             <CardHeader className="pb-3">
-                              <CardTitle className="flex items-center gap-2 text-lg bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent">
+                              <CardTitle className="flex items-center gap-2 text-lg text-[var(--violet)]">
                                 <Ruler className="h-4 w-4 text-[var(--violet)]" />
                                 <span>Physical Attributes</span>
                               </CardTitle>
@@ -356,10 +317,10 @@ const ProfileForm: React.FC = () => {
                                   name="height"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">Height (cm)</FormLabel>
+                                      <FormLabel className="text-xs font-medium text-[var(--violet)]">Height (cm)</FormLabel>
                                       <FormControl>
                                         <div className="relative">
-                                          <Ruler className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                          <Ruler className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                           <Input
                                             type="number"
                                             {...field}
@@ -380,10 +341,10 @@ const ProfileForm: React.FC = () => {
                                   name="weight"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">Weight (kg)</FormLabel>
+                                      <FormLabel className="text-xs font-medium text-[var(--violet)]">Weight (kg)</FormLabel>
                                       <FormControl>
                                         <div className="relative">
-                                          <Weight className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                          <Weight className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                           <Input
                                             type="number"
                                             {...field}
@@ -405,9 +366,9 @@ const ProfileForm: React.FC = () => {
                         </AnimatedItem>
 
                         <AnimatedItem>
-                          <Card className="h-full bg-white shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+                          <Card className="h-full bg-[var(--card)] shadow-lg hover:shadow-xl transition-shadow border-[var(--border)]">
                             <CardHeader className="pb-3">
-                              <CardTitle className="flex items-center gap-2 text-lg bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent">
+                              <CardTitle className="flex items-center gap-2 text-lg text-[var(--violet)]">
                                 <Target className="h-4 w-4 text-[var(--violet)]" />
                                 <span>Fitness Goals</span>
                               </CardTitle>
@@ -422,11 +383,13 @@ const ProfileForm: React.FC = () => {
                                   name="fitnessGoal"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">Fitness Goal</FormLabel>
+                                      <FormLabel className="text-xs font-medium text-[var(--violet)]">Fitness Goal</FormLabel>
                                       <FormControl>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                          <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
-                                            <Target className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                          <SelectTrigger
+                                            size="lg"
+                                            className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)]"
+                                          >
                                             <SelectValue placeholder="Select a fitness goal" />
                                           </SelectTrigger>
                                           <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
@@ -447,13 +410,13 @@ const ProfileForm: React.FC = () => {
                                   name="experienceLevel"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">
-                                        Experience Level
-                                      </FormLabel>
+                                      <FormLabel className="text-xs font-medium text-[var(--violet)]">Experience Level</FormLabel>
                                       <FormControl>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                          <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
-                                            <Activity className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                          <SelectTrigger
+                                            size="lg"
+                                            className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)]"
+                                          >
                                             <SelectValue placeholder="Select experience level" />
                                           </SelectTrigger>
                                           <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
@@ -475,9 +438,9 @@ const ProfileForm: React.FC = () => {
                       </div>
 
                       <AnimatedItem>
-                        <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+                        <Card className="bg-[var(--card)] shadow-lg hover:shadow-xl transition-shadow border-[var(--border)]">
                           <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center gap-2 text-lg bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent">
+                            <CardTitle className="flex items-center gap-2 text-lg text-[var(--violet)]">
                               <Dumbbell className="h-4 w-4 text-[var(--violet)]" />
                               <span>Workout Preferences</span>
                             </CardTitle>
@@ -492,38 +455,22 @@ const ProfileForm: React.FC = () => {
                                 name="preferredWorkout"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">
-                                      Preferred Workout
-                                    </FormLabel>
+                                    <FormLabel className="text-xs font-medium text-[var(--violet)]">Preferred Workout</FormLabel>
                                     <FormControl>
                                       <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
-                                          <Dumbbell className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                        <SelectTrigger
+                                          size="lg"
+                                          className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)]"
+                                        >
                                           <SelectValue placeholder="Select workout type" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
-                                          {categoriesLoading ? (
-                                            <SelectItem value="" disabled>
-                                              Loading categories...
-                                            </SelectItem>
-                                          ) : categoriesError ? (
-                                            <SelectItem value="" disabled>
-                                              Error loading categories
-                                            </SelectItem>
-                                          ) : categories.length > 0 ? (
-                                            categories.map((category) => (
-                                              <SelectItem
-                                                key={category._id}
-                                                value={category.title.toLowerCase()}
-                                              >
-                                                {category.title}
-                                              </SelectItem>
-                                            ))
-                                          ) : (
-                                            <SelectItem value="" disabled>
-                                              No categories available
-                                            </SelectItem>
-                                          )}
+                                          <SelectItem value="cardio">Cardio</SelectItem>
+                                          <SelectItem value="strength">Strength</SelectItem>
+                                          <SelectItem value="hiit">HIIT</SelectItem>
+                                          <SelectItem value="yoga">Yoga</SelectItem>
+                                          <SelectItem value="pilates">Pilates</SelectItem>
+                                          <SelectItem value="crossfit">CrossFit</SelectItem>
                                         </SelectContent>
                                       </Select>
                                     </FormControl>
@@ -537,11 +484,13 @@ const ProfileForm: React.FC = () => {
                                 name="activityLevel"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">Activity Level</FormLabel>
+                                    <FormLabel className="text-xs font-medium text-[var(--violet)]">Activity Level</FormLabel>
                                     <FormControl>
                                       <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
-                                          <Activity className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
+                                        <SelectTrigger
+                                          size="lg"
+                                          className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)]"
+                                        >
                                           <SelectValue placeholder="Select activity level" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
@@ -564,28 +513,15 @@ const ProfileForm: React.FC = () => {
                               name="dietPreference"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">Diet Preference</FormLabel>
+                                  <FormLabel className="text-xs font-medium text-[var(--violet)]">Diet Preference</FormLabel>
                                   <FormControl>
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                      <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
-                                        <Utensils className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8b5cf6]" />
-                                        <SelectValue placeholder="Select diet preference" />
-                                      </SelectTrigger>
-                                      <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
-                                        <SelectItem value="balanced">Normal / Balanced Diet</SelectItem>
-                                        <SelectItem value="vegetarian">Vegetarian</SelectItem>
-                                        <SelectItem value="vegan">Vegan</SelectItem>
-                                        <SelectItem value="pescatarian">Pescatarian</SelectItem>
-                                        <SelectItem value="highProtein">High Protein</SelectItem>
-                                        <SelectItem value="lowCarb">Low Carb</SelectItem>
-                                        <SelectItem value="lowFat">Low Fat</SelectItem>
-                                        <SelectItem value="glutenFree">Gluten-Free</SelectItem>
-                                        <SelectItem value="dairyFree">Dairy-Free</SelectItem>
-                                        <SelectItem value="sugarFree">Sugar-Free</SelectItem>
-                                        <SelectItem value="keto">Keto</SelectItem>
-                                        <SelectItem value="noPreference">No Preference</SelectItem>
-                                      </SelectContent>
-                                    </Select>
+                                    <Input
+                                      placeholder="e.g., balanced, vegan, keto"
+                                      {...field}
+                                      value={field.value ?? ""}
+                                      onChange={(e) => field.onChange(e.target.value || undefined)}
+                                      className="h-9 text-sm border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)]"
+                                    />
                                   </FormControl>
                                   <FormMessage className="text-xs mt-1 text-[var(--destructive)]" />
                                 </FormItem>
@@ -599,9 +535,9 @@ const ProfileForm: React.FC = () => {
                     <div className="mt-8 space-y-5">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <AnimatedItem>
-                          <Card className="h-full bg-white shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+                          <Card className="h-full bg-[var(--card)] shadow-lg hover:shadow-xl transition-shadow border-[var(--border)]">
                             <CardHeader className="pb-3">
-                              <CardTitle className="flex items-center gap-2 text-lg bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent">
+                              <CardTitle className="flex items-center gap-2 text-lg text-[var(--violet)]">
                                 <Heart className="h-4 w-4 text-[var(--violet)]" />
                                 <span>Health Conditions</span>
                               </CardTitle>
@@ -617,8 +553,9 @@ const ProfileForm: React.FC = () => {
                                   <FormItem>
                                     <FormControl>
                                       <HealthConditions
-                                        initialConditions={field.value || []}
-                                        onConditionsChange={field.onChange}
+                                        conditions={healthConditionsList}
+                                        selectedConditions={field.value || []}
+                                        onChange={field.onChange}
                                       />
                                     </FormControl>
                                     <FormMessage className="text-xs mt-1 text-[var(--destructive)]" />
@@ -630,9 +567,9 @@ const ProfileForm: React.FC = () => {
                         </AnimatedItem>
 
                         <AnimatedItem>
-                          <Card className="h-full bg-white shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+                          <Card className="h-full bg-[var(--card)] shadow-lg hover:shadow-xl transition-shadow border-[var(--border)]">
                             <CardHeader className="pb-3">
-                              <CardTitle className="flex items-center gap-2 text-lg bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent">
+                              <CardTitle className="flex items-center gap-2 text-lg text-[var(--violet)]">
                                 <Droplet className="h-4 w-4 text-[var(--violet)]" />
                                 <span>Water Intake</span>
                               </CardTitle>
@@ -666,7 +603,7 @@ const ProfileForm: React.FC = () => {
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button
                           type="submit"
-                          className="gap-2 h-9 px-4 bg-gradient-to-r from-[#6d28d9] to-[#a21caf] hover:from-[#5b21b6] hover:to-[#86198f] text-white shadow-md"
+                          className="gap-2 h-9 px-4 bg-[var(--violet)] hover:bg-[var(--violet-hover)] text-[var(--primary-foreground)] shadow-md"
                           disabled={mutation.isPending}
                         >
                           {mutation.isPending ? (
