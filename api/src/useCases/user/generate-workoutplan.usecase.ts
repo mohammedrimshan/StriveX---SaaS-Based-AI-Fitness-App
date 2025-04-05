@@ -17,7 +17,7 @@ export class GenerateWorkoutPlanUseCase implements IGenerateWorkoutPlanUseCase {
     ) {}
 
     async execute(clientId: string): Promise<IWorkoutPlan> {
-        const client = await this.clientRepository.findById(clientId);
+        const client = await this.clientRepository.findByClientId(clientId);
         if (!client) {
             throw new CustomError("Client not found", HTTP_STATUS.NOT_FOUND);
         }

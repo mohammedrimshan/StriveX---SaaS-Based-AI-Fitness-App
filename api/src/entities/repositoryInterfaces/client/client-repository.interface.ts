@@ -18,4 +18,5 @@ export interface IClientRepository {
         updateData: Partial<IClientEntity>
     ): Promise<IClientEntity | null>;
     findByIdAndUpdatePassword(id: any, password: string): Promise<void>;
+    findByClientId(clientId: string): Promise<IClientEntity | null>;
 }

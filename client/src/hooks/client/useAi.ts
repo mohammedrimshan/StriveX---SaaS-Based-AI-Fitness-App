@@ -8,7 +8,7 @@ import axios from 'axios'; // Add this import
 export const usePlanMutations = () => {
   const client = useSelector((state: RootState) => state.client.client);
   const queryClient = useQueryClient();
-  const userId = client?.id;
+  const userId = client?.clientId;
 
   const commonMutationOptions = {
     onSuccess: () => {

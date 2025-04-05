@@ -90,5 +90,8 @@ export class ClientRepository implements IClientRepository {
     async findByIdAndUpdatePassword(id: any, password: string): Promise<void> {
         await ClientModel.findByIdAndUpdate(id, { password });
       }
-    
+      async findByClientId(clientId: string): Promise<IClientEntity | null> {
+        const client = await ClientModel.findOne({ clientId }).lean();
+        return client as IClientEntity | null;
+    }
 }
