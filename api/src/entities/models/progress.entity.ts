@@ -1,13 +1,13 @@
-// api/src/entities/models/progress.entity.ts
+
 import { ObjectId } from "mongoose";
 
 export interface IProgressEntity {
   clientId: ObjectId;
   workoutId: ObjectId;
-  completedDuration: number; // in minutes
+  completedDuration: number; 
   customSessions: {
-    exerciseDuration: number; // in seconds
-    restDuration: number; // in seconds
+    exerciseDuration: number; 
+    restDuration: number; 
   }[];
   date: Date;
   caloriesBurned?: number;

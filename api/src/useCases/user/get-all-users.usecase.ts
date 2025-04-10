@@ -38,14 +38,14 @@ export class GetAllUsersUseCase implements IGetAllUsersUseCase {
     const limit = validPageSize;
 
     if (userType === "client") {
-      const { user, total } = await this.clientRepository.find(filter, skip, limit);
+      const { items:user, total } = await this.clientRepository.find(filter, skip, limit);
       return {
         user,
         total: Math.ceil(total / validPageSize),
       };
     }
     if (userType === "trainer") {
-      const { trainers, total } = await this.trainerRepository.find(filter, skip, limit);
+      const { items:trainers, total } = await this.trainerRepository.find(filter, skip, limit);
       return {
         user: trainers, // Normalized to 'user' for PaginatedUsers
         total: Math.ceil(total / validPageSize),

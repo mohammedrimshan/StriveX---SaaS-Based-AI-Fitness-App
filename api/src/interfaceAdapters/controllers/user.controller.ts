@@ -23,10 +23,11 @@ import {
 } from "@/shared/constants";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { IClientEntity } from "@/entities/models/client.entity";
-import { IWorkoutEntity } from "@/entities/models/workout.entity";
 import { IProgressEntity } from "@/entities/models/progress.entity";
 import { CustomRequest } from "../middlewares/auth.middleware";
 import { IGetAllCategoriesUseCase } from "@/entities/useCaseInterfaces/common/get-all-category.interface";
+import { IGetTrainerProfileUseCase } from "@/entities/useCaseInterfaces/users/get-trainer-profile.usecase.interface";
+
 
 @injectable()
 export class UserController implements IUserController {
@@ -39,26 +40,14 @@ export class UserController implements IUserController {
     private updateUserProfileUseCase: IUpdateUserProfileUseCase,
     @inject("IUpdateClientPasswordUseCase")
     private changeUserPasswordUseCase: IUpdateClientPasswordUseCase,
-    @inject("IGetAllCategoriesUseCase")
-    private getAllCategoriesUseCase: IGetAllCategoriesUseCase,
-    @inject("IGenerateWorkoutPlanUseCase")
-    private generateWorkoutPlanUseCase: IGenerateWorkoutPlanUseCase,
-    @inject("IGenerateDietPlanUseCase")
-    private generateDietPlanUseCase: IGenerateDietPlanUseCase,
-    @inject("IGetWorkoutPlanUseCase")
-    private getWorkoutPlanUseCase: IGetWorkoutPlanUseCase,
-    @inject("IGetDietPlanUseCase")
-    private getDietPlanUseCase: IGetDietPlanUseCase,
     @inject("IGetUserProgressUseCase")
     private getUserProgressUseCase: IGetUserProgressUseCase,
-    @inject("IGetWorkoutsByCategoryUseCase")
-    private getWorkoutsByCategoryUseCase: IGetWorkoutsByCategoryUseCase,
     @inject("IGetWorkoutsUseCase")
-    private getWorkoutsUseCase: IGetWorkoutsUseCase,
-    @inject("IRecordProgressUseCase")
     private recordProgressUseCase: IRecordProgressUseCase,
     @inject("IGetAllTrainersUseCase")
-    private getAllTrainersUseCase: IGetAllTrainersUseCase
+    private getAllTrainersUseCase: IGetAllTrainersUseCase,
+    @inject("IGetTrainerProfileUseCase")
+    private getTrainerProfileUseCase : IGetTrainerProfileUseCase
   ) {}
 
   async getAllUsers(req: Request, res: Response): Promise<void> {
@@ -90,9 +79,7 @@ export class UserController implements IUserController {
         searchTermString
       );
 
-      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-      res.set("Pragma", "no-cache");
-      res.set("Expires", "0");
+    
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -102,18 +89,6 @@ export class UserController implements IUserController {
         currentPage: pageNumber,
         totalUsers:
           user.length === 0 ? 0 : (pageNumber - 1) * pageSize + user.length,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
-
-  async getAllCategories(req: Request, res: Response): Promise<void> {
-    try {
-      const categories = await this.getAllCategoriesUseCase.execute();
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        categories,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -145,10 +120,7 @@ export class UserController implements IUserController {
         userType.toLowerCase(),
         userId
       );
-
-      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-      res.set("Pragma", "no-cache");
-      res.set("Expires", "0");
+    
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -199,9 +171,7 @@ export class UserController implements IUserController {
         updates
       );
 
-      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-      res.set("Pragma", "no-cache");
-      res.set("Expires", "0");
+    
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -248,9 +218,7 @@ export class UserController implements IUserController {
         newPassword
       );
 
-      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-      res.set("Pragma", "no-cache");
-      res.set("Expires", "0");
+    
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -261,83 +229,6 @@ export class UserController implements IUserController {
     }
   }
 
-  async generateWork(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.params.userId;
-
-      const workoutPlan = await this.generateWorkoutPlanUseCase.execute(userId);
-
-      res.status(HTTP_STATUS.CREATED).json({
-        status: "success",
-        message: "Workout plan generated successfully",
-        data: workoutPlan,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
-
-  async generateDiet(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.params.userId;
-
-      const dietPlan = await this.generateDietPlanUseCase.execute(userId);
-
-      res.status(HTTP_STATUS.CREATED).json({
-        status: "success",
-        message: "Diet plan generated successfully",
-        data: dietPlan,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
-
-  async getWorkouts(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.params.userId;
-      console.log(userId,"USER GET WORKOUT")
-      if (!userId) {
-        throw new CustomError(
-          ERROR_MESSAGES.ID_NOT_PROVIDED,
-          HTTP_STATUS.BAD_REQUEST
-        );
-      }
-
-      const workoutPlans = await this.getWorkoutPlanUseCase.execute(userId);
-      console.log("Found workout plans:", workoutPlans);
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-        data: workoutPlans,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
-
-  async getDietplan(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.params.userId;
-      console.log(userId,"USER GET DIET")
-      if (!userId) {
-        throw new CustomError(
-          ERROR_MESSAGES.ID_NOT_PROVIDED,
-          HTTP_STATUS.BAD_REQUEST
-        );
-      }
-
-      const dietPlans = await this.getDietPlanUseCase.execute(userId);
-      console.log("Found dietPlans:", dietPlans);
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-        data: dietPlans,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
   async getUserProgress(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
@@ -355,48 +246,6 @@ export class UserController implements IUserController {
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
         data: progress,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
-
-  async getWorkoutsByCategory(req: Request, res: Response): Promise<void> {
-    try {
-      const { categoryId } = req.params;
-
-      if (!categoryId) {
-        throw new CustomError(
-          ERROR_MESSAGES.ID_NOT_PROVIDED,
-          HTTP_STATUS.BAD_REQUEST
-        );
-      }
-
-      const workouts = await this.getWorkoutsByCategoryUseCase.execute(categoryId);
-
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-        data: workouts,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
-
-  async getAllWorkouts(req: Request, res: Response): Promise<void> {
-    try {
-      const { page = "1", limit = "10", filter = "{}" } = req.query;
-      const pageNumber = parseInt(page as string, 10);
-      const limitNumber = parseInt(limit as string, 10);
-      const filterObj = typeof filter === "string" ? JSON.parse(filter) : {};
-
-      const workouts = await this.getWorkoutsUseCase.execute(filterObj, pageNumber, limitNumber);
-
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-        data: workouts,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -445,10 +294,6 @@ export class UserController implements IUserController {
         searchTermString
       );
 
-      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-      res.set("Pragma", "no-cache");
-      res.set("Expires", "0");
-
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
@@ -458,6 +303,36 @@ export class UserController implements IUserController {
         totalTrainers:
           trainers.length === 0 ? 0 : (pageNumber - 1) * pageSize + trainers.length,
       });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+  async getTrainerProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const {trainerId} = req.params
+
+      if(!trainerId){
+        throw new CustomError(
+          ERROR_MESSAGES.ID_NOT_PROVIDED,
+          HTTP_STATUS.BAD_REQUEST
+        )
+      }
+
+      const trainer = await this.getTrainerProfileUseCase.execute(trainerId);
+
+      if(!trainer){
+        throw new CustomError(
+          ERROR_MESSAGES.TRAINER_NOT_FOUND,
+          HTTP_STATUS.NOT_FOUND
+        )
+      }
+
+      res.status(HTTP_STATUS.OK).json({
+        success:true,
+        message:SUCCESS_MESSAGES.DATA_RETRIEVED,
+        trainer
+      })
     } catch (error) {
       handleErrorResponse(res, error);
     }

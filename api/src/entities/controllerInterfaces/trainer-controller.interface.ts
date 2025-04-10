@@ -5,6 +5,5 @@ export interface ITrainerController {
   updateUserStatus(req: Request, res: Response): Promise<void>;
   trainerVerification(req: Request, res: Response): Promise<void>;
   updateTrainerProfile(req: Request, res: Response): Promise<void>;
-  getAllCategories(req: Request, res: Response): Promise<void>;
   changePassword(req: Request, res: Response): Promise<void>;
 }

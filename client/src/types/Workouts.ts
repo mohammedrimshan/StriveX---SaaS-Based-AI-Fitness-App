@@ -1,25 +1,34 @@
 export interface Exercise {
+  id:string;
   name: string;
   description: string;
-  duration: number; // In minutes
-  defaultRestDuration: number; // In seconds
+  duration: number;
+  defaultRestDuration: number;
+  videoUrl?: string; // Add this
 }
 
 export interface Workout {
-  _id?: string;
+
+  id?: string;
   title: string;
   description: string;
-  category: string;
-  duration: number; // In minutes
+  category: string; 
+  duration: number; 
   difficulty: "Beginner" | "Intermediate" | "Advanced";
-  imageUrl?: string;
-  exercises: Exercise[];
-  isPremium: boolean;
-  status: boolean;
+  imageUrl?: string; 
+  exercises: {
+    id:string;
+    name: string;
+    description: string;
+    duration: number; 
+    defaultRestDuration: number; 
+    videoUrl?:string[];
+  }[];
+  isPremium: boolean; 
+  status: boolean; 
   createdAt?: Date;
   updatedAt?: Date;
 }
-
 export interface Category {
   _id: string;
   name: string;

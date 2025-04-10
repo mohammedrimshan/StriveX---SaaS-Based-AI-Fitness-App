@@ -5,7 +5,6 @@ import { IGetAllUsersUseCase } from "@/entities/useCaseInterfaces/admin/get-all-
 import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-user-status-usecase.interface";
 import { ITrainerVerificationUseCase } from "@/entities/useCaseInterfaces/admin/trainer-verification-usecase.interface";
 import { IUpdateTrainerProfileUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-profile.usecase.interface";
-import { IGetAllCategoriesUseCase } from "@/entities/useCaseInterfaces/common/get-all-category.interface";
 import { IUpdateTrainerPasswordUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-password.usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
 import {
@@ -31,8 +30,6 @@ export class TrainerController implements ITrainerController {
     private trainerVerificationUseCase: ITrainerVerificationUseCase,
     @inject("IUpdateTrainerProfileUseCase")
     private updateTrainerProfileUseCase: IUpdateTrainerProfileUseCase,
-    @inject("IGetAllCategoriesUseCase")
-    private getAllCategoriesUseCase: IGetAllCategoriesUseCase,
     @inject("IUpdateTrainerPasswordUseCase")
     private changeTrainerPasswordUseCase: IUpdateTrainerPasswordUseCase
   ) {}
@@ -65,18 +62,6 @@ export class TrainerController implements ITrainerController {
     }
   }
 
-  /** 🔹 Get all categories */
-  async getAllCategories(req: Request, res: Response): Promise<void> {
-    try {
-      const categories = await this.getAllCategoriesUseCase.execute();
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        categories,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
 
   /** 🔹 Update trainer status (approve/reject) */
   async updateUserStatus(req: Request, res: Response): Promise<void> {
@@ -148,10 +133,7 @@ export class TrainerController implements ITrainerController {
         );
       }
 
-      // Validate input data using imported schema
       const validatedData = trainerUpdateSchema.parse(profileData);
-
-      // Define allowed fields as a const tuple
       const allowedFields = [
         "firstName",
         "lastName",
@@ -173,7 +155,7 @@ export class TrainerController implements ITrainerController {
       for (const key of allowedFields) {
         if (key in validatedData && validatedData[key] !== undefined) {
           // Type-safe assignment
-          updates[key] = validatedData[key] as any; // Safe due to schema validation
+          updates[key] = validatedData[key] as any; 
         }
       }
 
@@ -181,11 +163,6 @@ export class TrainerController implements ITrainerController {
         trainerId,
         updates
       );
-
-      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-      res.set("Pragma", "no-cache");
-      res.set("Expires", "0");
-
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.PROFILE_UPDATE_SUCCESS,
@@ -230,10 +207,6 @@ export class TrainerController implements ITrainerController {
         currentPassword,
         newPassword
       );
-
-      res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-      res.set("Pragma", "no-cache");
-      res.set("Expires", "0");
 
       res.status(HTTP_STATUS.OK).json({
         success: true,

@@ -1,0 +1,74 @@
+"use client"
+
+import type React from "react"
+import { CheckCircle, Circle } from "lucide-react"
+import { motion } from "framer-motion"
+
+interface ProgressTrackerProps {
+  totalExercises: number
+  completedExercises: number
+  currentExerciseIndex: number
+}
+
+const ProgressTracker: React.FC<ProgressTrackerProps> = ({
+  totalExercises,
+  completedExercises,
+  currentExerciseIndex,
+}) => {
+  const progress = (completedExercises / totalExercises) * 100
+
+  return (
+    <motion.div
+      className="bg-white p-4 rounded-xl shadow-lg"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, delay: 0.1 }}
+      style={{
+        backgroundColor: "white",
+        padding: "1rem",
+        borderRadius: "0.75rem",
+        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      }}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-violet-800 font-medium">Progress</h3>
+        <span className="text-violet-600 text-sm font-medium">
+          {completedExercises} / {totalExercises}
+        </span>
+      </div>
+      <div className="w-full h-2 bg-violet-100 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full bg-violet-600 rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          style={{
+            height: "100%",
+            backgroundColor: "var(--violet)",
+            borderRadius: "9999px",
+            width: `${progress}%`,
+          }}
+        ></motion.div>
+      </div>
+
+      <div className="flex justify-between mt-4 overflow-x-auto pb-2 scrollbar-thin">
+        <div className="flex space-x-1 min-w-0">
+          {Array.from({ length: totalExercises }).map((_, index) => (
+            <div key={index} className="flex flex-col items-center">
+              {index < completedExercises ? (
+                <CheckCircle className="h-5 w-5 text-violet-600" />
+              ) : index === currentExerciseIndex ? (
+                <Circle className="h-5 w-5 text-violet-400" fill="rgba(139, 92, 246, 0.2)" />
+              ) : (
+                <Circle className="h-5 w-5 text-gray-300" />
+              )}
+              <span className="text-[10px] text-gray-500 mt-1">{index + 1}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+export default ProgressTracker

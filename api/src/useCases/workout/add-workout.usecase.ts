@@ -16,16 +16,35 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
 
   async execute(
     workoutData: IWorkoutEntity,
-    files: { image?: string }
+    files: { image?: string; videos?: string[] }
   ): Promise<IWorkoutEntity> {
-    let imageUrl: string | undefined;
+    let imageUrl: string | undefined = workoutData.imageUrl;
 
     try {
       if (files?.image) {
-        const imageResult = await this.cloudinaryService.uploadImage(files.image, {
-          folder: "workouts/images",
-        });
+        const imageResult = await this.cloudinaryService.uploadImage(
+          files.image,
+          {
+            folder: "workouts/images",
+          }
+        );
         imageUrl = imageResult.secure_url;
+      }
+
+      if (files?.videos && files.videos.length > 0) {
+        const videoUploads = files.videos.map((video) =>
+          this.cloudinaryService.uploadFile(video, {
+            folder: "exercises/videos",
+          })
+        );
+        const videoResults = await Promise.all(videoUploads);
+
+        workoutData.exercises = workoutData.exercises.map(
+          (exercise, index) => ({
+            ...exercise,
+            videoUrl: videoResults[index]?.secure_url || exercise.videoUrl,
+          })
+        );
       }
 
       const workoutWithFiles = {
@@ -33,7 +52,9 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
         imageUrl,
       };
 
-      const createdWorkout = await this.workoutRepository.create(workoutWithFiles);
+      const createdWorkout = await this.workoutRepository.save(
+        workoutWithFiles
+      );
       return createdWorkout;
     } catch (error) {
       throw new CustomError(

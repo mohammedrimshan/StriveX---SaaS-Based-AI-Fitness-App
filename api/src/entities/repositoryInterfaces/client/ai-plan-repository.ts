@@ -1,17 +1,11 @@
 import { IWorkoutPlan } from "@/entities/models/ai-workout-plan.entity";
 import { IDietPlan } from "@/entities/models/ai-diet-plan.entity";
-export interface IAiWorkoutPlanRepository {
-  save(plan: IWorkoutPlan): Promise<IWorkoutPlan>;
-  findById(id: string): Promise<IWorkoutPlan | null>;
+import { IBaseRepository } from "../base-repository.interface";
+
+export interface IAiWorkoutPlanRepository extends IBaseRepository<IWorkoutPlan>{
   findByClientId(clientId: string): Promise<IWorkoutPlan[]>;
-  update(id: string, plan: Partial<IWorkoutPlan>): Promise<IWorkoutPlan | null>;
-  delete(id: string): Promise<boolean>;
 }
 
-export interface IAiDietPlanRepository {
-  save(plan: IDietPlan): Promise<IDietPlan>;
-  findById(id: string): Promise<IDietPlan | null>;
+export interface IAiDietPlanRepository extends IBaseRepository<IDietPlan>{
   findByClientId(clientId: string): Promise<IDietPlan[]>;
-  update(id: string, plan: Partial<IDietPlan>): Promise<IDietPlan | null>;
-  delete(id: string): Promise<boolean>;
 }

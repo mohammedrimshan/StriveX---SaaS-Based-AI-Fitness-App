@@ -186,13 +186,14 @@ export const updateTrainerApprovalStatus = async ({
   };
 
   export const addWorkout = async (workoutData: WorkoutType, image?: string): Promise<WorkoutResponse> => {
-	const response = await adminAxiosInstance.post("/admin/workouts", {
+	const payload = {
 	  ...workoutData,
-	  image, // Send image as a separate field if provided
-	});
+	  imageUrl: image, 
+	};
+	console.log("Sending to backend:", payload);
+	const response = await adminAxiosInstance.post("/admin/workouts", payload);
 	return response.data;
   };
-  
   // Update an existing workout
   export const updateWorkout = async (
 	workoutId: string,

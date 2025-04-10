@@ -2,5 +2,5 @@
 import { IWorkoutEntity } from "@/entities/models/workout.entity";
 
 export interface IAddWorkoutUseCase {
-  execute(workoutData: IWorkoutEntity, files: { image?: string }): Promise<IWorkoutEntity>;
+  execute(workoutData: IWorkoutEntity, files: { image?: string,video?:string }): Promise<IWorkoutEntity>;
 }

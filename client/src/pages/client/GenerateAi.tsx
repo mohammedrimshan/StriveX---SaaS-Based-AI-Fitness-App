@@ -28,7 +28,7 @@ export function PlanGenerator() {
   const [activeTab, setActiveTab] = useState<"workout" | "diet">("workout");
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const { successToast, errorToast } = useToaster(); // Use the toaster hook
+  const { successToast, errorToast } = useToaster(); 
   const {
     generateWorkout,
     generateDiet,
@@ -79,7 +79,7 @@ export function PlanGenerator() {
       ),
       title: "Strength & Cardio",
       description: "Balanced approach",
-      color: "#8b5cf6",
+      color: "var(--violet)",
       bgColor: "#ede9fe",
     },
     {
@@ -88,7 +88,7 @@ export function PlanGenerator() {
       ),
       title: "Progressive",
       description: "Adapts to your level",
-      color: "#8b5cf6",
+      color: "var(--violet)",
       bgColor: "#ede9fe",
     },
     {
@@ -97,7 +97,7 @@ export function PlanGenerator() {
       ),
       title: "Results Focused",
       description: "Track your progress",
-      color: "#8b5cf6",
+      color: "var(--violet)",
       bgColor: "#ede9fe",
     },
   ];
@@ -185,9 +185,9 @@ export function PlanGenerator() {
                 <div className="flex flex-col md:flex-row">
                   <div className="p-8 md:w-1/2 relative">
                     <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
-                      <div className="absolute w-40 h-40 rounded-full bg-[#8b5cf6] -top-10 -left-10 animate-blob" />
+                      <div className="absolute w-40 h-40 rounded-full bg-[var(--violet)] -top-10 -left-10 animate-blob" />
                       <div className="absolute w-40 h-40 rounded-full bg-[#c026d3] top-40 left-40 animate-blob animation-delay-2000" />
-                      <div className="absolute w-40 h-40 rounded-full bg-[#8b5cf6] bottom-10 right-10 animate-blob animation-delay-4000" />
+                      <div className="absolute w-40 h-40 rounded-full bg-[var(--violet)] bottom-10 right-10 animate-blob animation-delay-4000" />
                     </div>
 
                     <div className="relative z-10">
@@ -208,7 +208,7 @@ export function PlanGenerator() {
                           onClick={handleGenerate}
                           size="lg"
                           disabled={isLoading || showSuccess}
-                          className="bg-gradient-to-r from-[#8b5cf6] to-[#c026d3] hover:from-[#7c3aed] hover:to-[#a21caf] text-white font-medium px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-lg h-auto relative overflow-hidden group"
+                          className="bg-gradient-to-r from-[var(--violet)] to-[#c026d3] hover:from-[#7c3aed] hover:to-[#a21caf] text-white font-medium px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-lg h-auto relative overflow-hidden group"
                         >
                           <span className="absolute inset-0 w-full h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
                           <FaRocket className="mr-2" />

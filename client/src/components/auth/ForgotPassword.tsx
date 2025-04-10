@@ -571,7 +571,7 @@ const ForgotPassword = ({ role, signInPath }: ForgotPasswordProps) => {
                       <motion.span
                         className="font-medium text-gray-800"
                         animate={{
-                          color: ["#8b5cf6", "#a78bfa", "#8b5cf6"],
+                          color: ["var(--violet)", "#a78bfa", "var(--violet)"],
                         }}
                         transition={{ duration: 3, repeat: Infinity }}
                       >

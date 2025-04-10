@@ -41,4 +41,3 @@ const trainerSlice = createSlice({
 
 export const { trainerLogin, trainerLogout } = trainerSlice.actions
 export default trainerSlice.reducer
-

@@ -1,11 +1,8 @@
 import { ICategoryEntity } from "../../models/category.entity";
 import { PaginatedCategories } from "../../models/paginated-category.entity";
-
-export interface ICategoryRepository {
-  find(): Promise<ICategoryEntity[] | []>;
-
-  save(title: string, categoryId: string, description?: string): Promise<ICategoryEntity>;
-
+import { IBaseRepository } from "../base-repository.interface";
+export interface ICategoryRepository extends IBaseRepository<ICategoryEntity> {
+  find(filter: any, skip: number, limit: number): Promise<{ items: ICategoryEntity[] | []; total: number }>;
   findByTitle(title: string): Promise<ICategoryEntity | null>;
 
   findById(id: any): Promise<ICategoryEntity | null>;
@@ -18,6 +15,10 @@ export interface ICategoryRepository {
 
   updateCategoryStatus(id: any): Promise<void>;
 
-  updateCategory(id: any, title: string, description?: string): Promise<ICategoryEntity>;
+  updateCategory(
+    id: any,
+    title: string,
+    description?: string
+  ): Promise<ICategoryEntity>;
   deleteCategory(id: any): Promise<void>;
 }

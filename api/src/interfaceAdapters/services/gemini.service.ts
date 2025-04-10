@@ -37,13 +37,11 @@ export class GeminiService {
     async generateWorkoutPlan(client: IClientEntity): Promise<IWorkoutPlan> {
         const cacheKey = `workout:${client.clientId}`;
         
-        // Check cache first
         const cached = await this.getCachedPlan<IWorkoutPlan>(cacheKey);
         if (cached) {
             return cached;
         }
 
-        // Check for duplicate request
         if (await this.checkDuplicateRequest(cacheKey)) {
             throw new Error("Duplicate request detected. Please wait for the previous request to complete.");
         }
@@ -284,10 +282,11 @@ export class GeminiService {
     }
 
     private formatWorkoutPlan(client: IClientEntity, planData: any): IWorkoutPlan {
+        const category = client.workoutCategory || "General";
         return {
             clientId: client.clientId,
-            title: `${client.firstName}'s ${client.preferredWorkout ? client.preferredWorkout + ' ' : ''}Workout Plan`,
-            description: `Custom ${client.preferredWorkout ? client.preferredWorkout + ' ' : ''}workout plan based on ${client.fitnessGoal} goal`,
+            title: `${client.firstName}'s ${category} Workout Plan`,
+            description: `Custom ${category} workout plan based on ${client.fitnessGoal} goal`,
             weeklyPlan: planData.weeklyPlan,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -374,15 +373,17 @@ export class GeminiService {
     }
 
     private createWorkoutPrompt(client: IClientEntity): string {
-        const isSpecificWorkout = client.preferredWorkout && 
-            ['yoga', 'pilates', 'crossfit', 'calisthenics'].includes(client.preferredWorkout.toLowerCase());
-        
-        const workoutSpecificInstruction = isSpecificWorkout
-            ? `Generate a comprehensive 7-day ${client.preferredWorkout} plan. All days should focus exclusively on ${client.preferredWorkout}, with progressive difficulty and variety.`
-            : `Generate a balanced 7-day workout plan with varied focus areas.`;
-        
+        // Default to a general workout if no category is specified
+        const workoutCategory = client.workoutCategory?.toLowerCase() || "general";
+        const isSpecificCategory = ["yoga", "meditation", "crossfit", "calisthenics", "pilates"].includes(workoutCategory);
+
+        // Category-specific instruction
+        const categoryInstruction = isSpecificCategory
+            ? `Generate a comprehensive 7-day ${workoutCategory} plan. All days must focus exclusively on ${workoutCategory}, with progressive difficulty and variety suitable for ${workoutCategory}.`
+            : `Generate a balanced 7-day workout plan with varied focus areas based on general fitness principles.`;
+
         return JSON.stringify({
-            instruction: `Generate a detailed 7-day workout plan for a client with the following details. ${workoutSpecificInstruction}`,
+            instruction: `Generate a detailed 7-day workout plan for a client with the following details. ${categoryInstruction}`,
             requirements: {
                 format: "strict JSON",
                 structure: {
@@ -402,59 +403,110 @@ export class GeminiService {
                         intensity: "string"
                     }]
                 },
-                additionalRequirements: isSpecificWorkout ? {
-                    consistency: `All days must be ${client.preferredWorkout} focused`,
+                additionalRequirements: isSpecificCategory ? {
+                    consistency: `All days must be ${workoutCategory} focused`,
                     progression: "Include progressive difficulty through the week",
-                    variety: "Include different styles/variations of the preferred workout"
-                } : {}
+                    variety: `Include different styles/variations of ${workoutCategory}`
+                } : {
+                    variety: "Include a mix of strength, cardio, and flexibility exercises"
+                }
             },
             client: {
                 height: `${client.height} cm`,
                 weight: `${client.weight} kg`,
                 fitnessGoal: client.fitnessGoal,
                 experienceLevel: client.experienceLevel,
+                workoutCategory: workoutCategory,
                 preferredWorkout: client.preferredWorkout || 'Not specified',
                 activityLevel: client.activityLevel,
                 healthConditions: client.healthConditions?.join(', ') || 'None',
                 availableEquipment: client.equipmentAvailable?.join(', ') || 'Basic'
             },
             examples: {
-                validResponse: isSpecificWorkout ? {
+                validResponse: isSpecificCategory ? {
                     weeklyPlan: [{
                         day: "Monday",
-                        focus: "Yoga Fundamentals",
-                        exercises: [{
-                            name: "Sun Salutation A",
-                            sets: 3,
-                            reps: "5 rounds",
-                            restTime: "30 seconds between rounds",
-                            notes: "Focus on breath synchronization"
-                        }],
-                        warmup: "5 min gentle stretching",
-                        cooldown: "5 min Savasana",
+                        focus: `${workoutCategory} Basics`,
+                        exercises: this.getCategoryExerciseExample(workoutCategory),
+                        warmup: `5 min gentle ${workoutCategory}-specific preparation`,
+                        cooldown: `5 min ${workoutCategory}-specific relaxation`,
                         duration: "45 minutes",
                         intensity: "Moderate"
                     }]
                 } : {
                     weeklyPlan: [{
                         day: "Monday",
-                        focus: "Upper Body Strength",
+                        focus: "Full Body Strength",
                         exercises: [{
-                            name: "Bench Press",
-                            sets: 4,
-                            reps: 8,
-                            restTime: "90 seconds",
-                            notes: "Use challenging weight"
+                            name: "Squats",
+                            sets: 3,
+                            reps: 12,
+                            restTime: "60 seconds",
+                            notes: "Maintain proper form"
                         }],
                         warmup: "10 min dynamic stretching",
                         cooldown: "5 min static stretching",
                         duration: "60 minutes",
-                        intensity: "High"
+                        intensity: "Moderate"
                     }]
                 }
             }
         });
     }
+
+    private getCategoryExerciseExample(category: string): any[] {
+        switch (category.toLowerCase()) {
+            case "yoga":
+                return [{
+                    name: "Downward Dog",
+                    sets: 3,
+                    reps: "30 seconds",
+                    restTime: "15 seconds",
+                    notes: "Focus on breath and alignment"
+                }];
+            case "meditation":
+                return [{
+                    name: "Mindful Breathing",
+                    sets: 1,
+                    reps: "10 minutes",
+                    restTime: "N/A",
+                    notes: "Focus on deep, steady breaths"
+                }];
+            case "crossfit":
+                return [{
+                    name: "Burpees",
+                    sets: 4,
+                    reps: 15,
+                    restTime: "45 seconds",
+                    notes: "Explosive movement"
+                }];
+            case "calisthenics":
+                return [{
+                    name: "Pull-ups",
+                    sets: 3,
+                    reps: 10,
+                    restTime: "60 seconds",
+                    notes: "Use controlled motion"
+                }];
+            case "pilates":
+                return [{
+                    name: "The Hundred",
+                    sets: 3,
+                    reps: "100 pulses",
+                    restTime: "30 seconds",
+                    notes: "Engage core throughout"
+                }];
+            default:
+                return [{
+                    name: "Generic Exercise",
+                    sets: 3,
+                    reps: 10,
+                    restTime: "60 seconds",
+                    notes: "Adjust as needed"
+                }];
+        }
+    }
+
 
     private createDietPrompt(client: IClientEntity): string {
         return JSON.stringify({

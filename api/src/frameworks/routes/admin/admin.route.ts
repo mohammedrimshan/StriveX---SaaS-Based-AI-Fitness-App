@@ -14,6 +14,8 @@ import {
   userController,
   trainerController,
   adminController,
+  categoryController,
+  dietWorkoutController
 } from "../../di/resolver";
 
 export class AdminRoutes extends BaseRoute {
@@ -74,14 +76,14 @@ export class AdminRoutes extends BaseRoute {
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.getAllPaginatedCategories(req, res);
+          categoryController.getAllPaginatedCategories(req, res);
         }
       )
       .post(
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.createNewCategory(req, res);
+          categoryController.createNewCategory(req, res);
         }
       );
 
@@ -91,21 +93,21 @@ export class AdminRoutes extends BaseRoute {
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.updateCategoryStatus(req, res);
+          categoryController.updateCategoryStatus(req, res);
         }
       )
       .put(
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.updateCategory(req, res);
+          categoryController.updateCategory(req, res);
         }
       )
       .delete(
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.deleteCategory(req, res);
+          categoryController.deleteCategory(req, res);
         }
       );
 
@@ -114,7 +116,7 @@ export class AdminRoutes extends BaseRoute {
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.addWorkout(req, res);
+          dietWorkoutController.addWorkout(req, res);
         }
       );
   
@@ -123,7 +125,7 @@ export class AdminRoutes extends BaseRoute {
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.deleteWorkout(req, res);
+          dietWorkoutController.deleteWorkout(req, res);
         }
       );
   
@@ -132,7 +134,7 @@ export class AdminRoutes extends BaseRoute {
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.toggleWorkoutStatus(req, res);
+          dietWorkoutController.toggleWorkoutStatus(req, res);
         }
       );
   
@@ -141,7 +143,7 @@ export class AdminRoutes extends BaseRoute {
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.updateWorkout(req, res);
+          dietWorkoutController.updateWorkout(req, res);
         }
       );
 
@@ -150,7 +152,7 @@ export class AdminRoutes extends BaseRoute {
         verifyAuth,
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
-          adminController.getAllAdminWorkouts(req, res);
+          dietWorkoutController.getAllAdminWorkouts(req, res);
         }
       );
   }

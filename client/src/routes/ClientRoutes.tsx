@@ -9,8 +9,9 @@ import ResetPassword from "@/components/auth/ResetPassword";
 import ProfileForm from "@/pages/client/ProfileForm";
 import { PlanGenerator } from "@/pages/client/GenerateAi";
 import TrainersPage from "@/pages/client/TrainerList";
-
-
+import Index from "@/pages/client/TrainerProfilePage";
+import UserWorkout from "@/pages/client/UserWorkouts";
+import WorkoutDetails from "@/pages/client/Workouts/WorkoutDetails";
 export const ClientRoutes = () => {
 	return (
 		<Routes>
@@ -36,6 +37,19 @@ export const ClientRoutes = () => {
 				<Route path="/alltrainers" element={
 					<AuthRoute allowedRoles={["client"]} element={<TrainersPage />} />
 				} />
+				<Route path="/trainerprofile/:trainerId" element={
+					<AuthRoute allowedRoles={["client"]} element={<Index />} />
+				} />
+				
+				<Route path="/workouts" element={
+					<AuthRoute allowedRoles={["client"]} element={<UserWorkout />} />
+				} />
+				
+				<Route path="/workout/:id" element={
+					<AuthRoute allowedRoles={["client"]} element={<WorkoutDetails />} />
+				} />
+				
+
 				
 				{/* Add more protected routes as needed */}
 			</Route>

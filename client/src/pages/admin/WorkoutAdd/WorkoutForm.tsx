@@ -53,12 +53,14 @@ import { getAllCategories, CategoryType } from "@/services/admin/adminService";
 import { motion } from "framer-motion";
 import ReactCrop, { Crop, centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import axios from "axios";
 
 const emptyExercise: Exercise = {
   name: "",
   description: "",
   duration: 0,
   defaultRestDuration: 30,
+  videoUrl: "",
 };
 
 const WorkoutForm: React.FC = () => {
@@ -81,11 +83,8 @@ const WorkoutForm: React.FC = () => {
   const [currentExercise, setCurrentExercise] = useState<Exercise>({
     ...emptyExercise,
   });
-  const [editingExerciseIndex, setEditingExerciseIndex] = useState<
-    number | null
-  >(null);
+  const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null);
 
-  // Image upload and cropping state
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>({
     unit: "%",
@@ -99,7 +98,8 @@ const WorkoutForm: React.FC = () => {
   const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
-  // Animation variants
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -117,7 +117,6 @@ const WorkoutForm: React.FC = () => {
     },
   };
 
-  // Fetch categories on mount only
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -143,9 +142,8 @@ const WorkoutForm: React.FC = () => {
       0
     );
     const restTime =
-      workout.exercises.reduce((sum, ex) => sum + ex.defaultRestDuration, 0) /
-      60;
-    return Math.round(exercisesTime + restTime);
+      workout.exercises.reduce((sum, ex) => sum + ex.defaultRestDuration, 0) / 60;
+    return Math.max(1, Math.round(exercisesTime + restTime));
   };
 
   const handleChange = (
@@ -173,45 +171,44 @@ const WorkoutForm: React.FC = () => {
     });
   };
 
-  const addExercise = () => {
-    if (
-      !currentExercise.name ||
-      !currentExercise.description ||
-      currentExercise.duration <= 0
-    ) {
-      errorToast("Please fill in all exercise fields correctly.");
-      return;
-    }
+  const uploadToCloudinary = async (
+    file: File,
+    folder: string,
+    resourceType: "image" | "video"
+  ): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "edusphere"); // Replace with your actual preset
+    formData.append("folder", folder);
 
-    if (editingExerciseIndex !== null) {
-      const updatedExercises = [...workout.exercises];
-      updatedExercises[editingExerciseIndex] = currentExercise;
-      setWorkout({ ...workout, exercises: updatedExercises });
-      setEditingExerciseIndex(null);
-    } else {
-      setWorkout({
-        ...workout,
-        exercises: [...workout.exercises, currentExercise],
+    try {
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "edusphere";
+      console.log("Uploading to Cloudinary with:", {
+        cloudName,
+        resourceType,
+        folder,
+        fileSize: file.size,
+        fileType: file.type,
       });
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data.secure_url;
+    } catch (error: any) {
+      console.error("Cloudinary upload failed:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error;
     }
-
-    setCurrentExercise({ ...emptyExercise });
-    const updatedDuration = calculateTotalDuration();
-    setWorkout((prev) => ({ ...prev, duration: updatedDuration }));
-  };
-
-  const editExercise = (index: number) => {
-    setCurrentExercise({ ...workout.exercises[index] });
-    setEditingExerciseIndex(index);
-  };
-
-  const removeExercise = (index: number) => {
-    const updatedExercises = workout.exercises.filter((_, i) => i !== index);
-    setWorkout({ ...workout, exercises: updatedExercises });
-    setTimeout(() => {
-      const updatedDuration = calculateTotalDuration();
-      setWorkout((prev) => ({ ...prev, duration: updatedDuration }));
-    }, 0);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -222,6 +219,23 @@ const WorkoutForm: React.FC = () => {
         setIsImageDialogOpen(true);
       });
       reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const previewUrl = URL.createObjectURL(file);
+      setVideoPreviewUrl(previewUrl);
+
+      try {
+        const cloudinaryUrl = await uploadToCloudinary(file, "exercises/videos", "video");
+        setCurrentExercise((prev) => ({ ...prev, videoUrl: cloudinaryUrl }));
+        console.log("Video uploaded to Cloudinary:", cloudinaryUrl);
+      } catch (error) {
+        errorToast("Failed to upload video to Cloudinary.");
+        console.error("Video upload error:", error);
+      }
     }
   };
 
@@ -240,8 +254,11 @@ const WorkoutForm: React.FC = () => {
     []
   );
 
-  const getCroppedImg = useCallback(() => {
-    if (!imgRef.current || !completedCrop) return;
+  const getCroppedImg = useCallback(async () => {
+    if (!imgRef.current || !completedCrop) {
+      console.log("No image ref or completed crop available.");
+      return;
+    }
 
     const canvas = document.createElement("canvas");
     const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
@@ -250,51 +267,137 @@ const WorkoutForm: React.FC = () => {
     canvas.height = completedCrop.height;
     const ctx = canvas.getContext("2d");
 
-    if (ctx) {
-      ctx.drawImage(
-        imgRef.current,
-        completedCrop.x * scaleX,
-        completedCrop.y * scaleY,
-        completedCrop.width * scaleX,
-        completedCrop.height * scaleY,
-        0,
-        0,
-        completedCrop.width,
-        completedCrop.height
-      );
-
-      const base64Image = canvas.toDataURL("image/jpeg");
-      setCroppedImageUrl(base64Image);
-      setWorkout((prev) => ({ ...prev, imageUrl: base64Image }));
-      setIsImageDialogOpen(false);
-      setUploadedImage(null); // Reset uploaded image after cropping
+    if (!ctx) {
+      console.error("Failed to get canvas context.");
+      return;
     }
-  }, [completedCrop]);
+
+    ctx.drawImage(
+      imgRef.current,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0,
+      0,
+      completedCrop.width,
+      completedCrop.height
+    );
+
+    const base64Image = canvas.toDataURL("image/jpeg");
+    console.log("Base64 image length:", base64Image.length);
+
+    const blob = await (await fetch(base64Image)).blob();
+    const file = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
+    console.log("File to upload:", {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+
+    try {
+      const cloudinaryUrl = await uploadToCloudinary(file, "workouts/images", "image");
+      setCroppedImageUrl(cloudinaryUrl);
+      setWorkout((prev) => ({ ...prev, imageUrl: cloudinaryUrl }));
+      setIsImageDialogOpen(false);
+      setUploadedImage(null);
+      console.log("Cropped image uploaded to Cloudinary:", cloudinaryUrl);
+    } catch (error: any) {
+      errorToast("Failed to upload cropped image to Cloudinary.");
+      console.error("Image upload error:", error);
+    }
+  }, [completedCrop, errorToast]);
+
+  const addExercise = () => {
+    if (
+      !currentExercise.name ||
+      !currentExercise.description ||
+      currentExercise.duration <= 0
+    ) {
+      errorToast("Please fill in all exercise fields correctly (duration must be greater than 0).");
+      return;
+    }
+
+    if (editingExerciseIndex !== null) {
+      const updatedExercises = [...workout.exercises];
+      updatedExercises[editingExerciseIndex] = currentExercise;
+      setWorkout({ ...workout, exercises: updatedExercises });
+      setEditingExerciseIndex(null);
+    } else {
+      setWorkout({
+        ...workout,
+        exercises: [...workout.exercises, currentExercise],
+      });
+    }
+
+    setCurrentExercise({ ...emptyExercise });
+    setVideoPreviewUrl(null);
+    const updatedDuration = calculateTotalDuration();
+    setWorkout((prev) => ({ ...prev, duration: updatedDuration }));
+  };
+
+  const editExercise = (index: number) => {
+    setCurrentExercise({ ...workout.exercises[index] });
+    setVideoPreviewUrl(workout.exercises[index].videoUrl || null);
+    setEditingExerciseIndex(index);
+  };
+
+  const removeExercise = (index: number) => {
+    const updatedExercises = workout.exercises.filter((_, i) => i !== index);
+    setWorkout({ ...workout, exercises: updatedExercises });
+    const updatedDuration = calculateTotalDuration();
+    setWorkout((prev) => ({ ...prev, duration: updatedDuration }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const updatedDuration = calculateTotalDuration();
+    console.log("Calculated duration before submission:", updatedDuration);
+    setWorkout((prev) => ({ ...prev, duration: updatedDuration }));
+
     if (
       !workout.title ||
+      workout.title.trim() === "" ||
       !workout.description ||
       !workout.category ||
-      workout.exercises.length === 0
+      workout.category.trim() === "" ||
+      workout.exercises.length === 0 ||
+      updatedDuration <= 0
     ) {
       errorToast(
-        "Please fill in all required fields and add at least one exercise."
+        "Please fill in all required fields (title, category, duration > 0) and add at least one exercise."
       );
       return;
     }
 
     try {
-      console.log("Submitting workout:", workout);
-      await addWorkout({
-        workoutData: workout,
-        image: workout.imageUrl,
+      console.log("Submitting workout:", JSON.stringify(workout, null, 2));
+      const createdWorkout = await addWorkout({
+        workoutData: {
+          title: workout.title,
+          description: workout.description,
+          category: workout.category,
+          duration: updatedDuration,
+          difficulty: workout.difficulty,
+          exercises: workout.exercises.map((ex) => ({
+            name: ex.name,
+            description: ex.description,
+            duration: ex.duration,
+            defaultRestDuration: ex.defaultRestDuration,
+            videoUrl: ex.videoUrl || "",
+          })),
+          isPremium: workout.isPremium,
+          status: workout.status,
+        },
+        image: workout.imageUrl || undefined,
       });
+      console.log(
+        "Created workout from backend:",
+        JSON.stringify(createdWorkout, null, 2)
+      );
       successToast("Your workout has been created successfully!");
 
-      // Reset form
       setWorkout({
         title: "",
         description: "",
@@ -372,9 +475,7 @@ const WorkoutForm: React.FC = () => {
                 <Label htmlFor="category">Category *</Label>
                 <Select
                   value={workout.category}
-                  onValueChange={(value) =>
-                    handleSelectChange("category", value)
-                  }
+                  onValueChange={(value) => handleSelectChange("category", value)}
                 >
                   <SelectTrigger className="bg-white/80 backdrop-blur-sm border-purple-100">
                     <SelectValue placeholder="Select a category" />
@@ -393,10 +494,7 @@ const WorkoutForm: React.FC = () => {
                 <Select
                   value={workout.difficulty}
                   onValueChange={(value) =>
-                    handleSelectChange(
-                      "difficulty",
-                      value as "Beginner" | "Intermediate" | "Advanced"
-                    )
+                    handleSelectChange("difficulty", value as "Beginner" | "Intermediate" | "Advanced")
                   }
                 >
                   <SelectTrigger className="bg-white/80 backdrop-blur-sm border-purple-100">
@@ -416,9 +514,7 @@ const WorkoutForm: React.FC = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() =>
-                        document.getElementById("image-upload")?.click()
-                      }
+                      onClick={() => document.getElementById("image-upload")?.click()}
                       className="bg-white/80 border-purple-100 hover:bg-purple-50 hover:text-purple-700"
                     >
                       <Upload className="mr-2 h-4 w-4" />
@@ -437,10 +533,7 @@ const WorkoutForm: React.FC = () => {
                         variant="outline"
                         onClick={() => {
                           setCroppedImageUrl(null);
-                          setWorkout((prev) => ({
-                            ...prev,
-                            imageUrl: undefined,
-                          }));
+                          setWorkout((prev) => ({ ...prev, imageUrl: undefined }));
                         }}
                         className="bg-white/80 border-red-100 hover:bg-red-50 hover:text-red-700"
                       >
@@ -460,16 +553,11 @@ const WorkoutForm: React.FC = () => {
                   )}
                 </div>
               </motion.div>
-              <motion.div
-                className="flex items-center space-x-2"
-                variants={itemVariants}
-              >
+              <motion.div className="flex items-center space-x-2" variants={itemVariants}>
                 <Switch
                   id="isPremium"
                   checked={workout.isPremium}
-                  onCheckedChange={(checked) =>
-                    handleSwitchChange("isPremium", checked)
-                  }
+                  onCheckedChange={(checked) => handleSwitchChange("isPremium", checked)}
                   className="data-[state=checked]:bg-amber-500"
                 />
                 <Label htmlFor="isPremium" className="flex items-center">
@@ -511,9 +599,7 @@ const WorkoutForm: React.FC = () => {
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="description">
-                        Exercise Description *
-                      </Label>
+                      <Label htmlFor="description">Exercise Description *</Label>
                       <Textarea
                         id="description"
                         name="description"
@@ -541,9 +627,7 @@ const WorkoutForm: React.FC = () => {
                         </div>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="defaultRestDuration">
-                          Rest Duration (seconds) *
-                        </Label>
+                        <Label htmlFor="defaultRestDuration">Rest Duration (seconds) *</Label>
                         <div className="flex items-center">
                           <Hourglass className="mr-2 h-4 w-4 text-indigo-500" />
                           <Input
@@ -559,14 +643,57 @@ const WorkoutForm: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                    <div className="grid gap-2">
+                      <Label>Exercise Video</Label>
+                      <div className="flex items-center gap-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => document.getElementById("video-upload")?.click()}
+                          className="bg-white/80 border-purple-100 hover:bg-purple-50 hover:text-purple-700"
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload Video
+                        </Button>
+                        <input
+                          id="video-upload"
+                          type="file"
+                          accept="video/*"
+                          onChange={handleVideoUpload}
+                          className="hidden"
+                        />
+                        {videoPreviewUrl && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setVideoPreviewUrl(null);
+                              setCurrentExercise((prev) => ({ ...prev, videoUrl: "" }));
+                            }}
+                            className="bg-white/80 border-red-100 hover:bg-red-50 hover:text-red-700"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove Video
+                          </Button>
+                        )}
+                      </div>
+                      {videoPreviewUrl && (
+                        <div className="mt-2 relative overflow-hidden rounded-lg border border-purple-100 aspect-video bg-white/50">
+                          <video
+                            src={videoPreviewUrl}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
                     <Button
                       onClick={addExercise}
                       className="mt-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg"
                     >
                       {editingExerciseIndex !== null ? (
                         <>
-                          <CheckCircle2 className="mr-2 h-4 w-4" /> Update
-                          Exercise
+                          <CheckCircle2 className="mr-2 h-4 w-4" /> Update Exercise
                         </>
                       ) : (
                         <>
@@ -598,16 +725,11 @@ const WorkoutForm: React.FC = () => {
                       key={index}
                       className="bg-white/70 backdrop-blur-sm rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-4 flex flex-col md:flex-row justify-between border-l-4 border-purple-500"
                       variants={itemVariants}
-                      whileHover={{
-                        scale: 1.01,
-                        transition: { duration: 0.2 },
-                      }}
+                      whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
                     >
                       <div className="flex-grow">
                         <div className="flex justify-between">
-                          <h4 className="font-medium text-purple-700">
-                            {exercise.name}
-                          </h4>
+                          <h4 className="font-medium text-purple-700">{exercise.name}</h4>
                           <div className="flex items-center text-sm text-muted-foreground">
                             <TimerIcon className="h-3.5 w-3.5 mr-1 text-purple-500" />
                             <span>{exercise.duration} min</span>
@@ -619,6 +741,14 @@ const WorkoutForm: React.FC = () => {
                         <p className="text-sm mt-1 text-muted-foreground line-clamp-2">
                           {exercise.description}
                         </p>
+                        {exercise.videoUrl && (
+                          <video
+                            src={exercise.videoUrl}
+                            controls
+                            className="mt-2 w-full rounded-lg"
+                            style={{ maxHeight: "150px" }}
+                          />
+                        )}
                       </div>
                       <div className="flex space-x-2 mt-3 md:mt-0 md:ml-4">
                         <Button
@@ -669,32 +799,24 @@ const WorkoutForm: React.FC = () => {
                   </CardTitle>
                   <CardDescription className="flex items-center">
                     <Award className="mr-2 h-4 w-4 text-purple-600" />
-                    {workout.difficulty} level • {workout.exercises.length}{" "}
-                    exercises • {workout.duration} min
+                    {workout.difficulty} level • {workout.exercises.length} exercises • {workout.duration} min
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">
-                        Description
-                      </h3>
+                      <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
                       <p className="mt-1">{workout.description}</p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">
-                        Category
-                      </h3>
+                      <h3 className="text-sm font-medium text-muted-foreground">Category</h3>
                       <p className="mt-1">
-                        {categories.find((c) => c._id === workout.category)
-                          ?.title || "Uncategorized"}
+                        {categories.find((c) => c._id === workout.category)?.title || "Uncategorized"}
                       </p>
                     </div>
                     {croppedImageUrl && (
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                          Image
-                        </h3>
+                        <h3 className="text-sm font-medium text-muted-foreground">Image</h3>
                         <div className="mt-1 aspect-video rounded-md overflow-hidden shadow-sm">
                           <img
                             src={croppedImageUrl}
@@ -721,10 +843,17 @@ const WorkoutForm: React.FC = () => {
                                 {exercise.name}
                               </h4>
                               <div className="text-sm text-muted-foreground">
-                                {exercise.duration} min •{" "}
-                                {exercise.defaultRestDuration}s rest
+                                {exercise.duration} min • {exercise.defaultRestDuration}s rest
                               </div>
                             </div>
+                            {exercise.videoUrl && (
+                              <video
+                                src={exercise.videoUrl}
+                                controls
+                                className="mt-2 w-full rounded-lg"
+                                style={{ maxHeight: "150px" }}
+                              />
+                            )}
                           </motion.div>
                         ))}
                       </div>
@@ -733,15 +862,10 @@ const WorkoutForm: React.FC = () => {
                       <Switch
                         id="status"
                         checked={workout.status}
-                        onCheckedChange={(checked) =>
-                          handleSwitchChange("status", checked)
-                        }
+                        onCheckedChange={(checked) => handleSwitchChange("status", checked)}
                         className="data-[state=checked]:bg-green-500"
                       />
-                      <Label
-                        htmlFor="status"
-                        className="ml-2 flex items-center"
-                      >
+                      <Label htmlFor="status" className="ml-2 flex items-center">
                         <Zap className="mr-2 h-4 w-4 text-green-500" />
                         Active Workout
                       </Label>
@@ -753,9 +877,7 @@ const WorkoutForm: React.FC = () => {
                         <Zap className="h-5 w-5 text-green-500 mr-2" />
                       )}
                       <span className="text-sm">
-                        {workout.isPremium
-                          ? "This is a premium workout"
-                          : "This is a free workout"}
+                        {workout.isPremium ? "This is a premium workout" : "This is a free workout"}
                       </span>
                     </div>
                   </div>
@@ -778,7 +900,6 @@ const WorkoutForm: React.FC = () => {
             <span>Create New Workout</span>
           </h1>
         </div>
-
         <p className="text-muted-foreground mt-2">
           Fill out the form below to create a new workout routine
         </p>
@@ -787,23 +908,17 @@ const WorkoutForm: React.FC = () => {
       <div className="mb-8">
         <div className="flex justify-between mb-2">
           <span
-            className={`text-sm font-medium ${
-              activeStep === 0 ? "text-purple-600 font-semibold" : ""
-            }`}
+            className={`text-sm font-medium ${activeStep === 0 ? "text-purple-600 font-semibold" : ""}`}
           >
             Basic Info
           </span>
           <span
-            className={`text-sm font-medium ${
-              activeStep === 1 ? "text-purple-600 font-semibold" : ""
-            }`}
+            className={`text-sm font-medium ${activeStep === 1 ? "text-purple-600 font-semibold" : ""}`}
           >
             Exercises
           </span>
           <span
-            className={`text-sm font-medium ${
-              activeStep === 2 ? "text-purple-600 font-semibold" : ""
-            }`}
+            className={`text-sm font-medium ${activeStep === 2 ? "text-purple-600 font-semibold" : ""}`}
           >
             Review
           </span>
@@ -856,7 +971,6 @@ const WorkoutForm: React.FC = () => {
         )}
       </div>
 
-      {/* Image Cropping Dialog */}
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

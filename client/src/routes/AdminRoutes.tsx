@@ -10,6 +10,9 @@ import ResetPassword from "@/components/auth/ResetPassword";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import Categories from "@/pages/admin/Categories";
 import AdminWorkoutsPage from "@/pages/admin/Workout";
+import WorkoutsListPage from "@/pages/admin/WorkoutList/WorkoutsListPage";
+import WorkoutDetailPage from "@/pages/admin/WorkoutList/WorkoutDetailPage";
+import ExerciseFormPage from "@/pages/admin/WorkoutList/ExerciseFormPage";
 export const AdminRoutes = () => {
 	return (
 		<Routes>
@@ -35,6 +38,14 @@ export const AdminRoutes = () => {
 				<Route path="category" element={<Categories />} />
 				<Route path="workout" element={<AdminWorkoutsPage />} />
 				{/* Add more admin routes here as needed */}
+
+
+				<Route path="/workouts" element={<WorkoutsListPage />} />
+          <Route path="/workouts/:id" element={<WorkoutDetailPage />} />
+          {/* Exercises */}
+          <Route path="/workouts/:workoutId/exercises/new" element={<ExerciseFormPage />} />
+          <Route path="/workouts/:workoutId/exercises/edit/:exerciseId" element={<ExerciseFormPage />} />
+          
 			</Route>
 			{/*//? Forgot and reset pages */}
 			<Route

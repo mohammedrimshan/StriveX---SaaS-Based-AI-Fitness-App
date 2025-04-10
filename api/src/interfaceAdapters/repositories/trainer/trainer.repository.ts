@@ -1,98 +1,66 @@
+// api\src\interfaceAdapters\repositories\trainer\trainer.repository.ts
 import { injectable } from "tsyringe";
 import { ITrainerEntity } from "@/entities/models/trainer.entity";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { TrainerModel } from "@/frameworks/database/mongoDB/models/trainer.model";
 import { TrainerApprovalStatus } from "@/shared/constants";
-
+import { BaseRepository } from "../base.repository";
 @injectable()
-export class TrainerRepository implements ITrainerRepository {
-  async save(data: Partial<ITrainerEntity>): Promise<ITrainerEntity | null> {
-    const trainer = await TrainerModel.create(data);
-    if (!trainer) return null;
+export class TrainerRepository extends BaseRepository<ITrainerEntity> implements ITrainerRepository {
+  constructor() {
+    super(TrainerModel);
+  }
 
-    return {
-      ...trainer.toObject(),
-      id: trainer._id.toString(),
-    } as ITrainerEntity;
+  async save(data: Partial<ITrainerEntity>): Promise<ITrainerEntity> {
+    const trainer = await this.model.create(data);
+    return this.mapToEntity(trainer.toObject());
   }
 
   async findByEmail(email: string): Promise<ITrainerEntity | null> {
-    const trainer = await TrainerModel.findOne({ email }).lean();
+    const trainer = await this.model.findOne({ email }).lean();
     if (!trainer) return null;
-
-    return {
-      ...trainer,
-      id: trainer._id.toString(),
-    } as ITrainerEntity;
+    return this.mapToEntity(trainer);
   }
 
   async findById(id: string): Promise<ITrainerEntity | null> {
-    const trainer = await TrainerModel.findById(id).lean();
+    const trainer = await this.model.findById(id).lean();
     if (!trainer) return null;
-
-    return {
-      ...trainer,
-      id: trainer._id.toString(),
-    } as ITrainerEntity;
+    return this.mapToEntity(trainer);
   }
 
   async find(
     filter: any,
     skip: number,
     limit: number
-  ): Promise<{ trainers: ITrainerEntity[] | []; total: number }> {
+  ): Promise<{ items: ITrainerEntity[] | []; total: number }> {
     const [trainers, total] = await Promise.all([
-      TrainerModel.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      TrainerModel.countDocuments(filter),
+      this.model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      this.model.countDocuments(filter),
     ]);
-
-    const transformedTrainers = trainers.map(({ _id, ...rest }) => ({
-      id: _id.toString(),
-      ...rest,
-    }));
-
-    return {
-      trainers: transformedTrainers,
-      total,
-    };
+    const transformedTrainers = trainers.map((trainer) => this.mapToEntity(trainer));
+    return { items: transformedTrainers, total };
   }
 
   async updateByEmail(
     email: string,
     updates: Partial<ITrainerEntity>
   ): Promise<ITrainerEntity | null> {
-    const trainer = await TrainerModel.findOneAndUpdate(
-      { email },
-      { $set: updates },
-      { new: true }
-    ).lean();
+    const trainer = await this.model
+      .findOneAndUpdate({ email }, { $set: updates }, { new: true })
+      .lean();
     if (!trainer) return null;
-
-    return {
-      ...trainer,
-      id: trainer._id.toString(),
-    } as ITrainerEntity;
+    return this.mapToEntity(trainer);
   }
 
   async findByIdAndUpdate(
     id: string,
     updateData: Partial<ITrainerEntity>
   ): Promise<ITrainerEntity | null> {
-    const trainer = await TrainerModel.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true }
-    ).lean();
+    const trainer = await this.model
+      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .lean();
     if (!trainer) return null;
-
-    return {
-      ...trainer,
-      id: trainer._id.toString(),
-    } as ITrainerEntity;
+    return this.mapToEntity(trainer);
   }
 
   async updateApprovalStatus(
@@ -101,35 +69,18 @@ export class TrainerRepository implements ITrainerRepository {
     rejectionReason?: string,
     approvedByAdmin?: boolean
   ): Promise<ITrainerEntity | null> {
-    // Prepare the update object with all relevant fields
-    const updateData: Partial<ITrainerEntity> = {
-      approvalStatus: status,
-    };
+    const updateData: Partial<ITrainerEntity> = { approvalStatus: status };
+    if (rejectionReason !== undefined) updateData.rejectionReason = rejectionReason;
+    if (approvedByAdmin !== undefined) updateData.approvedByAdmin = approvedByAdmin;
 
-    // Include rejectionReason if provided (for rejections)
-    if (rejectionReason !== undefined) {
-      updateData.rejectionReason = rejectionReason;
-    }
-
-    // Include approvedByAdmin if provided (true for approvals, false for rejections)
-    if (approvedByAdmin !== undefined) {
-      updateData.approvedByAdmin = approvedByAdmin;
-    }
-
-    const trainer = await TrainerModel.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true } // Return the updated document
-    ).lean();
-
+    const trainer = await this.model
+      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .lean();
     if (!trainer) return null;
-
-    return {
-      ...trainer,
-      id: trainer._id.toString(),
-    } as ITrainerEntity;
+    return this.mapToEntity(trainer);
   }
+
   async findByIdAndUpdatePassword(id: any, password: string): Promise<void> {
-          await TrainerModel.findByIdAndUpdate(id, { password });
-        }
+    await this.model.findByIdAndUpdate(id, { password });
+  }
 }

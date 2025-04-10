@@ -8,7 +8,7 @@ interface TrainersListProps {
   trainers: ITrainer[];
 }
 
-const TrainersList: React.FC<TrainersListProps> = ({ trainers }) => {
+export default function TrainersList({ trainers }: TrainersListProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
       {trainers.map((trainer, index) => (
@@ -22,7 +22,5 @@ const TrainersList: React.FC<TrainersListProps> = ({ trainers }) => {
         </motion.div>
       ))}
     </div>
-  );
-};
-
-export default TrainersList;
+  )
+}

@@ -10,7 +10,9 @@ export class GetAllCategoriesUseCase implements IGetAllCategoriesUseCase {
     private categoryRepository: ICategoryRepository
   ) {}
 
-  async execute(): Promise<ICategoryEntity[] | null> {
-    return await this.categoryRepository.find();
+  async execute(filter: any = {}, skip: number = 0, limit: number = 100): Promise<ICategoryEntity[]> {
+    const { items } = await this.categoryRepository.find(filter, skip, limit);
+    return items;
   }
+  
 }

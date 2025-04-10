@@ -102,6 +102,8 @@ import { IGetAllAdminWorkoutsUseCase } from "@/entities/useCaseInterfaces/workou
 import { GetAllAdminWorkoutsUseCase } from "@/useCases/workout/get-all-admin-workouts.usecase";
 import { IGetAllTrainersUseCase } from "@/entities/useCaseInterfaces/users/get-all-trainers.usecase.interface";
 import { GetAllTrainersUseCase } from "@/useCases/user/get-all-trainers.usecase";
+import { IGetTrainerProfileUseCase } from "@/entities/useCaseInterfaces/users/get-trainer-profile.usecase.interface";
+import { GetTrainerProfileUseCase } from "@/useCases/user/get-trainer-profile.usecase";
 
 export class UseCaseRegistry {
   static registerUseCases(): void {
@@ -337,6 +339,10 @@ export class UseCaseRegistry {
 
     container.register<IGetAllTrainersUseCase>("IGetAllTrainersUseCase", {
       useClass: GetAllTrainersUseCase,
+    });
+
+    container.register<IGetTrainerProfileUseCase>("IGetTrainerProfileUseCase", {
+      useClass: GetTrainerProfileUseCase,
     });
   }
 }

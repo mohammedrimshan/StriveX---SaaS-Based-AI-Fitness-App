@@ -8,7 +8,8 @@ import {
 import {
     blockStatusMiddleware,
     authController,
-    trainerController
+    trainerController,
+    categoryController
 } from "../../di/resolver";
 
 
@@ -59,7 +60,7 @@ export class TrainerRoutes extends BaseRoute {
             blockStatusMiddleware.checkStatus as RequestHandler,
             (req: Request, res: Response) => {
                 console.log("refreshing client", req.body);
-                trainerController.getAllCategories(req, res);
+                categoryController.getAllCategories(req, res);
             }
         );
 

@@ -1,12 +1,11 @@
-// src/pages/client/TrainersPage.tsx
 import React, { useState } from 'react';
 import { useFetchAllTrainers } from '@/hooks/client/useFetchAllTrainers';
 import TrainersList from './TrainerList/TrainersList';
 import TrainersPagination from './TrainerList/TrainersPagination';
 import TrainersEmptyState from './TrainerList/TrainersEmptyState';
 import TrainersLoading from './TrainerList/TrainersLoading';
-import { motion } from 'framer-motion';
-import { FaDumbbell } from 'react-icons/fa';
+import AnimatedBackground from '@/components/Animation/AnimatedBackgorund';
+import AnimatedTitle from '@/components/Animation/AnimatedTitle';
 
 const TrainersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState(''); // Kept for future use
@@ -24,30 +23,16 @@ const TrainersPage: React.FC = () => {
   };
 
   const totalTrainers = data?.totalTrainers || 0;
+  const totalPages = data?.totalPages || 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-7xl mx-auto px-4 pt-20 pb-8 sm:px-6 lg:px-8 min-h-screen"
-    >
-      <div className="text-center mb-10">
-        <motion.div
-          initial={{ y: -20 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex justify-center items-center gap-2 mb-2"
-        >
-          <FaDumbbell className="text-blue-600 text-3xl" />
-          <h1 className="text-3xl font-bold text-gray-900">Expert Fitness Trainers</h1>
-        </motion.div>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Find the perfect trainer to help you achieve your fitness goals. Our certified professionals specialize in various fitness disciplines.
-        </p>
-      </div>
+    <AnimatedBackground>
+      <div className="container mx-auto px-4 py-16 md:py-24">
+        <AnimatedTitle
+          title="Our Trainers"
+          subtitle="Browse our selection of expert fitness trainers and find the perfect match for your fitness journey."
+        />
 
-      <div className="pt-8">
         {isLoading ? (
           <TrainersLoading />
         ) : isError ? (
@@ -62,17 +47,17 @@ const TrainersPage: React.FC = () => {
               </p>
             </div>
             <TrainersList trainers={data.trainers} />
-            <TrainersPagination
-              currentPage={currentPage}
-              totalPages={data.totalPages}
-              onPageChange={handlePageChange}
+            <TrainersPagination 
+              currentPage={currentPage} 
+              totalPages={totalPages} 
+              onPageChange={handlePageChange} 
             />
           </>
         ) : (
           <TrainersEmptyState searchTerm={searchTerm} />
         )}
       </div>
-    </motion.div>
+    </AnimatedBackground>
   );
 };
 

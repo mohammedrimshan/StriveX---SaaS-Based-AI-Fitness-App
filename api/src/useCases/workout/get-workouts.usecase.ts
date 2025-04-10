@@ -18,20 +18,43 @@ export class GetWorkoutsUseCase implements IGetWorkoutsUseCase {
     page: number,
     limit: number
   ): Promise<PaginatedResult<IWorkoutEntity>> {
+    if (!Number.isInteger(page) || page < 1) {
+      throw new CustomError("Invalid page number", HTTP_STATUS.BAD_REQUEST);
+    }
+    if (!Number.isInteger(limit) || limit < 1) {
+      throw new CustomError("Invalid limit value", HTTP_STATUS.BAD_REQUEST);
+    }
+    const safeFilter: Record<string, any> = filter && typeof filter === "object" && !Array.isArray(filter) ? filter : {};
+    console.log("Safe filter:", safeFilter); // Debug log
+
     const skip = (page - 1) * limit;
 
     try {
-      const result = await this.workoutRepository.findAll(filter, skip, limit);
-      
+      if (!this.workoutRepository) {
+        throw new Error("Workout repository not initialized");
+      }
+
+      // Corrected argument order: skip, limit, filter
+      const result = await this.workoutRepository.findAll(skip, limit, safeFilter);
+      console.log(result,"RS")
+      if (!result || typeof result.total !== "number" || !Array.isArray(result.data)) {
+        throw new Error("Invalid response from repository");
+      }
+
       return {
-        ...result,
-        hasNextPage: result.page * limit < result.total,
-        hasPreviousPage: result.page > 1,
-        totalPages: Math.ceil(result.total / limit),
+        data: result.data,
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        hasNextPage: result.hasNextPage,
+        hasPreviousPage: result.hasPreviousPage,
+        totalPages: result.totalPages,
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error fetching workouts:", errorMessage);
       throw new CustomError(
-        "Failed to fetch workouts",
+        `Failed to fetch workouts: ${errorMessage || "Unknown error"}`,
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }

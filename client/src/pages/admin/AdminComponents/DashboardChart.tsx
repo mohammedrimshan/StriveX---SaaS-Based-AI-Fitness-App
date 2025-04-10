@@ -67,8 +67,8 @@ export function DashboardChart() {
           <Tooltip content={<CustomTooltip />} />
           <defs>
             <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--violet)" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="var(--violet)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.8} />
@@ -78,7 +78,7 @@ export function DashboardChart() {
           <Line
             type="monotone"
             dataKey="income"
-            stroke="#8b5cf6"
+            stroke="var(--violet)"
             strokeWidth={3}
             dot={{ r: 0 }}
             activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }}

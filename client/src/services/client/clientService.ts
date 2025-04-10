@@ -6,9 +6,14 @@ import { UpdatePasswordData } from "@/hooks/client/useClientPasswordChange";
 import { CategoryResponse } from "../admin/adminService";
 import { IWorkoutDay,IWorkoutExercise,IWorkoutPlan } from "@/types/Workout";
 import { IMeal,IDietDay,IDietPlan } from "@/types/Diet";
-import { IWorkoutEntity,PaginatedResult } from "@/types/Workouts";
+// import { PaginatedResult } from "@/types/Workout";
+import { TrainerProfile } from "@/types/trainer";
+import { IWorkoutEntity } from "../../../../api/src/entities/models/workout.entity";
 import { IProgressEntity } from "@/types/Progress";
 import { PaginatedTrainersResponse } from "@/types/Response";
+import { PaginatedResponse } from "@/types/Response";
+import { Workout } from "@/types/Workouts";
+
 
 export const updateClientProfile = async (profileData: Partial<IClient>): Promise<IAuthResponse> => {
   const response = await clientAxiosInstance.put(`/client/${profileData.id}/profile`, profileData)
@@ -102,24 +107,15 @@ export const getAllWorkouts = async (
   page: number = 1,
   limit: number = 10,
   filter: object = {}
-): Promise<PaginatedResult<IWorkoutEntity>> => {
-  const response = await clientAxiosInstance.get<IAxiosResponse<PaginatedResult<IWorkoutEntity>>>(
+): Promise<PaginatedResponse<Workout>> => {
+  const response = await clientAxiosInstance.get<IAxiosResponse<PaginatedResponse<Workout>>>(
     `/client/workouts`,
     {
       params: { page, limit, filter: JSON.stringify(filter) },
     }
   );
   console.log("All workouts:", response.data);
-  return response.data.data;
-};
-
-export const recordProgress = async (progressData: Omit<IProgressEntity, "_id">): Promise<IProgressEntity> => {
-  const response = await clientAxiosInstance.post<IAxiosResponse<IProgressEntity>>(
-    `/client/progress`,
-    progressData
-  );
-  console.log("Progress recorded:", response.data);
-  return response.data.data;
+  return response.data.data; 
 };
 
 
@@ -136,4 +132,32 @@ export const getAllTrainers = async (
   );
   console.log("All trainers:", response.data);
   return response.data; 
+};
+
+export const getAllCategoriesForClients = async () => {
+  const response = await clientAxiosInstance.get<CategoryResponse>(
+    "/client/getallcategory"
+  );
+  console.log(response.data,"fdd")
+  return response.data;
+  
+};
+
+export const getTrainerProfile = async (trainerId: string): Promise<TrainerProfile> => {
+  try {
+    const response = await clientAxiosInstance.get<any>(`/client/trainers/${trainerId}`);
+    console.log("Raw Response Status:", response.status);
+    console.log("Raw Response Data:", response.data);
+
+    const trainerData = response.data.data || response.data.trainer || response.data;
+    if (!trainerData) {
+      console.warn("No trainer data found in response:", response.data);
+      throw new Error("Trainer not found or invalid response structure");
+    }
+
+    return trainerData as TrainerProfile;
+  } catch (error) {
+    console.error("getTrainerProfile Error:", error);
+    throw error; // Ensure error propagates to useQuery
+  }
 };

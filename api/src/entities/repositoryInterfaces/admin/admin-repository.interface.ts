@@ -1,7 +1,6 @@
 import { IAdminEntity } from "@/entities/models/admin.entity";
-
-export interface IAdminRepository {
-	save(data: Partial<IAdminEntity>): Promise<IAdminEntity>;
+import { IBaseRepository } from "../base-repository.interface";
+export interface IAdminRepository extends IBaseRepository<IAdminEntity>{
 	findByEmail(email: string): Promise<IAdminEntity | null>;
 	updateByEmail(
 		email: string,

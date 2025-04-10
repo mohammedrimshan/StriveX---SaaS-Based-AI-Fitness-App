@@ -1,31 +1,44 @@
-// api\src\interfaceAdapters\repositories\workout\workout.repository.ts
+// D:\StriveX\api\src\interfaceAdapters\repositories\workout\workout.repository.ts
 import { injectable } from "tsyringe";
 import { IWorkoutRepository } from "@/entities/repositoryInterfaces/workout/workout-repository.interface";
-import { WorkoutModel } from "@/frameworks/database/mongoDB/models/workout.model";
+import { WorkoutModel, IWorkoutModel } from "@/frameworks/database/mongoDB/models/workout.model";
 import { IWorkoutEntity } from "@/entities/models/workout.entity";
 import { PaginatedResult } from "@/entities/models/paginated-result.entity";
+import { BaseRepository } from "../base.repository";
 
+type LeanWorkout = Omit<IWorkoutModel, keyof Document>;
 @injectable()
-export class WorkoutRepository implements IWorkoutRepository {
-  async create(workout: Omit<IWorkoutEntity, "_id">): Promise<IWorkoutEntity> {
-    return await WorkoutModel.create(workout);
+export class WorkoutRepository extends BaseRepository<IWorkoutEntity> implements IWorkoutRepository {
+  constructor() {
+    super(WorkoutModel);
   }
 
-  async findById(id: string): Promise<IWorkoutEntity | null> {
-    return await WorkoutModel.findById(id);
+  async create(workout: Partial<IWorkoutEntity>): Promise<IWorkoutEntity> {
+    const entity = await this.model.create(workout);
+    return this.mapToEntity(entity.toObject());
   }
 
   async findAll(skip: number, limit: number, filter: any): Promise<PaginatedResult<IWorkoutEntity>> {
     const [workouts, total] = await Promise.all([
-      WorkoutModel.find(filter).skip(skip).limit(limit).populate("category"),
-      WorkoutModel.countDocuments(filter),
+      this.model
+        .find(filter)
+        .skip(skip)
+        .limit(limit)
+        .populate("category", "title") 
+        .lean(),
+      this.model.countDocuments(filter),
     ]);
+    console.log("Raw workouts after population:", JSON.stringify(workouts, null, 2));
 
+    const transformedWorkouts = workouts.map((w) => this.mapToEntity({
+      ...w,
+      category: w.category,
+    }));
     const page = Math.floor(skip / limit) + 1;
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: workouts,
+      data: transformedWorkouts,
       total,
       page,
       limit,
@@ -34,25 +47,28 @@ export class WorkoutRepository implements IWorkoutRepository {
       totalPages,
     };
   }
+  
 
   async findByCategory(categoryId: string): Promise<IWorkoutEntity[]> {
-    return await WorkoutModel.find({ category: categoryId, status: true }).populate("category");
-  }
+    const workouts = await this.model
+  .find({ category: categoryId, status: true })
+  .lean<LeanWorkout[]>()
+  .exec();
 
-  async update(id: string, workout: Partial<IWorkoutEntity>): Promise<IWorkoutEntity | null> {
-    return await WorkoutModel.findByIdAndUpdate(id, workout, { new: true });
+  
+    return workouts.map((w:any) => this.mapToEntity(w));
   }
-
+  
   async updateStatus(id: string, status: boolean): Promise<IWorkoutEntity | null> {
-    return await WorkoutModel.findByIdAndUpdate(id, { status }, { new: true });
-  }
-
-  async delete(id: string): Promise<boolean> {
-    const result = await WorkoutModel.findByIdAndDelete(id);
-    return !!result;
+    const workout = await this.model
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .lean({ virtuals: true }) // Enable virtuals if needed
+      .exec() as Omit<IWorkoutModel, keyof Document> | null;
+    if (!workout) return null;
+    return this.mapToEntity(workout);
   }
 
   async count(filter: any): Promise<number> {
-    return await WorkoutModel.countDocuments(filter);
+    return await this.model.countDocuments(filter);
   }
 }

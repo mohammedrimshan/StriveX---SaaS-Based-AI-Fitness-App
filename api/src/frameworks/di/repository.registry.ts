@@ -68,5 +68,7 @@ export class RepositoryRegistry {
     container.register<IWorkoutRepository>("IWorkoutRepository", {
       useClass: WorkoutRepository,
     });
+
+    
   }
 }

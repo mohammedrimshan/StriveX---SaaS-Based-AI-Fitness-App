@@ -9,6 +9,8 @@ import {
   blockStatusMiddleware,
   authController,
   userController,
+  categoryController,
+  dietWorkoutController
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -68,7 +70,7 @@ export class ClientRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         console.log("refreshing client", req.body);
-        userController.getAllCategories(req, res);
+        categoryController.getAllCategories(req, res);
       }
     );
 
@@ -79,7 +81,7 @@ export class ClientRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         console.log("refreshing client", req.body);
-        userController.generateWork(req, res);
+        dietWorkoutController.generateWork(req, res);
       }
     );
 
@@ -90,7 +92,7 @@ export class ClientRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         console.log("refreshing client", req.body);
-        userController.generateDiet(req, res);
+        dietWorkoutController.generateDiet(req, res);
       }
     );
 
@@ -100,7 +102,7 @@ export class ClientRoutes extends BaseRoute {
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
-        userController.getWorkouts(req, res);
+        dietWorkoutController.getWorkouts(req, res);
       }
     );
 
@@ -110,7 +112,7 @@ export class ClientRoutes extends BaseRoute {
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
-        userController.getDietplan(req, res);
+        dietWorkoutController.getDietplan(req, res);
       }
     );
 
@@ -131,7 +133,7 @@ export class ClientRoutes extends BaseRoute {
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
-        userController.getWorkoutsByCategory(req, res);
+        dietWorkoutController.getWorkoutsByCategory(req, res);
       }
     );
 
@@ -142,7 +144,7 @@ export class ClientRoutes extends BaseRoute {
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
-        userController.getAllWorkouts(req, res);
+        dietWorkoutController.getAllWorkouts(req, res);
       }
     );
 
@@ -166,5 +168,15 @@ export class ClientRoutes extends BaseRoute {
         userController.getAllTrainers(req, res);
       }
     );
+
+    router.get(
+      "/client/trainers/:trainerId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+          userController.getTrainerProfile(req, res);
+      }
+  );
   }
 }

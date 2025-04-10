@@ -2,19 +2,14 @@ import { injectable } from "tsyringe";
 import { IAdminEntity } from "@/entities/models/admin.entity";
 import { IAdminRepository } from "@/entities/repositoryInterfaces/admin/admin-repository.interface";
 import { AdminModel } from "@/frameworks/database/mongoDB/models/admin.model";
-
+import { BaseRepository } from "../base.repository";
 @injectable()
-export class AdminRepository implements IAdminRepository {
-  async save(data: Partial<IAdminEntity>): Promise<IAdminEntity> {
-    const admin = new AdminModel(data);
-    const savedAdmin = await admin.save();
-    
-    return {
-      ...savedAdmin.toObject(),
-      id: savedAdmin._id.toString(),
-    } as IAdminEntity;
+export class AdminRepository extends BaseRepository<IAdminEntity> implements IAdminRepository {
+
+  constructor(){
+    super(AdminModel)
   }
-  
+
   async findByEmail(email: string): Promise<IAdminEntity | null> {
     const admin = await AdminModel.findOne({ email }).lean();
     if (!admin) return null;

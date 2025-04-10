@@ -49,7 +49,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
       >
         <div className="relative w-40 h-40 mb-6">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] animate-pulse" />
+            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-[var(--violet)] to-[#ec4899] animate-pulse" />
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center">
@@ -62,7 +62,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
           </div>
         </div>
         <p className="mt-6 text-xl font-medium text-gray-700">No plan available yet. Generate a plan to get started!</p>
-        <Button className="mt-4 bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] hover:from-[#7c3aed] hover:to-[#db2777] text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+        <Button className="mt-4 bg-gradient-to-r from-[var(--violet)] to-[#ec4899] hover:from-[#7c3aed] hover:to-[#db2777] text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
           Generate New Plan
         </Button>
       </motion.div>
@@ -219,7 +219,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
                     isWorkout ? "text-[#6d28d9]" : "text-[#be123c]"
                   }`}
                 >
-                  <FaCalendarAlt className={isWorkout ? "text-[#8b5cf6]" : "text-[#f43f5e]"} />
+                  <FaCalendarAlt className={isWorkout ? "text-[var(--violet)]" : "text-[#f43f5e]"} />
                   Day {day.day || index + 1}
                 </CardTitle>
                 {isWorkout && (day as any).focus && (
@@ -239,7 +239,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
                           }`}
                         >
                           <FaDumbbell
-                            className={`${isWorkout ? "text-[#8b5cf6]" : "text-[#f43f5e]"} group-hover/item:rotate-12 transition-transform duration-300`}
+                            className={`${isWorkout ? "text-[var(--violet)]" : "text-[#f43f5e]"} group-hover/item:rotate-12 transition-transform duration-300`}
                           />
                         </div>
                         <div className="truncate font-medium">{exercise.name}</div>
@@ -266,7 +266,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
                           }`}
                         >
                           <FaAppleAlt
-                            className={`${isWorkout ? "text-[#8b5cf6]" : "text-[#f43f5e]"} group-hover/item:rotate-12 transition-transform duration-300`}
+                            className={`${isWorkout ? "text-[var(--violet)]" : "text-[#f43f5e]"} group-hover/item:rotate-12 transition-transform duration-300`}
                           />
                         </div>
                         <div>
@@ -360,7 +360,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
 
                     <div className="space-y-4">
                       <h4 className="font-semibold text-gray-700 text-lg flex items-center">
-                        <FaBolt className={`mr-2 ${isWorkout ? "text-[#8b5cf6]" : "text-[#f43f5e]"}`} />
+                        <FaBolt className={`mr-2 ${isWorkout ? "text-[var(--violet)]" : "text-[#f43f5e]"}`} />
                         Exercises
                       </h4>
                       {selectedDay.exercises?.map((exercise: any, idx: number) => (
@@ -388,7 +388,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
                             >
                               <FaDumbbell
                                 className={`text-xl ${
-                                  isWorkout ? "text-[#8b5cf6]" : "text-[#f43f5e]"
+                                  isWorkout ? "text-[var(--violet)]" : "text-[#f43f5e]"
                                 } group-hover:rotate-12 transition-transform duration-300`}
                               />
                             </div>
@@ -519,7 +519,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
 
                     <div className="space-y-4">
                       <h4 className="font-semibold text-gray-700 text-lg flex items-center">
-                        <FaUtensils className={`mr-2 ${isWorkout ? "text-[#8b5cf6]" : "text-[#f43f5e]"}`} />
+                        <FaUtensils className={`mr-2 ${isWorkout ? "text-[var(--violet)]" : "text-[#f43f5e]"}`} />
                         Meals
                       </h4>
                       {selectedDay.meals?.map((meal: any, idx: number) => (
@@ -547,7 +547,7 @@ export function PlanDisplay({ plan, type }: PlanDisplayProps) {
                             >
                               <FaAppleAlt
                                 className={`text-xl ${
-                                  isWorkout ? "text-[#8b5cf6]" : "text-[#f43f5e]"
+                                  isWorkout ? "text-[var(--violet)]" : "text-[#f43f5e]"
                                 } group-hover:rotate-12 transition-transform duration-300`}
                               />
                             </div>

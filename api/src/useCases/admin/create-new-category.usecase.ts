@@ -4,6 +4,7 @@ import { ICreateNewCategoryUseCase } from "@/entities/useCaseInterfaces/admin/cr
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "../../shared/constants";
 import { generateUniqueId } from "@/frameworks/security/uniqueuid.bcrypt";
+
 @injectable()
 export class CreateNewCategoryUseCase implements ICreateNewCategoryUseCase {
   constructor(
@@ -19,6 +20,12 @@ export class CreateNewCategoryUseCase implements ICreateNewCategoryUseCase {
     }
 
     const categoryId = generateUniqueId();
-    await this.categoryRepository.save(title, categoryId, description);
+
+    await this.categoryRepository.save({
+      categoryId,
+      title,
+      description,
+      status: true, 
+    });
   }
 }

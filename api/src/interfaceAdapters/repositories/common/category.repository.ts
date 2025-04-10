@@ -1,17 +1,26 @@
 import { injectable } from "tsyringe";
-import { ICategoryRepository } from "../../../entities/repositoryInterfaces/common/category-repository.interface";
+import { ICategoryRepository } from "@/entities/repositoryInterfaces/common/category-repository.interface";
 import { CategoryModel } from "@/frameworks/database/mongoDB/models/category.model";
-import { ICategoryEntity } from "../../../entities/models/category.entity";
-import { PaginatedCategories } from "../../../entities/models/paginated-category.entity";
+import { ICategoryEntity } from "@/entities/models/category.entity";
+import { PaginatedCategories } from "@/entities/models/paginated-category.entity";
+import { BaseRepository } from "../base.repository";
+import mongoose from "mongoose"; 
+import { CustomError } from "@/entities/utils/custom.error"; 
+import { HTTP_STATUS } from "@/shared/constants";
 
 @injectable()
-export class CategoryRepository implements ICategoryRepository {
-  async find(): Promise<ICategoryEntity[]> {
-    return await CategoryModel.find({ status: true });
+export class CategoryRepository extends BaseRepository<ICategoryEntity> implements ICategoryRepository {
+  constructor() {
+    super(CategoryModel);
   }
 
-  async save(title: string, categoryId: string, description?: string): Promise<ICategoryEntity> {
-    return await CategoryModel.create({ title, categoryId, description });
+  async find(filter: any, skip: number, limit: number): Promise<{ items: ICategoryEntity[] | []; total: number }> {
+    const [items, total] = await Promise.all([
+      this.model.find({ ...filter, status: true }).skip(skip).limit(limit).lean(),
+      this.model.countDocuments({ ...filter, status: true }),
+    ]);
+    const mappedItems = items.map((cat) => this.mapToEntity(cat));
+    return { items: mappedItems, total };
   }
 
   async findByTitle(title: string): Promise<ICategoryEntity | null> {
@@ -46,9 +55,15 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   async updateCategoryStatus(id: any): Promise<void> {
-    await CategoryModel.findByIdAndUpdate(id, [
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new CustomError("Invalid Category ID format", HTTP_STATUS.BAD_REQUEST);
+    }
+    const result = await CategoryModel.findByIdAndUpdate(id, [
       { $set: { status: { $not: "$status" } } },
     ]);
+    if (!result) {
+      throw new CustomError("Category not found", HTTP_STATUS.NOT_FOUND);
+    }
   }
 
   async updateCategory(id: any, title: string, description?: string): Promise<ICategoryEntity> {
@@ -71,9 +86,12 @@ export class CategoryRepository implements ICategoryRepository {
     return updatedCategory;
   }
   async deleteCategory(id: any): Promise<void> {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new CustomError("Invalid Category ID format", HTTP_STATUS.BAD_REQUEST);
+    }
     const result = await CategoryModel.findByIdAndDelete(id);
     if (!result) {
-      throw new Error(`Category with ID ${id} not found`);
+      throw new CustomError("Category not found", HTTP_STATUS.NOT_FOUND);
     }
   }
 }

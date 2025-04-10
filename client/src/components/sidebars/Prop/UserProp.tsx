@@ -31,9 +31,9 @@ const navItems = {
       path: "/aiplanning",
     },
     {
-      title: "AI Diet & WorkOut",
-      icon: Bot,
-      path: "/generated",
+      title: "Trainers",
+      icon: Users,
+      path: "/alltrainers",
     },
     {
       title: "Progress Tracker",
@@ -123,6 +123,11 @@ const navItems = {
       title: "Subscriptions",
       icon: CreditCard,
       path: "/admin/subscriptions",
+    },
+    {
+      title: "Add Workout",
+      icon: Dumbbell,
+      path: "/admin/workout",
     },
     {
       title: "Analytics", 
