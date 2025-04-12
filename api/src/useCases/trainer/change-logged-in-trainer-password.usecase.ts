@@ -10,11 +10,11 @@ export class UpdateTrainerPasswordUseCase
   implements IUpdateTrainerPasswordUseCase
 {
   constructor(
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository,
-    @inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
+    @inject("IPasswordBcrypt") private _passwordBcrypt: IBcrypt
   ) {}
   async execute(id: any, current: string, newPassword: string): Promise<void> {
-    const user = await this.trainerRepository.findById(id);
+    const user = await this._trainerRepository.findById(id);
 
     if (!user) {
       throw new CustomError(
@@ -23,7 +23,7 @@ export class UpdateTrainerPasswordUseCase
       );
     }
 
-    const isPasswordMatch = await this.passwordBcrypt.compare(
+    const isPasswordMatch = await this._passwordBcrypt.compare(
       current,
       user.password
     );
@@ -35,7 +35,7 @@ export class UpdateTrainerPasswordUseCase
       );
     }
 
-    const isCurrentAndNewPasswordAreSame = await this.passwordBcrypt.compare(
+    const isCurrentAndNewPasswordAreSame = await this._passwordBcrypt.compare(
       newPassword,
       user.password
     );
@@ -47,8 +47,8 @@ export class UpdateTrainerPasswordUseCase
       );
     }
 
-    const hashedPassword = await this.passwordBcrypt.hash(newPassword);
+    const hashedPassword = await this._passwordBcrypt.hash(newPassword);
 
-    await this.trainerRepository.findByIdAndUpdatePassword(id, hashedPassword);
+    await this._trainerRepository.findByIdAndUpdatePassword(id, hashedPassword);
   }
 }

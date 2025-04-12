@@ -9,13 +9,21 @@ import { IClientEntity } from "@/entities/models/client.entity";
 
 @injectable()
 export class ClientLoginStrategy implements ILoginStrategy {
+
+		private _clientRepository :IClientRepository;
+		private _passwordBcrypt : IBcrypt;
+	
 	constructor(
 		@inject("IClientRepository")
-		private clientRepository: IClientRepository,
-		@inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
-	) {}
+		 clientRepository: IClientRepository,
+		@inject("IPasswordBcrypt") 
+		 passwordBcrypt: IBcrypt
+	) {
+		this._clientRepository = clientRepository,
+		this._passwordBcrypt = passwordBcrypt
+	}
 	async login(user: LoginUserDTO): Promise<Partial<IClientEntity>> {
-		const client = await this.clientRepository.findByEmail(user.email);
+		const client = await this._clientRepository.findByEmail(user.email);
 		console.log(client,"Cl")
 		if (!client) {
 			throw new CustomError(
@@ -30,7 +38,7 @@ export class ClientLoginStrategy implements ILoginStrategy {
 			);
 		}
 		if (user.password) {
-			const isPasswordMatch = await this.passwordBcrypt.compare(
+			const isPasswordMatch = await this._passwordBcrypt.compare(
 				user.password,
 				client.password
 			);

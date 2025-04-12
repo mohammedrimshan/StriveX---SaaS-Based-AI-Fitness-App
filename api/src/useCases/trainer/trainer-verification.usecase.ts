@@ -12,9 +12,9 @@ import { IEmailService } from "@/entities/services/email-service.interface";
 export class TrainerVerificationUseCase implements ITrainerVerificationUseCase {
   constructor(
     @inject("ITrainerRepository")
-    private trainerRepository: ITrainerRepository,
+    private _trainerRepository: ITrainerRepository,
     @inject("IEmailService")
-     private emailService: IEmailService
+     private _emailService: IEmailService
   ) {}
 
   async execute(
@@ -22,7 +22,7 @@ export class TrainerVerificationUseCase implements ITrainerVerificationUseCase {
     approvalStatus: TrainerApprovalStatus,
     rejectionReason?: string
   ): Promise<void> {
-    const trainer = await this.trainerRepository.findById(clientId);
+    const trainer = await this._trainerRepository.findById(clientId);
 
     if (!trainer) {
       throw new CustomError(
@@ -52,11 +52,10 @@ export class TrainerVerificationUseCase implements ITrainerVerificationUseCase {
       );
     }
 
-    // Set approvedByAdmin to true if approving, false/undefined otherwise
+   
     const approvedByAdmin = approvalStatus === TrainerApprovalStatus.APPROVED ? true : false;
 
-    // Pass approvedByAdmin to the repository
-    await this.trainerRepository.updateApprovalStatus(
+    await this._trainerRepository.updateApprovalStatus(
       clientId,
       approvalStatus,
       rejectionReason,
@@ -64,13 +63,13 @@ export class TrainerVerificationUseCase implements ITrainerVerificationUseCase {
     );
     const trainerName = `${trainer.firstName} ${trainer.lastName}`;
     if (approvalStatus === TrainerApprovalStatus.APPROVED) {
-      await this.emailService.sendEmail(
+      await this._emailService.sendEmail(
         trainer.email,
         "Your StriveX Trainer Application Has Been Approved",
         APPROVAL_MAIL_CONTENT(trainerName)
       );
     } else if (approvalStatus === TrainerApprovalStatus.REJECTED) {
-      await this.emailService.sendEmail(
+      await this._emailService.sendEmail(
         trainer.email,
         "Update on Your StriveX Trainer Application",
         REJECTION_MAIL_CONTENT(trainerName, rejectionReason!)

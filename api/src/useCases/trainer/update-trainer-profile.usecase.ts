@@ -10,20 +10,19 @@ import { ICloudinaryService } from "@/interfaceAdapters/services/cloudinary.serv
 @injectable()
 export class UpdateTrainerProfileUseCase implements IUpdateTrainerProfileUseCase {
   constructor(
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository,
-    @inject("ICloudinaryService") private cloudinaryService: ICloudinaryService
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
+    @inject("ICloudinaryService") private _cloudinaryService: ICloudinaryService
   ) {}
 
   async execute(trainerId: string, data: Partial<ITrainerEntity>): Promise<ITrainerEntity> {
-    const existingTrainer = await this.trainerRepository.findById(trainerId);
+    const existingTrainer = await this._trainerRepository.findById(trainerId);
     if (!existingTrainer) {
       throw new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
-    // Handle profile image upload to Cloudinary
     if (data.profileImage && typeof data.profileImage === "string" && data.profileImage.startsWith("data:")) {
       try {
-        const uploadResult = await this.cloudinaryService.uploadImage(data.profileImage, {
+        const uploadResult = await this._cloudinaryService.uploadImage(data.profileImage, {
           folder: "trainer_profiles",
           public_id: `trainer_${trainerId}_${Date.now()}`,
         });
@@ -37,13 +36,12 @@ export class UpdateTrainerProfileUseCase implements IUpdateTrainerProfileUseCase
       }
     }
 
-    // Handle certificate uploads to Cloudinary
     if (data.certifications && Array.isArray(data.certifications)) {
       const uploadedCerts: string[] = [];
       for (const cert of data.certifications) {
         if (typeof cert === "string" && cert.startsWith("data:")) {
           try {
-            const uploadResult = await this.cloudinaryService.uploadFile(cert, {
+            const uploadResult = await this._cloudinaryService.uploadFile(cert, {
               folder: "trainer_certifications",
               public_id: `cert_${trainerId}_${Date.now()}_${uploadedCerts.length}`,
               resource_type: "auto",
@@ -57,14 +55,13 @@ export class UpdateTrainerProfileUseCase implements IUpdateTrainerProfileUseCase
             );
           }
         } else {
-          // Preserve existing certificate URLs
           uploadedCerts.push(cert);
         }
       }
       data.certifications = uploadedCerts;
     }
 
-    const updatedTrainer = await this.trainerRepository.findByIdAndUpdate(trainerId, data);
+    const updatedTrainer = await this._trainerRepository.findByIdAndUpdate(trainerId, data);
     if (!updatedTrainer) {
       throw new CustomError(
         "Failed to update trainer profile",

@@ -10,8 +10,8 @@ import { ICloudinaryService } from "@/interfaceAdapters/services/cloudinary.serv
 @injectable()
 export class AddWorkoutUseCase implements IAddWorkoutUseCase {
   constructor(
-    @inject("IWorkoutRepository") private workoutRepository: IWorkoutRepository,
-    @inject("ICloudinaryService") private cloudinaryService: ICloudinaryService
+    @inject("IWorkoutRepository") private _workoutRepository: IWorkoutRepository,
+    @inject("ICloudinaryService") private _cloudinaryService: ICloudinaryService
   ) {}
 
   async execute(
@@ -22,7 +22,7 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
 
     try {
       if (files?.image) {
-        const imageResult = await this.cloudinaryService.uploadImage(
+        const imageResult = await this._cloudinaryService.uploadImage(
           files.image,
           {
             folder: "workouts/images",
@@ -33,7 +33,7 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
 
       if (files?.videos && files.videos.length > 0) {
         const videoUploads = files.videos.map((video) =>
-          this.cloudinaryService.uploadFile(video, {
+          this._cloudinaryService.uploadFile(video, {
             folder: "exercises/videos",
           })
         );
@@ -52,7 +52,7 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
         imageUrl,
       };
 
-      const createdWorkout = await this.workoutRepository.save(
+      const createdWorkout = await this._workoutRepository.save(
         workoutWithFiles
       );
       return createdWorkout;

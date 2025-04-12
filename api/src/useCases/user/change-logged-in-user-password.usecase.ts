@@ -10,11 +10,11 @@ export class UpdateClientPasswordUseCase
   implements IUpdateClientPasswordUseCase
 {
   constructor(
-    @inject("IClientRepository") private clientRepository: IClientRepository,
-    @inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
+    @inject("IClientRepository") private _clientRepository: IClientRepository,
+    @inject("IPasswordBcrypt") private _passwordBcrypt: IBcrypt
   ) {}
   async execute(id: any, current: string, newPassword: string): Promise<void> {
-    const user = await this.clientRepository.findById(id);
+    const user = await this._clientRepository.findById(id);
 
     if (!user) {
       throw new CustomError(
@@ -23,7 +23,7 @@ export class UpdateClientPasswordUseCase
       );
     }
 
-    const isPasswordMatch = await this.passwordBcrypt.compare(
+    const isPasswordMatch = await this._passwordBcrypt.compare(
       current,
       user.password
     );
@@ -35,7 +35,7 @@ export class UpdateClientPasswordUseCase
       );
     }
 
-    const isCurrentAndNewPasswordAreSame = await this.passwordBcrypt.compare(
+    const isCurrentAndNewPasswordAreSame = await this._passwordBcrypt.compare(
       newPassword,
       user.password
     );
@@ -47,8 +47,8 @@ export class UpdateClientPasswordUseCase
       );
     }
 
-    const hashedPassword = await this.passwordBcrypt.hash(newPassword);
+    const hashedPassword = await this._passwordBcrypt.hash(newPassword);
 
-    await this.clientRepository.findByIdAndUpdatePassword(id, hashedPassword);
+    await this._clientRepository.findByIdAndUpdatePassword(id, hashedPassword);
   }
 }

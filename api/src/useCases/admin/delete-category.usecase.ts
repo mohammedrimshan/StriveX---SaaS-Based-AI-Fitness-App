@@ -5,21 +5,25 @@ import { inject, injectable } from "tsyringe";
 
 @injectable()
 export class DeleteCategoryUseCase implements IDeleteCategoryUseCase {
+
+  private _categoryRepository:ICategoryRepository;
+
   constructor(
-    @inject("ICategoryRepository")
-    private categoryRepository: ICategoryRepository
-  ) {}
+    @inject("ICategoryRepository") categoryRepository: ICategoryRepository
+  ) {
+    this._categoryRepository = categoryRepository
+  }
 
   async execute(categoryId: string): Promise<void> {
     if (!categoryId) {
       throw new Error("Category ID is required");
     }
 
-    const category = await this.categoryRepository.findById(categoryId);
+    const category = await this._categoryRepository.findById(categoryId);
     if (!category) {
       throw new Error(`Category with ID ${categoryId} not found`);
     }
 
-    await this.categoryRepository.deleteCategory(categoryId);
+    await this._categoryRepository.deleteCategory(categoryId);
   }
 }

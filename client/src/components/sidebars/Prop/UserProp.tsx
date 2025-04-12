@@ -10,7 +10,7 @@ import {
   Users,
   UserCheck ,
   LayoutDashboard,
-  FolderOpen, ListTree, Tags
+ Tags
 } from "lucide-react";
 
 const navItems = {

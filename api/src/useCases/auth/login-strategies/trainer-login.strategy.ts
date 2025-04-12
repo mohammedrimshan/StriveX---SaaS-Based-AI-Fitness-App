@@ -9,18 +9,24 @@ import { ITrainerEntity } from "@/entities/models/trainer.entity";
 
 @injectable()
 export class TrainerLoginStrategy implements ILoginStrategy {
+
+  private _trainerRepository : ITrainerRepository
+  private _passwordBcrypt : IBcrypt
+
   constructor(
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository,
-    @inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
-  ) {}
+    @inject("ITrainerRepository")  trainerRepository: ITrainerRepository,
+    @inject("IPasswordBcrypt")  passwordBcrypt: IBcrypt
+  ) {
+    this._trainerRepository = trainerRepository
+    this._passwordBcrypt = passwordBcrypt
+  }
 
   async login(user: LoginUserDTO): Promise<Partial<ITrainerEntity>> {
-    const trainer = await this.trainerRepository.findByEmail(user.email);
+    const trainer = await this._trainerRepository.findByEmail(user.email);
     if (!trainer) {
       throw new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
-    // ❌ Prevent login if trainer is not approved
     if (trainer.approvalStatus !== TrainerApprovalStatus.APPROVED) {
       throw new CustomError(
         "Your account is not approved yet. Please wait for admin approval.",
@@ -28,7 +34,6 @@ export class TrainerLoginStrategy implements ILoginStrategy {
       );
     }
 
-    // ❌ Prevent login if trainer is inactive
     if (trainer.status !== "active") {
       throw new CustomError(
         "Your account has been deactivated. Please contact support.",
@@ -36,9 +41,8 @@ export class TrainerLoginStrategy implements ILoginStrategy {
       );
     }
 
-    // ✅ Check if password matches
     if (user.password) {
-      const isPasswordMatch = await this.passwordBcrypt.compare(user.password, trainer.password);
+      const isPasswordMatch = await this._passwordBcrypt.compare(user.password, trainer.password);
       if (!isPasswordMatch) {
         throw new CustomError(ERROR_MESSAGES.INVALID_CREDENTIALS, HTTP_STATUS.BAD_REQUEST);
       }

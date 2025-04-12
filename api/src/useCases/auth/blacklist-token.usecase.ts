@@ -8,19 +8,20 @@ import { JwtPayload } from "jsonwebtoken";
 export class BlackListTokenUseCase implements IBlackListTokenUseCase {
 	constructor(
 		@inject("IRedisTokenRepository")
-		private redisTokenRepository: IRedisTokenRepository,
-		@inject("ITokenService") private tokenService: ITokenService
+		private _redisTokenRepository: IRedisTokenRepository,
+		@inject("ITokenService") 
+		private _tokenService: ITokenService
 	) {}
 	async execute(token: string): Promise<void> {
 		const decoded: string | JwtPayload | null =
-			this.tokenService.verifyAccessToken(token);
+			this._tokenService.verifyAccessToken(token);
 		if (!decoded || typeof decoded === "string" || !decoded.exp) {
 			throw new Error("Invalid Token: Missing expiration time");
 		}
 
 		const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
 		if (expiresIn > 0) {
-			await this.redisTokenRepository.blackListToken(token, expiresIn);
+			await this._redisTokenRepository.blackListToken(token, expiresIn);
 		}
 	}
 }

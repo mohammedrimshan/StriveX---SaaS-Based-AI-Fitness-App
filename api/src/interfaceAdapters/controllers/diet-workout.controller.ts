@@ -1,4 +1,3 @@
-// D:\StriveX\api\src\interfaceAdapters\controllers\diet-workout\diet-workout.controller.ts
 import { Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { IDietWorkoutController } from "@/entities/controllerInterfaces/workout-controller.interface";
@@ -26,22 +25,22 @@ import { IProgressEntity } from "@/entities/models/progress.entity";
 @injectable()
 export class DietWorkoutController implements IDietWorkoutController {
   constructor(
-    // Workout use cases from AdminController
-    @inject("IAddWorkoutUseCase") private addWorkoutUseCase: IAddWorkoutUseCase,
-    @inject("IDeleteWorkoutUseCase") private deleteWorkoutUseCase: IDeleteWorkoutUseCase,
-    @inject("IToggleWorkoutStatusUseCase") private toggleWorkoutStatusUseCase: IToggleWorkoutStatusUseCase,
-    @inject("IUpdateWorkoutUseCase") private updateWorkoutUseCase: IUpdateWorkoutUseCase,
-    @inject("IGetAllAdminWorkoutsUseCase") private getAllAdminWorkoutsUseCase: IGetAllAdminWorkoutsUseCase,
+   
+    @inject("IAddWorkoutUseCase") private _addWorkoutUseCase: IAddWorkoutUseCase,
+    @inject("IDeleteWorkoutUseCase") private _deleteWorkoutUseCase: IDeleteWorkoutUseCase,
+    @inject("IToggleWorkoutStatusUseCase") private _toggleWorkoutStatusUseCase: IToggleWorkoutStatusUseCase,
+    @inject("IUpdateWorkoutUseCase") private _updateWorkoutUseCase: IUpdateWorkoutUseCase,
+    @inject("IGetAllAdminWorkoutsUseCase") private _getAllAdminWorkoutsUseCase: IGetAllAdminWorkoutsUseCase,
     
-    // Workout and Diet use cases from UserController
-    @inject("IGenerateWorkoutPlanUseCase") private generateWorkoutPlanUseCase: IGenerateWorkoutPlanUseCase,
-    @inject("IGetWorkoutPlanUseCase") private getWorkoutPlanUseCase: IGetWorkoutPlanUseCase,
-    @inject("IGenerateDietPlanUseCase") private generateDietPlanUseCase: IGenerateDietPlanUseCase,
-    @inject("IGetDietPlanUseCase") private getDietPlanUseCase: IGetDietPlanUseCase,
-    @inject("IGetWorkoutsByCategoryUseCase") private getWorkoutsByCategoryUseCase: IGetWorkoutsByCategoryUseCase,
-    @inject("IGetWorkoutsUseCase") private getWorkoutsUseCase: IGetWorkoutsUseCase,
-    @inject("IRecordProgressUseCase") private recordProgressUseCase: IRecordProgressUseCase,
-    @inject("IGetUserProgressUseCase") private getUserProgressUseCase: IGetUserProgressUseCase,
+
+    @inject("IGenerateWorkoutPlanUseCase") private _generateWorkoutPlanUseCase: IGenerateWorkoutPlanUseCase,
+    @inject("IGetWorkoutPlanUseCase") private _getWorkoutPlanUseCase: IGetWorkoutPlanUseCase,
+    @inject("IGenerateDietPlanUseCase") private _generateDietPlanUseCase: IGenerateDietPlanUseCase,
+    @inject("IGetDietPlanUseCase") private _getDietPlanUseCase: IGetDietPlanUseCase,
+    @inject("IGetWorkoutsByCategoryUseCase") private _getWorkoutsByCategoryUseCase: IGetWorkoutsByCategoryUseCase,
+    @inject("IGetWorkoutsUseCase") private _getWorkoutsUseCase: IGetWorkoutsUseCase,
+    @inject("IRecordProgressUseCase") private _recordProgressUseCase: IRecordProgressUseCase,
+    @inject("IGetUserProgressUseCase") private _getUserProgressUseCase: IGetUserProgressUseCase,
     // @inject("IGetAllNormalWorkouts") private getAllNormalWorkout: IGetAllNormalWorkouts,
   ) {}
 
@@ -76,7 +75,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         videos: req.body.files?.videos && Array.isArray(req.body.files.videos) ? req.body.files.videos : undefined,
       };
 
-      const createdWorkout = await this.addWorkoutUseCase.execute(workoutData, files);
+      const createdWorkout = await this._addWorkoutUseCase.execute(workoutData, files);
 
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
@@ -93,7 +92,7 @@ export class DietWorkoutController implements IDietWorkoutController {
       const { workoutId } = req.params;
       if (!workoutId) throw new CustomError("Workout ID not provided", HTTP_STATUS.BAD_REQUEST);
 
-      const deleted = await this.deleteWorkoutUseCase.execute(workoutId);
+      const deleted = await this._deleteWorkoutUseCase.execute(workoutId);
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: deleted ? "Workout deleted successfully" : "Workout not found",
@@ -108,7 +107,7 @@ export class DietWorkoutController implements IDietWorkoutController {
       const { workoutId } = req.params;
       if (!workoutId) throw new CustomError("Workout ID not provided", HTTP_STATUS.BAD_REQUEST);
 
-      const updatedWorkout = await this.toggleWorkoutStatusUseCase.execute(workoutId);
+      const updatedWorkout = await this._toggleWorkoutStatusUseCase.execute(workoutId);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -134,7 +133,7 @@ export class DietWorkoutController implements IDietWorkoutController {
       }
 
       const files = { image: req.body.image };
-      const updatedWorkout = await this.updateWorkoutUseCase.execute(workoutId, workoutData, files);
+      const updatedWorkout = await this._updateWorkoutUseCase.execute(workoutId, workoutData, files);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -157,7 +156,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         throw new CustomError("Invalid page or limit parameters", HTTP_STATUS.BAD_REQUEST);
       }
 
-      const result = await this.getAllAdminWorkoutsUseCase.execute(pageNumber, pageSize, filterObj);
+      const result = await this._getAllAdminWorkoutsUseCase.execute(pageNumber, pageSize, filterObj);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -175,7 +174,7 @@ export class DietWorkoutController implements IDietWorkoutController {
     try {
       const userId = req.params.userId;
 
-      const workoutPlan = await this.generateWorkoutPlanUseCase.execute(userId);
+      const workoutPlan = await this._generateWorkoutPlanUseCase.execute(userId);
 
       res.status(HTTP_STATUS.CREATED).json({
         status: "success",
@@ -192,7 +191,7 @@ export class DietWorkoutController implements IDietWorkoutController {
       const userId = req.params.userId;
       if (!userId) throw new CustomError("ID not provided", HTTP_STATUS.BAD_REQUEST);
 
-      const workoutPlans = await this.getWorkoutPlanUseCase.execute(userId);
+      const workoutPlans = await this._getWorkoutPlanUseCase.execute(userId);
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
@@ -211,7 +210,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         throw new CustomError("ID not provided", HTTP_STATUS.BAD_REQUEST);
       }
 
-      const workouts = await this.getWorkoutsByCategoryUseCase.execute(categoryId);
+      const workouts = await this._getWorkoutsByCategoryUseCase.execute(categoryId);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -248,7 +247,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         console.warn("Invalid filter type, defaulting to {}:", filter);
       }
   
-      const workouts = await this.getWorkoutsUseCase.execute(filterObj, pageNumber, limitNumber);
+      const workouts = await this._getWorkoutsUseCase.execute(filterObj, pageNumber, limitNumber);
       console.log("Workouts fetched:", workouts);
   
       res.status(HTTP_STATUS.OK).json({
@@ -265,7 +264,7 @@ export class DietWorkoutController implements IDietWorkoutController {
     try {
       const progressData = req.body as Omit<IProgressEntity, '_id'>;
   
-      const recordedProgress = await this.recordProgressUseCase.execute(progressData);
+      const recordedProgress = await this._recordProgressUseCase.execute(progressData);
   
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
@@ -285,7 +284,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         throw new CustomError("ID not provided", HTTP_STATUS.BAD_REQUEST);
       }
 
-      const progress = await this.getUserProgressUseCase.execute(userId);
+      const progress = await this._getUserProgressUseCase.execute(userId);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -301,7 +300,7 @@ export class DietWorkoutController implements IDietWorkoutController {
     try {
       const userId = req.params.userId;
 
-      const dietPlan = await this.generateDietPlanUseCase.execute(userId);
+      const dietPlan = await this._generateDietPlanUseCase.execute(userId);
 
       res.status(HTTP_STATUS.CREATED).json({
         status: "success",
@@ -318,7 +317,7 @@ export class DietWorkoutController implements IDietWorkoutController {
       const userId = req.params.userId;
       if (!userId) throw new CustomError("ID not provided", HTTP_STATUS.BAD_REQUEST);
 
-      const dietPlans = await this.getDietPlanUseCase.execute(userId);
+      const dietPlans = await this._getDietPlanUseCase.execute(userId);
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,

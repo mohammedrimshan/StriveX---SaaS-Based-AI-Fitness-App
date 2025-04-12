@@ -12,16 +12,16 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
 
   constructor(
     @inject("ClientRegisterStrategy")
-    private clientRegister: IRegisterStrategy,
+    private _clientRegister: IRegisterStrategy,
     @inject("AdminRegisterStrategy")
-    private adminRegister: IRegisterStrategy,
+    private _adminRegister: IRegisterStrategy,
     @inject("TrainerRegisterStrategy")
-    private trainerRegister: IRegisterStrategy
+    private _trainerRegister: IRegisterStrategy
   ) {
     this.strategies = {
-      client: this.clientRegister,
-      admin: this.adminRegister,
-      trainer: this.trainerRegister,
+      client: this._clientRegister,
+      admin: this._adminRegister,
+      trainer: this._trainerRegister,
     };
   }
 
@@ -38,6 +38,6 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
     }
 
     const registeredUser = await strategy.register(user);
-    return registeredUser; // Returns IUserEntity or null
+    return registeredUser; 
   }
 }

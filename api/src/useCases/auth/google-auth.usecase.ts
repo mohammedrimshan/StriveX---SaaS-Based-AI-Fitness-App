@@ -14,11 +14,11 @@ export class GoogleUseCase implements IGoogleUseCase {
 	private oAuthClient: OAuth2Client;
 	constructor(
 		@inject("IRegisterUserUseCase")
-		private registerUserUseCase: IRegisterUserUseCase,
+		private _registerUserUseCase: IRegisterUserUseCase,
 		@inject("IClientRepository")
-		private clientRepository: IClientRepository,
+		private _clientRepository: IClientRepository,
 		@inject("ITrainerRepository")
-		private trainerRepository: ITrainerRepository
+		private _trainerRepository: ITrainerRepository
 	) {
 		this.oAuthClient = new OAuth2Client();
 	}
@@ -53,9 +53,9 @@ export class GoogleUseCase implements IGoogleUseCase {
 
 		let repository;
 		if (role === "client") {
-			repository = this.clientRepository;
+			repository = this._clientRepository;
 		} else if (role === "trainer") {
-			repository = this.trainerRepository;
+			repository = this._trainerRepository;
 		} else {
 			throw new CustomError(
 				ERROR_MESSAGES.INVALID_ROLE,
@@ -74,7 +74,7 @@ export class GoogleUseCase implements IGoogleUseCase {
 
 		if (existingUser) return existingUser;
 
-		const newUser = await this.registerUserUseCase.execute({
+		const newUser = await this._registerUserUseCase.execute({
 			firstName,
 			lastName,
 			role,

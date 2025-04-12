@@ -11,13 +11,13 @@ import { HTTP_STATUS } from "@/shared/constants";
 @injectable()
 export class GenerateDietPlanUseCase implements IGenerateDietPlanUseCase {
     constructor(
-        @inject("IClientRepository") private clientRepository: IClientRepository,
-        @inject("IAiDietPlanRepository") private dietPlanRepository: IAiDietPlanRepository,
-        @inject("GeminiService") private geminiService: GeminiService
+        @inject("IClientRepository") private _clientRepository: IClientRepository,
+        @inject("IAiDietPlanRepository") private _dietPlanRepository: IAiDietPlanRepository,
+        @inject("GeminiService") private _geminiService: GeminiService
     ) {}
 
     async execute(clientId: string): Promise<IDietPlan> {
-        const client = await this.clientRepository.findByClientId(clientId);
+        const client = await this._clientRepository.findByClientId(clientId);
         if (!client) {
             throw new CustomError("Client not found", HTTP_STATUS.NOT_FOUND);
         }
@@ -29,7 +29,7 @@ export class GenerateDietPlanUseCase implements IGenerateDietPlanUseCase {
             );
         }
 
-        const dietPlan = await this.geminiService.generateDietPlan(client);
-        return this.dietPlanRepository.save(dietPlan);
+        const dietPlan = await this._geminiService.generateDietPlan(client);
+        return this._dietPlanRepository.save(dietPlan);
     }
 }

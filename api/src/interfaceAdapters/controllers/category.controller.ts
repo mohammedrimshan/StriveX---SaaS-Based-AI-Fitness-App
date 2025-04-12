@@ -16,12 +16,12 @@ import mongoose from "mongoose";
 @injectable()
 export class CategoryController implements ICategoryController {
   constructor(
-    @inject("ICreateNewCategoryUseCase") private createNewCategoryUseCase: ICreateNewCategoryUseCase,
-    @inject("IGetAllPaginatedCategoryUseCase") private getAllPaginatedCategoryUseCase: IGetAllPaginatedCategoryUseCase,
-    @inject("IUpdateCategoryStatusUseCase") private updateCategoryStatusUseCase: IUpdateCategoryStatusUseCase,
-    @inject("IUpdateCategoryUseCase") private updateCategoryUseCase: IUpdateCategoryUseCase,
-    @inject("IDeleteCategoryUseCase") private deleteCategoryUseCase: IDeleteCategoryUseCase,
-    @inject("IGetAllCategoriesUseCase") private getAllCategoriesUseCase: IGetAllCategoriesUseCase
+    @inject("ICreateNewCategoryUseCase") private _createNewCategoryUseCase: ICreateNewCategoryUseCase,
+    @inject("IGetAllPaginatedCategoryUseCase") private _getAllPaginatedCategoryUseCase: IGetAllPaginatedCategoryUseCase,
+    @inject("IUpdateCategoryStatusUseCase") private _updateCategoryStatusUseCase: IUpdateCategoryStatusUseCase,
+    @inject("IUpdateCategoryUseCase") private _updateCategoryUseCase: IUpdateCategoryUseCase,
+    @inject("IDeleteCategoryUseCase") private _deleteCategoryUseCase: IDeleteCategoryUseCase,
+    @inject("IGetAllCategoriesUseCase") private _getAllCategoriesUseCase: IGetAllCategoriesUseCase
   ) {}
 
   async createNewCategory(req: Request, res: Response): Promise<void> {
@@ -29,7 +29,7 @@ export class CategoryController implements ICategoryController {
       const { name, description } = req.body as { name: string; description?: string };
       if (!name) throw new CustomError("Category name is required", HTTP_STATUS.BAD_REQUEST);
 
-      await this.createNewCategoryUseCase.execute(name, description);
+      await this._createNewCategoryUseCase.execute(name, description);
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
@@ -58,7 +58,7 @@ export class CategoryController implements ICategoryController {
         throw new CustomError("Invalid page or limit parameters", HTTP_STATUS.BAD_REQUEST);
       }
 
-      const { categories, total, all } = await this.getAllPaginatedCategoryUseCase.execute(pageNumber, pageSize, searchTermString);
+      const { categories, total, all } = await this._getAllPaginatedCategoryUseCase.execute(pageNumber, pageSize, searchTermString);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -84,7 +84,7 @@ export class CategoryController implements ICategoryController {
         throw new CustomError("Invalid Category ID format", HTTP_STATUS.BAD_REQUEST);
       }
   
-      await this.updateCategoryStatusUseCase.execute(categoryId);
+      await this._updateCategoryStatusUseCase.execute(categoryId);
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
@@ -101,7 +101,7 @@ export class CategoryController implements ICategoryController {
       if (!categoryId) throw new CustomError("Category ID is required", HTTP_STATUS.BAD_REQUEST);
       if (!name) throw new CustomError("Category name is required", HTTP_STATUS.BAD_REQUEST);
 
-      await this.updateCategoryUseCase.execute(categoryId, name, description);
+      await this._updateCategoryUseCase.execute(categoryId, name, description);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -132,7 +132,7 @@ export class CategoryController implements ICategoryController {
         throw new CustomError("Invalid Category ID format", HTTP_STATUS.BAD_REQUEST);
       }
   
-      await this.deleteCategoryUseCase.execute(categoryId);
+      await this._deleteCategoryUseCase.execute(categoryId);
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: "Category deleted successfully",
@@ -144,7 +144,7 @@ export class CategoryController implements ICategoryController {
 
   async getAllCategories(req: Request, res: Response): Promise<void> {
     try {
-      const categories = await this.getAllCategoriesUseCase.execute();
+      const categories = await this._getAllCategoriesUseCase.execute();
       res.status(HTTP_STATUS.OK).json({
         success: true,
         categories,

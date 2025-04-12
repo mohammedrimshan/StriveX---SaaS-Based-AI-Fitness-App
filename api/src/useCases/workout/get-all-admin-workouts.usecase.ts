@@ -7,12 +7,12 @@ import { PaginatedResult } from "@/entities/models/paginated-result.entity";
 @injectable()
 export class GetAllAdminWorkoutsUseCase implements IGetAllAdminWorkoutsUseCase {
   constructor(
-    @inject("IWorkoutRepository") private workoutRepository: IWorkoutRepository
+    @inject("IWorkoutRepository") private _workoutRepository: IWorkoutRepository
   ) {}
 
   async execute(page: number, limit: number, filter: any): Promise<PaginatedResult<IWorkoutEntity>> {
     const skip = (page - 1) * limit;
-    const result = await this.workoutRepository.findAll(skip, limit, filter);
+    const result = await this._workoutRepository.findAll(skip, limit, filter);
 
     return {
       data: result.data, 

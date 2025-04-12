@@ -9,12 +9,19 @@ import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 
 @injectable()
 export class AdminLoginStrategy implements ILoginStrategy {
+
+	private _adminRepository :IAdminRepository;
+	private _passwordBcrypt : IBcrypt;
+
 	constructor(
-		@inject("IAdminRepository") private adminRepository: IAdminRepository,
-		@inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
-	) {}
+		@inject("IAdminRepository")  adminRepository: IAdminRepository,
+		@inject("IPasswordBcrypt")  passwordBcrypt: IBcrypt
+	) {
+		this._adminRepository =adminRepository,
+		this._passwordBcrypt = passwordBcrypt
+	}
 	async login(user: LoginUserDTO): Promise<Partial<IAdminEntity>> {
-		const admin = await this.adminRepository.findByEmail(user.email);
+		const admin = await this._adminRepository.findByEmail(user.email);
 		if (!admin) {
 			throw new CustomError(
 				ERROR_MESSAGES.USER_NOT_FOUND,
@@ -28,7 +35,7 @@ export class AdminLoginStrategy implements ILoginStrategy {
 			);
 		}
 		if (user.password) {
-			const isPasswordMatch = await this.passwordBcrypt.compare(
+			const isPasswordMatch = await this._passwordBcrypt.compare(
 				user.password,
 				admin.password
 			);

@@ -8,17 +8,17 @@ import { HTTP_STATUS } from "@/shared/constants";
 export class DeleteWorkoutUseCase implements IDeleteWorkoutUseCase {
   constructor(
     @inject("IWorkoutRepository")
-    private workoutRepository: IWorkoutRepository
+    private _workoutRepository: IWorkoutRepository
   ) {}
 
   async execute(id: string): Promise<boolean> {
-    const workout = await this.workoutRepository.findById(id);
+    const workout = await this._workoutRepository.findById(id);
     if (!workout) {
       throw new CustomError("Workout not found", HTTP_STATUS.NOT_FOUND);
     }
 
     try {
-      const deleted = await this.workoutRepository.delete(id);
+      const deleted = await this._workoutRepository.delete(id);
       return deleted;
     } catch (error) {
       throw new CustomError(

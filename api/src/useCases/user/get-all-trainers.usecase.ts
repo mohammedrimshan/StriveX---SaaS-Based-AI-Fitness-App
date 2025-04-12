@@ -2,14 +2,12 @@
 import { inject, injectable } from "tsyringe";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { ITrainerEntity } from "@/entities/models/trainer.entity";
-import { CustomError } from "@/entities/utils/custom.error";
-import { HTTP_STATUS } from "@/shared/constants";
 import { IGetAllTrainersUseCase } from "@/entities/useCaseInterfaces/users/get-all-trainers.usecase.interface";
 
 @injectable()
 export class GetAllTrainersUseCase implements IGetAllTrainersUseCase {
   constructor(
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository
   ) {}
 
   async execute(
@@ -36,7 +34,7 @@ export class GetAllTrainersUseCase implements IGetAllTrainersUseCase {
     const skip = (validPageNumber - 1) * validPageSize;
     const limit = validPageSize;
     console.log("Trainer filter:", filter);
-    const { items:trainers, total } = await this.trainerRepository.find(filter, skip, limit);
+    const { items:trainers, total } = await this._trainerRepository.find(filter, skip, limit);
     console.log("Found trainers:", trainers);
     return {
       trainers,

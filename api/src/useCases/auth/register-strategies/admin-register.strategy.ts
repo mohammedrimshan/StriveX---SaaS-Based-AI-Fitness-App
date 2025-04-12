@@ -10,10 +10,16 @@ import { IUserEntity } from "@/entities/models/user.entity";
 
 @injectable()
 export class AdminRegisterStrategy implements IRegisterStrategy {
+
+  private _adminRepository : IAdminRepository
+  private _passwordBcrypt : IBcrypt
   constructor(
-    @inject("IAdminRepository") private adminRepository: IAdminRepository,
-    @inject("IPasswordBcrypt") private passwordBcrypt: IBcrypt
-  ) {}
+    @inject("IAdminRepository")  adminRepository: IAdminRepository,
+    @inject("IPasswordBcrypt")  passwordBcrypt: IBcrypt
+  ) {
+    this._adminRepository = adminRepository,
+    this._passwordBcrypt = passwordBcrypt
+  }
 
   async register(user: UserDTO): Promise<IUserEntity | null> {
     if (user.role !== "admin") {
@@ -23,8 +29,7 @@ export class AdminRegisterStrategy implements IRegisterStrategy {
       );
     }
 
-    // Check if admin already exists
-    const existingAdmin = await this.adminRepository.findByEmail(user.email);
+    const existingAdmin = await this._adminRepository.findByEmail(user.email);
     if (existingAdmin) {
       throw new CustomError(
         ERROR_MESSAGES.EMAIL_EXISTS,
@@ -32,17 +37,15 @@ export class AdminRegisterStrategy implements IRegisterStrategy {
       );
     }
 
-    // Extract and hash the password
     const { firstName, lastName, password, email } = user as AdminDTO;
 
     let hashedPassword = null;
     if (password) {
-      hashedPassword = await this.passwordBcrypt.hash(password);
+      hashedPassword = await this._passwordBcrypt.hash(password);
     }
     const adminId = generateUniqueId("admin");
 
-    // Save admin to database and return the result
-    const savedAdmin = await this.adminRepository.save({
+    const savedAdmin = await this._adminRepository.save({
       firstName,
       lastName,
       email,
@@ -52,9 +55,9 @@ export class AdminRegisterStrategy implements IRegisterStrategy {
     });
 
     if (!savedAdmin) {
-      return null; // Return null if save fails
+      return null; 
     }
 
-    return savedAdmin; // Return the saved admin entity
+    return savedAdmin;
   }
 }

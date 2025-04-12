@@ -23,15 +23,15 @@ import { CustomRequest } from "../middlewares/auth.middleware";
 export class TrainerController implements ITrainerController {
   constructor(
     @inject("IGetAllUsersUseCase")
-    private getAllUsersUseCase: IGetAllUsersUseCase,
+    private _getAllUsersUseCase: IGetAllUsersUseCase,
     @inject("IUpdateUserStatusUseCase")
-    private updateUserStatusUseCase: IUpdateUserStatusUseCase,
+    private _updateUserStatusUseCase: IUpdateUserStatusUseCase,
     @inject("ITrainerVerificationUseCase")
-    private trainerVerificationUseCase: ITrainerVerificationUseCase,
+    private _trainerVerificationUseCase: ITrainerVerificationUseCase,
     @inject("IUpdateTrainerProfileUseCase")
-    private updateTrainerProfileUseCase: IUpdateTrainerProfileUseCase,
+    private _updateTrainerProfileUseCase: IUpdateTrainerProfileUseCase,
     @inject("IUpdateTrainerPasswordUseCase")
-    private changeTrainerPasswordUseCase: IUpdateTrainerPasswordUseCase
+    private _changeTrainerPasswordUseCase: IUpdateTrainerPasswordUseCase
   ) {}
 
   /** 🔹 Get all trainers with pagination and search */
@@ -44,7 +44,7 @@ export class TrainerController implements ITrainerController {
         typeof userType === "string" ? userType : "trainer";
       const searchTermString = typeof search === "string" ? search : "";
 
-      const { user, total } = await this.getAllUsersUseCase.execute(
+      const { user, total } = await this._getAllUsersUseCase.execute(
         userTypeString,
         pageNumber,
         pageSize,
@@ -67,7 +67,7 @@ export class TrainerController implements ITrainerController {
   async updateUserStatus(req: Request, res: Response): Promise<void> {
     try {
       const { trainerId, status } = req.body;
-      await this.updateUserStatusUseCase.execute(trainerId, status);
+      await this._updateUserStatusUseCase.execute(trainerId, status);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -105,7 +105,7 @@ export class TrainerController implements ITrainerController {
         );
       }
 
-      await this.trainerVerificationUseCase.execute(
+      await this._trainerVerificationUseCase.execute(
         clientId,
         approvalStatus,
         rejectionReason
@@ -159,7 +159,7 @@ export class TrainerController implements ITrainerController {
         }
       }
 
-      const updatedTrainer = await this.updateTrainerProfileUseCase.execute(
+      const updatedTrainer = await this._updateTrainerProfileUseCase.execute(
         trainerId,
         updates
       );
@@ -202,7 +202,7 @@ export class TrainerController implements ITrainerController {
         );
       }
 
-      await this.changeTrainerPasswordUseCase.execute(
+      await this._changeTrainerPasswordUseCase.execute(
         id,
         currentPassword,
         newPassword

@@ -7,11 +7,11 @@ import { ICategoryEntity } from "../../entities/models/category.entity";
 export class GetAllCategoriesUseCase implements IGetAllCategoriesUseCase {
   constructor(
     @inject("ICategoryRepository")
-    private categoryRepository: ICategoryRepository
+    private _categoryRepository: ICategoryRepository
   ) {}
 
   async execute(filter: any = {}, skip: number = 0, limit: number = 100): Promise<ICategoryEntity[]> {
-    const { items } = await this.categoryRepository.find(filter, skip, limit);
+    const { items } = await this._categoryRepository.find(filter, skip, limit);
     return items;
   }
   

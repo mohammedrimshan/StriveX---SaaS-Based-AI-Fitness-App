@@ -10,7 +10,7 @@ import { HTTP_STATUS } from "@/shared/constants";
 export class GetWorkoutsUseCase implements IGetWorkoutsUseCase {
   constructor(
     @inject("IWorkoutRepository")
-    private workoutRepository: IWorkoutRepository
+    private _workoutRepository: IWorkoutRepository
   ) {}
 
   async execute(
@@ -25,17 +25,17 @@ export class GetWorkoutsUseCase implements IGetWorkoutsUseCase {
       throw new CustomError("Invalid limit value", HTTP_STATUS.BAD_REQUEST);
     }
     const safeFilter: Record<string, any> = filter && typeof filter === "object" && !Array.isArray(filter) ? filter : {};
-    console.log("Safe filter:", safeFilter); // Debug log
+    console.log("Safe filter:", safeFilter);
 
     const skip = (page - 1) * limit;
 
     try {
-      if (!this.workoutRepository) {
+      if (!this._workoutRepository) {
         throw new Error("Workout repository not initialized");
       }
 
       // Corrected argument order: skip, limit, filter
-      const result = await this.workoutRepository.findAll(skip, limit, safeFilter);
+      const result = await this._workoutRepository.findAll(skip, limit, safeFilter);
       console.log(result,"RS")
       if (!result || typeof result.total !== "number" || !Array.isArray(result.data)) {
         throw new Error("Invalid response from repository");

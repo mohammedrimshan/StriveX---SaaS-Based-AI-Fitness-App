@@ -4,13 +4,16 @@ import { ICategoryRepository } from "../../entities/repositoryInterfaces/common/
 import { IGetAllPaginatedCategoryUseCase } from "../../entities/useCaseInterfaces/admin/get-all-paginated-category-usecase.interface";
 
 @injectable()
-export class GetAllPaginatedCategoryUseCase
-  implements IGetAllPaginatedCategoryUseCase
+export class GetAllPaginatedCategoryUseCase implements IGetAllPaginatedCategoryUseCase
 {
+
+  private _categoryRepository:ICategoryRepository;
+
   constructor(
-    @inject("ICategoryRepository")
-    private categoryRepository: ICategoryRepository
-  ) {}
+    @inject("ICategoryRepository") categoryRepository: ICategoryRepository
+  ) {
+    this._categoryRepository = categoryRepository;
+  }
   async execute(
     pageNumber: number,
     pageSize: number,
@@ -28,7 +31,7 @@ export class GetAllPaginatedCategoryUseCase
     const limit = validPageSize;
 
     const { categories, total, all } =
-      await this.categoryRepository.findPaginatedCategory(filter, skip, limit);
+      await this._categoryRepository.findPaginatedCategory(filter, skip, limit);
 
     const response: PaginatedCategories = {
       categories,

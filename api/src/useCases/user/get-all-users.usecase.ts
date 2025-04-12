@@ -9,8 +9,8 @@ import { HTTP_STATUS } from "@/shared/constants";
 @injectable()
 export class GetAllUsersUseCase implements IGetAllUsersUseCase {
   constructor(
-    @inject("IClientRepository") private clientRepository: IClientRepository,
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository
+    @inject("IClientRepository") private _clientRepository: IClientRepository,
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository
   ) {}
 
   async execute(
@@ -21,7 +21,7 @@ export class GetAllUsersUseCase implements IGetAllUsersUseCase {
   ): Promise<PaginatedUsers> {
     let filter: any = {};
     if (userType) {
-      filter.role = userType; // Already normalized in controller
+      filter.role = userType; 
     }
 
     if (searchTerm) {
@@ -38,14 +38,14 @@ export class GetAllUsersUseCase implements IGetAllUsersUseCase {
     const limit = validPageSize;
 
     if (userType === "client") {
-      const { items:user, total } = await this.clientRepository.find(filter, skip, limit);
+      const { items:user, total } = await this._clientRepository.find(filter, skip, limit);
       return {
         user,
         total: Math.ceil(total / validPageSize),
       };
     }
     if (userType === "trainer") {
-      const { items:trainers, total } = await this.trainerRepository.find(filter, skip, limit);
+      const { items:trainers, total } = await this._trainerRepository.find(filter, skip, limit);
       return {
         user: trainers, // Normalized to 'user' for PaginatedUsers
         total: Math.ceil(total / validPageSize),

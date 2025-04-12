@@ -7,13 +7,17 @@ import { generateUniqueId } from "@/frameworks/security/uniqueuid.bcrypt";
 
 @injectable()
 export class CreateNewCategoryUseCase implements ICreateNewCategoryUseCase {
+
+  private _categoryRepository:ICategoryRepository;
+  
   constructor(
-    @inject("ICategoryRepository")
-    private categoryRepository: ICategoryRepository
-  ) {}
+    @inject("ICategoryRepository") categoryRepository:ICategoryRepository
+  ) {
+    this._categoryRepository = categoryRepository
+  }
 
   async execute(title: string, description?: string): Promise<void> {
-    const isCategoryExists = await this.categoryRepository.findByTitle(title);
+    const isCategoryExists = await this._categoryRepository.findByTitle(title);
 
     if (isCategoryExists) {
       throw new CustomError("Category Exists", HTTP_STATUS.CONFLICT);
@@ -21,7 +25,7 @@ export class CreateNewCategoryUseCase implements ICreateNewCategoryUseCase {
 
     const categoryId = generateUniqueId();
 
-    await this.categoryRepository.save({
+    await this._categoryRepository.save({
       categoryId,
       title,
       description,

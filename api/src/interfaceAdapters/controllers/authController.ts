@@ -37,34 +37,34 @@ import { ZodError } from "zod";
 export class AuthController implements IAuthController {
   constructor(
     @inject("IGoogleUseCase")
-    private googleUseCase: IGoogleUseCase,
+    private _googleUseCase: IGoogleUseCase,
     @inject("IGenerateTokenUseCase")
-    private generateTokenUseCase: IGenerateTokenUseCase,
+    private _generateTokenUseCase: IGenerateTokenUseCase,
     @inject("ILoginUserUseCase")
-    private loginUserUseCase: ILoginUserUseCase,
+    private _loginUserUseCase: ILoginUserUseCase,
     @inject("IBlackListTokenUseCase")
-    private blackListTokenUseCase: IBlackListTokenUseCase,
+    private _blackListTokenUseCase: IBlackListTokenUseCase,
     @inject("IRevokeRefreshTokenUseCase")
-    private revokeRefreshToken: IRevokeRefreshTokenUseCase,
+    private _revokeRefreshToken: IRevokeRefreshTokenUseCase,
     @inject("IRefreshTokenUseCase")
-    private refreshTokenUseCase: IRefreshTokenUseCase,
+    private _refreshTokenUseCase: IRefreshTokenUseCase,
     @inject("IRegisterUserUseCase")
-    private registerUserUseCase: IRegisterUserUseCase,
+    private _registerUserUseCase: IRegisterUserUseCase,
     @inject("ISendOtpEmailUseCase")
-    private sendOtpEmailUseCase: ISendOtpEmailUseCase,
+    private _sendOtpEmailUseCase: ISendOtpEmailUseCase,
     @inject("IVerifyOtpUseCase")
-    private verifyOtpUseCase: IVerifyOtpUseCase,
+    private _verifyOtpUseCase: IVerifyOtpUseCase,
     @inject("IForgotPasswordUseCase")
-    private forgotPasswordUseCase: IForgotPasswordUseCase,
+    private _forgotPasswordUseCase: IForgotPasswordUseCase,
     @inject("IResetPasswordUseCase")
-    private resetPasswordUseCase: IResetPasswordUseCase
+    private _resetPasswordUseCase: IResetPasswordUseCase
   ) {}
 
   //*                  🔑 Google Authentication
   async authenticateWithGoogle(req: Request, res: Response): Promise<void> {
     try {
       const { credential, client_id, role } = req.body;
-      const user = await this.googleUseCase.execute(
+      const user = await this._googleUseCase.execute(
         credential,
         client_id,
         role
@@ -73,7 +73,7 @@ export class AuthController implements IAuthController {
         throw new Error("User ID, email, or role is missing");
       }
 
-      const tokens = await this.generateTokenUseCase.execute(
+      const tokens = await this._generateTokenUseCase.execute(
         user.id,
         user.email,
         user.role
@@ -110,7 +110,7 @@ export class AuthController implements IAuthController {
           message: ERROR_MESSAGES.VALIDATION_ERROR,
         });
       }
-      await this.forgotPasswordUseCase.execute(validatedData);
+      await this._forgotPasswordUseCase.execute(validatedData);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -132,13 +132,13 @@ export class AuthController implements IAuthController {
           message: ERROR_MESSAGES.INVALID_CREDENTIALS,
         });
       }
-      const user = await this.loginUserUseCase.execute(validatedData);
+      const user = await this._loginUserUseCase.execute(validatedData);
 
       if (!user.id || !user.email || !user.role) {
         throw new Error("User ID, email, or role is missing");
       }
 
-      const tokens = await this.generateTokenUseCase.execute(
+      const tokens = await this._generateTokenUseCase.execute(
         user.id,
         user.email,
         user.role
@@ -180,10 +180,10 @@ export class AuthController implements IAuthController {
         throw new Error("Missing access or refresh token");
       }
   
-      await this.blackListTokenUseCase.execute(user.access_token);
+      await this._blackListTokenUseCase.execute(user.access_token);
       console.log("Access token blacklisted");
   
-      await this.revokeRefreshToken.execute(user.refresh_token);
+      await this._revokeRefreshToken.execute(user.refresh_token);
       console.log("Refresh token revoked");
   
       const accessTokenName = `${user.role}_access_token`;
@@ -214,7 +214,7 @@ export class AuthController implements IAuthController {
   handleTokenRefresh(req: Request, res: Response): void {
     try {
       const refreshToken = (req as CustomRequest).user.refresh_token;
-      const newTokens = this.refreshTokenUseCase.execute(refreshToken);
+      const newTokens = this._refreshTokenUseCase.execute(refreshToken);
       const accessTokenName = `${newTokens.role}_access_token`;
       updateCookieWithAccessToken(res, newTokens.accessToken, accessTokenName);
       res.status(HTTP_STATUS.OK).json({
@@ -251,7 +251,7 @@ export class AuthController implements IAuthController {
 
       const validatedData = schema.parse(req.body);
 
-      await this.registerUserUseCase.execute(validatedData);
+      await this._registerUserUseCase.execute(validatedData);
 
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
@@ -274,7 +274,7 @@ export class AuthController implements IAuthController {
         });
       }
 
-      await this.resetPasswordUseCase.execute(validatedData);
+      await this._resetPasswordUseCase.execute(validatedData);
       
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -289,7 +289,7 @@ export class AuthController implements IAuthController {
   async sendOtpEmail(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body;
-      await this.sendOtpEmailUseCase.execute(email);
+      await this._sendOtpEmailUseCase.execute(email);
       res.status(HTTP_STATUS.OK).json({
         message: SUCCESS_MESSAGES.OTP_SENT_SUCCESS,
         success: true,
@@ -304,7 +304,7 @@ export class AuthController implements IAuthController {
     try {
       const { email, otp } = req.body;
       const validatedData = otpMailValidationSchema.parse({ email, otp });
-      await this.verifyOtpUseCase.execute(validatedData);
+      await this._verifyOtpUseCase.execute(validatedData);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,

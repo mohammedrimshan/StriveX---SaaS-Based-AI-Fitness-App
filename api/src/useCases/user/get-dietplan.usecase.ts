@@ -6,10 +6,10 @@ import { IDietPlan } from "@/entities/models/ai-diet-plan.entity";
 @injectable()
 export class GetDietPlanUseCase implements IGetDietPlanUseCase {
     constructor(
-        @inject("IAiDietPlanRepository") private dietPlanRepository: IAiDietPlanRepository
+        @inject("IAiDietPlanRepository") private _dietPlanRepository: IAiDietPlanRepository
     ) {}
 
     async execute(clientId: string): Promise<IDietPlan[]> {
-        return this.dietPlanRepository.findByClientId(clientId);
+        return this._dietPlanRepository.findByClientId(clientId);
     }
 }

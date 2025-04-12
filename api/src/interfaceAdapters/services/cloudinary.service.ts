@@ -1,13 +1,12 @@
-// api\src\interfaceAdapters\services\cloudinary.service.ts
+
 import { v2 as cloudinary, ConfigOptions, UploadApiOptions } from "cloudinary";
 import { injectable } from "tsyringe";
 
-// Define an interface for the Cloudinary config service
 export interface ICloudinaryService {
   configure(): void;
   getClient(): typeof cloudinary;
   uploadImage(file: string, options?: { folder?: string; public_id?: string }): Promise<any>;
-  uploadFile(file: string, options?: UploadApiOptions): Promise<any>; // Added for generic file uploads
+  uploadFile(file: string, options?: UploadApiOptions): Promise<any>; 
 }
 
 @injectable()
@@ -44,7 +43,7 @@ export class CloudinaryService implements ICloudinaryService {
         folder: options.folder || "default",
         public_id: options.public_id,
         overwrite: true,
-        resource_type: "image", // Explicitly set for images
+        resource_type: "image", 
       });
       console.log("Image upload result:", result);
       return result;
@@ -60,8 +59,8 @@ export class CloudinaryService implements ICloudinaryService {
         folder: options.folder || "default",
         public_id: options.public_id,
         overwrite: true,
-        resource_type: options.resource_type || "auto", // Allow auto-detection for PDFs, etc.
-        ...options, // Spread additional options like resource_type
+        resource_type: options.resource_type || "auto", 
+        ...options, 
       });
       console.log("File upload result:", result);
       return result;

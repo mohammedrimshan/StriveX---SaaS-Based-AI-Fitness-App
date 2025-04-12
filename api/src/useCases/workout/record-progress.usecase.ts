@@ -9,12 +9,12 @@ import { HTTP_STATUS } from "@/shared/constants";
 export class RecordProgressUseCase implements IRecordProgressUseCase {
   constructor(
     @inject("IProgressRepository")
-    private progressRepository: IProgressRepository
+    private _progressRepository: IProgressRepository
   ) {}
 
   async execute(progress: Omit<IProgressEntity, '_id'>): Promise<IProgressEntity> {
     try {
-      const recordedProgress = await this.progressRepository.create(progress);
+      const recordedProgress = await this._progressRepository.create(progress);
       return recordedProgress;
     } catch (error) {
       throw new CustomError(

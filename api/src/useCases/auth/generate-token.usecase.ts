@@ -7,9 +7,10 @@ import { TRole } from "../../shared/constants";
 @injectable()
 export class GenerateTokenUseCase implements IGenerateTokenUseCase {
 	constructor(
-		@inject("ITokenService") private tokenService: ITokenService,
+		@inject("ITokenService") 
+		private _tokenService: ITokenService,
 		@inject("IRefreshTokenRepository")
-		private refreshTokenRepository: IRefreshTokenRepository
+		private _refreshTokenRepository: IRefreshTokenRepository
 	) {}
 	async execute(
 		id: string,
@@ -18,10 +19,10 @@ export class GenerateTokenUseCase implements IGenerateTokenUseCase {
 	): Promise<{ accessToken: string; refreshToken: string }> {
 		const payload = { id, email, role };
 
-		const accessToken = this.tokenService.generateAccessToken(payload);
-		const refreshToken = this.tokenService.generateRefreshToken(payload);
+		const accessToken = this._tokenService.generateAccessToken(payload);
+		const refreshToken = this._tokenService.generateRefreshToken(payload);
 
-		await this.refreshTokenRepository.save({
+		await this._refreshTokenRepository.save({
 			token: refreshToken,
 			userType: role as TRole,
 			user: id,

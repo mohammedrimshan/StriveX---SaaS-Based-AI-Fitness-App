@@ -5,15 +5,18 @@ import { CustomError } from "@/entities/utils/custom.error";
 import { ERROR_MESSAGES, HTTP_STATUS } from "../../shared/constants";
 
 @injectable()
-export class UpdateCategoryStatusUseCase
-  implements IUpdateCategoryStatusUseCase
+export class UpdateCategoryStatusUseCase implements IUpdateCategoryStatusUseCase
 {
+
+  private _categoryRepository:ICategoryRepository;
+
   constructor(
-    @inject("ICategoryRepository")
-    private categoryRepository: ICategoryRepository
-  ) {}
+    @inject("ICategoryRepository") categoryRepository: ICategoryRepository
+  ) {
+    this._categoryRepository = categoryRepository
+  }
   async execute(id: any): Promise<void> {
-    const isCategoryExistsWithTheId = await this.categoryRepository.findById(
+    const isCategoryExistsWithTheId = await this._categoryRepository.findById(
       id
     );
 
@@ -24,6 +27,6 @@ export class UpdateCategoryStatusUseCase
       );
     }
 
-    await this.categoryRepository.updateCategoryStatus(id);
+    await this._categoryRepository.updateCategoryStatus(id);
   }
 }

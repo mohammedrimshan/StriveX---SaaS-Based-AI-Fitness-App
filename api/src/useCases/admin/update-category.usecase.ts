@@ -5,13 +5,15 @@ import { inject, injectable } from "tsyringe";
 
 @injectable()
 export class UpdateCategoryUseCase implements IUpdateCategoryUseCase {
+   private _categoryRepository:ICategoryRepository;
+
   constructor(
-    @inject("ICategoryRepository")
-    private categoryRepository: ICategoryRepository
-  ) {}
+    @inject("ICategoryRepository") categoryRepository: ICategoryRepository
+  ) {
+    this._categoryRepository = categoryRepository;
+  }
 
   async execute(categoryId: string, name: string, description?: string): Promise<void> {
-    // Pass arguments separately as expected by the repository
-    await this.categoryRepository.updateCategory(categoryId, name, description);
+    await this._categoryRepository.updateCategory(categoryId, name, description);
   }
 }

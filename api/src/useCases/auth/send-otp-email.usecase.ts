@@ -10,14 +10,14 @@ import { ERROR_MESSAGES, HTTP_STATUS } from "../../shared/constants";
 @injectable()
 export class SendOtpEmailUseCase implements ISendOtpEmailUseCase {
 	constructor(
-		@inject("IEmailService") private emailService: IEmailService,
-		@inject("IOtpService") private otpService: IOtpService,
+		@inject("IEmailService") private _emailService: IEmailService,
+		@inject("IOtpService") private _otpService: IOtpService,
 		@inject("IUserExistenceService")
-		private userExistenceService: IUserExistenceService,
-		@inject("IOtpBcrypt") private otpBcrypt: IBcrypt
+		private _userExistenceService: IUserExistenceService,
+		@inject("IOtpBcrypt") private _otpBcrypt: IBcrypt
 	) {}
 	async execute(email: string): Promise<void> {
-		const emailExists = await this.userExistenceService.emailExists(email);
+		const emailExists = await this._userExistenceService.emailExists(email);
 		if (emailExists) {
 			throw new CustomError(
 				ERROR_MESSAGES.EMAIL_EXISTS,
@@ -25,11 +25,11 @@ export class SendOtpEmailUseCase implements ISendOtpEmailUseCase {
 			);
 		}
 
-		const otp = this.otpService.generateOtp();
+		const otp = this._otpService.generateOtp();
 		console.log(`OTP:${otp} `);
-		const hashedOtp = await this.otpBcrypt.hash(otp);
-		await this.otpService.storeOtp(email, hashedOtp);
-		await this.emailService.sendOtpEmail(
+		const hashedOtp = await this._otpBcrypt.hash(otp);
+		await this._otpService.storeOtp(email, hashedOtp);
+		await this._emailService.sendOtpEmail(
 			email,
 			"StriveX - Verify Your Email",
 			otp

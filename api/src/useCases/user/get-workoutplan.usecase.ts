@@ -5,10 +5,10 @@ import { IWorkoutPlan } from "@/entities/models/ai-workout-plan.entity";
 @injectable()
 export class GetWorkoutPlanUseCase implements IGetWorkoutPlanUseCase {
     constructor(
-        @inject("IAiWorkoutPlanRepository") private workoutPlanRepository: IAiWorkoutPlanRepository
+        @inject("IAiWorkoutPlanRepository") private _workoutPlanRepository: IAiWorkoutPlanRepository
     ) {}
 
     async execute(clientId: string): Promise<IWorkoutPlan[]> {
-        return this.workoutPlanRepository.findByClientId(clientId);
+        return this._workoutPlanRepository.findByClientId(clientId);
     }
 }

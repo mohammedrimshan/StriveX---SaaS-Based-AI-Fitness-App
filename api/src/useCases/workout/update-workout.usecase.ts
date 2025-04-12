@@ -9,17 +9,24 @@ import { ICloudinaryService } from "@/interfaceAdapters/services/cloudinary.serv
 
 @injectable()
 export class UpdateWorkoutUseCase implements IUpdateWorkoutUseCase {
+
+  private _workoutRepository : IWorkoutRepository
+  private _cloudinaryService : ICloudinaryService
+
   constructor(
-    @inject("IWorkoutRepository") private workoutRepository: IWorkoutRepository,
-    @inject("ICloudinaryService") private cloudinaryService: ICloudinaryService
-  ) {}
+    @inject("IWorkoutRepository")  workoutRepository: IWorkoutRepository,
+    @inject("ICloudinaryService")  cloudinaryService: ICloudinaryService
+  ) {
+    this._workoutRepository = workoutRepository
+    this._cloudinaryService = cloudinaryService
+  }
 
   async execute(
     id: string,
     workoutData: Partial<IWorkoutEntity>,
-    files?: { image?: string } // Removed music from files
+    files?: { image?: string } 
   ): Promise<IWorkoutEntity> {
-    const workout = await this.workoutRepository.findById(id);
+    const workout = await this._workoutRepository.findById(id);
     if (!workout) {
       throw new CustomError("Workout not found", HTTP_STATUS.NOT_FOUND);
     }
@@ -27,9 +34,8 @@ export class UpdateWorkoutUseCase implements IUpdateWorkoutUseCase {
     let imageUrl: string | undefined = workout.imageUrl;
 
     try {
-      // Upload new image if provided
       if (files?.image) {
-        const imageResult = await this.cloudinaryService.uploadImage(files.image, {
+        const imageResult = await this._cloudinaryService.uploadImage(files.image, {
           folder: "workouts/images",
         });
         imageUrl = imageResult.secure_url;
@@ -40,7 +46,7 @@ export class UpdateWorkoutUseCase implements IUpdateWorkoutUseCase {
         imageUrl,
       };
 
-      const updatedWorkout = await this.workoutRepository.update(id, updatedData);
+      const updatedWorkout = await this._workoutRepository.update(id, updatedData);
       if (!updatedWorkout) {
         throw new CustomError("Failed to update workout", HTTP_STATUS.INTERNAL_SERVER_ERROR);
       }

@@ -11,13 +11,13 @@ import { HTTP_STATUS } from "@/shared/constants";
 @injectable()
 export class GenerateWorkoutPlanUseCase implements IGenerateWorkoutPlanUseCase {
     constructor(
-        @inject("IClientRepository") private clientRepository: IClientRepository,
-        @inject("IAiWorkoutPlanRepository") private workoutPlanRepository: IAiWorkoutPlanRepository,
-        @inject("GeminiService") private geminiService: GeminiService
+        @inject("IClientRepository") private _clientRepository: IClientRepository,
+        @inject("IAiWorkoutPlanRepository") private _workoutPlanRepository: IAiWorkoutPlanRepository,
+        @inject("GeminiService") private _geminiService: GeminiService
     ) {}
 
     async execute(clientId: string): Promise<IWorkoutPlan> {
-        const client = await this.clientRepository.findByClientId(clientId);
+        const client = await this._clientRepository.findByClientId(clientId);
         if (!client) {
             throw new CustomError("Client not found", HTTP_STATUS.NOT_FOUND);
         }
@@ -29,7 +29,7 @@ export class GenerateWorkoutPlanUseCase implements IGenerateWorkoutPlanUseCase {
             );
         }
 
-        const workoutPlan = await this.geminiService.generateWorkoutPlan(client);
-        return this.workoutPlanRepository.save(workoutPlan);
+        const workoutPlan = await this._geminiService.generateWorkoutPlan(client);
+        return this._workoutPlanRepository.save(workoutPlan);
     }
 }

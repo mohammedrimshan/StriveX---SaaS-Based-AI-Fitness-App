@@ -9,12 +9,12 @@ import { HTTP_STATUS } from "@/shared/constants";
 export class GetWorkoutsByCategoryUseCase implements IGetWorkoutsByCategoryUseCase {
   constructor(
     @inject("IWorkoutRepository")
-    private workoutRepository: IWorkoutRepository
+    private _workoutRepository: IWorkoutRepository
   ) {}
 
   async execute(categoryId: string): Promise<IWorkoutEntity[]> {
     try {
-      const workouts = await this.workoutRepository.findByCategory(categoryId);
+      const workouts = await this._workoutRepository.findByCategory(categoryId);
       return workouts;
     } catch (error) {
       throw new CustomError(

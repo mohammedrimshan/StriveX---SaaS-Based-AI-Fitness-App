@@ -1,18 +1,11 @@
 import { inject, injectable } from "tsyringe";
 import { Request, Response } from "express";
-import { ZodError } from "zod";
 import { IUserController } from "@/entities/controllerInterfaces/client-controller.interface";
 import { IGetAllUsersUseCase } from "@/entities/useCaseInterfaces/admin/get-all-users-usecase.interface";
 import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-user-status-usecase.interface";
 import { IUpdateUserProfileUseCase } from "@/entities/useCaseInterfaces/users/update-user-profile-usecase.interface";
 import { IUpdateClientPasswordUseCase } from "@/entities/useCaseInterfaces/users/change-logged-in-user-password-usecase.interface";
-import { IGenerateWorkoutPlanUseCase } from "@/entities/useCaseInterfaces/users/generate-workout-plans.usecase.interface";
-import { IGenerateDietPlanUseCase } from "@/entities/useCaseInterfaces/users/generate-diet-plans.usecase.interface";
-import { IGetWorkoutPlanUseCase } from "@/entities/useCaseInterfaces/users/get-workout-plans.usecase.interface";
-import { IGetDietPlanUseCase } from "@/entities/useCaseInterfaces/users/get-diet-plans.usecase.interface";
 import { IGetUserProgressUseCase } from "@/entities/useCaseInterfaces/workout/get-user-progress-usecase.interface";
-import { IGetWorkoutsByCategoryUseCase } from "@/entities/useCaseInterfaces/workout/get-workout-by-category-usecase.interface";
-import { IGetWorkoutsUseCase } from "@/entities/useCaseInterfaces/workout/get-workout-usecase.interface";
 import { IRecordProgressUseCase } from "@/entities/useCaseInterfaces/workout/record-progress-usecase.interface";
 import { IGetAllTrainersUseCase } from "@/entities/useCaseInterfaces/users/get-all-trainers.usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
@@ -25,7 +18,6 @@ import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { IClientEntity } from "@/entities/models/client.entity";
 import { IProgressEntity } from "@/entities/models/progress.entity";
 import { CustomRequest } from "../middlewares/auth.middleware";
-import { IGetAllCategoriesUseCase } from "@/entities/useCaseInterfaces/common/get-all-category.interface";
 import { IGetTrainerProfileUseCase } from "@/entities/useCaseInterfaces/users/get-trainer-profile.usecase.interface";
 
 
@@ -33,23 +25,24 @@ import { IGetTrainerProfileUseCase } from "@/entities/useCaseInterfaces/users/ge
 export class UserController implements IUserController {
   constructor(
     @inject("IGetAllUsersUseCase")
-    private getAllUsersUseCase: IGetAllUsersUseCase,
+    private _getAllUsersUseCase: IGetAllUsersUseCase,
     @inject("IUpdateUserStatusUseCase")
-    private updateUserStatusUseCase: IUpdateUserStatusUseCase,
+    private _updateUserStatusUseCase: IUpdateUserStatusUseCase,
     @inject("IUpdateUserProfileUseCase")
-    private updateUserProfileUseCase: IUpdateUserProfileUseCase,
+    private _updateUserProfileUseCase: IUpdateUserProfileUseCase,
     @inject("IUpdateClientPasswordUseCase")
-    private changeUserPasswordUseCase: IUpdateClientPasswordUseCase,
+    private _changeUserPasswordUseCase: IUpdateClientPasswordUseCase,
     @inject("IGetUserProgressUseCase")
-    private getUserProgressUseCase: IGetUserProgressUseCase,
+    private _getUserProgressUseCase: IGetUserProgressUseCase,
     @inject("IGetWorkoutsUseCase")
-    private recordProgressUseCase: IRecordProgressUseCase,
+    private _recordProgressUseCase: IRecordProgressUseCase,
     @inject("IGetAllTrainersUseCase")
-    private getAllTrainersUseCase: IGetAllTrainersUseCase,
+    private _getAllTrainersUseCase: IGetAllTrainersUseCase,
     @inject("IGetTrainerProfileUseCase")
-    private getTrainerProfileUseCase : IGetTrainerProfileUseCase
+    private _getTrainerProfileUseCase : IGetTrainerProfileUseCase
   ) {}
 
+  // Get all users with pagination, search and filtering by user type
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
       const { page = "1", limit = "5", search = "", userType } = req.query;
@@ -72,7 +65,7 @@ export class UserController implements IUserController {
         );
       }
 
-      const { user, total } = await this.getAllUsersUseCase.execute(
+      const { user, total } = await this._getAllUsersUseCase.execute(
         userTypeString,
         pageNumber,
         pageSize,
@@ -95,6 +88,7 @@ export class UserController implements IUserController {
     }
   }
 
+  // Update user status (active/blocked)
   async updateUserStatus(req: Request, res: Response): Promise<void> {
     try {
       const { userType, userId } = req.query as {
@@ -116,7 +110,7 @@ export class UserController implements IUserController {
         );
       }
 
-      await this.updateUserStatusUseCase.execute(
+      await this._updateUserStatusUseCase.execute(
         userType.toLowerCase(),
         userId
       );
@@ -131,6 +125,7 @@ export class UserController implements IUserController {
     }
   }
 
+  // Update user profile information
   async updateUserProfile(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.params.userId;
@@ -166,7 +161,7 @@ export class UserController implements IUserController {
         }
       }
 
-      const updatedUser = await this.updateUserProfileUseCase.execute(
+      const updatedUser = await this._updateUserProfileUseCase.execute(
         userId,
         updates
       );
@@ -183,6 +178,7 @@ export class UserController implements IUserController {
     }
   }
 
+  // Change user password
   async changePassword(req: Request, res: Response): Promise<void> {
     try {
       const id = (req as CustomRequest).user.id;
@@ -212,7 +208,7 @@ export class UserController implements IUserController {
         );
       }
 
-      await this.changeUserPasswordUseCase.execute(
+      await this._changeUserPasswordUseCase.execute(
         id,
         currentPassword,
         newPassword
@@ -229,6 +225,7 @@ export class UserController implements IUserController {
     }
   }
 
+  // Get user's workout progress
   async getUserProgress(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
@@ -240,7 +237,7 @@ export class UserController implements IUserController {
         );
       }
 
-      const progress = await this.getUserProgressUseCase.execute(userId);
+      const progress = await this._getUserProgressUseCase.execute(userId);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -252,11 +249,12 @@ export class UserController implements IUserController {
     }
   }
 
+  // Record user's workout progress
   async recordProgress(req: Request, res: Response): Promise<void> {
     try {
       const progressData = req.body as Omit<IProgressEntity, '_id'>;
   
-      const recordedProgress = await this.recordProgressUseCase.execute(progressData);
+      const recordedProgress = await this._recordProgressUseCase.execute(progressData);
   
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
@@ -268,6 +266,7 @@ export class UserController implements IUserController {
     }
   }
 
+  // Get all trainers with pagination and search
   async getAllTrainers(req: Request, res: Response): Promise<void> {
     try {
       const { page = "1", limit = "5", search = "" } = req.query;
@@ -288,7 +287,7 @@ export class UserController implements IUserController {
         );
       }
 
-      const { trainers, total } = await this.getAllTrainersUseCase.execute(
+      const { trainers, total } = await this._getAllTrainersUseCase.execute(
         pageNumber,
         pageSize,
         searchTermString
@@ -308,6 +307,7 @@ export class UserController implements IUserController {
     }
   }
 
+  // Get trainer profile by ID
   async getTrainerProfile(req: Request, res: Response): Promise<void> {
     try {
       const {trainerId} = req.params
@@ -319,7 +319,7 @@ export class UserController implements IUserController {
         )
       }
 
-      const trainer = await this.getTrainerProfileUseCase.execute(trainerId);
+      const trainer = await this._getTrainerProfileUseCase.execute(trainerId);
 
       if(!trainer){
         throw new CustomError(

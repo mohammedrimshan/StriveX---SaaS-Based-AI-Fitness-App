@@ -8,10 +8,10 @@ import { ITrainerEntity } from "@/entities/models/trainer.entity";
 export class GetTrainerProfileUseCase implements IGetTrainerProfileUseCase{
     constructor(
         @inject("ITrainerRepository")
-        private trainerRepository:ITrainerRepository
+        private _trainerRepository:ITrainerRepository
     ){}
 
     async execute(trainerId: string): Promise<ITrainerEntity | null> {
-        return await this.trainerRepository.findById(trainerId)
+        return await this._trainerRepository.findById(trainerId)
     }
 }

@@ -9,18 +9,18 @@ import { HTTP_STATUS } from "@/shared/constants";
 export class ToggleWorkoutStatusUseCase implements IToggleWorkoutStatusUseCase {
   constructor(
     @inject("IWorkoutRepository")
-    private workoutRepository: IWorkoutRepository
+    private _workoutRepository: IWorkoutRepository
   ) {}
 
   async execute(id: string): Promise<IWorkoutEntity | null> {
-    const workout = await this.workoutRepository.findById(id);
+    const workout = await this._workoutRepository.findById(id);
     if (!workout) {
       throw new CustomError("Workout not found", HTTP_STATUS.NOT_FOUND);
     }
 
     try {
       const newStatus = !workout.status;
-      const updatedWorkout = await this.workoutRepository.updateStatus(id, newStatus);
+      const updatedWorkout = await this._workoutRepository.updateStatus(id, newStatus);
       return updatedWorkout;
     } catch (error) {
       throw new CustomError(
