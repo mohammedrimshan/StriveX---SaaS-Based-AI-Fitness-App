@@ -8,7 +8,6 @@ import {
   FlameIcon, 
   Eye, 
   Pencil, 
-  Award, 
   ChevronRight, 
   Activity,
   Zap,

@@ -54,6 +54,7 @@ export const HTTP_STATUS = {
 
 export const SUCCESS_MESSAGES = {
   REGISTRATION_SUCCESS: "Registration completed successfully",
+  RE_REGISTRATION_SUCCESS: "Re -Registration completed successfully",
   LOGIN_SUCCESS: "Login successful",
   LOGOUT_SUCCESS: "Logged out successfully",
   PROFILE_UPDATE_SUCCESS: "Profile updated successfully",
@@ -369,6 +370,51 @@ export const PASSWORD_RESET_MAIL_CONTENT = (resetLink: string) => `
     <p style="margin-bottom: 5px;">
       Follow us: 📱 <span style="color: #6A36CD; font-weight: bold;">@StriveX</span>
     </p>
+    <p style="margin: 0;">
+      © ${new Date().getFullYear()} StriveX. All rights reserved.
+    </p>
+  </div>
+</div>
+`;
+
+
+export const RE_REGISTRATION_MAIL_CONTENT = (trainerName: string): string => `
+<div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
+  <!-- Logo Text Section -->
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 48px; font-weight: bold; margin: 0;">
+      🏋️‍♀️ <span style="color: #6A36CD;">StriveX</span> 🏋️‍♂️
+    </h1>
+  </div>
+
+  <h2 style="color: #8A2BE2; text-align: center; margin-bottom: 30px; font-weight: 600;">
+    Application Re-submitted, ${trainerName}! 📝
+  </h2>
+
+  <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: #555;">
+    Thank you for re-submitting your application to become a trainer with StriveX. Your updated application is now pending review by our admin team.
+  </p>
+
+  <div style="background: linear-gradient(135deg, #9370DB 0%, #6A36CD 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; box-shadow: 0 4px 8px rgba(106, 54, 205, 0.2);">
+    <h1 style="color: white; font-size: 36px; margin: 0; font-weight: bold;">
+      Pending Review ⏳
+    </h1>
+    <p style="color: #f0f0f0; font-size: 15px; margin-top: 10px;">
+      We’ll notify you once a decision is made.
+    </p>
+  </div>
+
+  <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: #555;">
+    If you have any questions or need further assistance, feel free to contact our support team.
+  </p>
+
+  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e6e0fa; text-align: center;">
+    <p style="font-size: 14px; color: #777;">
+      Contact us at <a href="mailto:support@strivex.com" style="color: #8A2BE2; text-decoration: none; font-weight: bold;">support@strivex.com</a>
+    </p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
     <p style="margin: 0;">
       © ${new Date().getFullYear()} StriveX. All rights reserved.
     </p>

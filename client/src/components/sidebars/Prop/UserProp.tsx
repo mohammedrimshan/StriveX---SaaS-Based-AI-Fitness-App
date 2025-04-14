@@ -130,6 +130,11 @@ const navItems = {
       path: "/admin/workout",
     },
     {
+      title: "Workout Management",
+      icon: Dumbbell,
+      path: "/admin/workouts",
+    },
+    {
       title: "Analytics", 
       icon: Activity,
       path: "/admin/analytics",

@@ -18,9 +18,12 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
   return (
     <div className="flex justify-between mt-8">
       <Button
-        type="button"
+        type="button" // Explicitly set to button to avoid form submission
         variant="outline"
-        onClick={onPrev}
+        onClick={(e) => {
+          e.preventDefault(); // Extra safety
+          onPrev();
+        }}
         disabled={activeStep === 0}
         className="bg-white/80 border-purple-100 hover:bg-purple-50 hover:text-purple-700 transition-all duration-300"
       >
@@ -29,8 +32,11 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
       </Button>
       {activeStep < 2 ? (
         <Button
-          type="button"
-          onClick={onNext}
+          type="button" // Explicitly set to button to avoid form submission
+          onClick={(e) => {
+            e.preventDefault(); // Extra safety
+            onNext();
+          }}
           className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white transition-all duration-300 shadow-md hover:shadow-lg"
         >
           Next
@@ -38,7 +44,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
         </Button>
       ) : (
         <Button
-          type="submit"
+          type="submit" // Only this button should be type="submit"
           disabled={isAdding}
           className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white transition-all duration-300 shadow-md hover:shadow-lg"
         >

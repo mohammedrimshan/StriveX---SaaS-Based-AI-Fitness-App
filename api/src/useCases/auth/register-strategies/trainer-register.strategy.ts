@@ -3,28 +3,24 @@ import { IRegisterStrategy } from "./register-strategy.interface";
 import { TrainerDTO, UserDTO } from "@/shared/dto/user.dto";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { CustomError } from "@/entities/utils/custom.error";
-import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
+import { ERROR_MESSAGES, HTTP_STATUS, TrainerApprovalStatus, RE_REGISTRATION_MAIL_CONTENT } from "@/shared/constants";
 import { IBcrypt } from "@/frameworks/security/bcrypt.interface";
 import { generateUniqueId } from "@/frameworks/security/uniqueuid.bcrypt";
 import { IUserEntity } from "@/entities/models/user.entity";
 import { trainerSchema } from "@/interfaceAdapters/controllers/auth/validations/user-signup.validation.schema";
-import { TrainerApprovalStatus } from "@/shared/constants";
+import { IEmailService } from "@/entities/services/email-service.interface";
 
 @injectable()
 export class TrainerRegisterStrategy implements IRegisterStrategy {
   constructor(
     @inject("IPasswordBcrypt") private _passwordBcrypt: IBcrypt,
-    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
+    @inject("IEmailService") private _emailService: IEmailService
   ) {}
 
   async register(user: UserDTO): Promise<IUserEntity | null> {
     if (user.role !== "trainer") {
       throw new CustomError("Invalid role for user registration", HTTP_STATUS.BAD_REQUEST);
-    }
-
-    const existingTrainer = await this._trainerRepository.findByEmail(user.email);
-    if (existingTrainer) {
-      throw new CustomError(ERROR_MESSAGES.EMAIL_EXISTS, HTTP_STATUS.CONFLICT);
     }
 
     const validationResult = trainerSchema.safeParse(user);
@@ -33,11 +29,10 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
     }
 
     const { firstName, lastName, email, phoneNumber, password, dateOfBirth, gender, experience, skills } = user as TrainerDTO;
+    const existingTrainer = await this._trainerRepository.findByEmail(email);
 
     let hashedPassword = password ? await this._passwordBcrypt.hash(password) : "";
-    const clientId = generateUniqueId("trainer");
-
-    const savedTrainer = await this._trainerRepository.save({
+    const trainerData = {
       firstName,
       lastName,
       email,
@@ -47,15 +42,48 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
       gender,
       experience,
       skills,
-      clientId,
-      role: "trainer",
-      approvalStatus: TrainerApprovalStatus.PENDING, // Set default approval status
-    });
+      role: "trainer" as const,
+      approvalStatus: TrainerApprovalStatus.PENDING,
+      rejectionReason: undefined, // Clear rejection reason on re-registration
+      approvedByAdmin: false,
+    };
 
-    if (!savedTrainer) {
-      return null; // Explicitly return null if save fails
+    let savedTrainer: IUserEntity | null;
+
+    if (existingTrainer && existingTrainer.approvalStatus === TrainerApprovalStatus.REJECTED) {
+      // Re-registration case
+      savedTrainer = await this._trainerRepository.updateByEmail(email, {
+        ...trainerData,
+        updatedAt: new Date(),
+      });
+
+      if (!savedTrainer) {
+        throw new CustomError("Failed to update trainer data", HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      }
+
+      // Send re-registration email
+      const trainerName = `${firstName} ${lastName}`;
+      await this._emailService.sendEmail(
+        email,
+        "StriveX Trainer Re-registration Submitted",
+        RE_REGISTRATION_MAIL_CONTENT(trainerName)
+      );
+    } else if (existingTrainer) {
+      // Email already exists and not rejected
+      throw new CustomError(ERROR_MESSAGES.EMAIL_EXISTS, HTTP_STATUS.CONFLICT);
+    } else {
+      // New registration
+      const clientId = generateUniqueId("trainer");
+      savedTrainer = await this._trainerRepository.save({
+        ...trainerData,
+        clientId,
+      });
     }
 
-    return savedTrainer; // Return the saved trainer entity
+    if (!savedTrainer) {
+      return null;
+    }
+
+    return savedTrainer;
   }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { CheckCircle2, Dumbbell, Hourglass, PlusCircle, TimerIcon, Trash2, Upload, AlertCircle } from "lucide-react";
+import { CheckCircle2, Dumbbell, Hourglass, PlusCircle, TimerIcon, Trash2, Upload, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,7 @@ interface ExerciseFormProps {
   onRemoveVideo: () => void;
   onAddExercise: () => void;
   onValidationChange?: (isValid: boolean) => void;
+  isVideoUploading?: boolean;
 }
 
 const ExerciseForm: React.FC<ExerciseFormProps> = ({
@@ -39,6 +40,7 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
   onRemoveVideo,
   onAddExercise,
   onValidationChange,
+  isVideoUploading = false,
 }) => {
   // Use our validation hook with the exercise schema
   const { errors, validateField, validateForm, isValid } = useFormValidation(
@@ -81,6 +83,11 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
 
   // Add exercise with validation
   const handleAddExercise = async () => {
+    // Don't allow adding if video is still uploading
+    if (isVideoUploading) {
+      return;
+    }
+    
     const isValidForm = await validateForm();
     
     if (isValidForm) {
@@ -196,9 +203,19 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                   variant="outline"
                   onClick={() => document.getElementById("video-upload")?.click()}
                   className="bg-white/80 border-purple-100 hover:bg-purple-50 hover:text-purple-700"
+                  disabled={isVideoUploading}
                 >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Video
+                  {isVideoUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Video
+                    </>
+                  )}
                 </Button>
                 <input
                   id="video-upload"
@@ -206,8 +223,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                   accept="video/*"
                   onChange={handleVideoUpload}
                   className="hidden"
+                  disabled={isVideoUploading}
                 />
-                {videoPreviewUrl && (
+                {videoPreviewUrl && !isVideoUploading && (
                   <Button
                     type="button"
                     variant="outline"
@@ -226,14 +244,29 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                     controls
                     className="w-full h-full object-cover"
                   />
+                  {isVideoUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="bg-white p-3 rounded-lg flex items-center">
+                        <Loader2 className="h-5 w-5 mr-2 text-purple-600 animate-spin" />
+                        <span>Uploading video...</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
             <Button
+              type="button" // Ensure this is type="button" to prevent form submission
               onClick={handleAddExercise}
               className="mt-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg"
+              disabled={isVideoUploading}
             >
-              {editingExerciseIndex !== null ? (
+              {isVideoUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading Video...
+                </>
+              ) : editingExerciseIndex !== null ? (
                 <>
                   <CheckCircle2 className="mr-2 h-4 w-4" /> Update Exercise
                 </>

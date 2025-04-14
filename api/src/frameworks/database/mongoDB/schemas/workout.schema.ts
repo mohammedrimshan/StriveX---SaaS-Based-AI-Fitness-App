@@ -1,6 +1,5 @@
 
-import { Schema, Types } from "mongoose";
-import { IWorkoutEntity } from "@/entities/models/workout.entity";
+import { Schema } from "mongoose";
 import { IWorkoutModel } from "../models/workout.model";
 const ExerciseSchema = new Schema({
   name: { type: String, required: true },
