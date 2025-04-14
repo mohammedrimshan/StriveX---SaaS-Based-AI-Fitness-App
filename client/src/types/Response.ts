@@ -1,6 +1,7 @@
 import { UserRole } from "./UserRole";
+import { User as UserType } from "@/types/User";
 import { ITrainer } from "@/types/User";
-
+import { CredentialResponse } from "@react-oauth/google";
 export interface IAxiosResponse<T = any> {
    success: boolean;
    message: string;
@@ -20,7 +21,7 @@ export interface IAuthResponse extends IAxiosResponse {
    }
 }
 
-// client\src\types\Response.ts
+
 export interface PaginatedTrainersResponse {
    trainers: ITrainer[];
    totalPages: number;
@@ -49,3 +50,62 @@ export interface PaginatedTrainersResponse {
    success: boolean;
    message: string;
  }
+
+
+ export interface ForgotPasswordProps {
+  role: string;
+  signInPath: string;
+}
+
+
+export interface ResetPasswordProps {
+  role: string;
+  signInPath: string;
+}
+
+
+export interface SignInProps {
+  userType: UserRole;
+  onSubmit: (data: { email: string; password: string }) => void;
+  setRegister?: () => void;
+  isLoading: boolean;
+  handleGoogleAuth: (credential: CredentialResponse) => void;
+}
+
+export interface SignUpProps {
+  userType: UserRole;
+  onSubmit: (data: UserType) => void;
+  setLogin?: () => void;
+  isLoading: boolean;
+  handleGoogleAuth: (credential: CredentialResponse) => void;
+}
+
+
+export interface CropperModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  image: string;
+  onCropComplete: (croppedImageUrl: string | null) => void;
+  aspectRatio?: number;
+}
+
+
+export interface ProfileImageUploaderProps {
+  initialImage?: string;
+  onCropComplete: (croppedImageUrl: string | null) => void;
+}
+
+export interface PaginationProps {
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  maxVisiblePages?: number
+  className?: string
+}
+
+export interface FormProgressProps {
+  currentStep: number
+  totalSteps: number
+  onStepClick: (step: number) => void
+}
+

@@ -7,4 +7,6 @@ export interface IWorkoutRepository extends IBaseRepository<IWorkoutEntity>{
   updateStatus(id: string, status: boolean): Promise<IWorkoutEntity | null>;
   count(filter: any): Promise<number>
   findAll(skip: number, limit: number, filter: any): Promise<PaginatedResult<IWorkoutEntity>>;
+  updateExercises(workoutId:string,exerciseId:string,exerciseData:Partial<IWorkoutEntity>):Promise<IWorkoutEntity | null>
+  deleteExercise(workoutId: string, exerciseId: string): Promise<IWorkoutEntity | null>;
 }

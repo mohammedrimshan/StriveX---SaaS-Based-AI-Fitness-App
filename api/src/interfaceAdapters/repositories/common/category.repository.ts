@@ -40,7 +40,7 @@ export class CategoryRepository extends BaseRepository<ICategoryEntity> implemen
   ): Promise<PaginatedCategories> {
     const [categories, total, all] = await Promise.all([
       CategoryModel.find(filter)
-        .select("status title _id description") // Added description
+        .select("status title _id description") 
         .skip(skip)
         .limit(limit),
       CategoryModel.countDocuments(filter),
@@ -84,14 +84,5 @@ export class CategoryRepository extends BaseRepository<ICategoryEntity> implemen
     }
   
     return updatedCategory;
-  }
-  async deleteCategory(id: any): Promise<void> {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new CustomError("Invalid Category ID format", HTTP_STATUS.BAD_REQUEST);
-    }
-    const result = await CategoryModel.findByIdAndDelete(id);
-    if (!result) {
-      throw new CustomError("Category not found", HTTP_STATUS.NOT_FOUND);
-    }
   }
 }

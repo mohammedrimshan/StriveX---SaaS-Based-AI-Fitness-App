@@ -130,14 +130,14 @@ export class UserController implements IUserController {
     try {
       const userId = req.params.userId;
       const profileData = req.body;
-
+  
       if (!userId) {
         throw new CustomError(
           ERROR_MESSAGES.ID_NOT_PROVIDED,
           HTTP_STATUS.BAD_REQUEST
         );
       }
-
+  
       const allowedFields: (keyof Partial<IClientEntity>)[] = [
         "firstName",
         "lastName",
@@ -153,21 +153,33 @@ export class UserController implements IUserController {
         "waterIntake",
         "dietPreference",
       ];
-
+  
       const updates: Partial<IClientEntity> = {};
       for (const key of allowedFields) {
         if (profileData[key] !== undefined) {
-          updates[key] = profileData[key];
+          if (key === "healthConditions" && typeof profileData[key] === "string") {
+            try {
+              updates[key] = JSON.parse(profileData[key]);
+              if (!Array.isArray(updates[key])) {
+                throw new Error("healthConditions must be an array");
+              }
+            } catch (e) {
+              throw new CustomError(
+                "Invalid healthConditions format",
+                HTTP_STATUS.BAD_REQUEST
+              );
+            }
+          } else {
+            updates[key] = profileData[key];
+          }
         }
       }
-
+  
       const updatedUser = await this._updateUserProfileUseCase.execute(
         userId,
         updates
       );
-
-    
-
+  
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.PROFILE_UPDATE_SUCCESS,

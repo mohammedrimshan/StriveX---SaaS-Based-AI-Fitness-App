@@ -8,6 +8,7 @@ import {
   toggleWorkoutStatus,
   WorkoutType,
   WorkoutsPaginatedResponse,
+  getWorkoutById,
   WorkoutResponse,
 } from "@/services/admin/adminService";
 

@@ -8,14 +8,13 @@ interface ExerciseItemProps {
   name: string;
   description: string;
   duration: number;
-  videoUrl?: string | string[]; // Updated to handle array
+  videoUrl?: string | string[]; 
   isActive: boolean;
   isCompleted: boolean;
   onClick: () => void;
 }
 
 const ExerciseItem: React.FC<ExerciseItemProps> = ({
-  id,
   name,
   description,
   duration,

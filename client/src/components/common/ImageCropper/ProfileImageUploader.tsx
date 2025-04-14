@@ -6,11 +6,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import { Camera, X } from "lucide-react";
+import { ProfileImageUploaderProps } from "@/types/Response";
 
-interface ProfileImageUploaderProps {
-  initialImage?: string;
-  onCropComplete: (croppedImageUrl: string | null) => void;
-}
 
 export default function ProfileImageUploader({ initialImage, onCropComplete }: ProfileImageUploaderProps) {
   const [image, setImage] = useState<string | null>(null);

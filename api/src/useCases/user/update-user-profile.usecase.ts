@@ -19,10 +19,20 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
     if (!existingUser) {
       throw new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
-
+  
+    if (data.healthConditions) {
+      if (!Array.isArray(data.healthConditions)) {
+        throw new CustomError(
+          "healthConditions must be an array",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+      data.healthConditions = data.healthConditions.map((condition) => String(condition));
+    }
+  
     if (data.profileImage && typeof data.profileImage === "string" && data.profileImage.startsWith("data:")) {
       console.log("Profile image length:", data.profileImage.length);
-  console.log("Profile image preview:", data.profileImage.substring(0, 50));
+      console.log("Profile image preview:", data.profileImage.substring(0, 50));
       try {
         const uploadResult = await this._cloudinaryService.uploadImage(data.profileImage, {
           folder: "profile_images",
@@ -37,7 +47,7 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
         );
       }
     }
-
+  
     const updatedUser = await this._clientRepository.findByIdAndUpdate(userId, data);
     if (!updatedUser) {
       throw new CustomError(
@@ -45,7 +55,7 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }
-
+  
     return updatedUser;
   }
 }

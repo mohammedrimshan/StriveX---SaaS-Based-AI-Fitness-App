@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import express, { Application, NextFunction, Request, Response } from "express";
 import morgan from "morgan";
-
+import fileUpload from "express-fileupload";
 import { config } from "../../shared/config";
 import { AuthRoutes } from "../routes/auth/auth.route";
 import { PrivateRoutes } from "../routes/private/private.route";
@@ -34,12 +34,14 @@ export class Server {
       })
     );
 
-    // this._app.use((req: Request, res: Response, next: NextFunction) => {
-    //   express.json()(req, res, next);
-    // });
+  
 	this._app.use(express.json({ limit: "10mb" })); 
 	this._app.use(express.urlencoded({ limit: "10mb", extended: true })); 
   
+this._app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 }, 
+  abortOnLimit: true,
+}));
 
     this._app.use(cookieParser());
 

@@ -26,11 +26,7 @@ import {
 import sideImageSrc from "@/assets/common/forgot.jpg";
 import Lottie from "lottie-react";
 import emailSentAnimation from "@/assets/emailSent.json";
-
-interface ForgotPasswordProps {
-  role: string;
-  signInPath: string;
-}
+import { ForgotPasswordProps } from "@/types/Response";
 
 const ForgotPassword = ({ role, signInPath }: ForgotPasswordProps) => {
   const [showModal, setShowModal] = useState(false);

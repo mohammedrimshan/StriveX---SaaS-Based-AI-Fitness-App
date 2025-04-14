@@ -102,13 +102,6 @@ export class AdminRoutes extends BaseRoute {
         (req: Request, res: Response) => {
           categoryController.updateCategory(req, res);
         }
-      )
-      .delete(
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          categoryController.deleteCategory(req, res);
-        }
       );
 
       router.post(
@@ -153,6 +146,42 @@ export class AdminRoutes extends BaseRoute {
         authorizeRole(["admin"]),
         (req: Request, res: Response) => {
           dietWorkoutController.getAllAdminWorkouts(req, res);
+        }
+      );
+
+      router.post(
+        "/admin/workouts/:workoutId/exercises",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          dietWorkoutController.addExercise(req, res);
+        }
+      );
+
+      router.put(
+        "/admin/workouts/:workoutId/exercises/:exerciseId",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          dietWorkoutController.updateExercise(req, res);
+        }
+      );
+
+      router.delete(
+        "/admin/workouts/:workoutId/exercises/:exerciseId",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          dietWorkoutController.deleteExercise(req, res);
+        }
+      );
+
+      router.get(
+        "/admin/workouts/:workoutId",
+        verifyAuth,
+        authorizeRole(["admin"]),
+        (req: Request, res: Response) => {
+          dietWorkoutController.getWorkoutById(req, res);
         }
       );
   }

@@ -1,6 +1,15 @@
 
 import { Types } from "mongoose";
 
+export interface IExerciseEntity {
+  _id?: string; 
+  name: string;
+  description: string;
+  duration: number;
+  defaultRestDuration: number;
+  videoUrl: string;
+}
+
 export interface IWorkoutEntity {
   id?: string;
   title: string;
@@ -9,13 +18,7 @@ export interface IWorkoutEntity {
   duration: number; 
   difficulty: "Beginner" | "Intermediate" | "Advanced";
   imageUrl?: string; 
-  exercises: {
-    name: string;
-    description: string;
-    duration: number; 
-    defaultRestDuration: number; 
-    videoUrl?:string[];
-  }[];
+  exercises:IExerciseEntity[];
   isPremium: boolean; 
   status: boolean; 
   createdAt?: Date;

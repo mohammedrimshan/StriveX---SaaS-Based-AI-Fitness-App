@@ -1,12 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-
-interface FormProgressProps {
-  currentStep: number
-  totalSteps: number
-  onStepClick: (step: number) => void
-}
+import { FormProgressProps } from "@/types/Response"
 
 const FormProgress = ({ currentStep, totalSteps, onStepClick }: FormProgressProps) => {
   return (

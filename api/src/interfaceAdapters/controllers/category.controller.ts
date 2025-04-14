@@ -5,7 +5,6 @@ import { ICategoryController } from "@/entities/controllerInterfaces/category-co
 import { ICreateNewCategoryUseCase } from "@/entities/useCaseInterfaces/admin/create-new-category.interface";
 import { IGetAllPaginatedCategoryUseCase } from "@/entities/useCaseInterfaces/admin/get-all-paginated-category-usecase.interface";
 import { IUpdateCategoryStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-category-status-usecase.interface";
-import { IDeleteCategoryUseCase } from "@/entities/useCaseInterfaces/admin/delete-category-usecase.interface";
 import { IUpdateCategoryUseCase } from "@/entities/useCaseInterfaces/admin/update-category-usecase.interface";
 import { IGetAllCategoriesUseCase } from "@/entities/useCaseInterfaces/common/get-all-category.interface";
 import { HTTP_STATUS, SUCCESS_MESSAGES } from "@/shared/constants";
@@ -20,7 +19,6 @@ export class CategoryController implements ICategoryController {
     @inject("IGetAllPaginatedCategoryUseCase") private _getAllPaginatedCategoryUseCase: IGetAllPaginatedCategoryUseCase,
     @inject("IUpdateCategoryStatusUseCase") private _updateCategoryStatusUseCase: IUpdateCategoryStatusUseCase,
     @inject("IUpdateCategoryUseCase") private _updateCategoryUseCase: IUpdateCategoryUseCase,
-    @inject("IDeleteCategoryUseCase") private _deleteCategoryUseCase: IDeleteCategoryUseCase,
     @inject("IGetAllCategoriesUseCase") private _getAllCategoriesUseCase: IGetAllCategoriesUseCase
   ) {}
 
@@ -120,27 +118,7 @@ export class CategoryController implements ICategoryController {
     }
   }
 
-  async deleteCategory(req: Request, res: Response): Promise<void> {
-    try {
-      const { categoryId } = req.params;
-      
-      // Enhanced validation
-      if (!categoryId || categoryId === "undefined") {
-        throw new CustomError("Category ID is required and cannot be 'undefined'", HTTP_STATUS.BAD_REQUEST);
-      }
-      if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-        throw new CustomError("Invalid Category ID format", HTTP_STATUS.BAD_REQUEST);
-      }
-  
-      await this._deleteCategoryUseCase.execute(categoryId);
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: "Category deleted successfully",
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  }
+
 
   async getAllCategories(req: Request, res: Response): Promise<void> {
     try {

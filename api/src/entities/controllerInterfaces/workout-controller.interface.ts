@@ -13,5 +13,8 @@ export interface IDietWorkoutController {
   toggleWorkoutStatus(req: Request, res: Response): Promise<void>;
   getWorkoutsByCategory(req: Request, res: Response): Promise<void>;
   getAllWorkouts(req: Request, res: Response): Promise<void>;
-  // getAllNormalWorkouts(req:Request,res:Response):Promise<void>
+  addExercise(req: Request, res: Response): Promise<void>;
+  updateExercise(req: Request, res: Response): Promise<void>;
+  deleteExercise(req: Request, res: Response): Promise<void>;
+  getWorkoutById(req: Request, res: Response): Promise<void>;
 }

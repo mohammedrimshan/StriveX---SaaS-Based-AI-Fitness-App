@@ -20,5 +20,4 @@ export interface ICategoryRepository extends IBaseRepository<ICategoryEntity> {
     title: string,
     description?: string
   ): Promise<ICategoryEntity>;
-  deleteCategory(id: any): Promise<void>;
 }

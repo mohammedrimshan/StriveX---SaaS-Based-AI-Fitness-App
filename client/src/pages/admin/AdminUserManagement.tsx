@@ -117,7 +117,7 @@ export default function UsersPage({
       {
         onSuccess: (data) => {
           successToast(data.message);
-          refetch(); // Refetch data to update UI
+          refetch(); 
         },
         onError: (error: any) => {
           errorToast(
@@ -141,24 +141,10 @@ export default function UsersPage({
     } else {
       const trainer = user as ITrainer;
       return (
-        trainer.discipline ||
         trainer.specialization?.[0] ||
         trainer.skills?.[0] ||
         "Workout"
       );
-    }
-  };
-
-  // Pagination handlers for Pagination1
-  const onPagePrev = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
-  const onPageNext = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
     }
   };
 
@@ -259,7 +245,7 @@ export default function UsersPage({
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1); // Reset to first page on search
+                setCurrentPage(1); 
               }}
               className={`pl-10 ${
                 userType === "client"

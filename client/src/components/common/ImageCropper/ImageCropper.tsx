@@ -6,14 +6,7 @@ import "cropperjs/dist/cropper.css";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-
-interface CropperModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  image: string;
-  onCropComplete: (croppedImageUrl: string | null) => void;
-  aspectRatio?: number;
-}
+import { CropperModalProps } from "@/types/Response";
 
 const CropperModal: React.FC<CropperModalProps> = ({ 
   isOpen, 

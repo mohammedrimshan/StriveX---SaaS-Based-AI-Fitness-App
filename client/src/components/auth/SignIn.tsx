@@ -6,20 +6,12 @@ import { useFormik } from "formik";
 import sgn2 from "@/assets/common/sgn2.jpg";
 import adminBg from "@/assets/common/admin-bg.jpg";
 import trainerBg from "@/assets/common/trainer-bg.jpg";
-// import { Header } from "@/components/common/Header/PublicHeader";
 import { signinSchema } from "@/utils/validations/signin.validator";
-import { UserRole } from "@/types/UserRole";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { CredentialResponse } from "@react-oauth/google";
 import { GoogleAuthButton } from "./googleAuth";
-interface SignInProps {
-  userType: UserRole;
-  onSubmit: (data: { email: string; password: string }) => void;
-  setRegister?: () => void;
-  isLoading: boolean;
-  handleGoogleAuth: (credential: CredentialResponse) => void;
-}
+import { SignInProps } from "@/types/Response";
+
 
 const SignIn = ({
   userType,
@@ -81,17 +73,6 @@ const SignIn = ({
             alt="fitness-equipment-bg"
             className="absolute inset-0 w-full h-full object-cover brightness-90"
           />
-          {/* <motion.div
-						initial={{ opacity: 0, x: -50 }}
-						animate={{ opacity: 1, x: 0 }}
-						transition={{ duration: 1.5, ease: "easeOut" }}
-						className="relative z-10 w-full h-full flex items-end justify-center">
-						<img
-							src={sgn}
-							alt="Trainer"
-							className="w-[45rem]"
-						/>
-					</motion.div> */}
         </div>
 
         {/* Right Section with Form */}

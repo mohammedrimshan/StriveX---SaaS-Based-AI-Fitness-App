@@ -1,14 +1,12 @@
-import { useState ,useEffect} from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TextField, Button, FormControlLabel, Checkbox, FormControl, InputLabel, Select, MenuItem, FormHelperText } from "@mui/material";
 import { Eye, EyeOff, ArrowRight, ArrowLeft, User, Mail, Phone, Calendar, Briefcase, User2, Puzzle } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
 import sgn from "@/assets/common/sgn.jpg";
-import { UserRole } from "@/types/UserRole";
+
 import { User as UserType } from "@/types/User";
 import { useFormik } from "formik";
-import { getValidationSchema, signupSchema } from "@/utils/validations/signup.validator";
-// import { Header } from "@/components/common/Header/PublicHeader";
+import { getValidationSchema } from "@/utils/validations/signup.validator";
 import OTPModal from "@/components/modals/OTPModal";
 import { useSendOTPMutation } from "@/hooks/auth/useSendOTP";
 import { useVerifyOTPMutation } from "@/hooks/auth/useVerifyOTP";
@@ -16,16 +14,8 @@ import { useToaster } from "@/hooks/ui/useToaster";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { CredentialResponse } from "@react-oauth/google";
 import { GoogleAuthButton } from "./googleAuth";
-
-interface SignUpProps {
-	userType: UserRole;
-	onSubmit: (data: UserType) => void;
-	setLogin?: () => void;
-	isLoading: boolean;
-	handleGoogleAuth: (credential: CredentialResponse) => void;
-}
+import { SignUpProps } from "@/types/Response";
 
 // Define skills options
 const skillOptions = [
@@ -143,10 +133,8 @@ const currentValidationSchema = getValidationSchema(userType, currentStep);
           return;
         }
       }  
-      // Final submission - validate all fields with the complete schema
       const formattedValues = { ...values };
       
-      // Format date to DD-MM-YYYY if it exists
       if (formattedValues.dateOfBirth) {
         const date = new Date(formattedValues.dateOfBirth);
         const day = String(date.getDate()).padStart(2, '0');

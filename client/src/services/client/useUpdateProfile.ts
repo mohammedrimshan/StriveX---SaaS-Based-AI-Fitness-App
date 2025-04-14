@@ -13,6 +13,7 @@ export const useUpdateClientProfile = () => {
     onSuccess: (data) => {
      
       const updatedClient = data.user; 
+      console.log(updatedClient)
       if (updatedClient) {
         dispatch(clientLogin(updatedClient));
       }

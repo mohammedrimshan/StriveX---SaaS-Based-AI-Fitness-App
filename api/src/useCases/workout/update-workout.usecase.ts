@@ -24,34 +24,39 @@ export class UpdateWorkoutUseCase implements IUpdateWorkoutUseCase {
   async execute(
     id: string,
     workoutData: Partial<IWorkoutEntity>,
-    files?: { image?: string } 
+    files?: { image?: string }
   ): Promise<IWorkoutEntity> {
     const workout = await this._workoutRepository.findById(id);
     if (!workout) {
       throw new CustomError("Workout not found", HTTP_STATUS.NOT_FOUND);
     }
-
     let imageUrl: string | undefined = workout.imageUrl;
-
     try {
+      console.log("Workout data:", workoutData);
+      console.log("Files:", files);
       if (files?.image) {
         const imageResult = await this._cloudinaryService.uploadImage(files.image, {
           folder: "workouts/images",
         });
         imageUrl = imageResult.secure_url;
+        console.log("Uploaded new image:", imageUrl);
+      } else if (workoutData.imageUrl !== undefined) {
+        imageUrl = workoutData.imageUrl;
+        console.log("Using provided imageUrl:", imageUrl);
       }
-
       const updatedData = {
         ...workoutData,
         imageUrl,
       };
-
+      console.log("Updating with data:", updatedData);
       const updatedWorkout = await this._workoutRepository.update(id, updatedData);
       if (!updatedWorkout) {
         throw new CustomError("Failed to update workout", HTTP_STATUS.INTERNAL_SERVER_ERROR);
       }
+      console.log("Updated workout:", updatedWorkout);
       return updatedWorkout;
     } catch (error) {
+      console.error("Update error:", error);
       throw new CustomError(
         error instanceof Error ? error.message : "Failed to update workout",
         HTTP_STATUS.INTERNAL_SERVER_ERROR

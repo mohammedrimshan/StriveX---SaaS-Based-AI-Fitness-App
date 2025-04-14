@@ -9,13 +9,16 @@ import { motion, AnimatePresence } from "framer-motion"
 interface UserFiltersProps {
   activeFilters: {
     status: string[]
+    specialization: string[]
   }
   setActiveFilters: React.Dispatch<
     React.SetStateAction<{
       status: string[]
+      specialization: string[]
     }>
   >
   userType?: "client" | "trainer"
+  specializationOptions?: string[]
 }
 
 export function UserFilters({ activeFilters, setActiveFilters, userType = "client" }: UserFiltersProps) {
@@ -39,7 +42,7 @@ export function UserFilters({ activeFilters, setActiveFilters, userType = "clien
 
   // Clear all filters
   const clearAllFilters = () => {
-    setActiveFilters({ status: [] })
+    setActiveFilters({ status: [], specialization: []  })
   }
 
   // Remove specific filter

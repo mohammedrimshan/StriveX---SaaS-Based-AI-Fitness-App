@@ -35,26 +35,36 @@ export const useAllCategoryAdminQuery = (
 ) => {
   return useQuery({
     queryKey: ["paginated-categories", page, limit, search],
-    queryFn: () => queryFunc({ page, limit, search }),
+    queryFn: () => {
+      console.log("Fetching categories:", { page, limit, search });
+      return queryFunc({ page, limit, search });
+    },
     placeholderData: (prevData) => prevData,
   });
 };
 
 export const useAllCategoryMutation = (
   addEditFunc: (data: { id?: string; name: string; description?: string }) => Promise<IAxiosResponse>,
-  toggleStatusFunc: (categoryId: string, status: boolean) => Promise<IAxiosResponse>,
-  deleteFunc: (categoryId: string) => Promise<IAxiosResponse>
+  toggleStatusFunc: (categoryId: string, status: boolean) => Promise<IAxiosResponse>
 ) => {
   const queryClient = useQueryClient();
   return useMutation<
     IAxiosResponse,
     Error,
-    { id?: string; name?: string; description?: string; status?: boolean; action?: "add" | "edit" | "toggle" | "delete" }
+    {
+      id?: string;
+      name?: string;
+      description?: string;
+      status?: boolean;
+      action?: "add" | "edit" | "toggle";
+      page?: number;
+      limit?: number;
+      search?: string;
+    }
   >({
     mutationFn: async (data) => {
-      if (data.action === "delete") {
-        return await deleteFunc(data.id!);
-      } else if (data.action === "toggle") {
+      console.log("Mutation triggered:", data);
+      if (data.action === "toggle") {
         return await toggleStatusFunc(data.id!, data.status!);
       } else {
         return await addEditFunc({
@@ -64,11 +74,30 @@ export const useAllCategoryMutation = (
         });
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["paginated-categories"] });
+    onSuccess: (response, variables) => {
+      console.log("Mutation success:", variables.action);
+      if (variables.action === "toggle") {
+        queryClient.setQueryData<CategoryResponse>(
+          ["paginated-categories", variables.page, variables.limit, variables.search],
+          (oldData) => {
+            if (!oldData) return oldData;
+            console.log("Updating cache for toggle:", { id: variables.id, newStatus: variables.status });
+            return {
+              ...oldData,
+              categories: oldData.categories.map((cat) =>
+                cat._id === variables.id ? { ...cat, status: variables.status! } : cat
+              ),
+            };
+          }
+        );
+      } else {
+        console.log("Invalidating paginated-categories for add/edit");
+        queryClient.invalidateQueries({ queryKey: ["paginated-categories"] });
+      }
     },
     onError: (error) => {
-      console.error("Mutation error:", error);
+      console.log("Mutation error:", error);
+      console.error("Mutation error:", error.message);
     },
   });
 };

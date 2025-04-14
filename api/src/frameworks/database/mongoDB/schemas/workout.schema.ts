@@ -6,7 +6,7 @@ const ExerciseSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
   duration: { type: Number, required: true }, 
-  videoUrl:{type:String},
+  videoUrl:{type:String,required:true},
   defaultRestDuration: { type: Number, required: true }, 
 });
 

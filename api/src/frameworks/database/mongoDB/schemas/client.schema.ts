@@ -19,7 +19,14 @@ export const clientSchema = new Schema<IClientModel>(
     fitnessGoal: { type: String, enum: FITNESS_GOALS, required: false },
     experienceLevel: { type: String, enum: EXPERIENCE_LEVELS, required: false },
     activityLevel: { type: String, enum: ACTIVITY_LEVELS, required: false }, 
-    healthConditions: { type: [String], required: false },
+    healthConditions: {
+      type: [String],
+      required: false,
+      validate: {
+        validator: (value: any) => Array.isArray(value) && value.every((item) => typeof item === "string"),
+        message: "healthConditions must be an array of strings",
+      },
+    },
     waterIntake: { type: Number, required: false },
     dietPreference: { type: String, required: false },
   },

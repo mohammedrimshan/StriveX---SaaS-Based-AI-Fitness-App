@@ -18,6 +18,17 @@ export class WorkoutRepository extends BaseRepository<IWorkoutEntity> implements
     return this.mapToEntity(entity.toObject());
   }
 
+  async update(id: string, data: Partial<IWorkoutEntity>): Promise<IWorkoutEntity | null> {
+    const workout = await this.model
+      .findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true })
+      .populate("category", "title")
+      .lean()
+      .exec();
+    if (!workout) return null;
+    console.log("Repository updated workout:", workout);
+    return this.mapToEntity(workout);
+  }
+
   async findAll(skip: number, limit: number, filter: any): Promise<PaginatedResult<IWorkoutEntity>> {
     const [workouts, total] = await Promise.all([
       this.model
@@ -34,6 +45,7 @@ export class WorkoutRepository extends BaseRepository<IWorkoutEntity> implements
       ...w,
       category: w.category,
     }));
+    console.log(transformedWorkouts,`transformedWorkouts`);
     const page = Math.floor(skip / limit) + 1;
     const totalPages = Math.ceil(total / limit);
 
@@ -71,4 +83,48 @@ export class WorkoutRepository extends BaseRepository<IWorkoutEntity> implements
   async count(filter: any): Promise<number> {
     return await this.model.countDocuments(filter);
   }
+
+  async updateExercises(workoutId: string, exerciseId: string, exerciseData: Partial<IWorkoutEntity>): Promise<IWorkoutEntity | null> {
+    const updateFields:any = {};
+    for(const [key, value] of Object.entries(exerciseData)) {
+      if (value !== undefined) {
+        updateFields[`exercises.$.${key}`] = value;
+      }
+    }
+    const workout = await this.model
+    .findOneAndUpdate(
+      { _id: workoutId, "exercises._id": exerciseId },
+      {$set: updateFields},
+      { new: true ,runValidators: true}
+    ).populate("category", "title")
+    .lean()
+    .exec();
+    if (!workout) return null;
+    return this.mapToEntity(workout);
+  }
+
+  async deleteExercise(workoutId: string, exerciseId: string): Promise<IWorkoutEntity | null> {
+    const workout = await this.model
+      .findByIdAndUpdate(
+        workoutId,
+        { $pull: { exercises: { _id: exerciseId } } },
+        { new: true }
+      )
+      .populate("category", "title")
+      .lean()
+      .exec();
+
+    if (!workout) return null;
+    return this.mapToEntity(workout);
+  }
+
+  async findById(id: string): Promise<IWorkoutEntity | null> {
+    return this.model
+      .findById(id)
+      .populate("category", "title")
+      .lean()
+      .exec()
+      .then((doc) => (doc ? this.mapToEntity(doc) : null));
+  }
+
 }

@@ -3,14 +3,8 @@ import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { PaginationProps } from "@/types/Response"
 
-interface PaginationProps {
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
-  maxVisiblePages?: number
-  className?: string
-}
 
 export function Pagination({ currentPage, totalPages, onPageChange, maxVisiblePages = 5, className }: PaginationProps) {
   // Don't render pagination if there's only one page

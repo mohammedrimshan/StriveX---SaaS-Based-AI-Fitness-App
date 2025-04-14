@@ -63,6 +63,7 @@ export class TrainerRepository extends BaseRepository<ITrainerEntity> implements
     return this.mapToEntity(trainer);
   }
 
+  // update trainer approval status and rejection reason 
   async updateApprovalStatus(
     id: string,
     status: TrainerApprovalStatus,

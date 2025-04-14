@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getWorkoutById, getExercisesByWorkoutId } from "./workoutData";
-import { Exercise, Workout } from "@/types/Workouts";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getWorkoutById } from "@/services/admin/adminService";
+import { Exercise } from "@/types/Workouts";
 import ExerciseCard from "./ExerciseCard";
 import PaginationControls from "@/components/ui/pagination-controls";
 import { Button } from "@/components/ui/button";
@@ -17,38 +18,87 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import AddExerciseForm from "./AddExerciseForm";
+import { useWorkouts } from "@/hooks/admin/useWorkouts";
+import AnimatedBackground from "@/components/Animation/AnimatedBackgorund";
+import AnimatedButton from "@/components/Animation/AnimatedButton";
+import AnimatedTitle from "@/components/Animation/AnimatedTitle";
+import { motion } from "framer-motion";
+
+// Interface for the workout exercise to fix type issues
+interface WorkoutExercise {
+  id: string;
+  name: string;
+  description: string;
+  duration: number;
+  defaultRestDuration: number;
+  videoUrl: any;
+}
+
+// Extended Exercise interface for compatibility
+interface ExtendedExercise extends WorkoutExercise {
+  id: string;
+}
 
 const WorkoutDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [workout, setWorkout] = useState<Workout | null>(null);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const { deleteExercise } = useWorkouts();
 
+  // Fetch workout data
+  const { 
+    data: workoutData, 
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ["workout", id],
+    queryFn: () => id ? getWorkoutById(id) : Promise.reject("No workout ID"),
+    enabled: !!id,
+  });
+
+  const workout = workoutData?.data;
+  console.log(workout);
+  
+  // Calculate exercise pagination
   useEffect(() => {
-    if (!id) return;
+    if (workout?.exercises) {
+      const ITEMS_PER_PAGE = 6;
+      setTotalPages(Math.ceil(workout.exercises.length / ITEMS_PER_PAGE));
+    }
+  }, [workout]);
 
-    // Simulate API call with delay
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      const workoutData = getWorkoutById(id);
-      if (workoutData) {
-        setWorkout(workoutData);
-        
-        const exercisesData = getExercisesByWorkoutId(id, currentPage, 6);
-        setExercises(exercisesData.items);
-        setTotalPages(exercisesData.totalPages);
-      }
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [id, currentPage]);
+ 
+  const getPaginatedExercises = (): ExtendedExercise[] => {
+    if (!workout || !workout.exercises) return [];
+    
+    const ITEMS_PER_PAGE = 6;
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    
+  
+    return workout.exercises.slice(startIndex, endIndex).map(exercise => ({
+      ...exercise,
+      id: exercise?._id || exercise.id,
+      videoUrl: exercise.videoUrl || "" 
+    }));
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDeleteExercise = async (exerciseId: string) => {
+    if (!id) return;
+    
+    try {
+      await deleteExercise({ workoutId: id, exerciseId });
+      queryClient.invalidateQueries({ queryKey: ["workout", id] });
+    } catch (error) {
+      console.error("Failed to delete exercise:", error);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -66,74 +116,105 @@ const WorkoutDetailPage = () => {
 
   if (isLoading) {
     return (
-      <>
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 w-64 bg-muted rounded"></div>
-          <div className="h-64 bg-muted rounded-lg"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-48 bg-muted rounded-lg"></div>
-            ))}
-          </div>
+      <div className="mt-20 animate-pulse space-y-6 p-6">
+        <div className="h-8 w-64 bg-muted rounded"></div>
+        <div className="h-64 bg-muted rounded-lg"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-48 bg-muted rounded-lg"></div>
+          ))}
         </div>
-      </>
+      </div>
     );
   }
 
-  if (!workout) {
+  if (error || !workout) {
     return (
-      <>
-        <div className="text-center py-12">
-          <h3 className="text-lg font-semibold">Workout not found</h3>
-          <p className="mt-2 text-muted-foreground">
-            The workout you're looking for doesn't exist or has been removed.
-          </p>
-          <Button asChild className="mt-4">
-            <Link to="/workouts">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Workouts
-            </Link>
-          </Button>
-        </div>
-      </>
+      <div className="mt-20 text-center py-12">
+        <h3 className="text-lg font-semibold">Workout not found</h3>
+        <p className="mt-2 text-muted-foreground">
+          The workout you're looking for doesn't exist or has been removed.
+        </p>
+        <Button asChild className="mt-4">
+          <Link to="/admin/workouts">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Workouts
+          </Link>
+        </Button>
+      </div>
     );
   }
+
+  const exercises = getPaginatedExercises();
 
   return (
-    <>
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-fitness-pattern opacity-5"></div>
-        <div className="absolute inset-0 animated-gradient-bg opacity-5"></div>
-      </div>
-      
-      <div className="relative z-10">
-        <div className="flex items-center mb-6">
+    <AnimatedBackground>
+      <div className="pt-20 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center mb-6"
+        >
           <Button variant="ghost" size="sm" asChild className="mr-4">
-            <Link to="/workouts">
+            <Link to="/admin/workouts">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight flex-grow">
-            {workout.title}
-          </h1>
-          <Button asChild>
-            <Link to={`/workouts/edit/${workout.id}`}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Workout
-            </Link>
-          </Button>
-        </div>
+          
+          <div className="flex-grow">
+            <AnimatedTitle 
+              title={workout.title} 
+              subtitle={`${workout.difficulty} workout - ${workout.duration} minutes`}
+            />
+          </div>
+          
+          <AnimatedButton 
+            text="Edit Workout"
+            icon={<Edit className="h-4 w-4" />}
+            onClick={() => window.location.href = `/admin/workouts/edit/${workout.id || workout._id}`}
+          />
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Modified containers to be the same height */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8"
+        >
+          {/* Main content column with image and overlay description */}
           <div className="lg:col-span-2">
-            <div className="rounded-lg overflow-hidden h-64 mb-4 relative">
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="rounded-lg overflow-hidden relative shadow-xl h-full" // Full height container
+            >
+              {/* Image background */}
               <img
                 src={workout.imageUrl || "https://placehold.co/800x400/9089fc/ffffff?text=Workout+Image"}
                 alt={workout.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute top-3 right-3 flex flex-col gap-2">
+              
+              {/* Gradient overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
+              
+              {/* Description overlay - positioned at the bottom */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="absolute bottom-0 left-0 right-0 p-6 z-20"
+              >
+                <div className="prose max-w-none text-white">
+                  <p className="text-lg mb-0">{workout.description}</p>
+                </div>
+              </motion.div>
+              
+              {/* Badges */}
+              <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
                 {workout.isPremium && (
                   <Badge className="bg-yellow-500 hover:bg-yellow-600">
                     <Star className="h-3 w-3 mr-1 fill-current" />
@@ -144,130 +225,193 @@ const WorkoutDetailPage = () => {
                   {workout.difficulty}
                 </Badge>
               </div>
-            </div>
-            <div className="prose max-w-none">
-              <p className="text-lg">{workout.description}</p>
-            </div>
+            </motion.div>
           </div>
 
-          <div className="bg-accent/80 backdrop-blur-sm rounded-lg p-6 h-fit">
-            <h3 className="text-lg font-semibold mb-4">Workout Details</h3>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <Clock className="h-5 w-5 mr-3 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Duration</p>
-                  <p className="font-medium">{workout.duration} minutes</p>
+          {/* Workout details sidebar - now same height as image container */}
+          <motion.div 
+            whileHover={{ scale: 1.03 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-sm rounded-lg p-6 h-full shadow-lg border border-indigo-100"
+          >
+            <h3 className="text-xl font-semibold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+              Workout Details
+            </h3>
+            <div className="space-y-6">
+              <motion.div 
+                whileHover={{ x: 5 }}
+                className="flex items-center"
+              >
+                <div className="bg-indigo-100 p-2 rounded-full mr-4">
+                  <Clock className="h-5 w-5 text-indigo-600" />
                 </div>
-              </div>
-              <div className="flex items-center">
-                <Dumbbell className="h-5 w-5 mr-3 text-primary" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Exercises</p>
-                  <p className="font-medium">{workout.exercises.length} exercises</p>
+                  <p className="text-sm text-gray-500">Duration</p>
+                  <p className="font-medium text-lg">{workout.duration} minutes</p>
                 </div>
-              </div>
-              <div className="flex items-center">
-                <Tag className="h-5 w-5 mr-3 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Category</p>
-                  <p className="font-medium">Strength Training</p>
+              </motion.div>
+              
+              <motion.div 
+                whileHover={{ x: 5 }}
+                className="flex items-center"
+              >
+                <div className="bg-purple-100 p-2 rounded-full mr-4">
+                  <Dumbbell className="h-5 w-5 text-purple-600" />
                 </div>
-              </div>
-              <div className="flex items-center">
-                <Star className="h-5 w-5 mr-3 text-primary" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={workout.status ? "default" : "secondary"}>
+                  <p className="text-sm text-gray-500">Exercises</p>
+                  <p className="font-medium text-lg">{workout.exercises?.length || 0} exercises</p>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                whileHover={{ x: 5 }}
+                className="flex items-center"
+              >
+                <div className="bg-pink-100 p-2 rounded-full mr-4">
+                  <Tag className="h-5 w-5 text-pink-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Category</p>
+                  <p className="font-medium text-lg">{workout.category || "Strength Training"}</p>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                whileHover={{ x: 5 }}
+                className="flex items-center"
+              >
+                <div className="bg-indigo-100 p-2 rounded-full mr-4">
+                  <Star className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <Badge variant={workout.status ? "default" : "secondary"} className={workout.status ? "bg-green-500" : "bg-gray-400"}>
                     {workout.status ? "Active" : "Inactive"}
                   </Badge>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Exercises</h2>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex items-center justify-between mb-8"
+        >
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+            Exercises
+          </h2>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="animate-gradient-shift bg-gradient-to-r from-primary to-purple-600">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Exercise
-              </Button>
+              <AnimatedButton 
+                text="Add Exercise"
+                icon={<Plus className="h-4 w-4" />}
+              />
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Add New Exercise</DialogTitle>
               </DialogHeader>
-              <AddExerciseForm 
-                workoutId={workout.id} 
-                onSuccess={() => {
-                  setDialogOpen(false);
-                  // Refresh exercises
-                  const exercisesData = getExercisesByWorkoutId(id!, currentPage, 6);
-                  setExercises(exercisesData.items);
-                  setTotalPages(exercisesData.totalPages);
-                }} 
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {exercises.length === 0 ? (
-          <div className="text-center py-12 bg-accent/50 backdrop-blur-sm rounded-lg">
-            <Dumbbell className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-semibold">No exercises found</h3>
-            <p className="mt-2 text-muted-foreground">
-              This workout doesn't have any exercises yet.
-            </p>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="mt-4">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add First Exercise
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Exercise</DialogTitle>
-                </DialogHeader>
+              {id && (
                 <AddExerciseForm 
-                  workoutId={workout.id} 
+                  workoutId={id} 
                   onSuccess={() => {
                     setDialogOpen(false);
-                    // Refresh exercises
-                    const exercisesData = getExercisesByWorkoutId(id!, currentPage, 6);
-                    setExercises(exercisesData.items);
-                    setTotalPages(exercisesData.totalPages);
+                    // Refresh workout data
+                    queryClient.invalidateQueries({ queryKey: ["workout", id] });
                   }} 
                 />
-              </DialogContent>
-            </Dialog>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {exercises.map((exercise) => (
-                <ExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  workoutId={workout.id}
-                />
-              ))}
-            </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </motion.div>
 
-            {totalPages > 1 && (
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            )}
-          </>
+        {(!workout.exercises || workout.exercises.length === 0) ? (
+  <motion.div 
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.6 }}
+    className="text-center py-16 bg-gradient-to-br from-indigo-50 to-purple-50 backdrop-blur-sm rounded-lg shadow-inner border border-indigo-100"
+  >
+    <motion.div 
+      animate={{ 
+        y: [0, -10, 0],
+        rotate: [0, 5, -5, 0]
+      }}
+      transition={{ 
+        duration: 3,
+        repeat: Infinity,
+        repeatType: "reverse"
+      }}
+    >
+      <Dumbbell className="mx-auto h-16 w-16 text-indigo-300" />
+    </motion.div>
+    <h3 className="mt-6 text-xl font-semibold text-indigo-600">No exercises found</h3>
+    <p className="mt-2 text-gray-500 max-w-md mx-auto">
+      This workout doesn't have any exercises yet. Add your first exercise to get started!
+    </p>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="mt-6 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg">
+          <Plus className="mr-2 h-4 w-4" />
+          Add First Exercise
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Add New Exercise</DialogTitle>
+        </DialogHeader>
+        {id && (
+          <AddExerciseForm 
+            workoutId={id} 
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ["workout", id] });
+            }} 
+          />
         )}
+      </DialogContent>
+    </Dialog>
+  </motion.div>
+) : (
+  <>
+    {/* Grid layout for small cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      {exercises.map((exercise, index) => (
+        <motion.div
+          key={exercise.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: index * 0.1 }}
+        >
+          <ExerciseCard
+            exercise={exercise}
+            workoutId={id || ""}
+            onDelete={() => handleDeleteExercise(exercise.id)}
+          />
+        </motion.div>
+      ))}
+    </div>
+
+    {totalPages > 1 && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+      >
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      </motion.div>
+    )}
+  </>
+)}
       </div>
-      </>
+    </AnimatedBackground>
   );
 };
 

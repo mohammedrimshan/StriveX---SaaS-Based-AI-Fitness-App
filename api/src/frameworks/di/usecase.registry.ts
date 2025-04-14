@@ -70,8 +70,6 @@ import { IUpdateCategoryStatusUseCase } from "@/entities/useCaseInterfaces/admin
 import { UpdateCategoryStatusUseCase } from "@/useCases/admin/update-category-status.usecase";
 import { IUpdateCategoryUseCase } from "@/entities/useCaseInterfaces/admin/update-category-usecase.interface";
 import { UpdateCategoryUseCase } from "@/useCases/admin/update-category.usecase";
-import { IDeleteCategoryUseCase } from "@/entities/useCaseInterfaces/admin/delete-category-usecase.interface";
-import { DeleteCategoryUseCase } from "@/useCases/admin/delete-category.usecase";
 import { IGenerateWorkoutPlanUseCase } from "@/entities/useCaseInterfaces/users/generate-workout-plans.usecase.interface";
 import { GenerateWorkoutPlanUseCase } from "@/useCases/user/generate-workoutplan.usecase";
 import { IGenerateDietPlanUseCase } from "@/entities/useCaseInterfaces/users/generate-diet-plans.usecase.interface";
@@ -104,7 +102,14 @@ import { IGetAllTrainersUseCase } from "@/entities/useCaseInterfaces/users/get-a
 import { GetAllTrainersUseCase } from "@/useCases/user/get-all-trainers.usecase";
 import { IGetTrainerProfileUseCase } from "@/entities/useCaseInterfaces/users/get-trainer-profile.usecase.interface";
 import { GetTrainerProfileUseCase } from "@/useCases/user/get-trainer-profile.usecase";
-
+import { IAddExerciseUseCase } from "@/entities/useCaseInterfaces/workout/add-exercise-usecase.interface";
+import { AddExerciseUseCase } from "@/useCases/workout/add-exercise-usecase";
+import { IDeleteExerciseUseCase } from "@/entities/useCaseInterfaces/workout/delete-exercise-usecase.interface";
+import { DeleteExerciseUseCase } from "@/useCases/workout/delete-exercise.usecase";
+import { IUpdateExerciseUseCase } from "@/entities/useCaseInterfaces/workout/update-exercise-usecase.interface";
+import { UpdateExerciseUseCase } from "@/useCases/workout/update-exercise-usecase";
+import { IGetWorkoutByIdUseCase } from "@/entities/useCaseInterfaces/workout/get-workout-by-id.usecase.interface";
+import { GetWorkoutByIdUseCase } from "@/useCases/workout/get-workout-by-id.usecase";
 export class UseCaseRegistry {
   static registerUseCases(): void {
     //* ====== Register Bcrypts ====== *//
@@ -271,10 +276,6 @@ export class UseCaseRegistry {
       useClass: UpdateCategoryUseCase,
     });
 
-    container.register<IDeleteCategoryUseCase>("IDeleteCategoryUseCase", {
-      useClass: DeleteCategoryUseCase,
-    });
-
     container.register<IGenerateWorkoutPlanUseCase>(
       "IGenerateWorkoutPlanUseCase",
       {
@@ -343,6 +344,22 @@ export class UseCaseRegistry {
 
     container.register<IGetTrainerProfileUseCase>("IGetTrainerProfileUseCase", {
       useClass: GetTrainerProfileUseCase,
+    });
+
+    container.register<IAddExerciseUseCase>("IAddExerciseUseCase", {
+      useClass: AddExerciseUseCase,
+    });
+
+    container.register<IUpdateExerciseUseCase>("IUpdateExerciseUseCase", {
+      useClass: UpdateExerciseUseCase,
+    });
+
+    container.register<IDeleteExerciseUseCase>("IDeleteExerciseUseCase", {
+      useClass: DeleteExerciseUseCase,
+    });
+
+    container.register<IGetWorkoutByIdUseCase>("IGetWorkoutByIdUseCase", {
+      useClass: GetWorkoutByIdUseCase,
     });
   }
 }
