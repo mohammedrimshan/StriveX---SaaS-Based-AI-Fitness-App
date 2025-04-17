@@ -7,6 +7,8 @@ import { AuthController } from "@/interfaceAdapters/controllers/authController";
 import { AdminController } from "@/interfaceAdapters/controllers/admin/admin.controller";
 import { CategoryController } from "@/interfaceAdapters/controllers/category.controller";
 import { DietWorkoutController } from "@/interfaceAdapters/controllers/diet-workout.controller";
+import { PaymentController } from "@/interfaceAdapters/controllers/payment.controller";
+import { HealthController } from "@/interfaceAdapters/controllers/health-check.controller";
 
 DependancyInjection.registerAll();
 
@@ -23,3 +25,7 @@ export const adminController = container.resolve(AdminController);
 export const categoryController = container.resolve(CategoryController);
 
 export const dietWorkoutController = container.resolve(DietWorkoutController);
+
+export const paymentController = container.resolve(PaymentController);
+
+export const healthController = container.resolve(HealthController);

@@ -32,6 +32,7 @@ export const trainerSchema = new Schema<ITrainerModel>(
     rejectionReason: {type: String,required: false},
     approvedByAdmin: { type: Boolean, default: false },
     status: { type: String, default: "active" },
+    stripeConnectId: { type: String },
   },
   {
     timestamps: true, 

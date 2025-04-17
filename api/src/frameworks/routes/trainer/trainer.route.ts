@@ -74,5 +74,15 @@ export class TrainerRoutes extends BaseRoute {
               trainerController.changePassword(req, res);
             }
           );
+
+          router.post(
+            "/trainer/stripe-connect",
+            verifyAuth,
+            authorizeRole(["trainer", "admin"]),
+            blockStatusMiddleware.checkStatus as RequestHandler,
+            (req: Request, res: Response) => {
+              trainerController.createStripeConnectAccount(req, res);
+            }
+          );
     }
 }

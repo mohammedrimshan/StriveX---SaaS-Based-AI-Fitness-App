@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 
 export interface IAdminController {
-  // getWorkoutsByAdmin(req:Request,res:Response):Promise<void>;
-  // getExercisesByAdmin(req: Request, res: Response): Promise<void>;
+  createMembershipPlan(req: Request, res: Response): Promise<void>;
+  updateMembershipPlan(req: Request, res: Response): Promise<void>;
+  deleteMembershipPlan(req: Request, res: Response): Promise<void>;
+  getMembershipPlans(req: Request, res: Response): Promise<void>;
 }

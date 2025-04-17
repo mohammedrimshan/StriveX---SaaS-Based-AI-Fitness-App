@@ -10,7 +10,8 @@ import {
   authController,
   userController,
   categoryController,
-  dietWorkoutController
+  dietWorkoutController,
+  paymentController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -175,8 +176,35 @@ export class ClientRoutes extends BaseRoute {
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
-          userController.getTrainerProfile(req, res);
+        userController.getTrainerProfile(req, res);
       }
-  );
+    );
+
+    router.get(
+      "/client/payment/plans",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        paymentController.getMembershipPlans(req, res);
+      }
+    );
+
+    router.post(
+      "/client/payment/checkout",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        paymentController.createCheckoutSession(req, res);
+      }
+    );
+
+    router.post(
+      "/client/payment/webhook",
+      (req: Request, res: Response) => {
+        paymentController.handleWebhook(req, res);
+      }
+    );
   }
 }

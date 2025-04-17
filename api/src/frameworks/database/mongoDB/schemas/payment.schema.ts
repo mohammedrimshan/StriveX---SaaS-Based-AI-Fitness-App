@@ -1,0 +1,21 @@
+import { Schema } from "mongoose";
+import { IPaymentEntity } from "@/entities/models/payment.entity";
+import { PaymentStatus } from "@/shared/constants";
+
+export const paymentSchema = new Schema<IPaymentEntity>(
+  {
+    userId: { type: String, required: true },
+    trainerId: { type: String, required: false },
+    membershipPlanId: { type: String, required: true },
+    amount: { type: Number, required: true },
+    stripePaymentId: { type: String, required: true },
+    trainerAmount: { type: Number, required: false, default: 0 },
+    adminAmount: { type: Number, required: true },
+    status: { 
+      type: String, 
+      enum: Object.values(PaymentStatus), 
+      default: PaymentStatus.PENDING 
+    },
+  },
+  { timestamps: true }
+);

@@ -12,6 +12,7 @@ import TrainersPage from "@/pages/client/TrainerList";
 import Index from "@/pages/client/TrainerProfilePage";
 import UserWorkout from "@/pages/client/UserWorkouts";
 import WorkoutDetails from "@/pages/client/Workouts/WorkoutDetails";
+import PremiumLanding from "@/components/landing/PremiumLanding";
 export const ClientRoutes = () => {
 	return (
 		<Routes>
@@ -49,7 +50,9 @@ export const ClientRoutes = () => {
 					<AuthRoute allowedRoles={["client"]} element={<WorkoutDetails />} />
 				} />
 				
-
+				<Route path="/premium" element={
+					<AuthRoute allowedRoles={["client"]} element={<PremiumLanding />} />
+				} />
 				
 				{/* Add more protected routes as needed */}
 			</Route>

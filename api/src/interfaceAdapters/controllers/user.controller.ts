@@ -20,7 +20,6 @@ import { IProgressEntity } from "@/entities/models/progress.entity";
 import { CustomRequest } from "../middlewares/auth.middleware";
 import { IGetTrainerProfileUseCase } from "@/entities/useCaseInterfaces/users/get-trainer-profile.usecase.interface";
 
-
 @injectable()
 export class UserController implements IUserController {
   constructor(
@@ -39,7 +38,7 @@ export class UserController implements IUserController {
     @inject("IGetAllTrainersUseCase")
     private _getAllTrainersUseCase: IGetAllTrainersUseCase,
     @inject("IGetTrainerProfileUseCase")
-    private _getTrainerProfileUseCase : IGetTrainerProfileUseCase
+    private _getTrainerProfileUseCase: IGetTrainerProfileUseCase
   ) {}
 
   // Get all users with pagination, search and filtering by user type
@@ -71,8 +70,6 @@ export class UserController implements IUserController {
         pageSize,
         searchTermString
       );
-
-    
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -114,7 +111,6 @@ export class UserController implements IUserController {
         userType.toLowerCase(),
         userId
       );
-    
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -130,14 +126,14 @@ export class UserController implements IUserController {
     try {
       const userId = req.params.userId;
       const profileData = req.body;
-  
+
       if (!userId) {
         throw new CustomError(
           ERROR_MESSAGES.ID_NOT_PROVIDED,
           HTTP_STATUS.BAD_REQUEST
         );
       }
-  
+
       const allowedFields: (keyof Partial<IClientEntity>)[] = [
         "firstName",
         "lastName",
@@ -153,11 +149,14 @@ export class UserController implements IUserController {
         "waterIntake",
         "dietPreference",
       ];
-  
+
       const updates: Partial<IClientEntity> = {};
       for (const key of allowedFields) {
         if (profileData[key] !== undefined) {
-          if (key === "healthConditions" && typeof profileData[key] === "string") {
+          if (
+            key === "healthConditions" &&
+            typeof profileData[key] === "string"
+          ) {
             try {
               updates[key] = JSON.parse(profileData[key]);
               if (!Array.isArray(updates[key])) {
@@ -174,12 +173,12 @@ export class UserController implements IUserController {
           }
         }
       }
-  
+
       const updatedUser = await this._updateUserProfileUseCase.execute(
         userId,
         updates
       );
-  
+
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.PROFILE_UPDATE_SUCCESS,
@@ -226,8 +225,6 @@ export class UserController implements IUserController {
         newPassword
       );
 
-    
-
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS,
@@ -264,10 +261,12 @@ export class UserController implements IUserController {
   // Record user's workout progress
   async recordProgress(req: Request, res: Response): Promise<void> {
     try {
-      const progressData = req.body as Omit<IProgressEntity, '_id'>;
-  
-      const recordedProgress = await this._recordProgressUseCase.execute(progressData);
-  
+      const progressData = req.body as Omit<IProgressEntity, "_id">;
+
+      const recordedProgress = await this._recordProgressUseCase.execute(
+        progressData
+      );
+
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
         message: "Progress recorded successfully",
@@ -312,7 +311,9 @@ export class UserController implements IUserController {
         totalPages: total,
         currentPage: pageNumber,
         totalTrainers:
-          trainers.length === 0 ? 0 : (pageNumber - 1) * pageSize + trainers.length,
+          trainers.length === 0
+            ? 0
+            : (pageNumber - 1) * pageSize + trainers.length,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -322,32 +323,31 @@ export class UserController implements IUserController {
   // Get trainer profile by ID
   async getTrainerProfile(req: Request, res: Response): Promise<void> {
     try {
-      const {trainerId} = req.params
+      const { trainerId } = req.params;
 
-      if(!trainerId){
+      if (!trainerId) {
         throw new CustomError(
           ERROR_MESSAGES.ID_NOT_PROVIDED,
           HTTP_STATUS.BAD_REQUEST
-        )
+        );
       }
 
       const trainer = await this._getTrainerProfileUseCase.execute(trainerId);
 
-      if(!trainer){
+      if (!trainer) {
         throw new CustomError(
           ERROR_MESSAGES.TRAINER_NOT_FOUND,
           HTTP_STATUS.NOT_FOUND
-        )
+        );
       }
 
       res.status(HTTP_STATUS.OK).json({
-        success:true,
-        message:SUCCESS_MESSAGES.DATA_RETRIEVED,
-        trainer
-      })
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        trainer,
+      });
     } catch (error) {
       handleErrorResponse(res, error);
     }
   }
-
 }

@@ -3,7 +3,7 @@ import { FetchUsersParams, UsersResponse } from "@/hooks/admin/useAllUsers";
 import { IAxiosResponse } from "@/types/Response";
 import { IClient, ITrainer, IAdmin } from "@/types/User";
 import { Workout, Exercise } from "@/types/Workouts";
-
+import { MembershipPlanType,MembershipPlanResponse,MembershipPlansPaginatedResponse } from "@/types/membership";
 export interface WorkoutExercise {
   name: string;
   description: string;
@@ -262,3 +262,83 @@ export const getWorkoutById = async (workoutId: string): Promise<WorkoutResponse
   console.log(response.data);
   return response.data;
 };
+
+export const addMembershipPlan = async (planData: {
+	name: string;
+	durationMonths: number;
+	price: number;
+  }): Promise<MembershipPlanResponse> => {
+	try {
+	  const response = await adminAxiosInstance.post("/admin/membership-plans", planData);
+	  console.log("Add membership plan response:", response.data);
+	  return {
+		success: response.data.success,
+		message: response.data.message,
+		data: response.data.data || planData, 
+	  };
+	} catch (error: any) {
+	  console.error("Add membership plan error:", error.response?.data);
+	  throw new Error(error.response?.data?.message || "Failed to add membership plan");
+	}
+  };
+  
+  export const updateMembershipPlan = async (
+	planId: string,
+	planData: Partial<{
+	  name: string;
+	  durationMonths: number;
+	  price: number;
+	  isActive: boolean;
+	}>
+  ): Promise<MembershipPlanResponse> => {
+	try {
+	  const response = await adminAxiosInstance.put(`/admin/membership-plans/${planId}`, planData);
+	  console.log("Update membership plan response:", response.data);
+	  return {
+		success: response.data.success,
+		message: response.data.message,
+		data: response.data.data || { id: planId, ...planData },
+	  };
+	} catch (error: any) {
+	  console.error("Update membership plan error:", error.response?.data);
+	  throw new Error(error.response?.data?.message || "Failed to update membership plan");
+	}
+  };
+  
+  export const deleteMembershipPlan = async (planId: string): Promise<IAxiosResponse> => {
+	try {
+	  const response = await adminAxiosInstance.delete(`/admin/membership-plans/${planId}`);
+	  console.log("Delete membership plan response:", response.data);
+	  return response.data;
+	} catch (error: any) {
+	  console.error("Delete membership plan error:", error.response?.data);
+	  throw new Error(error.response?.data?.message || "Failed to delete membership plan");
+	}
+  };
+  
+  export const getAllMembershipPlans = async ({
+	page = 1,
+	limit = 10,
+	search = "",
+  }: {
+	page: number;
+	limit: number;
+	search: string;
+  }): Promise<MembershipPlansPaginatedResponse> => {
+	try {
+	  const response = await adminAxiosInstance.get("/admin/membership-plans", {
+		params: { page, limit, searchTerm: search },
+	  });
+	  console.log("Get all membership plans response:", response.data);
+	  return {
+		success: response.data.success,
+		plans: response.data.plans,
+		totalPages: response.data.totalPages,
+		currentPage: response.data.currentPage,
+		totalPlans: response.data.totalPlans,
+	  };
+	} catch (error: any) {
+	  console.error("Get all membership plans error:", error.response?.data);
+	  throw new Error(error.response?.data?.message || "Failed to fetch membership plans");
+	}
+  };

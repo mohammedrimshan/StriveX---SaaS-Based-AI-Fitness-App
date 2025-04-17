@@ -13,4 +13,5 @@ export interface IClientRepository extends IBaseRepository<IClientEntity>{
     ): Promise<IClientEntity | null>;
     findByIdAndUpdatePassword(id: any, password: string): Promise<void>;
     findByClientId(clientId: string): Promise<IClientEntity | null>;
+    updatePremiumStatus(clientId: string, isPremium: boolean): Promise<IClientEntity>;
 }

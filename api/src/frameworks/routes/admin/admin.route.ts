@@ -184,5 +184,42 @@ export class AdminRoutes extends BaseRoute {
           dietWorkoutController.getWorkoutById(req, res);
         }
       );
+
+      // Membership Plan Routes
+    router.post(
+      "/admin/membership-plans",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.createMembershipPlan(req, res);
+      }
+    );
+
+    router.put(
+      "/admin/membership-plans/:planId",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.updateMembershipPlan(req, res);
+      }
+    );
+
+    router.delete(
+      "/admin/membership-plans/:planId",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.deleteMembershipPlan(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/membership-plans",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.getMembershipPlans(req, res);
+      }
+    );
   }
 }

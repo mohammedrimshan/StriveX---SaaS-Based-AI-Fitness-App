@@ -47,4 +47,20 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
     if (!client) return null;
     return this.mapToEntity(client);
   }
+
+  async updatePremiumStatus(clientId: string, isPremium: boolean): Promise<IClientEntity> {
+    const client = await this.model
+      .findOneAndUpdate(
+        { clientId },
+        { $set: { isPremium } },
+        { new: true, lean: true }
+      )
+      .exec();
+
+    if (!client) {
+      throw new Error("Client not found");
+    }
+
+    return this.mapToEntity(client);
+  }
 }

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon",
+    "dev": "nodemon --watch ./src --exec ts-node src/index.ts",
     "watch": "tsc -w"
   },
   "repository": {
@@ -51,6 +51,7 @@
     "qrcode": "^1.5.4",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
+    "stripe": "^18.0.0",
     "tsyringe": "^4.8.0",
     "uuid": "^11.1.0",
     "zod": "^3.24.2",
@@ -70,6 +71,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/qrcode": "^1.5.5",
     "@types/redis": "^4.0.10",
+    "@types/stripe": "^8.0.416",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",

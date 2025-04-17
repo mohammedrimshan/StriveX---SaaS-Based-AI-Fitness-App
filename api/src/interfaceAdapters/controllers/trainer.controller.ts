@@ -6,7 +6,10 @@ import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/upd
 import { ITrainerVerificationUseCase } from "@/entities/useCaseInterfaces/admin/trainer-verification-usecase.interface";
 import { IUpdateTrainerProfileUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-profile.usecase.interface";
 import { IUpdateTrainerPasswordUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-password.usecase.interface";
+import { IStripeService } from "@/entities/services/stripe-service.interface";
+import { ICreateStripeConnectAccountUseCase } from "@/entities/useCaseInterfaces/stripe/create-stripe-connect-account.usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
+import { config } from "@/shared/config";
 import {
   ERROR_MESSAGES,
   HTTP_STATUS,
@@ -15,6 +18,7 @@ import {
 } from "@/shared/constants";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { trainerUpdateSchema } from "@/shared/validations/update.validation";
+import { createStripeConnectAccountSchema } from "@/shared/validations/stripe.schema";
 import { ITrainerEntity } from "@/entities/models/trainer.entity";
 import { CustomRequest } from "../middlewares/auth.middleware";
 
@@ -31,7 +35,11 @@ export class TrainerController implements ITrainerController {
     @inject("IUpdateTrainerProfileUseCase")
     private updateTrainerProfileUseCase: IUpdateTrainerProfileUseCase,
     @inject("IUpdateTrainerPasswordUseCase")
-    private changeTrainerPasswordUseCase: IUpdateTrainerPasswordUseCase
+    private changeTrainerPasswordUseCase: IUpdateTrainerPasswordUseCase,
+    @inject("IStripeService") 
+    private _stripeService: IStripeService,
+    @inject("ICreateStripeConnectAccountUseCase")
+    private _createStripeConnectAccountUseCase: ICreateStripeConnectAccountUseCase
   ) {}
 
   /** 🔹 Get all trainers with pagination and search */
@@ -211,6 +219,40 @@ export class TrainerController implements ITrainerController {
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+  async createStripeConnectAccount(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
+          success: false,
+          message: ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+        });
+        return;
+      }
+      if (req.user.role !== "trainer" && req.user.role !== "admin") {
+        res.status(HTTP_STATUS.FORBIDDEN).json({
+          success: false,
+          message: ERROR_MESSAGES.NOT_ALLOWED,
+        });
+        return;
+      }
+
+      const validatedData = createStripeConnectAccountSchema.parse(req.body); // Add: Schema validation
+
+      const { accountLinkUrl } = await this._createStripeConnectAccountUseCase.execute(
+        req.user.id,
+        req.user.email,
+        validatedData
+      );
+
+      res.status(HTTP_STATUS.CREATED).json({
+        success: true,
+        message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
+        url: accountLinkUrl,
       });
     } catch (error) {
       handleErrorResponse(res, error);

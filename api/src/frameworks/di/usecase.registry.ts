@@ -23,8 +23,9 @@ import { ITokenService } from "../../entities/services/token-service.interface";
 import { JWTService } from "../../interfaceAdapters/services/jwt.service";
 import { ICloudinaryService } from "@/interfaceAdapters/services/cloudinary.service";
 import { CloudinaryService } from "@/interfaceAdapters/services/cloudinary.service";
-
 import { GeminiService } from "@/interfaceAdapters/services/gemini.service";
+import { IStripeService } from "@/entities/services/stripe-service.interface";
+import { StripeService } from "@/interfaceAdapters/services/stripe.service";
 
 import { IRegisterUserUseCase } from "../../entities/useCaseInterfaces/auth/register-usecase.interface";
 import { RegisterUserUseCase } from "../../useCases/auth/register-user.usecase";
@@ -110,6 +111,11 @@ import { IUpdateExerciseUseCase } from "@/entities/useCaseInterfaces/workout/upd
 import { UpdateExerciseUseCase } from "@/useCases/workout/update-exercise-usecase";
 import { IGetWorkoutByIdUseCase } from "@/entities/useCaseInterfaces/workout/get-workout-by-id.usecase.interface";
 import { GetWorkoutByIdUseCase } from "@/useCases/workout/get-workout-by-id.usecase";
+import { ICreateStripeConnectAccountUseCase } from "@/entities/useCaseInterfaces/stripe/create-stripe-connect-account.usecase.interface";
+import { CreateStripeConnectAccountUseCase } from "@/useCases/trainer/create-stripe-connect-account.usecase";
+import { ICreateCheckoutSessionUseCase } from "@/entities/useCaseInterfaces/stripe/create-checkout-session.usecase.interface";
+import { CreateCheckoutSessionUseCase } from "@/useCases/stripe/create-checkout-session.usecase";
+
 export class UseCaseRegistry {
   static registerUseCases(): void {
     //* ====== Register Bcrypts ====== *//
@@ -144,6 +150,10 @@ export class UseCaseRegistry {
 
     container.register<GeminiService>("GeminiService", {
       useClass: GeminiService,
+    });
+
+    container.register<IStripeService>("IStripeService", {
+      useClass: StripeService,
     });
 
     //* ====== Register Strategies ====== *//
@@ -360,6 +370,14 @@ export class UseCaseRegistry {
 
     container.register<IGetWorkoutByIdUseCase>("IGetWorkoutByIdUseCase", {
       useClass: GetWorkoutByIdUseCase,
+    });
+
+    container.register<ICreateStripeConnectAccountUseCase>("ICreateStripeConnectAccountUseCase", {
+      useClass: CreateStripeConnectAccountUseCase,
+    });
+
+    container.register<ICreateCheckoutSessionUseCase>("ICreateCheckoutSessionUseCase", {
+      useClass: CreateCheckoutSessionUseCase,
     });
   }
 }

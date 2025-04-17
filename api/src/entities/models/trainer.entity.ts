@@ -14,4 +14,5 @@ export interface ITrainerEntity extends IUserEntity {
   approvalStatus: TrainerApprovalStatus;
   rejectionReason?: string;
   googleId?: string;
+  stripeConnectId:string;
 }

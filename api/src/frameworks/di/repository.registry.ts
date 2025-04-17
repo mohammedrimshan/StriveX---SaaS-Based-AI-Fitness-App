@@ -22,6 +22,10 @@ import { IProgressRepository } from "@/entities/repositoryInterfaces/workout/pro
 import { ProgressRepository } from "@/interfaceAdapters/repositories/workout/progress.repository";
 import { IWorkoutRepository } from "@/entities/repositoryInterfaces/workout/workout-repository.interface";
 import { WorkoutRepository } from "@/interfaceAdapters/repositories/workout/workout.repository";
+import { IMembershipPlanRepository } from "@/entities/repositoryInterfaces/Stripe/membership-plan-repository.interface";
+import { MembershipPlanRepository } from "@/interfaceAdapters/repositories/stripe/membership-plan.repository";
+import { IPaymentRepository } from "@/entities/repositoryInterfaces/Stripe/payment-repository.interface";
+import { PaymentRepository } from "@/interfaceAdapters/repositories/stripe/payment.repository";
 
 export class RepositoryRegistry {
   static registerRepositories(): void {
@@ -69,6 +73,12 @@ export class RepositoryRegistry {
       useClass: WorkoutRepository,
     });
 
-    
+    container.register<IMembershipPlanRepository>("IMembershipPlanRepository", {
+      useClass: MembershipPlanRepository,
+    });
+
+    container.register<IPaymentRepository>("IPaymentRepository", {
+      useClass: PaymentRepository,
+    });
   }
 }

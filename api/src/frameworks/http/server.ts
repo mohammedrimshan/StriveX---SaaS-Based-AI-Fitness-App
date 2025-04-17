@@ -8,7 +8,8 @@ import fileUpload from "express-fileupload";
 import { config } from "../../shared/config";
 import { AuthRoutes } from "../routes/auth/auth.route";
 import { PrivateRoutes } from "../routes/private/private.route";
-
+import { HealthRoute } from "../routes/health.route";
+import { dataParser } from "@/interfaceAdapters/middlewares/dataParserMiddleware";
 import { notFound } from "@/interfaceAdapters/middlewares/not-found.middleware";
 import { errorHandler } from "../../interfaceAdapters/middlewares/error.middlewares";
 
@@ -45,6 +46,8 @@ this._app.use(fileUpload({
 
     this._app.use(cookieParser());
 
+    this._app.use(dataParser);
+
     this._app.use(
       rateLimit({
         windowMs: 15 * 60 * 1000,
@@ -56,6 +59,7 @@ this._app.use(fileUpload({
   private configureRoutes(): void {
     this._app.use("/api/v1/auth", new AuthRoutes().router);
     this._app.use("/api/v1/pvt", new PrivateRoutes().router);
+    this._app.use("/api/v1", new HealthRoute().router);
     this._app.use("*", notFound);
   }
 

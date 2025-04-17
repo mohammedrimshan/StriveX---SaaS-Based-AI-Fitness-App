@@ -17,4 +17,5 @@ export interface IClientEntity extends IUserEntity {
     calorieTarget?:string;
     foodAllergies?:string[];
     workoutCategory?: string;
+    isPremium?: boolean;
 }

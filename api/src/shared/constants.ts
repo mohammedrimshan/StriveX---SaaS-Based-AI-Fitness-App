@@ -32,6 +32,13 @@ export const EXPERIENCE_LEVELS = [
 ] as const;
 export type ExperienceLevel = typeof EXPERIENCE_LEVELS[number];
 
+export enum PaymentStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  REFUNDED = 'refunded'
+}
+
 export const ACTIVITY_LEVELS = [
   "sedentary",
   "light",

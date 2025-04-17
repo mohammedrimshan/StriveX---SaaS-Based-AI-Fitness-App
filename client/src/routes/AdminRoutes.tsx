@@ -12,7 +12,7 @@ import Categories from "@/pages/admin/Categories";
 import AdminWorkoutsPage from "@/pages/admin/Workout";
 import WorkoutsListPage from "@/pages/admin/WorkoutList/WorkoutsListPage";
 import WorkoutDetailPage from "@/pages/admin/WorkoutList/WorkoutDetailPage";
-// import ExerciseFormPage from "@/pages/admin/WorkoutList/ExerciseFormPage";
+import MembershipPlans from "@/pages/admin/AddMembership/MembershipPlans";
 import WorkoutFormPage from "@/pages/admin/WorkoutList/WorkoutFormPage";
 
 export const AdminRoutes = () => {
@@ -39,6 +39,7 @@ export const AdminRoutes = () => {
 				<Route path="trainerverification" element={<TrainerVerificationPage />} />
 				<Route path="category" element={<Categories />} />
 				<Route path="workout" element={<AdminWorkoutsPage />} />
+				<Route path="membership" element={<MembershipPlans />} />
 				{/* Add more admin routes here as needed */}
 
 
