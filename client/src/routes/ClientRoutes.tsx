@@ -13,6 +13,8 @@ import Index from "@/pages/client/TrainerProfilePage";
 import UserWorkout from "@/pages/client/UserWorkouts";
 import WorkoutDetails from "@/pages/client/Workouts/WorkoutDetails";
 import PremiumLanding from "@/components/landing/PremiumLanding";
+import { PaymentSuccessPage } from "@/components/Payment/Success";
+import { PaymentFailedPage } from "@/components/Payment/Fail";
 export const ClientRoutes = () => {
 	return (
 		<Routes>
@@ -52,6 +54,14 @@ export const ClientRoutes = () => {
 				
 				<Route path="/premium" element={
 					<AuthRoute allowedRoles={["client"]} element={<PremiumLanding />} />
+				} />
+
+<Route path="/checkout/success" element={
+					<AuthRoute allowedRoles={["client"]} element={<PaymentSuccessPage />} />
+				} />
+
+<Route path="/checkout/cancel" element={
+					<AuthRoute allowedRoles={["client"]} element={<PaymentFailedPage />} />
 				} />
 				
 				{/* Add more protected routes as needed */}
