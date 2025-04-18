@@ -17,6 +17,7 @@ export interface IDietDay {
   totalCarbs: number;
   totalFats: number;
   waterIntake: number;
+  notes?: string;
 }
 
 export interface IDietPlan {
