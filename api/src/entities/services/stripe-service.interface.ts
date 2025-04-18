@@ -7,7 +7,7 @@ export interface IStripeService {
     plan: { id: string; price: number; name: string },
     successUrl: string,
     cancelUrl: string
-  ): Promise<string>;
+  ): Promise<{ url: string; sessionId: string }>; // Updated return type
   createTransfer(
     amount: number,
     stripeConnectId: string,
@@ -19,4 +19,5 @@ export interface IStripeService {
     refreshUrl: string,
     returnUrl: string
   ): Promise<string>;
+  getCheckoutSessionByUrl(sessionId: string): Promise<Stripe.Checkout.Session>;
 }

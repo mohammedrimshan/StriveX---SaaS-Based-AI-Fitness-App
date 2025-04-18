@@ -21,11 +21,10 @@ export class Server {
     this.configureRoutes();
     this.configureErrorHandling();
   }
+
   private configureMiddleware(): void {
     this._app.use(morgan(config.loggerStatus));
-
     this._app.use(helmet());
-
     this._app.use(
       cors({
         origin: config.cors.ALLOWED_ORIGIN,
@@ -35,18 +34,21 @@ export class Server {
       })
     );
 
-  
-	this._app.use(express.json({ limit: "10mb" })); 
-	this._app.use(express.urlencoded({ limit: "10mb", extended: true })); 
-  
-this._app.use(fileUpload({
-  limits: { fileSize: 50 * 1024 * 1024 }, 
-  abortOnLimit: true,
-}));
+    // Apply dataParser first to handle webhook raw body
+    this._app.use(dataParser);
+
+    // Apply body parsing middleware after dataParser
+    this._app.use(express.json({ limit: "10mb" }));
+    this._app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+    this._app.use(
+      fileUpload({
+        limits: { fileSize: 50 * 1024 * 1024 },
+        abortOnLimit: true,
+      })
+    );
 
     this._app.use(cookieParser());
-
-    this._app.use(dataParser);
 
     this._app.use(
       rateLimit({

@@ -25,11 +25,11 @@ export class StripeService implements IStripeService {
   }
 
   async createCheckoutSession(
-    userId: string,
+    clientId: string,
     plan: { id: string; price: number; name: string },
     successUrl: string,
     cancelUrl: string
-  ): Promise<string> {
+  ): Promise<{ url: string; sessionId: string }> {
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -38,9 +38,9 @@ export class StripeService implements IStripeService {
             currency: "usd",
             product_data: {
               name: plan.name,
-              metadata: { planId: plan.id, userId },
+              metadata: { planId: plan.id, clientId },
             },
-            unit_amount: plan.price * 100, 
+            unit_amount: plan.price * 100,
           },
           quantity: 1,
         },
@@ -48,9 +48,31 @@ export class StripeService implements IStripeService {
       mode: "payment",
       success_url: successUrl,
       cancel_url: cancelUrl,
-      metadata: { userId },
+      metadata: { clientId, planId: plan.id, sessionId: "<will be set after creation>" },
+      payment_intent_data: {
+        metadata: { clientId }, // Add clientId to payment_intent metadata
+      },
     });
-    return session.url!;
+
+    if (!session.url || !session.id) {
+      throw new CustomError("Failed to create checkout session", HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    }
+
+    // Update session metadata with sessionId
+    await this.stripe.checkout.sessions.update(session.id, {
+      metadata: { clientId, planId: plan.id, sessionId: session.id },
+    });
+
+    return { url: session.url, sessionId: session.id };
+  }
+
+  async getCheckoutSessionByUrl(sessionId: string): Promise<Stripe.Checkout.Session> {
+    try {
+      const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+      return session;
+    } catch (error) {
+      throw new CustomError("Failed to retrieve checkout session", HTTP_STATUS.BAD_REQUEST);
+    }
   }
 
   async createTransfer(
@@ -59,7 +81,7 @@ export class StripeService implements IStripeService {
     paymentIntentId: string
   ): Promise<Stripe.Transfer> {
     const transfer = await this.stripe.transfers.create({
-      amount: amount * 100, 
+      amount: amount * 100,
       currency: "usd",
       destination: stripeConnectId,
       source_transaction: paymentIntentId,

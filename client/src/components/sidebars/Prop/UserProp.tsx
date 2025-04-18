@@ -10,6 +10,7 @@ import {
   Users,
   UserCheck ,
   LayoutDashboard,
+  Crown ,
  Tags
 } from "lucide-react";
 
@@ -48,7 +49,7 @@ const navItems = {
     {
       title: "Subscription",
       icon: CreditCard,
-      path: "/subscription",
+      path: "/premium",
     },
     {
       title: "Support",
@@ -123,6 +124,11 @@ const navItems = {
       title: "Subscriptions",
       icon: CreditCard,
       path: "/admin/subscriptions",
+    },
+    {
+      title: "Membsrship Management",
+      icon: Crown ,
+      path: "/admin/membership",
     },
     {
       title: "Add Workout",

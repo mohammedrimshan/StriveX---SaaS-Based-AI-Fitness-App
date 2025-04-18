@@ -26,7 +26,8 @@ import { IMembershipPlanRepository } from "@/entities/repositoryInterfaces/Strip
 import { MembershipPlanRepository } from "@/interfaceAdapters/repositories/stripe/membership-plan.repository";
 import { IPaymentRepository } from "@/entities/repositoryInterfaces/Stripe/payment-repository.interface";
 import { PaymentRepository } from "@/interfaceAdapters/repositories/stripe/payment.repository";
-
+import { IEventRepository } from "@/entities/repositoryInterfaces/ebhook-event-repository.interface";
+import { EventRepository } from "@/interfaceAdapters/repositories/webhook-event.repository";
 export class RepositoryRegistry {
   static registerRepositories(): void {
     container.register<IClientRepository>("IClientRepository", {
@@ -79,6 +80,10 @@ export class RepositoryRegistry {
 
     container.register<IPaymentRepository>("IPaymentRepository", {
       useClass: PaymentRepository,
+    });
+
+    container.register<IEventRepository>("IEventRepository", {
+      useClass: EventRepository,
     });
   }
 }
