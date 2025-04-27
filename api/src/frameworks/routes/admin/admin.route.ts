@@ -15,7 +15,7 @@ import {
   trainerController,
   adminController,
   categoryController,
-  dietWorkoutController
+  dietWorkoutController,
 } from "../../di/resolver";
 
 export class AdminRoutes extends BaseRoute {
@@ -104,88 +104,88 @@ export class AdminRoutes extends BaseRoute {
         }
       );
 
-      router.post(
-        "/admin/workouts",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.addWorkout(req, res);
-        }
-      );
-  
-      router.delete(
-        "/admin/workouts/:workoutId",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.deleteWorkout(req, res);
-        }
-      );
-  
-      router.patch(
-        "/admin/workouts/:workoutId/status",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.toggleWorkoutStatus(req, res);
-        }
-      );
-  
-      router.put(
-        "/admin/workouts/:workoutId",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.updateWorkout(req, res);
-        }
-      );
+    router.post(
+      "/admin/workouts",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.addWorkout(req, res);
+      }
+    );
 
-      router.get(
-        "/admin/workouts",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.getAllAdminWorkouts(req, res);
-        }
-      );
+    router.delete(
+      "/admin/workouts/:workoutId",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.deleteWorkout(req, res);
+      }
+    );
 
-      router.post(
-        "/admin/workouts/:workoutId/exercises",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.addExercise(req, res);
-        }
-      );
+    router.patch(
+      "/admin/workouts/:workoutId/status",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.toggleWorkoutStatus(req, res);
+      }
+    );
 
-      router.put(
-        "/admin/workouts/:workoutId/exercises/:exerciseId",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.updateExercise(req, res);
-        }
-      );
+    router.put(
+      "/admin/workouts/:workoutId",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.updateWorkout(req, res);
+      }
+    );
 
-      router.delete(
-        "/admin/workouts/:workoutId/exercises/:exerciseId",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.deleteExercise(req, res);
-        }
-      );
+    router.get(
+      "/admin/workouts",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.getAllAdminWorkouts(req, res);
+      }
+    );
 
-      router.get(
-        "/admin/workouts/:workoutId",
-        verifyAuth,
-        authorizeRole(["admin"]),
-        (req: Request, res: Response) => {
-          dietWorkoutController.getWorkoutById(req, res);
-        }
-      );
+    router.post(
+      "/admin/workouts/:workoutId/exercises",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.addExercise(req, res);
+      }
+    );
 
-      // Membership Plan Routes
+    router.put(
+      "/admin/workouts/:workoutId/exercises/:exerciseId",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.updateExercise(req, res);
+      }
+    );
+
+    router.delete(
+      "/admin/workouts/:workoutId/exercises/:exerciseId",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.deleteExercise(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/workouts/:workoutId",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        dietWorkoutController.getWorkoutById(req, res);
+      }
+    );
+
+    // Membership Plan Routes
     router.post(
       "/admin/membership-plans",
       verifyAuth,
@@ -219,6 +219,25 @@ export class AdminRoutes extends BaseRoute {
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
         adminController.getMembershipPlans(req, res);
+      }
+    );
+
+    // Trainer Request Routes
+    router.get(
+      "/admin/trainer-requests",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.getTrainerRequests(req, res);
+      }
+    );
+
+    router.put(
+      "/admin/trainer-request",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.updateTrainerRequest(req, res);
       }
     );
   }

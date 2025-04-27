@@ -1,4 +1,3 @@
-// D:\StriveX\api\src\interfaceAdapters\controllers\category\category.controller.ts
 import { Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { ICategoryController } from "@/entities/controllerInterfaces/category-controller.interface";
@@ -7,7 +6,7 @@ import { IGetAllPaginatedCategoryUseCase } from "@/entities/useCaseInterfaces/ad
 import { IUpdateCategoryStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-category-status-usecase.interface";
 import { IUpdateCategoryUseCase } from "@/entities/useCaseInterfaces/admin/update-category-usecase.interface";
 import { IGetAllCategoriesUseCase } from "@/entities/useCaseInterfaces/common/get-all-category.interface";
-import { HTTP_STATUS, SUCCESS_MESSAGES } from "@/shared/constants";
+import { ERROR_MESSAGES, HTTP_STATUS, SUCCESS_MESSAGES } from "@/shared/constants";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { CustomError } from "@/entities/utils/custom.error";
 import mongoose from "mongoose";
@@ -76,10 +75,10 @@ export class CategoryController implements ICategoryController {
       
       // Enhanced validation
       if (!categoryId || categoryId === "undefined") {
-        throw new CustomError("Category ID is required and cannot be 'undefined'", HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(ERROR_MESSAGES.ID_NOT_PROVIDED, HTTP_STATUS.BAD_REQUEST);
       }
       if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-        throw new CustomError("Invalid Category ID format", HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(ERROR_MESSAGES.INVALID_ID, HTTP_STATUS.BAD_REQUEST);
       }
   
       await this._updateCategoryStatusUseCase.execute(categoryId);
@@ -96,8 +95,8 @@ export class CategoryController implements ICategoryController {
     try {
       const { categoryId } = req.params;
       const { name, description } = req.body as { name: string; description?: string };
-      if (!categoryId) throw new CustomError("Category ID is required", HTTP_STATUS.BAD_REQUEST);
-      if (!name) throw new CustomError("Category name is required", HTTP_STATUS.BAD_REQUEST);
+      if (!categoryId) throw new CustomError(ERROR_MESSAGES.ID_NOT_PROVIDED, HTTP_STATUS.BAD_REQUEST);
+      if (!name) throw new CustomError(ERROR_MESSAGES.MISSING_FIELDS, HTTP_STATUS.BAD_REQUEST);
 
       await this._updateCategoryUseCase.execute(categoryId, name, description);
 
@@ -106,14 +105,6 @@ export class CategoryController implements ICategoryController {
         message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
       });
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Category already exists")) {
-        res.status(HTTP_STATUS.CONFLICT).json({
-          success: false,
-          message: "A category with this name already exists",
-          error: "DUPLICATE_CATEGORY",
-        });
-        return;
-      }
       handleErrorResponse(res, error);
     }
   }

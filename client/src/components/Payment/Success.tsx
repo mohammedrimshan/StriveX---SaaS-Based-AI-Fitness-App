@@ -3,11 +3,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  Check, 
-  Download, 
-  Home, 
-} from "lucide-react";
+import { Check, Download, Home } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { jsPDF } from "jspdf";
@@ -30,8 +26,8 @@ export function PaymentSuccessPage() {
     generatePolicyPDF();
   };
 
-  const navigateHome = () => {
-    navigate("/home");
+  const navigateToTrainerSelection = () => {
+    navigate("/trainer-selection-prompt");
   };
 
   const fullName = client ? `${client.firstName} ${client.lastName}` : "Unknown User";
@@ -149,18 +145,18 @@ export function PaymentSuccessPage() {
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-5 sm:px-6">
           <h2 className="text-xl font-bold text-white text-center">Payment Successful!</h2>
         </div>
-        
+
         <div className="px-4 py-8 sm:px-6">
           <div className="flex flex-col items-center justify-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <Check className="h-8 w-8 text-green-600" />
             </div>
-            
+
             <h3 className="text-xl font-medium text-gray-900">Membership Activated</h3>
             <p className="mt-1 text-sm text-gray-500">
               Your {planName || "Premium"} membership is now active
             </p>
-            
+
             <div className="mt-8 w-full bg-gray-50 rounded-lg p-6">
               <h4 className="font-medium text-gray-700 mb-3">Membership Details</h4>
               <div className="text-sm space-y-3">
@@ -182,7 +178,7 @@ export function PaymentSuccessPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-6 flex flex-col gap-4 w-full">
               <Button
                 onClick={handleDownloadPolicy}
@@ -200,17 +196,17 @@ export function PaymentSuccessPage() {
                   </>
                 )}
               </Button>
-              
+
               <Button
-                onClick={navigateHome}
+                onClick={navigateToTrainerSelection}
                 variant="outline"
                 className="flex items-center justify-center border-gray-300"
               >
                 <Home className="mr-2 h-4 w-4" />
-                Go to Dashboard
+                Continue to Trainer Selection
               </Button>
             </div>
-            
+
             <p className="text-xs text-gray-500 mt-6">
               A confirmation email has been sent to {client?.email || "your email address"}
             </p>

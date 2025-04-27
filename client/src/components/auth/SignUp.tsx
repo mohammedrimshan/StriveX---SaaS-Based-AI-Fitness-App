@@ -20,13 +20,15 @@ import { SignUpProps } from "@/types/Response";
 // Define skills options
 const skillOptions = [
 	"Strength Training",
-	"Cardio",
-	"Yoga",
-	"Pilates",
-	"Nutrition",
+	"Mindfulness & Focus",
+	"Stress Management",
+	"Core Strengthening",
+	"Posture Alignment",
 	"Physiotherapy",
-	"CrossFit",
-	"HIIT"
+	"Muscle Buliding",
+	"Flexibility",
+	"Nutrition",
+	"Weight Loss",
 ];
 
 const SignUp = ({ userType, onSubmit, setLogin, isLoading ,handleGoogleAuth, }: SignUpProps) => {
@@ -88,12 +90,7 @@ const SignUp = ({ userType, onSubmit, setLogin, isLoading ,handleGoogleAuth, }: 
 		);
 	};
 
-	// Enhanced validation schema with conditional fields
-	// const getValidationSchema = () => {
-	// 	// We're using the existing signupSchema as a base
-	// 	// In a real implementation, you would extend this with trainer specific validations
-	// 	return signupSchema;
-	// };
+	
 
 const currentValidationSchema = getValidationSchema(userType, currentStep);
 	// Handle adding other skill to skills array
@@ -119,7 +116,7 @@ const currentValidationSchema = getValidationSchema(userType, currentStep);
       skills: [] as string[],
       status: "pending",
     },
-    validationSchema: currentValidationSchema, // Use step-specific validation
+    validationSchema: currentValidationSchema, 
     validateOnChange: true,
     validateOnBlur: true,
     onSubmit: (values) => {
@@ -153,46 +150,46 @@ const currentValidationSchema = getValidationSchema(userType, currentStep);
 			setCurrentStep(currentStep - 1);
 		}
 	};
-	const handleNextStep = () => {
-		// Validate current step fields
-		const fieldsToValidate = {};
+	// const handleNextStep = () => {
+	// 	// Validate current step fields
+	// 	const fieldsToValidate = {};
 		
-		// Determine which fields to validate based on current step
-		if (currentStep === 1) {
-		  const basicFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'password', 'confirmPassword'];
-		  basicFields.forEach(field => {
-			fieldsToValidate[field] = formik.values[field];
-		  });
-		} else if (currentStep === 2) {
-		  const personalFields = ['dateOfBirth', 'experience', 'gender'];
-		  personalFields.forEach(field => {
-			fieldsToValidate[field] = formik.values[field];
-		  });
-		}
+	// 	// Determine which fields to validate based on current step
+	// 	if (currentStep === 1) {
+	// 	  const basicFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'password', 'confirmPassword'];
+	// 	  basicFields.forEach(field => {
+	// 		fieldsToValidate[field] = formik.values[field];
+	// 	  });
+	// 	} else if (currentStep === 2) {
+	// 	  const personalFields = ['dateOfBirth', 'experience', 'gender'];
+	// 	  personalFields.forEach(field => {
+	// 		fieldsToValidate[field] = formik.values[field];
+	// 	  });
+	// 	}
 		
-		// Validate only the current step's fields
-		formik.validateForm().then(errors => {
-		  // Check if there are any errors for the current step's fields
-		  const hasStepErrors = Object.keys(errors).some(key => {
-			return Object.keys(fieldsToValidate).includes(key);
-		  });
+	// 	// Validate only the current step's fields
+	// 	formik.validateForm().then(errors => {
+	// 	  // Check if there are any errors for the current step's fields
+	// 	  const hasStepErrors = Object.keys(errors).some(key => {
+	// 		return Object.keys(fieldsToValidate).includes(key);
+	// 	  });
 		  
-		  if (!hasStepErrors) {
-			if (currentStep === 1) {
-			  setCurrentStep(2);
-			} else if (currentStep === 2) {
-			  setCurrentStep(3);
-			}
-		  } else {
-			// Touch all fields for the current step to show validation errors
-			const touchedFields = {};
-			Object.keys(fieldsToValidate).forEach(field => {
-			  touchedFields[field] = true;
-			});
-			formik.setTouched({ ...formik.touched, ...touchedFields }, true);
-		  }
-		});
-	  };
+	// 	  if (!hasStepErrors) {
+	// 		if (currentStep === 1) {
+	// 		  setCurrentStep(2);
+	// 		} else if (currentStep === 2) {
+	// 		  setCurrentStep(3);
+	// 		}
+	// 	  } else {
+	// 		// Touch all fields for the current step to show validation errors
+	// 		const touchedFields = {};
+	// 		Object.keys(fieldsToValidate).forEach(field => {
+	// 		  touchedFields[field] = true;
+	// 		});
+	// 		formik.setTouched({ ...formik.touched, ...touchedFields }, true);
+	// 	  }
+	// 	});
+	//   };
 
 	// First step - basic information form (for client and trainer)
 	const renderBasicInfoForm = () => (

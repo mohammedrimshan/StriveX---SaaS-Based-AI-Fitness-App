@@ -44,7 +44,7 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
       skills,
       role: "trainer" as const,
       approvalStatus: TrainerApprovalStatus.PENDING,
-      rejectionReason: undefined, // Clear rejection reason on re-registration
+      rejectionReason: undefined, 
       approvedByAdmin: false,
     };
 

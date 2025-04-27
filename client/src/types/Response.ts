@@ -30,14 +30,6 @@ export interface PaginatedTrainersResponse {
    success: boolean;
    message: string;
  }
- export interface PaginatedTrainersResponse {
-   trainers: ITrainer[];
-   totalPages: number;
-   currentPage: number;
-   totalTrainers: number;
-   success: boolean;
-   message: string;
- }
 
  export interface PaginatedResponse<T> {
    data: T[];

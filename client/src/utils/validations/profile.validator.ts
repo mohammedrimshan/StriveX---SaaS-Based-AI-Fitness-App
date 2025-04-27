@@ -1,14 +1,12 @@
 import { z } from "zod";
 
 export const profileFormSchema = z.object({
-  // Keep these fields the same
   firstName: z
     .string()
     .trim()
     .min(1, { message: "First name is required" })
     .regex(/^[A-Za-z\s'-]+$/, {
-      message:
-        "First name can only contain letters, spaces, hyphens, and apostrophes",
+      message: "First name can only contain letters, spaces, hyphens, and apostrophes",
     })
     .max(50, { message: "First name cannot exceed 50 characters" }),
 
@@ -17,8 +15,7 @@ export const profileFormSchema = z.object({
     .trim()
     .min(1, { message: "Last name is required" })
     .regex(/^[A-Za-z\s'-]+$/, {
-      message:
-        "Last name can only contain letters, spaces, hyphens, and apostrophes",
+      message: "Last name can only contain letters, spaces, hyphens, and apostrophes",
     })
     .max(50, { message: "Last name cannot exceed 50 characters" }),
 
@@ -43,8 +40,7 @@ export const profileFormSchema = z.object({
     .refine(
       (phone) => {
         if (!phone) return true;
-        const phoneRegex =
-          /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
+        const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
         return phoneRegex.test(phone);
       },
       { message: "Invalid phone number format" }
@@ -66,12 +62,9 @@ export const profileFormSchema = z.object({
     .optional(),
 
   fitnessGoal: z
-    .enum(
-      ["weightLoss", "muscleGain", "endurance", "flexibility", "maintenance"],
-      {
-        errorMap: () => ({ message: "Invalid fitness goal" }),
-      }
-    )
+    .enum(["weightLoss", "muscleGain", "endurance", "flexibility", "maintenance"], {
+      errorMap: () => ({ message: "Invalid fitness goal" }),
+    })
     .optional(),
 
   experienceLevel: z
@@ -81,7 +74,7 @@ export const profileFormSchema = z.object({
     .optional(),
 
   preferredWorkout: z
-    .enum(["cardio", "strength", "hiit", "yoga", "pilates", "crossfit"], {
+    .enum(["Cardio", "Meditation", "Pilates", "Yoga", "Calisthenics"], {
       errorMap: () => ({ message: "Invalid workout type" }),
     })
     .optional(),
@@ -112,9 +105,7 @@ export const profileFormSchema = z.object({
   healthConditions: z.array(z.string()).optional(),
   additionalHealthCases: z.string().optional(),
   waterIntake: z
-    .number({
-      invalid_type_error: "Water intake must be a number",
-    })
+    .number({ invalid_type_error: "Water intake must be a number" })
     .min(0, { message: "Water intake cannot be negative" })
     .max(10000, { message: "Water intake is unrealistically high" })
     .optional(),

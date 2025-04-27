@@ -29,7 +29,28 @@ export interface CheckoutSessionResponse {
   url: string;
 }
 
+// Interface for trainer preferences payload
+export interface TrainerPreferencesData {
+  preferredWorkout: string;
+  fitnessGoal: string;
+  experienceLevel: string;
+  skillsToGain: string[];
+  selectionMode: "auto" | "manual";
+  sleepFrom: string;
+  wakeUpAt: string;
+}
 
+// Interface for trainer selection response
+export interface TrainerSelectionResponse {
+  success: boolean;
+  message: string;
+  preferences?: IClient;
+}
+
+// Interface for manual trainer selection payload
+export interface ManualSelectTrainerData {
+  trainerId: string;
+}
 
 export const updateClientProfile = async (
   profileData: Partial<IClient>
@@ -237,4 +258,68 @@ export const createCheckoutSession = async (
       error.response?.data?.message || "Failed to create checkout session"
     );
   }
+};
+
+
+export const saveTrainerSelectionPreferences = async (
+  data: TrainerPreferencesData
+): Promise<TrainerSelectionResponse> => {
+  const response = await clientAxiosInstance.post<IAxiosResponse<TrainerSelectionResponse>>(
+    "/client/trainer-preferences",
+    data
+  );
+  return response.data.data;
+};
+
+
+export const autoMatchTrainer = async (): Promise<TrainerSelectionResponse> => {
+  const response = await clientAxiosInstance.post<IAxiosResponse<TrainerSelectionResponse>>(
+    "/client/auto-match-trainer"
+  );
+  return response.data.data;
+};
+
+
+export const manualSelectTrainer = async (
+  data: ManualSelectTrainerData
+): Promise<TrainerSelectionResponse> => {
+  const response = await clientAxiosInstance.post<IAxiosResponse<TrainerSelectionResponse>>(
+    "/client/manual-select-trainer",
+    data
+  );
+  console.log(response.data, "MANUAL SELECT TRAINER RESPONSE");
+  return response.data;
+};
+
+
+// Add to your clientService.ts
+export interface MatchedTrainersResponse {
+  success: boolean;
+  data: TrainerProfile[];
+}
+
+export const getMatchedTrainers = async (): Promise<MatchedTrainersResponse> => {
+  const response = await clientAxiosInstance.get<MatchedTrainersResponse>(
+    "/client/matched-trainers"
+  );
+  return response.data;
+};
+
+
+
+export interface SelectTrainerResponse {
+  selectedTrainerId: string;
+  selectStatus: "PENDING" | "APPROVED" | "REJECTED"; // Match your enum values
+}
+
+export const selectTrainerFromMatchedList = async (
+  trainerId: string
+): Promise<SelectTrainerResponse> => {
+  const response = await clientAxiosInstance.post<IAxiosResponse<SelectTrainerResponse>>(
+    "/client/select-trainer",
+    {
+      selectedTrainerId: trainerId,
+    }
+  );
+  return response.data.data;
 };

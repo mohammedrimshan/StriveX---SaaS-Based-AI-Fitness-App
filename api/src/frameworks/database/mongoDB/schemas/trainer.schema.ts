@@ -33,8 +33,12 @@ export const trainerSchema = new Schema<ITrainerModel>(
     approvedByAdmin: { type: Boolean, default: false },
     status: { type: String, default: "active" },
     stripeConnectId: { type: String },
+    clientCount: { type: Number, default: 0 },
   },
   {
     timestamps: true, 
   }
 );
+
+
+trainerSchema.index({ specialization: 1, skills: 1, approvalStatus: 1, clientCount: 1 });

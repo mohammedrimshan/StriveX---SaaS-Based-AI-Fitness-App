@@ -15,75 +15,148 @@ import WorkoutDetails from "@/pages/client/Workouts/WorkoutDetails";
 import PremiumLanding from "@/components/landing/PremiumLanding";
 import { PaymentSuccessPage } from "@/components/Payment/Success";
 import { PaymentFailedPage } from "@/components/Payment/Fail";
+import { TrainerSelectionPromptPage } from "@/pages/client/TrainerSelectionPromptPage";
+import { TrainerPreferencesPage } from "@/pages/client/TrainerPreference";
+import { MatchedTrainersPage } from "@/pages/client/MatchedTrainersList";
+import ManualTrainersListing from "@/pages/client/ManualTrainer";
 export const ClientRoutes = () => {
-	return (
-		<Routes>
-			<Route element={<ClientLayout />}>
-				{/* Public routes inside the layout */}
-				<Route index element={<LandingPage />} />
-				<Route 
-					path="/login" 
-					element={<NoAuthRoute element={<ClientAuth />} />} 
-				/>
-				
-				{/* Protected routes */}
-				<Route path="/home" element={
-					<AuthRoute allowedRoles={["client"]} element={<LandingPage />} />
-				} />
-				<Route path="/profile" element={
-					<AuthRoute allowedRoles={["client"]} element={<ProfileForm />} />
-				} />
-				<Route path="/aiplanning" element={
-					<AuthRoute allowedRoles={["client"]} element={<PlanGenerator />} />
-				} />
-				
-				<Route path="/alltrainers" element={
-					<AuthRoute allowedRoles={["client"]} element={<TrainersPage />} />
-				} />
-				<Route path="/trainerprofile/:trainerId" element={
-					<AuthRoute allowedRoles={["client"]} element={<Index />} />
-				} />
-				
-				<Route path="/workouts" element={
-					<AuthRoute allowedRoles={["client"]} element={<UserWorkout />} />
-				} />
-				
-				<Route path="/workout/:id" element={
-					<AuthRoute allowedRoles={["client"]} element={<WorkoutDetails />} />
-				} />
-				
-				<Route path="/premium" element={
-					<AuthRoute allowedRoles={["client"]} element={<PremiumLanding />} />
-				} />
+  return (
+    <Routes>
+      <Route element={<ClientLayout />}>
+        {/* Public routes inside the layout */}
+        <Route index element={<LandingPage />} />
+        <Route
+          path="/login"
+          element={<NoAuthRoute element={<ClientAuth />} />}
+        />
 
-<Route path="/checkout/success" element={
-					<AuthRoute allowedRoles={["client"]} element={<PaymentSuccessPage />} />
-				} />
+        {/* Protected routes */}
+        <Route
+          path="/home"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<LandingPage />} />
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<ProfileForm />} />
+          }
+        />
+        <Route
+          path="/aiplanning"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<PlanGenerator />} />
+          }
+        />
 
-<Route path="/checkout/cancel" element={
-					<AuthRoute allowedRoles={["client"]} element={<PaymentFailedPage />} />
-				} />
-				
-				{/* Add more protected routes as needed */}
-			</Route>
-			<Route
-				path="/forgot-password"
-				element={
-					<NoAuthRoute
-						element={
-							<ForgotPassword role="client" signInPath="/" />
-						}
-					/>
-				}
-			/>
-			<Route
-				path="/reset-password/:token"
-				element={
-					<NoAuthRoute
-						element={<ResetPassword role="client" signInPath="/" />}
-					/>
-				}
-			/>
-		</Routes>
-	);
+        <Route
+          path="/alltrainers"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<TrainersPage />} />
+          }
+        />
+        <Route
+          path="/trainerprofile/:trainerId"
+          element={<AuthRoute allowedRoles={["client"]} element={<Index />} />}
+        />
+
+        <Route
+          path="/workouts"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<UserWorkout />} />
+          }
+        />
+
+        <Route
+          path="/workout/:id"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<WorkoutDetails />} />
+          }
+        />
+
+        <Route
+          path="/premium"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<PremiumLanding />} />
+          }
+        />
+
+        <Route
+          path="/checkout/success"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<PaymentSuccessPage />}
+            />
+          }
+        />
+
+        <Route
+          path="/checkout/cancel"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<PaymentFailedPage />}
+            />
+          }
+        />
+
+        <Route
+          path="/trainer-selection-prompt"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<TrainerSelectionPromptPage />}
+            />
+          }
+        />
+
+        <Route
+          path="/trainer-preferences"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<TrainerPreferencesPage />}
+            />
+          }
+        />
+        <Route
+          path="/trainer-selection"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<MatchedTrainersPage />}
+            />
+          }
+        />
+        <Route
+          path="/trainer-selection/manual"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<ManualTrainersListing />}
+            />
+          }
+        />
+        {/* Add more protected routes as needed */}
+      </Route>
+      <Route
+        path="/forgot-password"
+        element={
+          <NoAuthRoute
+            element={<ForgotPassword role="client" signInPath="/" />}
+          />
+        }
+      />
+      <Route
+        path="/reset-password/:token"
+        element={
+          <NoAuthRoute
+            element={<ResetPassword role="client" signInPath="/" />}
+          />
+        }
+      />
+    </Routes>
+  );
 };

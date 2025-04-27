@@ -1,15 +1,60 @@
 import { trainerAxiosInstance } from "@/api/trainer.axios";
-import { IAuthResponse } from "@/types/Response";
-import { UserDTO } from "@/types/User";
 import { ITrainer } from "@/types/User";
 import { CategoryResponse } from "../admin/adminService";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/trainer/useTrainerPasswordChange";
-// // Complete trainer registration after initial signup
-// export const completeTrainerRegistration = async (userData: UserDTO): Promise<IAuthResponse> => {
-//   const response = await trainerAxiosInstance.post('/trainer/post-register', userData);
-//   return response.data;
-// };
+export interface TrainerClient {
+  id: string;
+  client: string;
+  preferences: {
+    workoutType?: string;
+    fitnessGoal?: string;
+    skillLevel?: string;
+    skillsToGain: string[];
+  };
+  status: string;
+}
+
+// Interface for paginated clients response
+export interface TrainerClientsPaginatedResponse {
+  success: boolean;
+  clients: TrainerClient[];
+  totalPages: number;
+  currentPage: number;
+  totalClients: number;
+}
+
+// Interface for pending client requests
+export interface PendingClientRequest {
+  clientId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  selectStatus: string;
+  preferences?: {
+    workoutType?: string;
+    fitnessGoal?: string;
+    skillLevel?: string;
+    skillsToGain: string[];
+  };
+}
+
+// Interface for paginated pending requests response
+export interface PendingClientRequestsResponse {
+  success: boolean;
+  message: string;
+  requests: PendingClientRequest[];
+  totalPages: number;
+  currentPage: number;
+  totalRequests: number;
+}
+
+// Interface for accept/reject request response
+export interface ClientRequestActionResponse {
+  success: boolean;
+  message: string;
+  client: PendingClientRequest;
+}
 
 // Get trainer profile information
 export const getTrainerProfile = async (): Promise<any> => {
@@ -27,8 +72,6 @@ export const updateTrainerProfile = async (
   return response.data;
 };
 
-
-
 export const updateTrainerPassword = async ({
   currentPassword,
   newPassword,
@@ -44,50 +87,6 @@ export const updateTrainerPassword = async ({
   return response.data;
 };
 
-// // Get trainer dashboard statistics
-// export const getTrainerDashboardStats = async (): Promise<any> => {
-//   const response = await trainerAxiosInstance.get('/trainer/dashboard-stats');
-//   return response.data;
-// };
-
-// // Get trainer clients
-// export const getTrainerClients = async (page: number = 1, limit: number = 5): Promise<any> => {
-//   const response = await trainerAxiosInstance.get('/trainer/clients', {
-//     params: { page, limit }
-//   });
-//   return response.data;
-// };
-
-// // Get trainer sessions
-// export const getTrainerSessions = async (page: number = 1, limit: number = 5): Promise<any> => {
-//   const response = await trainerAxiosInstance.get('/trainer/sessions', {
-//     params: { page, limit }
-//   });
-//   return response.data;
-// };
-
-// // Update trainer availability
-// export const updateTrainerAvailability = async (availabilityData: any): Promise<any> => {
-//   const response = await trainerAxiosInstance.post('/trainer/availability', availabilityData);
-//   return response.data;
-// };
-
-// // Get trainer earnings
-// export const getTrainerEarnings = async (period: string = 'month'): Promise<any> => {
-//   const response = await trainerAxiosInstance.get('/trainer/earnings', {
-//     params: { period }
-//   });
-//   return response.data;
-// };
-
-// // Get trainer reviews
-// export const getTrainerReviews = async (page: number = 1, limit: number = 10): Promise<any> => {
-//   const response = await trainerAxiosInstance.get('/trainer/reviews', {
-//     params: { page, limit }
-//   });
-//   return response.data;
-// };
-
 // Upload trainer certificate or credential
 export const uploadTrainerCredential = async (credentialData: FormData): Promise<any> => {
   const response = await trainerAxiosInstance.post('/trainer/credentials', credentialData, {
@@ -98,10 +97,58 @@ export const uploadTrainerCredential = async (credentialData: FormData): Promise
   return response.data;
 };
 
-
 export const getAllCategoriesForTrainer = async () => {
   const response = await trainerAxiosInstance.get<CategoryResponse>(
     "/trainer/getallcategory"
   );
+  return response.data;
+};
+
+export const getTrainerClients = async (
+  page: number = 1,
+  limit: number = 10
+): Promise<TrainerClientsPaginatedResponse> => {
+  const response = await trainerAxiosInstance.get<TrainerClientsPaginatedResponse>(
+    "/trainer/clients",
+    {
+      params: { page, limit },
+    }
+  );
+  return response.data;
+};
+
+// Get pending client requests
+export const getPendingClientRequests = async (
+  page: number = 1,
+  limit: number = 10
+): Promise<PendingClientRequestsResponse> => {
+  const response = await trainerAxiosInstance.get<PendingClientRequestsResponse>(
+    "/trainer/pending-requests",
+    {
+      params: { page, limit },
+    }
+  );
+  return response.data;
+};
+
+// Accept or reject client request
+export const acceptRejectClientRequest = async (
+  clientId: string, // Ensure this is the clientId from PendingClientRequest
+  action: "accept" | "reject",
+  rejectionReason?: string
+): Promise<ClientRequestActionResponse> => {
+  const payload = {
+    clientId, // This should now be the custom clientId (e.g., strivex-client-...)
+    action,
+    rejectionReason: action === "reject" ? rejectionReason : undefined
+  };
+
+  console.log("Sending accept/reject request with payload:", payload);
+  const response = await trainerAxiosInstance.post<ClientRequestActionResponse>(
+    "/trainer/client-request", 
+    payload
+  );
+  
+  console.log("Accept/reject response:", response.data); // Add logging to debug
   return response.data;
 };

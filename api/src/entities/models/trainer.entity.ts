@@ -15,4 +15,5 @@ export interface ITrainerEntity extends IUserEntity {
   rejectionReason?: string;
   googleId?: string;
   stripeConnectId:string;
+  clientCount?: number;
 }

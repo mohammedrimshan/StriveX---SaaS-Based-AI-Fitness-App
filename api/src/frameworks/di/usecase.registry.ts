@@ -12,7 +12,6 @@ import { AdminLoginStrategy } from "@/useCases/auth/login-strategies/admin-login
 import { TrainerRegisterStrategy } from "@/useCases/auth/register-strategies/trainer-register.strategy";
 import { TrainerLoginStrategy } from "@/useCases/auth/login-strategies/trainer-login.strategy";
 
-
 import { IOtpService } from "../../entities/services/otp-service.interface";
 import { OtpService } from "../../interfaceAdapters/services/otp.service";
 import { IEmailService } from "../../entities/services/email-service.interface";
@@ -115,6 +114,26 @@ import { ICreateStripeConnectAccountUseCase } from "@/entities/useCaseInterfaces
 import { CreateStripeConnectAccountUseCase } from "@/useCases/trainer/create-stripe-connect-account.usecase";
 import { ICreateCheckoutSessionUseCase } from "@/entities/useCaseInterfaces/stripe/create-checkout-session.usecase.interface";
 import { CreateCheckoutSessionUseCase } from "@/useCases/stripe/create-checkout-session.usecase";
+import { IGetTrainerRequestsUseCase } from "@/entities/useCaseInterfaces/admin/get-user-trainer-request-usecase.interface";
+import { GetTrainerRequestsUseCase } from "@/useCases/admin/get-trainer-request-usecase";
+import { IUpdateTrainerRequestUseCase } from "@/entities/useCaseInterfaces/admin/update-user-trainer-request-usecase.interface";
+import { UpdateTrainerRequestUseCase } from "@/useCases/admin/update-trainer-request.usecase";
+import { IGetTrainerClientsUseCase } from "@/entities/useCaseInterfaces/trainer/get-clients-usecase.interface";
+import { GetTrainerClientsUseCase } from "@/useCases/trainer/get-trainer-clients.usecase";
+import { IAutoMatchTrainerUseCase } from "@/entities/useCaseInterfaces/users/automatch-trainer-usecase.interface";
+import { AutoMatchTrainerUseCase } from "@/useCases/user/automatch-trainer-usecase";
+import { IManualSelectTrainerUseCase } from "@/entities/useCaseInterfaces/users/manual-trainer-select-usecase.interface";
+import { ManualSelectTrainerUseCase } from "@/useCases/user/manual-select-trainer-usecase";
+import { ISaveTrainerSelectionPreferencesUseCase } from "@/entities/useCaseInterfaces/users/save-trainer-selection-preference-usecase.interface";
+import { SaveTrainerSelectionPreferencesUseCase } from "@/useCases/user/save-trainer-selection-preferences.usecase";
+import { IGetMatchedTrainersUseCase } from "@/entities/useCaseInterfaces/users/get-match-trainer.usecase.interface";
+import { GetMatchedTrainersUseCase } from "@/useCases/user/get-matched-trainer-usecase";
+import { ISelectTrainerFromMatchedListUseCase } from "@/entities/useCaseInterfaces/users/select-trainer-matched-list.usecase.interface";
+import { SelectTrainerFromMatchedListUseCase } from "@/useCases/user/select-trainer-matched-list.usecase";
+import { IGetPendingClientRequestsUseCase } from "@/entities/useCaseInterfaces/trainer/get-pending-request-usecase.interface";
+import { GetPendingClientRequestsUseCase } from "@/useCases/trainer/get-pending-request-usecase";
+import { ITrainerAcceptRejectRequestUseCase } from "@/entities/useCaseInterfaces/trainer/trainer-accept-reject-request-usecase.interface";
+import { TrainerAcceptRejectRequestUseCase } from "@/useCases/trainer/trainer-accept-reject-request.usecase";
 
 export class UseCaseRegistry {
   static registerUseCases(): void {
@@ -324,17 +343,23 @@ export class UseCaseRegistry {
       useClass: DeleteWorkoutUseCase,
     });
 
-    container.register<IToggleWorkoutStatusUseCase>("IToggleWorkoutStatusUseCase", {
-      useClass: ToggleWorkoutStatusUseCase,
-    });
+    container.register<IToggleWorkoutStatusUseCase>(
+      "IToggleWorkoutStatusUseCase",
+      {
+        useClass: ToggleWorkoutStatusUseCase,
+      }
+    );
 
     container.register<IGetWorkoutsUseCase>("IGetWorkoutsUseCase", {
       useClass: GetWorkoutsUseCase,
     });
 
-    container.register<IGetWorkoutsByCategoryUseCase>("IGetWorkoutsByCategoryUseCase", {
-      useClass: GetWorkoutsByCategoryUseCase,
-    });
+    container.register<IGetWorkoutsByCategoryUseCase>(
+      "IGetWorkoutsByCategoryUseCase",
+      {
+        useClass: GetWorkoutsByCategoryUseCase,
+      }
+    );
 
     container.register<IRecordProgressUseCase>("IRecordProgressUseCase", {
       useClass: RecordProgressUseCase,
@@ -344,9 +369,12 @@ export class UseCaseRegistry {
       useClass: GetUserProgressUseCase,
     });
 
-    container.register<IGetAllAdminWorkoutsUseCase>("IGetAllAdminWorkoutsUseCase", {
-      useClass: GetAllAdminWorkoutsUseCase,
-    });
+    container.register<IGetAllAdminWorkoutsUseCase>(
+      "IGetAllAdminWorkoutsUseCase",
+      {
+        useClass: GetAllAdminWorkoutsUseCase,
+      }
+    );
 
     container.register<IGetAllTrainersUseCase>("IGetAllTrainersUseCase", {
       useClass: GetAllTrainersUseCase,
@@ -372,12 +400,88 @@ export class UseCaseRegistry {
       useClass: GetWorkoutByIdUseCase,
     });
 
-    container.register<ICreateStripeConnectAccountUseCase>("ICreateStripeConnectAccountUseCase", {
-      useClass: CreateStripeConnectAccountUseCase,
-    });
+    container.register<ICreateStripeConnectAccountUseCase>(
+      "ICreateStripeConnectAccountUseCase",
+      {
+        useClass: CreateStripeConnectAccountUseCase,
+      }
+    );
 
-    container.register<ICreateCheckoutSessionUseCase>("ICreateCheckoutSessionUseCase", {
-      useClass: CreateCheckoutSessionUseCase,
-    });
+    container.register<ICreateCheckoutSessionUseCase>(
+      "ICreateCheckoutSessionUseCase",
+      {
+        useClass: CreateCheckoutSessionUseCase,
+      }
+    );
+
+    container.register<IGetTrainerRequestsUseCase>(
+      "IGetTrainerRequestsUseCase",
+      {
+        useClass: GetTrainerRequestsUseCase,
+      }
+    );
+
+    container.register<IUpdateTrainerRequestUseCase>(
+      "IUpdateTrainerRequestUseCase",
+      {
+        useClass: UpdateTrainerRequestUseCase,
+      }
+    );
+
+    container.register<IGetTrainerClientsUseCase>(
+      "IGetTrainerClientsUseCase",
+      {
+        useClass: GetTrainerClientsUseCase,
+      }
+    );
+
+    container.register<IAutoMatchTrainerUseCase>(
+      "IAutoMatchTrainerUseCase",
+      {
+        useClass: AutoMatchTrainerUseCase,
+      }
+    );
+
+    container.register<IManualSelectTrainerUseCase>(
+      "IManualSelectTrainerUseCase",
+      {
+        useClass: ManualSelectTrainerUseCase,
+      }
+    );
+
+    container.register<ISaveTrainerSelectionPreferencesUseCase>(
+      "ISaveTrainerSelectionPreferencesUseCase",
+      {
+        useClass: SaveTrainerSelectionPreferencesUseCase,
+      }
+    );
+
+    container.register<IGetMatchedTrainersUseCase>(
+      "IGetMatchedTrainersUseCase",
+      {
+        useClass:GetMatchedTrainersUseCase,
+      }
+    );
+
+    container.register<ISelectTrainerFromMatchedListUseCase>(
+      "ISelectTrainerFromMatchedListUseCase",
+      {
+        useClass:SelectTrainerFromMatchedListUseCase,
+      }
+    );
+
+    container.register<IGetPendingClientRequestsUseCase>(
+      "IGetPendingClientRequestsUseCase",
+      {
+        useClass:GetPendingClientRequestsUseCase,
+      }
+    );
+
+    container.register<ITrainerAcceptRejectRequestUseCase>(
+      "ITrainerAcceptRejectRequestUseCase",
+      {
+        useClass:TrainerAcceptRejectRequestUseCase,
+      }
+    );
   }
 }

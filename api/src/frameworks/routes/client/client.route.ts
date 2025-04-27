@@ -117,15 +117,6 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-    router.get(
-      "/client/:userId/progress",
-      verifyAuth,
-      authorizeRole(["client"]),
-      blockStatusMiddleware.checkStatus as RequestHandler,
-      (req: Request, res: Response) => {
-        userController.getUserProgress(req, res);
-      }
-    );
 
     // Get workouts by category
     router.get(
@@ -149,16 +140,6 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-    // Record progress
-    router.post(
-      "/client/progress",
-      verifyAuth,
-      authorizeRole(["client"]),
-      blockStatusMiddleware.checkStatus as RequestHandler,
-      (req: Request, res: Response) => {
-        userController.recordProgress(req, res);
-      }
-    );
 
     router.get(
       "/client/trainers",
@@ -204,6 +185,59 @@ export class ClientRoutes extends BaseRoute {
       "/client/payment/webhook",
       (req: Request, res: Response) => {
         paymentController.handleWebhook(req, res);
+      }
+    );
+
+     // Save trainer selection preferences
+     router.post(
+      "/client/trainer-preferences",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.saveTrainerSelectionPreferences(req, res);
+      }
+    );
+
+    // Auto-match trainer
+    router.post(
+      "/client/auto-match-trainer",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.autoMatchTrainer(req, res);
+      }
+    );
+    router.get(
+      "/client/matched-trainers",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getMatchedTrainers(req, res);
+      }
+    );
+
+    // Auto-match trainer
+    router.post(
+      "/client/select-trainer",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.selectTrainer(req, res);
+      }
+    );
+
+    // Manual select trainer
+    router.post(
+      "/client/manual-select-trainer",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.manualSelectTrainer(req, res);
       }
     );
   }

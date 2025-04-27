@@ -1,4 +1,5 @@
-export interface TrainerProfile {
+import { ITrainer } from "./User";
+export interface TrainerProfile extends ITrainer{
     id: string;
     firstName: string;
     lastName: string;

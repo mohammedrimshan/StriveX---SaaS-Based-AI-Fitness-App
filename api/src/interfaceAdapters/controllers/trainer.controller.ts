@@ -6,10 +6,11 @@ import { IUpdateUserStatusUseCase } from "@/entities/useCaseInterfaces/admin/upd
 import { ITrainerVerificationUseCase } from "@/entities/useCaseInterfaces/admin/trainer-verification-usecase.interface";
 import { IUpdateTrainerProfileUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-profile.usecase.interface";
 import { IUpdateTrainerPasswordUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-password.usecase.interface";
-import { IStripeService } from "@/entities/services/stripe-service.interface";
+import { ITrainerAcceptRejectRequestUseCase } from "@/entities/useCaseInterfaces/trainer/trainer-accept-reject-request-usecase.interface";
+import { IGetPendingClientRequestsUseCase } from "@/entities/useCaseInterfaces/trainer/get-pending-request-usecase.interface";
 import { ICreateStripeConnectAccountUseCase } from "@/entities/useCaseInterfaces/stripe/create-stripe-connect-account.usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
-import { config } from "@/shared/config";
+import { IGetTrainerClientsUseCase } from "@/entities/useCaseInterfaces/trainer/get-clients-usecase.interface";
 import {
   ERROR_MESSAGES,
   HTTP_STATUS,
@@ -36,10 +37,11 @@ export class TrainerController implements ITrainerController {
     private updateTrainerProfileUseCase: IUpdateTrainerProfileUseCase,
     @inject("IUpdateTrainerPasswordUseCase")
     private changeTrainerPasswordUseCase: IUpdateTrainerPasswordUseCase,
-    @inject("IStripeService") 
-    private _stripeService: IStripeService,
     @inject("ICreateStripeConnectAccountUseCase")
-    private _createStripeConnectAccountUseCase: ICreateStripeConnectAccountUseCase
+    private _createStripeConnectAccountUseCase: ICreateStripeConnectAccountUseCase,
+    @inject("IGetTrainerClientsUseCase") private _getTrainerClientsUseCase: IGetTrainerClientsUseCase,
+    @inject("ITrainerAcceptRejectRequestUseCase") private _trainerAcceptRejectRequestUseCase: ITrainerAcceptRejectRequestUseCase,
+    @inject("IGetPendingClientRequestsUseCase") private _getPendingClientRequestsUseCase: IGetPendingClientRequestsUseCase
   ) {}
 
   /** 🔹 Get all trainers with pagination and search */
@@ -241,7 +243,7 @@ export class TrainerController implements ITrainerController {
         return;
       }
 
-      const validatedData = createStripeConnectAccountSchema.parse(req.body); // Add: Schema validation
+      const validatedData = createStripeConnectAccountSchema.parse(req.body);
 
       const { accountLinkUrl } = await this._createStripeConnectAccountUseCase.execute(
         req.user.id,
@@ -253,6 +255,101 @@ export class TrainerController implements ITrainerController {
         success: true,
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
         url: accountLinkUrl,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+  async getTrainerClients(req: Request, res: Response): Promise<void> {
+    try {
+      const trainerId = (req as CustomRequest).user.id;
+      const { page = 1, limit = 10 } = req.query;
+      const pageNumber = Number(page);
+      const pageSize = Number(limit);
+      if (!trainerId) {
+        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+      }
+      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      }
+      const { user: clients, total } = await this._getTrainerClientsUseCase.execute(trainerId, pageNumber, pageSize);
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        clients,
+        totalPages: total,
+        currentPage: pageNumber,
+        totalClients: clients.length,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+  async acceptRejectClientRequest(req: Request, res: Response): Promise<void> {
+    try {
+      const trainerId = (req as CustomRequest).user.id;
+      console.log("Trainer ID",trainerId)
+      const { clientId, action, rejectionReason } = req.body;
+      console.log(clientId,action)
+      if (!trainerId) {
+        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+      }
+
+      if (!clientId || !action || (action === "reject" && !rejectionReason)) {
+        throw new CustomError(ERROR_MESSAGES.MISSING_PARAMETERS, HTTP_STATUS.BAD_REQUEST);
+      }
+
+      if (!["accept", "reject"].includes(action)) {
+        throw new CustomError("Invalid action", HTTP_STATUS.BAD_REQUEST);
+      }
+
+      const updatedClient = await this._trainerAcceptRejectRequestUseCase.execute(
+        trainerId,
+        clientId,
+        action as "accept" | "reject",
+        rejectionReason
+      );
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.TRAINER_REQUEST_UPDATED,
+        client: updatedClient,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+  async getPendingClientRequests(req: Request, res: Response): Promise<void> {
+    try {
+      const trainerId = (req as CustomRequest).user.id;
+      const { page = 1, limit = 10 } = req.query;
+      const pageNumber = Number(page);
+      const pageSize = Number(limit);
+
+      if (!trainerId) {
+        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+      }
+
+      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      }
+
+      const { user: requests, total } = await this._getPendingClientRequestsUseCase.execute(
+        trainerId,
+        pageNumber,
+        pageSize
+      );
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        requests,
+        totalPages: total,
+        currentPage: pageNumber,
+        totalRequests: requests.length,
       });
     } catch (error) {
       handleErrorResponse(res, error);

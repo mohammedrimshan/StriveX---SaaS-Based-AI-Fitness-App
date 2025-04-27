@@ -20,7 +20,7 @@ trainerAxiosInstance.interceptors.response.use(
 			if (!isRefreshing) {
 				isRefreshing = true;
 				try {
-					await trainerAxiosInstance.post("/_tra/trainer/refresh-token");
+					await trainerAxiosInstance.post("/trainer/refresh-token");
 					isRefreshing = false;
 					return trainerAxiosInstance(originalRequest);
 				} catch (refreshError) {

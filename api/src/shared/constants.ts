@@ -13,6 +13,16 @@ export enum TrainerApprovalStatus {
 }
 
 
+export const WORKOUT_TYPES = [
+  "yoga",
+  "cardio",
+  "weightTraining",
+  "meditation",
+  "calisthenics",
+  "pilates",
+] as const;
+export type WorkoutType = typeof WORKOUT_TYPES[number];
+
 export type Gender = "male" | "female" | "other";
 
 export const FITNESS_GOALS = [
@@ -39,6 +49,21 @@ export enum PaymentStatus {
   REFUNDED = 'refunded'
 }
 
+export const SKILLS = [
+  "strengthTraining",
+  "mindfulnessFocus",
+  "stressManagement",
+  "coreStrengthening",
+  "postureAlignment",
+  "physiotherapy",
+  "muscleBuilding",
+  "flexibility",
+  "nutrition",
+  "weightLoss",
+] as const;
+export type Skill = typeof SKILLS[number];
+
+
 export const ACTIVITY_LEVELS = [
   "sedentary",
   "light",
@@ -47,6 +72,14 @@ export const ACTIVITY_LEVELS = [
   "veryActive",
 ] as const;
 export type ActivityLevel = typeof ACTIVITY_LEVELS[number];
+
+export enum TrainerSelectionStatus {
+  PENDING = "pending",
+  ASSIGNED = "assigned",
+  NOT_CONFIRMED = "not_confirmed",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+}
 
 export const HTTP_STATUS = {
   OK: 200,
@@ -90,7 +123,10 @@ export const SUCCESS_MESSAGES = {
   WORKOUT_UPDATED: "Workout updated successfully",
   WORKOUT_STATUS_UPDATED: "Workout status updated successfully",
   WORKOUT_DELETED: "Workout deleted successfully",
-  PROGRESS_RECORDED: "Workout progress recorded successfully"
+  PROGRESS_RECORDED: "Workout progress recorded successfully",
+  TRAINER_SELECTION_SAVED: "Trainer selection preferences saved successfully",
+  TRAINER_ASSIGNED: "Trainer assigned successfully",
+  TRAINER_REQUEST_UPDATED: "Trainer request updated successfully",
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -148,7 +184,18 @@ export const ERROR_MESSAGES = {
   CATEGORY_NOT_FOUND: "Category Not Found",
   CURRENT_PASSWORD:"Current Password Wrong",
   WORKOUT_NOT_FOUND: "Workout not found",
-  INVALID_WORKOUT_DATA: "Invalid workout data provided"
+  INVALID_WORKOUT_DATA: "Invalid workout data provided",
+  PROFILE_UPDATE_FAILED: "Failed to update user profile",
+  INVALID_HEALTH_CONDITIONS: "healthConditions must be an array",
+  INVALID_WORKOUT_TYPE: "Invalid workout type provided",
+  INVALID_SKILL: "Invalid skill provided",
+  INVALID_TIME_RANGE: "Invalid sleep time range",
+  PREFERENCES_NOT_FOUND: "Trainer selection preferences not found",
+  TRAINER_REQUEST_NOT_FOUND: "Trainer request not found",
+  NO_MATCHING_TRAINERS: "No matching trainers found",
+  TRAINER_NOT_IN_MATCHED_LIST: "Trainer is not in the matched list",
+  TRAINER_NOT_APPROVED: "Trainer is not approved",
+  FAILED_TO_UPDATE_SELECTION: "Failed to update trainer selection",
 } as const;
 
 export const VERIFICATION_MAIL_CONTENT = (otp: string) => `
@@ -421,6 +468,72 @@ export const RE_REGISTRATION_MAIL_CONTENT = (trainerName: string): string => `
     </p>
   </div>
 
+  <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
+    <p style="margin: 0;">
+      © ${new Date().getFullYear()} StriveX. All rights reserved.
+    </p>
+  </div>
+</div>
+`;
+
+
+export const TRAINER_ACCEPTANCE_MAIL_CONTENT = (trainerName: string, clientName: string) => `
+<div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 48px; font-weight: bold; margin: 0;">
+      🏋️‍♀️ <span style="color: #6A36CD;">StriveX</span> 🏋️‍♂️
+    </h1>
+  </div>
+  <h2 style="color: #8A2BE2; text-align: center; margin-bottom: 30px; font-weight: 600;">
+    🎉 New Trainer Assignment, ${clientName}! 🎉
+  </h2>
+  <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: #555;">
+    Congratulations! You have accepted ${trainerName} as your new Trainer. Get ready to guide them on their fitness journey!
+  </p>
+  <div style="background: linear-gradient(135deg, #28A745 0%, #218838 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);">
+    <h1 style="color: white; font-size: 36px; margin: 0; font-weight: bold;">
+      Accepted ✅
+    </h1>
+  </div>
+  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e6e0fa; text-align: center;">
+    <p style="font-size: 14px; color: #777;">
+      Contact us at <a href="mailto:support@strivex.com" style="color: #8A2BE2; text-decoration: none; font-weight: bold;">support@strivex.com</a>
+    </p>
+  </div>
+  <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
+    <p style="margin: 0;">
+      © ${new Date().getFullYear()} StriveX. All rights reserved.
+    </p>
+  </div>
+</div>
+`;
+
+export const TRAINER_REJECTION_MAIL_CONTENT = (trainerName: string, clientName: string, rejectionReason: string) => `
+<div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 48px; font-weight: bold; margin: 0;">
+      🏋️‍♀️ <span style="color: #6A36CD;">StriveX</span> 🏋️‍♂️
+    </h1>
+  </div>
+  <h2 style="color: #DC3545; text-align: center; margin-bottom: 30px; font-weight: 600;">
+    Client Request Update, ${clientName}
+  </h2>
+  <p style="font-size: 16px; line-height: 1.5; margin-bottom: 20px; color: #555;">
+    You have rejected the request from ${trainerName}.
+  </p>
+  <div style="background: linear-gradient(135deg, #DC3545 0%, #C82333 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);">
+    <h1 style="color: white; font-size: 36px; margin: 0; font-weight: bold;">
+      Rejected ❌
+    </h1>
+    <p style="color: #f0f0f0; font-size: 15px; margin-top: 10px;">
+      Reason: ${rejectionReason}
+    </p>
+  </div>
+  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e6e0fa; text-align: center;">
+    <p style="font-size: 14px; color: #777;">
+      Contact us at <a href="mailto:support@strivex.com" style="color: #8A2BE2; text-decoration: none; font-weight: bold;">support@strivex.com</a>
+    </p>
+  </div>
   <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
     <p style="margin: 0;">
       © ${new Date().getFullYear()} StriveX. All rights reserved.

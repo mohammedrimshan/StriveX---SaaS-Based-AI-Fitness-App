@@ -62,7 +62,7 @@ export const TrainerLayout = () => {
             )}
             
             {/* Main content */}
-            <Outlet />
+            <Outlet context={user}/>
         </div>
     );
 };

@@ -19,10 +19,29 @@ import {
   Activity,
   Sparkles,
 } from "lucide-react";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "framer-motion";
@@ -31,21 +50,45 @@ import ProfileImageUploader from "@/components/common/ImageCropper/ProfileImageU
 import HealthConditions from "./ProfileMangement/HealthConditions";
 import WaterIntake from "./ProfileMangement/WaterIntake";
 import ResetPassword from "./ProfileMangement/ResetPassword";
-import { profileFormSchema, type ProfileFormValues } from "@/utils/validations/profile.validator";
+import {
+  profileFormSchema,
+  type ProfileFormValues,
+} from "@/utils/validations/profile.validator";
 import { useUpdateClientProfile } from "@/services/client/useUpdateProfile";
-import { useAllCategoryQuery } from "@/hooks/category/useAllCategory"; 
-import { getAllCategoriesForClients } from "@/services/client/clientService"; 
+import { useAllCategoryQuery } from "@/hooks/category/useAllCategory";
+import { getAllCategoriesForClients } from "@/services/client/clientService";
 import type { RootState } from "@/store/store";
 import { useToaster } from "@/hooks/ui/useToaster";
 
+// Mapping for API category titles to schema-compatible values
+const workoutTypeMapping: Record<string, string> = {
+  cardio: "Cardio",
+  CARDIO: "Cardio",
+  "cardio workout": "Cardio",
+  meditation: "Meditation",
+  MEDITATION: "Meditation",
+  pilates: "Pilates",
+  PILATES: "Pilates",
+  yoga: "Yoga",
+  YOGA: "Yoga",
+  calisthenics: "Calisthenics",
+  CALISTHENICS: "Calisthenics",
+};
+
 const ProfileForm: React.FC = () => {
-  const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
+  const [profileImage, setProfileImage] = useState<string | undefined>(
+    undefined
+  );
   const { successToast, errorToast } = useToaster();
   const clientData = useSelector((state: RootState) => state.client.client);
   const mutation = useUpdateClientProfile();
 
   // Fetch workout categories using useAllCategoryQuery
-  const { data: categoryResponse, isLoading: categoriesLoading, error: categoriesError } = useAllCategoryQuery(getAllCategoriesForClients);
+  const {
+    data: categoryResponse,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useAllCategoryQuery(getAllCategoriesForClients);
 
   // Extract categories array from the response, with a fallback
   const categories = categoryResponse?.categories || [];
@@ -61,7 +104,7 @@ const ProfileForm: React.FC = () => {
       weight: 70,
       fitnessGoal: "weightLoss",
       experienceLevel: "beginner",
-      preferredWorkout: "cardio",
+      preferredWorkout: "Cardio",
       dietPreference: "balanced",
       activityLevel: "moderate",
       healthConditions: [],
@@ -77,7 +120,50 @@ const ProfileForm: React.FC = () => {
 
   useEffect(() => {
     if (clientData) {
+      // Normalize and map preferred workout
+      const workoutKey = clientData.preferredWorkout?.toLowerCase();
+      const mappedPreferredWorkout = workoutKey
+        ? workoutTypeMapping[workoutKey]
+        : "Cardio";
+
+      const allowedWorkouts: ProfileFormValues["preferredWorkout"][] = [
+        "Cardio",
+        "Meditation",
+        "Pilates",
+        "Yoga",
+        "Calisthenics",
+      ];
+
+      const safePreferredWorkout = allowedWorkouts.includes(
+        mappedPreferredWorkout as any
+      )
+        ? (mappedPreferredWorkout as ProfileFormValues["preferredWorkout"])
+        : "Cardio";
+
+      // Validate diet preference
+      const allowedDietPreferences: ProfileFormValues["dietPreference"][] = [
+        "balanced",
+        "vegetarian",
+        "vegan",
+        "pescatarian",
+        "highProtein",
+        "lowCarb",
+        "lowFat",
+        "glutenFree",
+        "dairyFree",
+        "sugarFree",
+        "keto",
+        "noPreference",
+      ];
+
+      const safeDietPreference = allowedDietPreferences.includes(
+        clientData.dietPreference as ProfileFormValues["dietPreference"]
+      )
+        ? (clientData.dietPreference as ProfileFormValues["dietPreference"])
+        : "balanced";
+
       const newProfileImage = clientData.profileImage || "";
+
       form.reset({
         firstName: clientData.firstName || "",
         lastName: clientData.lastName || "",
@@ -87,16 +173,21 @@ const ProfileForm: React.FC = () => {
         weight: clientData.weight ?? 70,
         fitnessGoal: clientData.fitnessGoal ?? "weightLoss",
         experienceLevel: clientData.experienceLevel ?? "beginner",
-        preferredWorkout: clientData.preferredWorkout || "cardio",
-        dietPreference: clientData.dietPreference ?? "balanced",
+        preferredWorkout: safePreferredWorkout,
+        dietPreference: safeDietPreference,
         activityLevel: clientData.activityLevel ?? "moderate",
         healthConditions: clientData.healthConditions ?? [],
         waterIntake: clientData.waterIntake ?? 2000,
         profileImage: newProfileImage,
       });
+
       setProfileImage(newProfileImage);
     }
   }, [clientData, form]);
+
+  useEffect(() => {
+    console.log("Fetched categories:", categories);
+  }, [categories]);
 
   const handleImageChange = (newImage: string | null) => {
     const imageUrl = newImage || undefined;
@@ -127,7 +218,8 @@ const ProfileForm: React.FC = () => {
       await mutation.mutateAsync(apiData);
       successToast("Profile updated successfully");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to update profile";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to update profile";
       errorToast(errorMessage);
     }
   };
@@ -148,9 +240,13 @@ const ProfileForm: React.FC = () => {
         >
           <h1 className="text-3xl font-bold bg-gradient-to-r from-[#6d28d9] to-[#a21caf] bg-clip-text text-transparent tracking-tight flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-[var(--violet)]" />
-            {clientData ? `Welcome, ${clientData.firstName}!` : "Profile Settings"}
+            {clientData
+              ? `Welcome, ${clientData.firstName}!`
+              : "Profile Settings"}
           </h1>
-          <p className="text-gray-600 text-sm mt-1">Manage your account settings and preferences</p>
+          <p className="text-gray-600 text-sm mt-1">
+            Manage your account settings and preferences
+          </p>
         </motion.div>
 
         <Tabs defaultValue="personal" className="w-full">
@@ -222,7 +318,9 @@ const ProfileForm: React.FC = () => {
                                 name="firstName"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">First Name</FormLabel>
+                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                      First Name
+                                    </FormLabel>
                                     <FormControl>
                                       <div className="relative">
                                         <User className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
@@ -242,7 +340,9 @@ const ProfileForm: React.FC = () => {
                                 name="lastName"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">Last Name</FormLabel>
+                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                      Last Name
+                                    </FormLabel>
                                     <FormControl>
                                       <div className="relative">
                                         <User className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
@@ -264,7 +364,9 @@ const ProfileForm: React.FC = () => {
                               name="email"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">Email</FormLabel>
+                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                    Email
+                                  </FormLabel>
                                   <FormControl>
                                     <div className="relative">
                                       <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
@@ -287,7 +389,9 @@ const ProfileForm: React.FC = () => {
                               name="phoneNumber"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">Phone Number</FormLabel>
+                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                    Phone Number
+                                  </FormLabel>
                                   <FormControl>
                                     <div className="relative">
                                       <Phone className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
@@ -307,7 +411,10 @@ const ProfileForm: React.FC = () => {
                       </AnimatedItem>
                     </div>
                     <div className="mt-6 flex justify-end">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <Button
                           type="submit"
                           className="gap-2 h-9 px-4 bg-gradient-to-r from-[#6d28d9] to-[#a21caf] hover:from-[#5b21b6] hover:to-[#86198f] text-white shadow-md"
@@ -356,7 +463,9 @@ const ProfileForm: React.FC = () => {
                                   name="height"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">Height (cm)</FormLabel>
+                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                        Height (cm)
+                                      </FormLabel>
                                       <FormControl>
                                         <div className="relative">
                                           <Ruler className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
@@ -365,7 +474,11 @@ const ProfileForm: React.FC = () => {
                                             {...field}
                                             value={field.value ?? ""}
                                             onChange={(e) =>
-                                              field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                                              field.onChange(
+                                                e.target.value
+                                                  ? Number(e.target.value)
+                                                  : undefined
+                                              )
                                             }
                                             className="pl-8 h-9 text-sm border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)]"
                                           />
@@ -380,7 +493,9 @@ const ProfileForm: React.FC = () => {
                                   name="weight"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">Weight (kg)</FormLabel>
+                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                        Weight (kg)
+                                      </FormLabel>
                                       <FormControl>
                                         <div className="relative">
                                           <Weight className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
@@ -389,7 +504,11 @@ const ProfileForm: React.FC = () => {
                                             {...field}
                                             value={field.value ?? ""}
                                             onChange={(e) =>
-                                              field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                                              field.onChange(
+                                                e.target.value
+                                                  ? Number(e.target.value)
+                                                  : undefined
+                                              )
                                             }
                                             className="pl-8 h-9 text-sm border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)]"
                                           />
@@ -422,19 +541,34 @@ const ProfileForm: React.FC = () => {
                                   name="fitnessGoal"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">Fitness Goal</FormLabel>
+                                      <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                        Fitness Goal
+                                      </FormLabel>
                                       <FormControl>
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select
+                                          onValueChange={field.onChange}
+                                          value={field.value}
+                                        >
                                           <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
                                             <Target className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                             <SelectValue placeholder="Select a fitness goal" />
                                           </SelectTrigger>
                                           <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
-                                            <SelectItem value="weightLoss">Weight Loss</SelectItem>
-                                            <SelectItem value="muscleGain">Muscle Gain</SelectItem>
-                                            <SelectItem value="endurance">Endurance</SelectItem>
-                                            <SelectItem value="flexibility">Flexibility</SelectItem>
-                                            <SelectItem value="maintenance">Maintenance</SelectItem>
+                                            <SelectItem value="weightLoss">
+                                              Weight Loss
+                                            </SelectItem>
+                                            <SelectItem value="muscleGain">
+                                              Muscle Gain
+                                            </SelectItem>
+                                            <SelectItem value="endurance">
+                                              Endurance
+                                            </SelectItem>
+                                            <SelectItem value="flexibility">
+                                              Flexibility
+                                            </SelectItem>
+                                            <SelectItem value="maintenance">
+                                              Maintenance
+                                            </SelectItem>
                                           </SelectContent>
                                         </Select>
                                       </FormControl>
@@ -451,16 +585,27 @@ const ProfileForm: React.FC = () => {
                                         Experience Level
                                       </FormLabel>
                                       <FormControl>
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select
+                                          onValueChange={field.onChange}
+                                          value={field.value}
+                                        >
                                           <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
                                             <Activity className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                             <SelectValue placeholder="Select experience level" />
                                           </SelectTrigger>
                                           <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
-                                            <SelectItem value="beginner">Beginner</SelectItem>
-                                            <SelectItem value="intermediate">Intermediate</SelectItem>
-                                            <SelectItem value="advanced">Advanced</SelectItem>
-                                            <SelectItem value="expert">Expert</SelectItem>
+                                            <SelectItem value="beginner">
+                                              Beginner
+                                            </SelectItem>
+                                            <SelectItem value="intermediate">
+                                              Intermediate
+                                            </SelectItem>
+                                            <SelectItem value="advanced">
+                                              Advanced
+                                            </SelectItem>
+                                            <SelectItem value="expert">
+                                              Expert
+                                            </SelectItem>
                                           </SelectContent>
                                         </Select>
                                       </FormControl>
@@ -496,7 +641,10 @@ const ProfileForm: React.FC = () => {
                                       Preferred Workout
                                     </FormLabel>
                                     <FormControl>
-                                      <Select onValueChange={field.onChange} value={field.value}>
+                                      <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                      >
                                         <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
                                           <Dumbbell className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                           <SelectValue placeholder="Select workout type" />
@@ -511,17 +659,42 @@ const ProfileForm: React.FC = () => {
                                               Error loading categories
                                             </SelectItem>
                                           ) : categories.length > 0 ? (
-                                            categories.map((category) => (
-                                              <SelectItem
-                                                key={category._id}
-                                                value={category.title.toLowerCase()}
-                                              >
-                                                {category.title}
-                                              </SelectItem>
-                                            ))
+                                            categories
+                                              .filter((category) => {
+                                                const normalizedTitle =
+                                                  category.title.toLowerCase();
+                                                return Object.keys(
+                                                  workoutTypeMapping
+                                                ).some(
+                                                  (key) =>
+                                                    key.toLowerCase() ===
+                                                    normalizedTitle
+                                                );
+                                              })
+                                              .map((category) => {
+                                                const normalizedTitle =
+                                                  category.title.toLowerCase();
+                                                const schemaValue =
+                                                  Object.entries(
+                                                    workoutTypeMapping
+                                                  ).find(
+                                                    ([key]) =>
+                                                      key.toLowerCase() ===
+                                                      normalizedTitle
+                                                  )?.[1] || "Cardio";
+
+                                                return (
+                                                  <SelectItem
+                                                    key={category._id}
+                                                    value={schemaValue}
+                                                  >
+                                                    {category.title}
+                                                  </SelectItem>
+                                                );
+                                              })
                                           ) : (
-                                            <SelectItem value="" disabled>
-                                              No categories available
+                                            <SelectItem value="Cardio">
+                                              Default: Cardio
                                             </SelectItem>
                                           )}
                                         </SelectContent>
@@ -537,19 +710,34 @@ const ProfileForm: React.FC = () => {
                                 name="activityLevel"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">Activity Level</FormLabel>
+                                    <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                      Activity Level
+                                    </FormLabel>
                                     <FormControl>
-                                      <Select onValueChange={field.onChange} value={field.value}>
+                                      <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                      >
                                         <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
                                           <Activity className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                           <SelectValue placeholder="Select activity level" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
-                                          <SelectItem value="sedentary">Sedentary</SelectItem>
-                                          <SelectItem value="light">Light</SelectItem>
-                                          <SelectItem value="moderate">Moderate</SelectItem>
-                                          <SelectItem value="active">Active</SelectItem>
-                                          <SelectItem value="veryActive">Very Active</SelectItem>
+                                          <SelectItem value="sedentary">
+                                            Sedentary
+                                          </SelectItem>
+                                          <SelectItem value="light">
+                                            Light
+                                          </SelectItem>
+                                          <SelectItem value="moderate">
+                                            Moderate
+                                          </SelectItem>
+                                          <SelectItem value="active">
+                                            Active
+                                          </SelectItem>
+                                          <SelectItem value="veryActive">
+                                            Very Active
+                                          </SelectItem>
                                         </SelectContent>
                                       </Select>
                                     </FormControl>
@@ -564,26 +752,55 @@ const ProfileForm: React.FC = () => {
                               name="dietPreference"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">Diet Preference</FormLabel>
+                                  <FormLabel className="text-xs font-medium text-[#6d28d9]">
+                                    Diet Preference
+                                  </FormLabel>
                                   <FormControl>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select
+                                      onValueChange={field.onChange}
+                                      value={field.value}
+                                    >
                                       <SelectTrigger className="border-[var(--input)] focus:ring-[var(--violet)] focus:border-[var(--violet)] h-9 pl-8">
                                         <Utensils className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--violet)]" />
                                         <SelectValue placeholder="Select diet preference" />
                                       </SelectTrigger>
                                       <SelectContent className="bg-[var(--popover)] text-[var(--popover-foreground)]">
-                                        <SelectItem value="balanced">Normal / Balanced Diet</SelectItem>
-                                        <SelectItem value="vegetarian">Vegetarian</SelectItem>
-                                        <SelectItem value="vegan">Vegan</SelectItem>
-                                        <SelectItem value="pescatarian">Pescatarian</SelectItem>
-                                        <SelectItem value="highProtein">High Protein</SelectItem>
-                                        <SelectItem value="lowCarb">Low Carb</SelectItem>
-                                        <SelectItem value="lowFat">Low Fat</SelectItem>
-                                        <SelectItem value="glutenFree">Gluten-Free</SelectItem>
-                                        <SelectItem value="dairyFree">Dairy-Free</SelectItem>
-                                        <SelectItem value="sugarFree">Sugar-Free</SelectItem>
-                                        <SelectItem value="keto">Keto</SelectItem>
-                                        <SelectItem value="noPreference">No Preference</SelectItem>
+                                        <SelectItem value="balanced">
+                                          Normal / Balanced Diet
+                                        </SelectItem>
+                                        <SelectItem value="vegetarian">
+                                          Vegetarian
+                                        </SelectItem>
+                                        <SelectItem value="vegan">
+                                          Vegan
+                                        </SelectItem>
+                                        <SelectItem value="pescatarian">
+                                          Pescatarian
+                                        </SelectItem>
+                                        <SelectItem value="highProtein">
+                                          High Protein
+                                        </SelectItem>
+                                        <SelectItem value="lowCarb">
+                                          Low Carb
+                                        </SelectItem>
+                                        <SelectItem value="lowFat">
+                                          Low Fat
+                                        </SelectItem>
+                                        <SelectItem value="glutenFree">
+                                          Gluten-Free
+                                        </SelectItem>
+                                        <SelectItem value="dairyFree">
+                                          Dairy-Free
+                                        </SelectItem>
+                                        <SelectItem value="sugarFree">
+                                          Sugar-Free
+                                        </SelectItem>
+                                        <SelectItem value="keto">
+                                          Keto
+                                        </SelectItem>
+                                        <SelectItem value="noPreference">
+                                          No Preference
+                                        </SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </FormControl>
@@ -649,7 +866,9 @@ const ProfileForm: React.FC = () => {
                                     <FormControl>
                                       <WaterIntake
                                         value={field.value ?? 0}
-                                        onChange={(value) => field.onChange(value ?? undefined)}
+                                        onChange={(value) =>
+                                          field.onChange(value ?? undefined)
+                                        }
                                       />
                                     </FormControl>
                                     <FormMessage className="text-xs mt-1 text-[var(--destructive)]" />
@@ -663,7 +882,10 @@ const ProfileForm: React.FC = () => {
                     </div>
 
                     <div className="mt-6 flex justify-end">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <Button
                           type="submit"
                           className="gap-2 h-9 px-4 bg-gradient-to-r from-[#6d28d9] to-[#a21caf] hover:from-[#5b21b6] hover:to-[#86198f] text-white shadow-md"

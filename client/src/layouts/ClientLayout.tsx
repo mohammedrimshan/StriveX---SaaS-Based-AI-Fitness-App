@@ -61,7 +61,7 @@ export const ClientLayout = () => {
 			)}
 			
 			{/* Main content */}
-			<Outlet />
+			<Outlet context={user}/>
 		</div>
 	);
 };

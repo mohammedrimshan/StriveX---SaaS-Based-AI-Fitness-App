@@ -39,13 +39,13 @@ export const useFetchAllTrainers = ({
         return data;
       } catch (error) {
         console.error("Error in getAllTrainers:", error);
-        throw error; // Let React Query handle the error
+        throw error; 
       }
     },
     enabled,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000,   // 10 minutes
-    placeholderData: (previousData) => previousData, // Keep previous data during fetch
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,   
+    placeholderData: (previousData) => previousData, 
     onError: (error: any) => {
       console.error("Query error:", error);
     },

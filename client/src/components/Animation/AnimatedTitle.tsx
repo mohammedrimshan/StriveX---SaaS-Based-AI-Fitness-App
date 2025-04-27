@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 interface AnimatedTitleProps {
   title: string
   subtitle?: string
+  className?: string
 }
 
 export default function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {

@@ -80,6 +80,37 @@ export interface CategoryResponse {
   totalCategory: number;
 }
 
+
+// Interface for trainer request data
+export interface TrainerRequest {
+  id: string;
+  client: string;
+  preferences: {
+    workoutType?: string;
+    fitnessGoal?: string;
+    skillLevel?: string;
+    skillsToGain: string[];
+  };
+  matchedTrainers: { id: string; name: string }[];
+  selectedTrainer: { id: string; name: string } | null;
+  status: string;
+}
+
+// Interface for paginated trainer requests response
+export interface TrainerRequestsPaginatedResponse {
+  success: boolean;
+  requests: TrainerRequest[];
+  totalPages: number;
+  currentPage: number;
+  totalRequests: number;
+}
+
+// Interface for update trainer request payload
+export interface UpdateTrainerRequestData {
+  clientId: string;
+  trainerId: string;
+}
+
 export const getAllUsers = async <T extends IClient | ITrainer>({
   userType,
   page = 1,
@@ -342,3 +373,34 @@ export const addMembershipPlan = async (planData: {
 	  throw new Error(error.response?.data?.message || "Failed to fetch membership plans");
 	}
   };
+
+
+  export const getTrainerRequests = async ({
+    page = 1,
+    limit = 10,
+    search = "",
+  }: {
+    page: number;
+    limit: number;
+    search: string;
+  }): Promise<TrainerRequestsPaginatedResponse> => {
+    const response = await adminAxiosInstance.get<IAxiosResponse<TrainerRequestsPaginatedResponse>>(
+      "/admin/trainer-requests",
+      {
+        params: { page, limit, search },
+      }
+    );
+    return response.data.data;
+  };
+
+  
+  export const updateTrainerRequest = async (
+    data: UpdateTrainerRequestData
+  ): Promise<IAxiosResponse> => {
+    const response = await adminAxiosInstance.put<IAxiosResponse>(
+      "/admin/trainer-request",
+      data
+    );
+    return response.data;
+  };
+  

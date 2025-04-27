@@ -5,6 +5,7 @@ import { IClientRepository } from "@/entities/repositoryInterfaces/client/client
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
+import { calculatePagination } from "@/shared/utils/pagination";
 
 @injectable()
 export class GetAllUsersUseCase implements IGetAllUsersUseCase {
@@ -19,9 +20,11 @@ export class GetAllUsersUseCase implements IGetAllUsersUseCase {
     pageSize: number,
     searchTerm: string
   ): Promise<PaginatedUsers> {
+    const { skip, limit, page } = calculatePagination({ page: pageNumber, limit: pageSize });
+
     let filter: any = {};
     if (userType) {
-      filter.role = userType; 
+      filter.role = userType;
     }
 
     if (searchTerm) {
@@ -32,29 +35,25 @@ export class GetAllUsersUseCase implements IGetAllUsersUseCase {
       ];
     }
 
-    const validPageNumber = Math.max(1, pageNumber);
-    const validPageSize = Math.max(1, pageSize);
-    const skip = (validPageNumber - 1) * validPageSize;
-    const limit = validPageSize;
+    let items: any[] = [];
+    let total = 0;
 
     if (userType === "client") {
-      const { items:user, total } = await this._clientRepository.find(filter, skip, limit);
-      return {
-        user,
-        total: Math.ceil(total / validPageSize),
-      };
-    }
-    if (userType === "trainer") {
-      const { items:trainers, total } = await this._trainerRepository.find(filter, skip, limit);
-      return {
-        user: trainers, // Normalized to 'user' for PaginatedUsers
-        total: Math.ceil(total / validPageSize),
-      };
+      ({ items, total } = await this._clientRepository.find(filter, skip, limit));
+    } else if (userType === "trainer") {
+      ({ items, total } = await this._trainerRepository.find(filter, skip, limit));
+    } else {
+      throw new CustomError(
+        "Invalid user type. Expected 'client' or 'trainer'.",
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
-    throw new CustomError(
-      "Invalid user type. Expected 'client' or 'trainer'.",
-      HTTP_STATUS.BAD_REQUEST
-    );
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      user: items,
+      total: totalPages,
+    };
   }
 }
