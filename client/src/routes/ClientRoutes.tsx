@@ -19,6 +19,8 @@ import { TrainerSelectionPromptPage } from "@/pages/client/TrainerSelectionPromp
 import { TrainerPreferencesPage } from "@/pages/client/TrainerPreference";
 import { MatchedTrainersPage } from "@/pages/client/MatchedTrainersList";
 import ManualTrainersListing from "@/pages/client/ManualTrainer";
+import BookingPage from "@/pages/client/BookingPage";
+import { ChatLayout } from "@/components/Chat/ChatLayout";
 export const ClientRoutes = () => {
   return (
     <Routes>
@@ -139,6 +141,20 @@ export const ClientRoutes = () => {
             />
           }
         />
+        <Route
+          path="/booking"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<BookingPage />}
+            />
+          }
+        />
+
+
+          <Route path="/chat" element={
+                          <AuthRoute allowedRoles={["client"]} element={<ChatLayout />} />
+                        } />
         {/* Add more protected routes as needed */}
       </Route>
       <Route

@@ -223,7 +223,6 @@ export class PaymentController implements IPaymentController {
             throw new CustomError("Missing payment intent ID in charge", HTTP_STATUS.BAD_REQUEST);
           }
           if (!clientId) {
-            // Fallback: Retrieve clientId from payment record using stripePaymentId
             const payment = await this._paymentRepository.findByStripePaymentId(stripePaymentId);
             clientId = payment?.clientId;
             if (!clientId) {

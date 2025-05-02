@@ -12,6 +12,8 @@ import {
   categoryController,
   dietWorkoutController,
   paymentController,
+  slotController,
+  chatController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -117,7 +119,6 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-
     // Get workouts by category
     router.get(
       "/client/workouts/category/:categoryId",
@@ -139,7 +140,6 @@ export class ClientRoutes extends BaseRoute {
         dietWorkoutController.getAllWorkouts(req, res);
       }
     );
-
 
     router.get(
       "/client/trainers",
@@ -181,15 +181,12 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-    router.post(
-      "/client/payment/webhook",
-      (req: Request, res: Response) => {
-        paymentController.handleWebhook(req, res);
-      }
-    );
+    router.post("/client/payment/webhook", (req: Request, res: Response) => {
+      paymentController.handleWebhook(req, res);
+    });
 
-     // Save trainer selection preferences
-     router.post(
+    // Save trainer selection preferences
+    router.post(
       "/client/trainer-preferences",
       verifyAuth,
       authorizeRole(["client"]),
@@ -238,6 +235,89 @@ export class ClientRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         userController.manualSelectTrainer(req, res);
+      }
+    );
+
+    router.get(
+      "/client/trainerslots",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.getSelectedTrainerSlots(req, res);
+      }
+    );
+
+    // Book a slot (client only)
+    router.post(
+      "/client/book",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.bookSlot(req, res);
+      }
+    );
+
+    // Cancel a booking (client only)
+    router.post(
+      "/client/cancel",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.cancelBooking(req, res);
+      }
+    );
+
+    router.get(
+      "/client/bookings",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.getUserBookings(req, res);
+      }
+    );
+
+    //chat
+    router.get(
+      "/client/chats/history/:trainerId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        chatController.getChatHistory(req, res);
+      }
+    );
+
+    router.get(
+      "/client/chats/recent",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        chatController.getRecentChats(req, res);
+      }
+    );
+
+    router.get(
+      "/client/chats/participants",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        chatController.getChatParticipants(req, res);
+      }
+    );
+
+    router.delete(
+      "/client/chats/messages/:messageId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        chatController.deleteMessage(req, res);
       }
     );
   }

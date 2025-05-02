@@ -17,6 +17,9 @@ export interface Client {
 	dietPreference?: string;
 	preferredWorkout?:string;
 	workoutExperience?:string;
+	selectStatus?: string;
+	isPremium?: boolean;
+	isActive?: boolean;
 	height?: number;
 	weight?: number;
 }

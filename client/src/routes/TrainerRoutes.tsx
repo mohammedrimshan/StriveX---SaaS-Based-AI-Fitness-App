@@ -8,6 +8,8 @@ import ResetPassword from "@/components/auth/ResetPassword";
 import TrainerLanding from "@/components/landing/TrainerLanding";
 import TrainerProfilePage from "@/pages/trainer/ProfileManagement";
 import ClientRequestTable from "@/pages/trainer/ClientRequestManagement";
+import TrainerSlotPage from "@/pages/Slot/CreateSlot";
+import { ChatLayout } from "@/components/Chat/ChatLayout";
 export const TrainerRoutes = () => {
   return (
     <Routes>
@@ -38,6 +40,15 @@ export const TrainerRoutes = () => {
         {/* <Route path="profileform" element={<TrainerPostRegistrationForm />} /> */}
         <Route path="/clientrequest" element={
                   <TrainerAuthRoute allowedRoles={["trainer"]} element={<ClientRequestTable />} />
+                } />
+
+
+        
+          <Route path="/slotadd" element={
+                  <TrainerAuthRoute allowedRoles={["trainer"]} element={<TrainerSlotPage />} />
+                } />
+          <Route path="/chat" element={
+                  <TrainerAuthRoute allowedRoles={["trainer"]} element={<ChatLayout />} />
                 } />
         {/* Add more admin routes here as needed */}
       </Route>

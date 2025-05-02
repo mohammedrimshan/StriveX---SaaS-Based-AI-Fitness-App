@@ -14,7 +14,7 @@ import { PaginatedTrainersResponse } from "@/types/Response";
 import { PaginatedResponse } from "@/types/Response";
 import { Workout } from "@/types/Workouts";
 import { MembershipPlansPaginatedResponse } from "@/types/membership";
-
+import { SlotsResponse,BookSlotData,CancelSlotData,UserBookingsResponse } from "@/types/Slot";
 
 export interface CreateCheckoutSessionData {
   trainerId: string;
@@ -322,4 +322,63 @@ export const selectTrainerFromMatchedList = async (
     }
   );
   return response.data.data;
+};
+
+
+
+export const getTrainerSlots = async (): Promise<SlotsResponse> => {
+  try {
+    const response = await clientAxiosInstance.get<SlotsResponse>(
+      `/client/trainerslots`
+    );
+    console.log("Trainer slots:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Get trainer slots error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to fetch trainer slots");
+  }
+};
+
+// Book a slot
+export const bookSlot = async (data: BookSlotData): Promise<SlotsResponse> => {
+  try {
+    const response = await clientAxiosInstance.post<SlotsResponse>(
+      "/client/book",
+      data
+    );
+    console.log("Slot booked:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Book slot error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to book slot");
+  }
+};
+
+// Cancel a booking
+export const cancelBooking = async (data: CancelSlotData): Promise<SlotsResponse> => {
+  try {
+    const response = await clientAxiosInstance.post<SlotsResponse>(
+      "/client/cancel",
+      data
+    );
+    console.log("Booking cancelled:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Cancel booking error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to cancel booking");
+  }
+};
+
+
+export const getBookingDetials = async (): Promise<UserBookingsResponse> => {
+  try {
+    const response = await clientAxiosInstance.get<UserBookingsResponse>(
+      `/client/bookings`
+    );
+    console.log("Booking:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Get trainer slots error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to fetch trainer slots");
+  }
 };

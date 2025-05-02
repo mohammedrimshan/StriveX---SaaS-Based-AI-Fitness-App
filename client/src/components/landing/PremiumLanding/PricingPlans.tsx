@@ -284,7 +284,7 @@ export default function PricingPlans() {
           planPrice={selectedPlan.price}
           planInterval={isYearly ? "total" : "month"}
           planId={selectedPlan.id}
-          trainerId={null} // Replace with actual trainerId if needed
+          trainerId={null} 
           onConfirm={handleAgreementConfirmed}
         />
       )}

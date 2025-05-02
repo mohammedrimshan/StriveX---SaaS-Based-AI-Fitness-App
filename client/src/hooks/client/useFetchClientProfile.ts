@@ -1,6 +1,6 @@
 // src/services/client/useFetchClientProfile.ts
-import { useQuery } from "@tanstack/react-query"; // Or your preferred data-fetching library
-import { clientAxiosInstance } from "@/api/client.axios"; // Adjust to your API client
+import { useQuery } from "@tanstack/react-query"; 
+import { clientAxiosInstance } from "@/api/client.axios"; 
 import {Client} from '@/store//slices/client.slice'
 export const useFetchClientProfile = (clientId: string | undefined) => {
   return useQuery<Client>({

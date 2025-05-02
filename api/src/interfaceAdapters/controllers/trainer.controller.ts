@@ -297,7 +297,7 @@ export class TrainerController implements ITrainerController {
         throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
       }
 
-      if (!clientId || !action || (action === "reject" && !rejectionReason)) {
+      if (!clientId || !action) {
         throw new CustomError(ERROR_MESSAGES.MISSING_PARAMETERS, HTTP_STATUS.BAD_REQUEST);
       }
 

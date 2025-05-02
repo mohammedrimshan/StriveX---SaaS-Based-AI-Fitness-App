@@ -10,6 +10,8 @@ import {
   authController,
   trainerController,
   categoryController,
+  slotController,
+  chatController
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -113,5 +115,74 @@ export class TrainerRoutes extends BaseRoute {
         trainerController.acceptRejectClientRequest(req, res);
       }
     );
+
+
+    router.post(
+          "/trainer/create",
+          verifyAuth,
+          authorizeRole(["trainer"]),
+          blockStatusMiddleware.checkStatus as RequestHandler,
+          (req: Request, res: Response) => {
+            slotController.createSlot(req, res);
+          }
+        );
+    
+
+        router.get(
+          "/trainer/trainerslots",
+          verifyAuth,
+          authorizeRole(["trainer"]),
+          blockStatusMiddleware.checkStatus as RequestHandler,
+          (req: Request, res: Response) => {
+            slotController.getTrainerSlots(req, res);
+          }
+        );
+
+
+
+
+        //chat
+        router.get(
+              "/trainer/chats/history/:trainerId",
+              verifyAuth,
+              authorizeRole([ "trainer"]),
+              blockStatusMiddleware.checkStatus as RequestHandler,
+              (req: Request, res: Response) => {
+                chatController.getChatHistory(req, res);
+              }
+            );
+        
+           
+            router.get(
+              "/trainer/chats/recent",
+              verifyAuth,
+              authorizeRole([ "trainer"]),
+              blockStatusMiddleware.checkStatus as RequestHandler,
+              (req: Request, res: Response) => {
+                chatController.getRecentChats(req, res);
+              }
+            );
+        
+           
+            router.get(
+              "/trainer/chats/participants",
+              verifyAuth,
+              authorizeRole([ "trainer"]),
+              blockStatusMiddleware.checkStatus as RequestHandler,
+              (req: Request, res: Response) => {
+                chatController.getChatParticipants(req, res);
+              }
+            );
+        
+            
+            router.delete(
+              "/trainer/chats/messages/:messageId",
+              verifyAuth,
+              authorizeRole([ "trainer"]),
+              blockStatusMiddleware.checkStatus as RequestHandler,
+              (req: Request, res: Response) => {
+                chatController.deleteMessage(req, res);
+              }
+            );
   }
 }

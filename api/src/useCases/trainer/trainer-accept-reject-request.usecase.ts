@@ -106,9 +106,9 @@ export class TrainerAcceptRejectRequestUseCase implements ITrainerAcceptRejectRe
 
     // Handle reject action
     if (action === "reject") {
-      if (!rejectionReason) {
-        throw new CustomError("Rejection reason is required", HTTP_STATUS.BAD_REQUEST);
-      }
+    //   if (!rejectionReason) {
+    //     throw new CustomError("Rejection reason is required", HTTP_STATUS.BAD_REQUEST);
+    //   }
       const updates: Partial<IClientEntity> = {
         selectStatus: TrainerSelectionStatus.REJECTED,
         selectedTrainerId: undefined,
@@ -121,7 +121,7 @@ export class TrainerAcceptRejectRequestUseCase implements ITrainerAcceptRejectRe
       // Send rejection email
       const clientName = `${client.firstName} ${client.lastName}`;
       const trainerName = `${trainer.firstName} ${trainer.lastName}`;
-      const emailContent = TRAINER_REJECTION_MAIL_CONTENT(trainerName, clientName, rejectionReason);
+      const emailContent = TRAINER_REJECTION_MAIL_CONTENT(trainerName, clientName,  rejectionReason ?? "No reason provided.");
       console.log("Sending rejection email:", {
         clientEmail: client.email,
         subject: "Client Request Rejected",

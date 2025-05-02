@@ -1,10 +1,11 @@
-// api\src\interfaceAdapters\repositories\trainer\trainer.repository.ts
+// api/src/interfaceAdapters/repositories/trainer/trainer.repository.ts
 import { injectable } from "tsyringe";
 import { ITrainerEntity } from "@/entities/models/trainer.entity";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { TrainerModel } from "@/frameworks/database/mongoDB/models/trainer.model";
 import { TrainerApprovalStatus } from "@/shared/constants";
 import { BaseRepository } from "../base.repository";
+
 @injectable()
 export class TrainerRepository extends BaseRepository<ITrainerEntity> implements ITrainerRepository {
   constructor() {
@@ -23,7 +24,9 @@ export class TrainerRepository extends BaseRepository<ITrainerEntity> implements
   }
 
   async findById(id: string): Promise<ITrainerEntity | null> {
-    const trainer = await this.model.findById(id).lean();
+    console.log(`Querying trainer with id or clientId: ${id}`);
+    const trainer = await this.model.findOne({ $or: [{ _id: id }, { clientId: id }] }).lean();
+    console.log(`Trainer query result: ${JSON.stringify(trainer)}`);
     if (!trainer) return null;
     return this.mapToEntity(trainer);
   }
@@ -63,7 +66,6 @@ export class TrainerRepository extends BaseRepository<ITrainerEntity> implements
     return this.mapToEntity(trainer);
   }
 
-  // update trainer approval status and rejection reason 
   async updateApprovalStatus(
     id: string,
     status: TrainerApprovalStatus,

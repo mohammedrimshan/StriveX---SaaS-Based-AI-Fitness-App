@@ -12,7 +12,6 @@ import { useCreateCheckoutSession } from "@/hooks/payment/useCreateCheckoutSessi
 import { CreateCheckoutSessionData } from "@/services/client/clientService";
 import { toast } from "react-hot-toast";
 
-// Define props interface for MembershipPaymentFlow
 interface MembershipPaymentFlowProps {
   isOpen: boolean;
   onClose: () => void;

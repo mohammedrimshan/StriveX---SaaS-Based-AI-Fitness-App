@@ -9,8 +9,13 @@ import { CategoryController } from "@/interfaceAdapters/controllers/category.con
 import { DietWorkoutController } from "@/interfaceAdapters/controllers/diet-workout.controller";
 import { PaymentController } from "@/interfaceAdapters/controllers/payment.controller";
 import { HealthController } from "@/interfaceAdapters/controllers/health-check.controller";
-
+import { SlotController } from "@/interfaceAdapters/controllers/slot.controller";
+import { IChatController } from "@/entities/controllerInterfaces/chat.controller.interface";
+import { ChatController } from "@/interfaceAdapters/controllers/chat.controller";
+import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 DependancyInjection.registerAll();
+
+export const processor = container.resolve<SlotExpiryProcessor>("SlotExpiryProcessor");
 
 export const blockStatusMiddleware = container.resolve(BlockStatusMiddleware);
 
@@ -29,3 +34,7 @@ export const dietWorkoutController = container.resolve(DietWorkoutController);
 export const paymentController = container.resolve(PaymentController);
 
 export const healthController = container.resolve(HealthController);
+
+export const slotController = container.resolve(SlotController);
+
+export const chatController = container.resolve(ChatController);

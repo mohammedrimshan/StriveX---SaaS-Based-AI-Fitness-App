@@ -44,7 +44,7 @@ const navItems = {
     {
       title: "Calendar",
       icon: Calendar,
-      path: "/calendar",
+      path: "/booking",
     },
     {
       title: "Subscription",
@@ -76,7 +76,7 @@ const navItems = {
     {
       title: "Schedule",
       icon: Calendar,
-      path: "/trainer/schedule",
+      path: "/trainer/slotadd",
     },
     {
       title: "Workout Plans",

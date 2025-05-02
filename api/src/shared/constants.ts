@@ -4,6 +4,12 @@ export const ROLES = {
   TRAINER: "trainer"
 } as const;
 
+export enum MessageStatus {
+  SENT = "sent",
+  DELIVERED = "delivered",
+  READ = "read"
+}
+
 export type TRole = "client" | "trainer" | "admin";
 
 export enum TrainerApprovalStatus {
@@ -12,6 +18,10 @@ export enum TrainerApprovalStatus {
   REJECTED = "rejected",
 }
 
+export enum SlotStatus {
+  AVAILABLE = "available",
+  BOOKED = "booked",
+}
 
 export const WORKOUT_TYPES = [
   "yoga",

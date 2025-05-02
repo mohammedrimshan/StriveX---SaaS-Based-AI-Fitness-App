@@ -28,6 +28,11 @@ import { IPaymentRepository } from "@/entities/repositoryInterfaces/Stripe/payme
 import { PaymentRepository } from "@/interfaceAdapters/repositories/stripe/payment.repository";
 import { IEventRepository } from "@/entities/repositoryInterfaces/ebhook-event-repository.interface";
 import { EventRepository } from "@/interfaceAdapters/repositories/webhook-event.repository";
+import { ISlotRepository } from "@/entities/repositoryInterfaces/slot/slot-repository.interface";
+import { SlotRepository } from "@/interfaceAdapters/repositories/slot/slot.repository";
+import { IMessageRepository } from "@/entities/repositoryInterfaces/chat/message-repository.interface";
+import { MessageRepository } from "@/interfaceAdapters/repositories/chat/message.repository";
+
 export class RepositoryRegistry {
   static registerRepositories(): void {
     container.register<IClientRepository>("IClientRepository", {
@@ -85,5 +90,14 @@ export class RepositoryRegistry {
     container.register<IEventRepository>("IEventRepository", {
       useClass: EventRepository,
     });
+
+    container.register<ISlotRepository>("ISlotRepository", {
+      useClass: SlotRepository,
+    });
+
+    container.register<IMessageRepository>("IMessageRepository", {
+      useClass: MessageRepository,
+    });
+
   }
 }

@@ -1,3 +1,4 @@
+// D:\StriveX\api\src\interfaceAdapters\repositories\client\client.repository.ts
 import { injectable } from "tsyringe";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
 import { ClientModel } from "@/frameworks/database/mongoDB/models/client.model";
@@ -21,10 +22,12 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
   }
 
   async findByClientId(clientId: string): Promise<IClientEntity | null> {
-    console.log(`Querying client with clientId: ${clientId}`);
-    const doc = await this.model.findOne({ clientId }).lean();
-    console.log(`Query result: ${JSON.stringify(doc)}`);
-    return doc ? this.mapToEntity(doc) : null;
+    console.log(`Querying client with id or clientId: ${clientId}`);
+    const byId = await this.model.findById(clientId).lean();
+    console.log(`Result by _id: ${JSON.stringify(byId)}`);
+    const byClientId = byId || (await this.model.findOne({ clientId }).lean());
+    console.log(`Result by clientId: ${JSON.stringify(byClientId)}`);
+    return byClientId ? this.mapToEntity(byClientId) : null;
   }
 
   async updateByClientId(clientId: string, updates: Partial<IClientEntity>): Promise<IClientEntity | null> {

@@ -2,12 +2,11 @@
   "name": "api",
   "version": "1.0.0",
   "description": "A Fitness Coaching & AI Diet Planner API",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon --watch ./src --exec ts-node src/index.ts",
-    "watch": "tsc -w"
+    "dev": "nodemon --watch ./src --exec ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -30,6 +29,7 @@
     "@google/generative-ai": "^0.24.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
+    "bull": "^4.16.5",
     "cloudinary": "^2.6.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -51,6 +51,7 @@
     "qrcode": "^1.5.4",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
+    "socket.io": "^4.8.1",
     "stripe": "^18.0.0",
     "tsyringe": "^4.8.0",
     "uuid": "^11.1.0",

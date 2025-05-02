@@ -25,6 +25,7 @@ import { CloudinaryService } from "@/interfaceAdapters/services/cloudinary.servi
 import { GeminiService } from "@/interfaceAdapters/services/gemini.service";
 import { IStripeService } from "@/entities/services/stripe-service.interface";
 import { StripeService } from "@/interfaceAdapters/services/stripe.service";
+import { SocketService } from "@/interfaceAdapters/services/socket.service";
 
 import { IRegisterUserUseCase } from "../../entities/useCaseInterfaces/auth/register-usecase.interface";
 import { RegisterUserUseCase } from "../../useCases/auth/register-user.usecase";
@@ -134,6 +135,31 @@ import { IGetPendingClientRequestsUseCase } from "@/entities/useCaseInterfaces/t
 import { GetPendingClientRequestsUseCase } from "@/useCases/trainer/get-pending-request-usecase";
 import { ITrainerAcceptRejectRequestUseCase } from "@/entities/useCaseInterfaces/trainer/trainer-accept-reject-request-usecase.interface";
 import { TrainerAcceptRejectRequestUseCase } from "@/useCases/trainer/trainer-accept-reject-request.usecase";
+import { IBookSlotUseCase } from "@/entities/useCaseInterfaces/slot/book-slot-usecase.interface";
+import { BookSlotUseCase } from "@/useCases/slot/book-slot.usecase";
+import { ICreateSlotUseCase } from "@/entities/useCaseInterfaces/slot/create-slot-usecase.interface";
+import { CreateSlotUseCase } from "@/useCases/slot/create-slot.usecase";
+import { IGetTrainerSlotsUseCase } from "@/entities/useCaseInterfaces/slot/get-trainer-slots-usecase.interface";
+import { GetTrainerSlotsUseCase } from "@/useCases/slot/get-trainer-slots.usecase";
+import { ICancelBookingUseCase } from "@/entities/useCaseInterfaces/slot/cancel-booking-usecase.interface";
+import { CancelBookingUseCase } from "@/useCases/slot/cancel-booking.usecase";
+import { IGetSelectedTrainerSlotsUseCase } from "@/entities/useCaseInterfaces/slot/get-selected-trainer-slots-usecase.interface";
+import { GetSelectedTrainerSlotsUseCase } from "@/useCases/slot/get-selected-trainer-slots.usecase";
+import { IToggleSlotAvailabilityUseCase } from "@/entities/useCaseInterfaces/slot/chage-slot-status-usecase.interface";
+import { ToggleSlotAvailabilityUseCase } from "@/useCases/slot/update-slot-status.usecase";
+import { IGetUserBookingsUseCase } from "@/entities/useCaseInterfaces/slot/get-user-bookings.usecase.interface";
+import { GetUserBookingsUseCase } from "@/useCases/slot/get-user-bookings.usecase";
+import { IGetChatHistoryUseCase } from "@/entities/useCaseInterfaces/chat/get-chat-history-usecase.interface";
+import { GetChatHistoryUseCase } from "@/useCases/chat/get-chat-history.usecase";
+import { IGetChatParticipantsUseCase } from "@/entities/useCaseInterfaces/chat/get-chat-participants-usecase.interface";
+import { GetChatParticipantsUseCase } from "@/useCases/chat/get-chat-participants.usecase";
+import { IGetRecentChatsUseCase } from "@/entities/useCaseInterfaces/chat/get-recent-chats-usecase.interface";
+import { GetRecentChatsUseCase } from "@/useCases/chat/get-recent-chats.usecase";
+import { IValidateChatPermissionsUseCase } from "@/entities/useCaseInterfaces/chat/validate-chat-permissions-usecase.interface";
+import { ValidateChatPermissionsUseCase } from "@/useCases/chat/validate-chat-permissions.usecase";
+import { IDeleteMessageUseCase } from "@/entities/useCaseInterfaces/chat/delete-message-usecase.interface";
+import { DeleteMessageUseCase } from "@/useCases/chat/delete-message.usecase";
+import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 
 export class UseCaseRegistry {
   static registerUseCases(): void {
@@ -175,6 +201,20 @@ export class UseCaseRegistry {
       useClass: StripeService,
     });
 
+    container.register<SocketService>("SocketService", {
+      useClass: SocketService,
+    });
+
+
+    //* ====== Register Slot Expiry Processor ====== *//
+    
+    container.register<SlotExpiryProcessor>("SlotExpiryProcessor", {
+      useClass: SlotExpiryProcessor,
+    });
+    
+    // ✅ Then resolve
+    
+    
     //* ====== Register Strategies ====== *//
     container.register("ClientRegisterStrategy", {
       useClass: ClientRegisterStrategy,
@@ -483,5 +523,66 @@ export class UseCaseRegistry {
         useClass:TrainerAcceptRejectRequestUseCase,
       }
     );
+
+    container.register<IBookSlotUseCase>(
+      "IBookSlotUseCase",{
+        useClass:BookSlotUseCase,
+      });
+
+    container.register<ICreateSlotUseCase>(
+      "ICreateSlotUseCase",{
+          useClass:CreateSlotUseCase,
+      });
+
+    container.register<ICancelBookingUseCase>(
+      "ICancelBookingUseCase",{
+          useClass:CancelBookingUseCase,
+      });
+
+      container.register<IGetTrainerSlotsUseCase>(
+        "IGetTrainerSlotsUseCase",{
+            useClass:GetTrainerSlotsUseCase,
+        });
+
+     container.register<IGetSelectedTrainerSlotsUseCase>(
+        "IGetSelectedTrainerSlotsUseCase",{
+            useClass:GetSelectedTrainerSlotsUseCase,
+        });
+        
+    container.register<IToggleSlotAvailabilityUseCase>(
+      "IToggleSlotAvailabilityUseCase",{
+        useClass:ToggleSlotAvailabilityUseCase,
+      });
+
+    container.register<IGetUserBookingsUseCase>(
+      "IGetUserBookingsUseCase",{ 
+        useClass:GetUserBookingsUseCase,
+      });
+
+    container.register<IGetChatHistoryUseCase>(
+      "IGetChatHistoryUseCase",{
+        useClass:GetChatHistoryUseCase,
+      });
+
+    container.register<IGetChatParticipantsUseCase>(
+      "IGetChatParticipantsUseCase",{
+        useClass:GetChatParticipantsUseCase,
+      });
+
+    container.register<IGetRecentChatsUseCase>(
+      "IGetRecentChatsUseCase",{
+        useClass:GetRecentChatsUseCase,
+      });
+
+    container.register<IValidateChatPermissionsUseCase>(
+      "IValidateChatPermissionsUseCase",{
+        useClass:ValidateChatPermissionsUseCase,
+      });
+
+    container.register<IDeleteMessageUseCase>(
+      "IDeleteMessageUseCase",{
+        useClass:DeleteMessageUseCase,
+      });
+
   }
 }

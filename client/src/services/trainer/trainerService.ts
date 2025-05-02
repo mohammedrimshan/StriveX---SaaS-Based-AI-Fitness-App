@@ -3,6 +3,9 @@ import { ITrainer } from "@/types/User";
 import { CategoryResponse } from "../admin/adminService";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/trainer/useTrainerPasswordChange";
+import { SlotsResponse,CreateSlotData } from "@/types/Slot";
+
+
 export interface TrainerClient {
   id: string;
   client: string;
@@ -151,4 +154,32 @@ export const acceptRejectClientRequest = async (
   
   console.log("Accept/reject response:", response.data); // Add logging to debug
   return response.data;
+};
+
+export const createSlot = async (data: CreateSlotData): Promise<SlotsResponse> => {
+  try {
+    const response = await trainerAxiosInstance.post<SlotsResponse>(
+      "/trainer/create",
+      data
+    );
+    console.log("Slot created:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Create slot error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to create slot");
+  }
+};
+
+// Get trainer's own slots
+export const getTrainerOwnSlots = async (): Promise<SlotsResponse> => {
+  try {
+    const response = await trainerAxiosInstance.get<SlotsResponse>(
+      "/trainer/trainerslots"
+    );
+    console.log("Trainer's own slots:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Get trainer slots error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to fetch trainer slots");
+  }
 };
