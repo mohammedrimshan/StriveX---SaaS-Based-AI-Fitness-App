@@ -52,12 +52,13 @@ export default function Categories() {
   const totalPages = data?.totalPages || 1;
 
   const handleSaveCategory = useCallback(
-    (name: string, description: string) => {
+      (name: string, description: string, metValue: number) => {
       if (isPending) return;
-      console.log("Saving category:", { name, description, editMode });
+      console.log("Saving category:", { name, description,metValue, editMode });
       const categoryData = {
         id: editMode && currentCategory ? currentCategory._id : undefined,
         name,
+        metValue,
         description,
         action: editMode ? ("edit" as const) : ("add" as const),
         page: currentPage,
@@ -193,6 +194,7 @@ export default function Categories() {
                 <TableRow>
                   <TableHead className="text-purple-700">#</TableHead>
                   <TableHead className="text-purple-700">Name</TableHead>
+                  <TableHead className="text-purple-700">MET</TableHead>
                   <TableHead className="text-purple-700">Description</TableHead>
                   <TableHead className="text-purple-700">Status</TableHead>
                   <TableHead className="text-right text-purple-700">Actions</TableHead>
@@ -252,6 +254,7 @@ export default function Categories() {
                       >
                         <TableCell>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</TableCell>
                         <TableCell className="font-medium">{category.title}</TableCell>
+                        <TableCell className="font-medium">{category.metValue}</TableCell>
                         <TableCell>{category.description || "N/A"}</TableCell>
                         <TableCell>
                           <Badge
@@ -318,7 +321,7 @@ export default function Categories() {
           editMode={editMode}
           initialValues={
             currentCategory
-              ? { name: currentCategory.title, description: currentCategory.description || "" }
+              ? { name: currentCategory.title,metValue:currentCategory.metValue, description: currentCategory.description || "" }
               : undefined
           }
     

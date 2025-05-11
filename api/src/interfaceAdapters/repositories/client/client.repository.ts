@@ -1,4 +1,3 @@
-// D:\StriveX\api\src\interfaceAdapters\repositories\client\client.repository.ts
 import { injectable } from "tsyringe";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
 import { ClientModel } from "@/frameworks/database/mongoDB/models/client.model";
@@ -22,19 +21,21 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
   }
 
   async findByClientId(clientId: string): Promise<IClientEntity | null> {
-    console.log(`Querying client with id or clientId: ${clientId}`);
+    if (!clientId || typeof clientId !== "string") {
+      throw new Error("Invalid clientId");
+    }
+    const client = await this.model.findOne({ clientId }).lean();
+    return client ? this.mapToEntity(client) : null;
+  }
+
+  async findByClientNewId(clientId: string): Promise<IClientEntity | null> {
     const byId = await this.model.findById(clientId).lean();
-    console.log(`Result by _id: ${JSON.stringify(byId)}`);
     const byClientId = byId || (await this.model.findOne({ clientId }).lean());
-    console.log(`Result by clientId: ${JSON.stringify(byClientId)}`);
     return byClientId ? this.mapToEntity(byClientId) : null;
   }
 
   async updateByClientId(clientId: string, updates: Partial<IClientEntity>): Promise<IClientEntity | null> {
-    console.log(`Updating clientId: ${clientId} with data: ${JSON.stringify(updates)}`);
-    const updated = await this.findOneAndUpdateAndMap({ clientId }, updates);
-    console.log(`Update result: ${JSON.stringify(updated)}`);
-    return updated;
+    return this.findOneAndUpdateAndMap({ clientId }, updates);
   }
 
   async updatePremiumStatus(clientId: string, isPremium: boolean): Promise<IClientEntity> {
@@ -110,7 +111,6 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
     ];
 
     const result = await this.model.aggregate(pipeline).exec();
-    console.log("Aggregation result:", result);
     const { items, total } = result[0] || { items: [], total: 0 };
     const transformedItems = items.map((item: any) => this.mapToEntity(item));
     return { items: transformedItems, total };

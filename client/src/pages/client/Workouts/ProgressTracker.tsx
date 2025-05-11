@@ -1,21 +1,26 @@
-"use client"
-
-import type React from "react"
-import { CheckCircle, Circle } from "lucide-react"
-import { motion } from "framer-motion"
+import React from "react";
+import { CheckCircle, Circle } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface ProgressTrackerProps {
-  totalExercises: number
-  completedExercises: number
-  currentExerciseIndex: number
+  totalExercises: number;
+  completedExercises: number;
+  currentExerciseIndex: number;
+  exerciseProgress: { exerciseId: string; videoProgress: number; status: string }[];
 }
 
 const ProgressTracker: React.FC<ProgressTrackerProps> = ({
   totalExercises,
   completedExercises,
   currentExerciseIndex,
+  exerciseProgress,
 }) => {
-  const progress = (completedExercises / totalExercises) * 100
+  const overallProgress =
+    exerciseProgress.length > 0
+      ? Math.round(
+          exerciseProgress.reduce((sum, ep) => sum + ep.videoProgress, 0) / totalExercises
+        )
+      : 0;
 
   return (
     <motion.div
@@ -40,35 +45,45 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
         <motion.div
           className="h-full bg-violet-600 rounded-full"
           initial={{ width: 0 }}
-          animate={{ width: `${progress}%` }}
+          animate={{ width: `${overallProgress}%` }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           style={{
             height: "100%",
             backgroundColor: "var(--violet)",
             borderRadius: "9999px",
-            width: `${progress}%`,
+            width: `${overallProgress}%`,
           }}
         ></motion.div>
       </div>
 
       <div className="flex justify-between mt-4 overflow-x-auto pb-2 scrollbar-thin">
         <div className="flex space-x-1 min-w-0">
-          {Array.from({ length: totalExercises }).map((_, index) => (
-            <div key={index} className="flex flex-col items-center">
-              {index < completedExercises ? (
-                <CheckCircle className="h-5 w-5 text-violet-600" />
-              ) : index === currentExerciseIndex ? (
-                <Circle className="h-5 w-5 text-violet-400" fill="rgba(139, 92, 246, 0.2)" />
-              ) : (
-                <Circle className="h-5 w-5 text-gray-300" />
-              )}
-              <span className="text-[10px] text-gray-500 mt-1">{index + 1}</span>
-            </div>
-          ))}
+          {Array.from({ length: totalExercises }).map((_, index) => {
+            const exercise = exerciseProgress.find(
+              (ep) => ep.exerciseId === `${index}`
+            );
+            const isCompleted = exercise?.status === "Completed";
+            const isCurrent = index === currentExerciseIndex;
+
+            return (
+              <div key={index} className="flex flex-col items-center">
+                {isCompleted ? (
+                  <CheckCircle className="h-5 w-5 text-violet-600" />
+                ) : isCurrent ? (
+                  <Circle className="h-5 w-5 text-violet-400" fill="rgba(139, 92, 246
+
+, 0.2)" />
+                ) : (
+                  <Circle className="h-5 w-5 text-gray-300" />
+                )}
+                <span className="text-[10px] text-gray-500 mt-1">{index + 1}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default ProgressTracker
+export default ProgressTracker;

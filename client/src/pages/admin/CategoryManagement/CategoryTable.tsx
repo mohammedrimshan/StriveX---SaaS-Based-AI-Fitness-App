@@ -22,6 +22,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
         <TableHeader>
           <TableRow>
             <TableHead className="w-[250px]">Name</TableHead>
+            <TableHead className="w-[250px]">MET</TableHead>
             <TableHead className="hidden md:table-cell">Description</TableHead>
             <TableHead className="text-center">Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -30,7 +31,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
         <TableBody>
           {categories.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
+              <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                 No categories found
               </TableCell>
             </TableRow>
@@ -38,6 +39,13 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
             categories.map((category) => (
               <TableRow key={category.id}>
                 <TableCell className="font-medium">{category.name}</TableCell>
+                <TableCell className="font-medium">
+                  {(category.metValue !== undefined && category.metValue !== null) 
+                    ? category.metValue 
+                    : (category.metValue !== undefined && category.metValue !== null) 
+                      ? category.metValue 
+                      : 'N/A'}
+                </TableCell>
                 <TableCell className="hidden md:table-cell line-clamp-2">
                   {category.description || 'No description'}
                 </TableCell>

@@ -23,10 +23,11 @@ export class CategoryController implements ICategoryController {
 
   async createNewCategory(req: Request, res: Response): Promise<void> {
     try {
-      const { name, description } = req.body as { name: string; description?: string };
+      const { name,metValue, description } = req.body as { name: string; metValue: number; description?: string };
+      console.log(name,metValue, description, "category name and metValue from request body");
       if (!name) throw new CustomError("Category name is required", HTTP_STATUS.BAD_REQUEST);
 
-      await this._createNewCategoryUseCase.execute(name, description);
+      await this._createNewCategoryUseCase.execute(name,metValue, description);
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
@@ -94,11 +95,12 @@ export class CategoryController implements ICategoryController {
   async updateCategory(req: Request, res: Response): Promise<void> {
     try {
       const { categoryId } = req.params;
-      const { name, description } = req.body as { name: string; description?: string };
+      const { name, description,metValue } = req.body as { name: string; metValue: number; description?: string, };
+      console.log(name,metValue, description, "category name and metValue from request body for update");
       if (!categoryId) throw new CustomError(ERROR_MESSAGES.ID_NOT_PROVIDED, HTTP_STATUS.BAD_REQUEST);
       if (!name) throw new CustomError(ERROR_MESSAGES.MISSING_FIELDS, HTTP_STATUS.BAD_REQUEST);
 
-      await this._updateCategoryUseCase.execute(categoryId, name, description);
+      await this._updateCategoryUseCase.execute(categoryId, name, metValue,description );
 
       res.status(HTTP_STATUS.OK).json({
         success: true,

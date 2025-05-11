@@ -23,7 +23,6 @@ export class SelectTrainerFromMatchedListUseCase
     selectedTrainerId: string;
     selectStatus: TrainerSelectionStatus;
   }> {
-    // Step 1: Get client preferences
     const client = await this._clientRepository.findById(clientId);
     if (!client) {
       throw new CustomError(
@@ -32,7 +31,6 @@ export class SelectTrainerFromMatchedListUseCase
       );
     }
 
-    // Step 2: Validate if the selected trainer is in the matched list
     if (!client.matchedTrainers || !client.matchedTrainers.includes(selectedTrainerId)) {
       throw new CustomError(
         ERROR_MESSAGES.TRAINER_NOT_IN_MATCHED_LIST,
@@ -40,7 +38,6 @@ export class SelectTrainerFromMatchedListUseCase
       );
     }
 
-    // Step 3: Verify the trainer exists and is approved
     const trainer = await this._trainerRepository.findById(selectedTrainerId);
     if (!trainer || trainer.approvalStatus !== TrainerApprovalStatus.APPROVED) {
       throw new CustomError(
@@ -49,7 +46,6 @@ export class SelectTrainerFromMatchedListUseCase
       );
     }
 
-    // Step 4: Update client with the selected trainer and set the status to pending
     const updatedClient = await this._clientRepository.update(clientId, {
       selectedTrainerId: selectedTrainerId,
       selectStatus: TrainerSelectionStatus.PENDING, 

@@ -11,7 +11,8 @@ import {
   UserCheck ,
   LayoutDashboard,
   Crown ,
- Tags
+ Tags,
+ MessageSquare
 } from "lucide-react";
 
 const navItems = {
@@ -47,6 +48,11 @@ const navItems = {
       path: "/booking",
     },
     {
+      title: "Chat",
+      icon: MessageSquare,
+      path: "/chat",
+    },
+    {
       title: "Subscription",
       icon: CreditCard,
       path: "/premium",
@@ -71,12 +77,17 @@ const navItems = {
     {
       title: "Clients",
       icon: Users,
-      path: "/trainer/clients",
+      path: "/trainer/clientrequest",
     },
     {
       title: "Schedule",
       icon: Calendar,
       path: "/trainer/slotadd",
+    },
+    {
+      title: "Chat",
+      icon: MessageSquare,
+      path: "/trainer/chat",
     },
     {
       title: "Workout Plans",

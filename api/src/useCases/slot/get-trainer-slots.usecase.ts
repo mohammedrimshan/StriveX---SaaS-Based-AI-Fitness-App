@@ -32,23 +32,16 @@ export class GetTrainerSlotsUseCase implements IGetTrainerSlotsUseCase {
       }
     >
   > {
-    // Validate trainerId
     if (!trainerId) {
-      throw new CustomError(
-        "Trainer ID is required",
-        HTTP_STATUS.BAD_REQUEST
-      );
+      throw new CustomError("Trainer ID is required", HTTP_STATUS.BAD_REQUEST);
     }
-
-    // Validate role
     if (role && role !== "trainer" && role !== "client") {
       throw new CustomError(
-        "Role must be either 'trainer' or 'client'",
+        ERROR_MESSAGES.INVALID_ROLE,
         HTTP_STATUS.BAD_REQUEST
       );
     }
 
-    // Verify user based on role
     if (role === "trainer") {
       const trainer = await this.trainerRepository.findById(trainerId);
       if (!trainer) {
@@ -67,7 +60,6 @@ export class GetTrainerSlotsUseCase implements IGetTrainerSlotsUseCase {
       }
     }
 
-    // Fetch slots
     const slots = await this.slotRepository.getSlotsWithStatus(
       trainerId,
       startTime,

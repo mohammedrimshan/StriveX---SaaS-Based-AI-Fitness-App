@@ -2,7 +2,7 @@ import { inject, injectable } from "tsyringe";
 import { IWorkoutRepository } from "@/entities/repositoryInterfaces/workout/workout-repository.interface";
 import { IDeleteWorkoutUseCase } from "@/entities/useCaseInterfaces/workout/delete-workout-usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
-import { HTTP_STATUS } from "@/shared/constants";
+import { HTTP_STATUS, ERROR_MESSAGES } from "@/shared/constants";
 
 @injectable()
 export class DeleteWorkoutUseCase implements IDeleteWorkoutUseCase {
@@ -12,9 +12,13 @@ export class DeleteWorkoutUseCase implements IDeleteWorkoutUseCase {
   ) {}
 
   async execute(id: string): Promise<boolean> {
+    if (!id) {
+      throw new CustomError(ERROR_MESSAGES.WORKOUT_ID_REQUIRED, HTTP_STATUS.BAD_REQUEST);
+    }
+
     const workout = await this._workoutRepository.findById(id);
     if (!workout) {
-      throw new CustomError("Workout not found", HTTP_STATUS.NOT_FOUND);
+      throw new CustomError(ERROR_MESSAGES.WORKOUT_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
     try {
@@ -22,7 +26,7 @@ export class DeleteWorkoutUseCase implements IDeleteWorkoutUseCase {
       return deleted;
     } catch (error) {
       throw new CustomError(
-        "Failed to delete workout",
+        ERROR_MESSAGES.FAILED_TO_DELETE_WORKOUT,
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }

@@ -3,7 +3,7 @@ import { IWorkoutRepository } from "@/entities/repositoryInterfaces/workout/work
 import { IAddWorkoutUseCase } from "@/entities/useCaseInterfaces/workout/add-workout-usecase.interface";
 import { IWorkoutEntity } from "@/entities/models/workout.entity";
 import { CustomError } from "@/entities/utils/custom.error";
-import { HTTP_STATUS } from "@/shared/constants";
+import { HTTP_STATUS, ERROR_MESSAGES } from "@/shared/constants";
 import { ICloudinaryService } from "@/interfaceAdapters/services/cloudinary.service";
 
 @injectable()
@@ -34,7 +34,7 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
       if (files?.videos && Array.isArray(files.videos) && files.videos.length > 0) {
         if (files.videos.length !== workoutData.exercises.length) {
           throw new CustomError(
-            "Number of uploaded videos must match number of exercises",
+            ERROR_MESSAGES.INVALID_VIDEO_COUNT,
             HTTP_STATUS.BAD_REQUEST
           );
         }
@@ -56,7 +56,7 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
           const videoUrl = videoResults[index]?.secure_url;
           if (!videoUrl) {
             throw new CustomError(
-              `No video URL generated for exercise ${index}`,
+              ERROR_MESSAGES.VIDEO_UPLOAD_FAILED(index),
               HTTP_STATUS.INTERNAL_SERVER_ERROR
             );
           }
@@ -66,11 +66,10 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
           };
         });
       } else {
-      
         updatedExercises = workoutData.exercises.map((exercise, index) => {
           if (!exercise.videoUrl || exercise.videoUrl.trim() === "") {
             throw new CustomError(
-              `Exercise at index ${index} is missing a required video URL`,
+              ERROR_MESSAGES.EXERCISE_MISSING_VIDEO_URL(index),
               HTTP_STATUS.BAD_REQUEST
             );
           }
@@ -88,7 +87,7 @@ export class AddWorkoutUseCase implements IAddWorkoutUseCase {
       return createdWorkout;
     } catch (error) {
       throw new CustomError(
-        error instanceof Error ? error.message : "Failed to create workout",
+        error instanceof Error ? error.message : ERROR_MESSAGES.CREATE_WORKOUT_FAILED,
         error instanceof CustomError ? error.statusCode : HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }

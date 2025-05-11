@@ -4,7 +4,7 @@ import { IStripeService } from "@/entities/services/stripe-service.interface";
 import { IMembershipPlanRepository } from "@/entities/repositoryInterfaces/Stripe/membership-plan-repository.interface";
 import { IPaymentRepository } from "@/entities/repositoryInterfaces/Stripe/payment-repository.interface";
 import { CustomError } from "@/entities/utils/custom.error";
-import { HTTP_STATUS, PaymentStatus } from "@/shared/constants";
+import { ERROR_MESSAGES, HTTP_STATUS, PaymentStatus } from "@/shared/constants";
 import { IPaymentEntity } from "@/entities/models/payment.entity";
 
 @injectable()
@@ -24,7 +24,7 @@ export class CreateCheckoutSessionUseCase implements ICreateCheckoutSessionUseCa
   }
 
   async execute(data: {
-    userId: string; // This is actually clientId
+    userId: string;
     planId: string;
     successUrl: string;
     cancelUrl: string;
@@ -32,16 +32,13 @@ export class CreateCheckoutSessionUseCase implements ICreateCheckoutSessionUseCa
     const { userId: clientId, planId, successUrl, cancelUrl } = data;
 
     if (!clientId) {
-      throw new CustomError("Client ID is required", HTTP_STATUS.BAD_REQUEST);
+      throw new CustomError(ERROR_MESSAGES.ID_REQUIRED, HTTP_STATUS.BAD_REQUEST);
     }
 
-    // Fetch the membership plan
     const plan = await this._membershipPlanRepository.findById(planId);
     if (!plan || !plan.id) {
-      throw new CustomError("Membership plan not found", HTTP_STATUS.NOT_FOUND);
+      throw new CustomError(ERROR_MESSAGES.MEMBERSHIP_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
-
-    // Create the Stripe checkout session
     const { url, sessionId } = await this._stripeService.createCheckoutSession(
       clientId,
       { id: plan.id, price: plan.price, name: plan.name },
@@ -49,7 +46,6 @@ export class CreateCheckoutSessionUseCase implements ICreateCheckoutSessionUseCa
       cancelUrl
     );
 
-    // Create the payment record with the sessionId
     const payment: Partial<IPaymentEntity> = {
       clientId,
       membershipPlanId: plan.id,

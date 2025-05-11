@@ -240,5 +240,41 @@ export class AdminRoutes extends BaseRoute {
         adminController.updateTrainerRequest(req, res);
       }
     );
+
+    router.get(
+      "/admin/community/reports/posts",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.getReportedPosts(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/community/reports/comments",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.getReportedComments(req, res);
+      }
+    );
+
+    router.delete(
+      "/admin/community/posts/:id",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.hardDeletePost(req, res);
+      }
+    );
+
+    router.delete(
+      "/admin/community/comments/:id",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.hardDeleteComment(req, res);
+      }
+    );
   }
 }

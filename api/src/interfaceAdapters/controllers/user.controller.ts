@@ -150,6 +150,7 @@ export class UserController implements IUserController {
         "height",
         "weight",
         "fitnessGoal",
+        "preferredWorkout",
         "experienceLevel",
         "activityLevel",
         "healthConditions",

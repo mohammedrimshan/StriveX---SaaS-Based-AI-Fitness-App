@@ -13,6 +13,7 @@ export interface IUserEntity {
   height?: number;
   weight?: number;
   status?: string;
+  isOnline: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

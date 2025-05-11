@@ -6,7 +6,9 @@ import { HTTP_STATUS, ERROR_MESSAGES } from "@/shared/constants";
 import { IToggleSlotAvailabilityUseCase } from "@/entities/useCaseInterfaces/slot/chage-slot-status-usecase.interface";
 
 @injectable()
-export class ToggleSlotAvailabilityUseCase implements IToggleSlotAvailabilityUseCase {
+export class ToggleSlotAvailabilityUseCase
+  implements IToggleSlotAvailabilityUseCase
+{
   constructor(
     @inject("ISlotRepository") private slotRepository: ISlotRepository
   ) {}
@@ -14,7 +16,7 @@ export class ToggleSlotAvailabilityUseCase implements IToggleSlotAvailabilityUse
   async execute(trainerId: string, slotId: string): Promise<ISlotEntity> {
     if (!trainerId || !slotId) {
       throw new CustomError(
-        "Trainer ID and Slot ID are required",
+        ERROR_MESSAGES.TRAINER_AND_SLOT_ID_REQUIRED,
         HTTP_STATUS.BAD_REQUEST
       );
     }
@@ -29,14 +31,14 @@ export class ToggleSlotAvailabilityUseCase implements IToggleSlotAvailabilityUse
 
     if (slot.trainerId !== trainerId) {
       throw new CustomError(
-        "Unauthorized: Only the trainer can toggle slot availability",
+        ERROR_MESSAGES.UNAUTHORIZED_TOGGLE_SLOT,
         HTTP_STATUS.UNAUTHORIZED
       );
     }
 
     if (slot.isBooked) {
       throw new CustomError(
-        "Cannot toggle availability of a booked slot",
+        ERROR_MESSAGES.BOOKED_SLOT_CANNOT_TOGGLE,
         HTTP_STATUS.BAD_REQUEST
       );
     }
@@ -48,7 +50,7 @@ export class ToggleSlotAvailabilityUseCase implements IToggleSlotAvailabilityUse
 
     if (!updatedSlot) {
       throw new CustomError(
-        "Failed to update slot availability",
+        ERROR_MESSAGES.FAILED_TO_UPDATE_SLOT_AVAILABILITY,
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }

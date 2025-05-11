@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Search, MessageCircle, Users } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useSelector } from "react-redux"
@@ -8,6 +8,7 @@ import type { RootState } from "@/store/store"
 import { useRecentChats, useChatParticipants } from "@/hooks/chat/useChatQueries"
 import { ChatSidebarItem } from "./chat-sidebar-item"
 import { UserAvatar } from "./user-avatar"
+import { useSocket } from "@/context/socketContext"
 import type { UserRole } from "@/types/UserRole"
 import type { IChat } from "@/types/Chat"
 import { motion } from "framer-motion"
@@ -33,6 +34,7 @@ export function ChatSidebar({
   const [showParticipants, setShowParticipants] = useState(false)
   const { data: recentChatsData } = useRecentChats(role)
   const { data: participantsData } = useChatParticipants(role)
+  const { userStatus } = useSocket()
 
   const { client, trainer } = useSelector((state: RootState) => ({
     client: state.client.client,
@@ -42,36 +44,79 @@ export function ChatSidebar({
 
   if (!currentUser) return null
 
+  // Merge userStatus with participantsData for real-time status
+  const enrichedParticipants = useMemo(() => {
+    if (!participantsData?.participants) return []
+    return participantsData.participants.map((participant: any) => {
+      const statusInfo = userStatus.get(participant.id)
+      return {
+        ...participant,
+        isOnline: statusInfo ? statusInfo.status === "online" : participant.status === "online",
+        lastSeen: statusInfo?.lastSeen,
+      }
+    })
+  }, [participantsData, userStatus])
+
+  // Merge userStatus with recentChatsData for real-time status
+  const enrichedChats = useMemo(() => {
+    if (!recentChatsData?.chats) return []
+    return recentChatsData.chats.map((chat: IChat) => {
+      if (!chat.participant) return chat
+      const statusInfo = userStatus.get(chat.participant.userId)
+      return {
+        ...chat,
+        participant: {
+          ...chat.participant,
+          isOnline: statusInfo ? statusInfo.status === "online" : chat.participant.isOnline,
+          lastSeen: statusInfo?.lastSeen,
+        },
+      }
+    })
+  }, [recentChatsData, userStatus])
+
   // Filter chats based on search query
-  const filteredChats =
-    recentChatsData?.chats?.filter((chat: IChat) => {
-      const participant = chat?.participant
-      // Check if participant exists and has firstName and lastName properties
-      if (!participant) return false
+  const filteredChats = useMemo(
+    () =>
+      enrichedChats.filter((chat: IChat) => {
+        const participant = chat?.participant
+        if (!participant) return false
 
-      const participantName = [participant.firstName, participant.lastName].filter(Boolean).join(" ").toLowerCase()
+        const participantName = [participant.firstName, participant.lastName]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+        const hasMatchingName = participantName.includes(searchQuery.toLowerCase())
+        const hasMatchingMessages = chat.lastMessage?.text
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase())
 
-      const hasMatchingName = participantName.includes(searchQuery.toLowerCase())
-      const hasMatchingMessages = chat.lastMessage?.text?.toLowerCase().includes(searchQuery.toLowerCase())
-
-      return hasMatchingName || hasMatchingMessages
-    }) || []
+        return hasMatchingName || hasMatchingMessages
+      }),
+    [enrichedChats, searchQuery]
+  )
 
   // Filter participants based on search query
-  const filteredParticipants =
-    participantsData?.participants?.filter((participant: any) => {
-      return participant?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-    }) || []
+  const filteredParticipants = useMemo(
+    () =>
+      enrichedParticipants.filter((participant: any) =>
+        participant?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [enrichedParticipants, searchQuery]
+  )
 
   // Sort chats: unread first, then by last message timestamp
-  const sortedChats = [...filteredChats].sort((a: IChat, b: IChat) => {
-    if (a.unreadCount > 0 && b.unreadCount === 0) return -1
-    if (a.unreadCount === 0 && b.unreadCount > 0) return 1
-    if (!a.lastMessage && b.lastMessage) return 1
-    if (a.lastMessage && !b.lastMessage) return -1
-    if (!a.lastMessage && !b.lastMessage) return 0
-    return new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime()
-  })
+  const sortedChats = useMemo(
+    () =>
+      [...filteredChats].sort((a: IChat, b: IChat) => {
+        if (a.unreadCount > 0 && b.unreadCount === 0) return -1
+        if (a.unreadCount === 0 && b.unreadCount > 0) return 1
+        if (!a.lastMessage && b.lastMessage) return 1
+        if (a.lastMessage && !b.lastMessage) return -1
+        if (!a.lastMessage && !b.lastMessage) return 0
+        return new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime()
+      }),
+    [filteredChats]
+  )
 
   return (
     <div className="w-full h-full flex flex-col border-r bg-white">
@@ -83,7 +128,7 @@ export function ChatSidebar({
               firstName: currentUser.firstName,
               lastName: currentUser.lastName,
               avatar: currentUser.profileImage || "",
-              isOnline: true,
+              isOnline: userStatus.get(currentUser.id)?.status === "online" || true,
             }}
             size="lg"
             className="ring-2 ring-purple-200 ring-offset-2"
@@ -107,7 +152,11 @@ export function ChatSidebar({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowParticipants(false)}
-            className={`px-4 py-2 text-sm rounded-md flex items-center gap-2 transition-all duration-200 ${!showParticipants ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md" : "bg-white text-gray-700 border border-gray-200"}`}
+            className={`px-4 py-2 text-sm rounded-md flex items-center gap-2 transition-all duration-200 ${
+              !showParticipants
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
+                : "bg-white text-gray-700 border border-gray-200"
+            }`}
           >
             <MessageCircle size={16} />
             Chats
@@ -116,7 +165,11 @@ export function ChatSidebar({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowParticipants(true)}
-            className={`px-4 py-2 text-sm rounded-md flex items-center gap-2 transition-all duration-200 ${showParticipants ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md" : "bg-white text-gray-700 border border-gray-200"}`}
+            className={`px-4 py-2 text-sm rounded-md flex items-center gap-2 transition-all duration-200 ${
+              showParticipants
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
+                : "bg-white text-gray-700 border border-gray-200"
+            }`}
           >
             <Users size={16} />
             New Chat
@@ -125,7 +178,6 @@ export function ChatSidebar({
       </div>
       <div className="flex-1 overflow-y-auto p-2">
         {showParticipants ? (
-          // Participants list for new chats
           filteredParticipants.length === 0 ? (
             <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg m-2 p-4">
               <Users size={40} className="mx-auto mb-2 text-gray-400" />
@@ -149,7 +201,8 @@ export function ChatSidebar({
                     firstName: participant.name?.split(" ")[0] || "",
                     lastName: participant.name?.split(" ")[1] || "",
                     avatar: participant.avatar || "",
-                    isOnline: participant.status === "online",
+                    isOnline: participant.isOnline,
+                    lastSeen: participant.lastSeen,
                   }}
                   showStatus={true}
                 />
@@ -160,17 +213,18 @@ export function ChatSidebar({
                   <div className="flex justify-between items-center mt-1">
                     <p className="text-sm text-gray-500 truncate flex items-center gap-1">
                       <span
-                        className={`inline-block w-2 h-2 rounded-full ${participant.status === "online" ? "bg-green-500" : "bg-gray-300"}`}
+                        className={`inline-block w-2 h-2 rounded-full ${
+                          participant.isOnline ? "bg-green-500" : "bg-gray-300"
+                        }`}
                       ></span>
-                      {participant.status === "online" ? "Online" : "Offline"}
+                      {participant.isOnline ? "Online" : "Offline"}
                     </p>
                   </div>
                 </div>
               </motion.div>
             ))
           )
-        ) : // Existing chats list
-        sortedChats.length === 0 ? (
+        ) : sortedChats.length === 0 ? (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg m-2 p-4">
             <MessageCircle size={40} className="mx-auto mb-2 text-gray-400" />
             <p className="font-medium">No chats found</p>

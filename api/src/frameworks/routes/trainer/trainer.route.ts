@@ -11,7 +11,9 @@ import {
   trainerController,
   categoryController,
   slotController,
-  chatController
+  chatController,
+  commentController,
+  postController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -116,73 +118,164 @@ export class TrainerRoutes extends BaseRoute {
       }
     );
 
+    router.post(
+      "/trainer/create",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.createSlot(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/trainerslots",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.getTrainerSlots(req, res);
+      }
+    );
+
+    //chat
+    router.get(
+      "/trainer/chats/history/:trainerId",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        chatController.getChatHistory(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/chats/recent",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        chatController.getRecentChats(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/chats/participants",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        chatController.getChatParticipants(req, res);
+      }
+    );
+
+    router.delete(
+      "/trainer/chats/messages/:messageId",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        chatController.deleteMessage(req, res);
+      }
+    );
+
+    router
+      .route("/trainer/community/posts")
+      .post(
+        verifyAuth,
+        authorizeRole(["trainer"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          postController.createPost(req, res);
+        }
+      )
+      .get(
+        verifyAuth,
+        authorizeRole(["trainer"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          postController.getPosts(req, res);
+        }
+      );
+
+    router
+      .route("/trainer/community/posts/:id")
+      .get(
+        verifyAuth,
+        authorizeRole(["trainer"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          postController.getPost(req, res);
+        }
+      )
+      .delete(
+        verifyAuth,
+        authorizeRole(["trainer"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          postController.deletePost(req, res);
+        }
+      );
+
+    router.patch(
+      "/trainer/community/posts/:id/like",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        postController.likePost(req, res);
+      }
+    );
 
     router.post(
-          "/trainer/create",
-          verifyAuth,
-          authorizeRole(["trainer"]),
-          blockStatusMiddleware.checkStatus as RequestHandler,
-          (req: Request, res: Response) => {
-            slotController.createSlot(req, res);
-          }
-        );
-    
+      "/trainer/community/posts/:id/report",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        postController.reportPost(req, res);
+      }
+    );
 
-        router.get(
-          "/trainer/trainerslots",
-          verifyAuth,
-          authorizeRole(["trainer"]),
-          blockStatusMiddleware.checkStatus as RequestHandler,
-          (req: Request, res: Response) => {
-            slotController.getTrainerSlots(req, res);
-          }
-        );
+    // Community Comment Routes
+    router.post(
+      "/trainer/community/posts/:id/comments",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.createComment(req, res);
+      }
+    );
 
+    router.patch(
+      "/trainer/community/comments/:id/like",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.likeComment(req, res);
+      }
+    );
 
+    router.delete(
+      "/trainer/community/comments/:id",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.deleteComment(req, res);
+      }
+    );
 
-
-        //chat
-        router.get(
-              "/trainer/chats/history/:trainerId",
-              verifyAuth,
-              authorizeRole([ "trainer"]),
-              blockStatusMiddleware.checkStatus as RequestHandler,
-              (req: Request, res: Response) => {
-                chatController.getChatHistory(req, res);
-              }
-            );
-        
-           
-            router.get(
-              "/trainer/chats/recent",
-              verifyAuth,
-              authorizeRole([ "trainer"]),
-              blockStatusMiddleware.checkStatus as RequestHandler,
-              (req: Request, res: Response) => {
-                chatController.getRecentChats(req, res);
-              }
-            );
-        
-           
-            router.get(
-              "/trainer/chats/participants",
-              verifyAuth,
-              authorizeRole([ "trainer"]),
-              blockStatusMiddleware.checkStatus as RequestHandler,
-              (req: Request, res: Response) => {
-                chatController.getChatParticipants(req, res);
-              }
-            );
-        
-            
-            router.delete(
-              "/trainer/chats/messages/:messageId",
-              verifyAuth,
-              authorizeRole([ "trainer"]),
-              blockStatusMiddleware.checkStatus as RequestHandler,
-              (req: Request, res: Response) => {
-                chatController.deleteMessage(req, res);
-              }
-            );
+    router.post(
+      "/trainer/community/comments/:id/report",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.reportComment(req, res);
+      }
+    );
   }
 }

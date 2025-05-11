@@ -14,7 +14,52 @@ import { PaginatedTrainersResponse } from "@/types/Response";
 import { PaginatedResponse } from "@/types/Response";
 import { Workout } from "@/types/Workouts";
 import { MembershipPlansPaginatedResponse } from "@/types/membership";
-import { SlotsResponse,BookSlotData,CancelSlotData,UserBookingsResponse } from "@/types/Slot";
+import {
+  SlotsResponse,
+  BookSlotData,
+  CancelSlotData,
+  UserBookingsResponse,
+} from "@/types/Slot";
+
+export interface IReport {
+  userId: string;
+  reason: string;
+  reportedAt: string;
+}
+
+export interface IPost {
+  id: string;
+  authorId: string;
+  role:string;
+  textContent: string;
+  mediaUrl?: string;
+  category: string;
+  likes: string[];
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  reports: IReport[];
+}
+
+export interface IComment {
+  id: string;
+  postId: string;
+  authorId: string;
+  textContent: string;
+  likes: string[];
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  reports: IReport[];
+}
+
+export interface PaginatedPostsResponse {
+  success: boolean;
+  posts: IPost[];
+  totalPosts: number;
+  currentSkip: number;
+  limit: number;
+}
 
 export interface CreateCheckoutSessionData {
   trainerId: string;
@@ -234,13 +279,11 @@ export const getAllMembershipPlans = async ({
     };
   } catch (error: any) {
     console.error("Get all membership plans error:", error.response?.data);
-    throw new Error(  
+    throw new Error(
       error.response?.data?.message || "Failed to fetch membership plans"
     );
   }
 };
-
-
 
 export const createCheckoutSession = async (
   data: CreateCheckoutSessionData
@@ -260,37 +303,31 @@ export const createCheckoutSession = async (
   }
 };
 
-
 export const saveTrainerSelectionPreferences = async (
   data: TrainerPreferencesData
 ): Promise<TrainerSelectionResponse> => {
-  const response = await clientAxiosInstance.post<IAxiosResponse<TrainerSelectionResponse>>(
-    "/client/trainer-preferences",
-    data
-  );
+  const response = await clientAxiosInstance.post<
+    IAxiosResponse<TrainerSelectionResponse>
+  >("/client/trainer-preferences", data);
   return response.data.data;
 };
-
 
 export const autoMatchTrainer = async (): Promise<TrainerSelectionResponse> => {
-  const response = await clientAxiosInstance.post<IAxiosResponse<TrainerSelectionResponse>>(
-    "/client/auto-match-trainer"
-  );
+  const response = await clientAxiosInstance.post<
+    IAxiosResponse<TrainerSelectionResponse>
+  >("/client/auto-match-trainer");
   return response.data.data;
 };
-
 
 export const manualSelectTrainer = async (
   data: ManualSelectTrainerData
 ): Promise<TrainerSelectionResponse> => {
-  const response = await clientAxiosInstance.post<IAxiosResponse<TrainerSelectionResponse>>(
-    "/client/manual-select-trainer",
-    data
-  );
+  const response = await clientAxiosInstance.post<
+    IAxiosResponse<TrainerSelectionResponse>
+  >("/client/manual-select-trainer", data);
   console.log(response.data, "MANUAL SELECT TRAINER RESPONSE");
   return response.data;
 };
-
 
 // Add to your clientService.ts
 export interface MatchedTrainersResponse {
@@ -298,14 +335,13 @@ export interface MatchedTrainersResponse {
   data: TrainerProfile[];
 }
 
-export const getMatchedTrainers = async (): Promise<MatchedTrainersResponse> => {
-  const response = await clientAxiosInstance.get<MatchedTrainersResponse>(
-    "/client/matched-trainers"
-  );
-  return response.data;
-};
-
-
+export const getMatchedTrainers =
+  async (): Promise<MatchedTrainersResponse> => {
+    const response = await clientAxiosInstance.get<MatchedTrainersResponse>(
+      "/client/matched-trainers"
+    );
+    return response.data;
+  };
 
 export interface SelectTrainerResponse {
   selectedTrainerId: string;
@@ -315,16 +351,13 @@ export interface SelectTrainerResponse {
 export const selectTrainerFromMatchedList = async (
   trainerId: string
 ): Promise<SelectTrainerResponse> => {
-  const response = await clientAxiosInstance.post<IAxiosResponse<SelectTrainerResponse>>(
-    "/client/select-trainer",
-    {
-      selectedTrainerId: trainerId,
-    }
-  );
+  const response = await clientAxiosInstance.post<
+    IAxiosResponse<SelectTrainerResponse>
+  >("/client/select-trainer", {
+    selectedTrainerId: trainerId,
+  });
   return response.data.data;
 };
-
-
 
 export const getTrainerSlots = async (): Promise<SlotsResponse> => {
   try {
@@ -335,7 +368,9 @@ export const getTrainerSlots = async (): Promise<SlotsResponse> => {
     return response.data;
   } catch (error: any) {
     console.error("Get trainer slots error:", error.response?.data);
-    throw new Error(error.response?.data?.message || "Failed to fetch trainer slots");
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch trainer slots"
+    );
   }
 };
 
@@ -355,7 +390,9 @@ export const bookSlot = async (data: BookSlotData): Promise<SlotsResponse> => {
 };
 
 // Cancel a booking
-export const cancelBooking = async (data: CancelSlotData): Promise<SlotsResponse> => {
+export const cancelBooking = async (
+  data: CancelSlotData
+): Promise<SlotsResponse> => {
   try {
     const response = await clientAxiosInstance.post<SlotsResponse>(
       "/client/cancel",
@@ -365,10 +402,11 @@ export const cancelBooking = async (data: CancelSlotData): Promise<SlotsResponse
     return response.data;
   } catch (error: any) {
     console.error("Cancel booking error:", error.response?.data);
-    throw new Error(error.response?.data?.message || "Failed to cancel booking");
+    throw new Error(
+      error.response?.data?.message || "Failed to cancel booking"
+    );
   }
 };
-
 
 export const getBookingDetials = async (): Promise<UserBookingsResponse> => {
   try {
@@ -379,6 +417,170 @@ export const getBookingDetials = async (): Promise<UserBookingsResponse> => {
     return response.data;
   } catch (error: any) {
     console.error("Get trainer slots error:", error.response?.data);
-    throw new Error(error.response?.data?.message || "Failed to fetch trainer slots");
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch trainer slots"
+    );
+  }
+};
+
+// Community Post Routes
+// Community Post Routes
+export const createPost = async (data: {
+  textContent: string;
+  media?: string;
+  role: string;
+}): Promise<IPost> => {
+  try {
+    const response = await clientAxiosInstance.post<IAxiosResponse<IPost>>(
+      '/client/community/posts',
+      data
+    );
+    console.log('Post created:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Create post error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to create post');
+  }
+};
+
+export const getPosts = async (
+  category?: string,
+  sortBy?: 'latest' | 'likes' | 'comments',
+  skip: number = 0,
+  limit: number = 10
+): Promise<PaginatedPostsResponse> => {
+  try {
+    const response = await clientAxiosInstance.get<
+      IAxiosResponse<PaginatedPostsResponse>
+    >('/client/community/posts', {
+      params: { category, sortBy, skip, limit },
+    });
+    console.log('Posts fetched:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Get posts error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to fetch posts');
+  }
+};
+
+export const getPost = async (id: string): Promise<IPost> => {
+  try {
+    const response = await clientAxiosInstance.get<IAxiosResponse<IPost>>(
+      `/client/community/posts/${id}`
+    );
+    console.log('Post fetched:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Get post error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to fetch post');
+  }
+};
+
+export const deletePost = async (id: string, role: string): Promise<void> => {
+  try {
+    const response = await clientAxiosInstance.delete<IAxiosResponse>(
+      `/client/community/posts/${id}`,
+      { data: { role } } // Send role in request body
+    );
+    console.log('Post deleted:', response.data);
+  } catch (error: any) {
+    console.error('Delete post error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to delete post');
+  }
+};
+
+export const likePost = async (id: string, role: string): Promise<IPost> => {
+  try {
+    const response = await clientAxiosInstance.patch<IAxiosResponse<IPost>>(
+      `/client/community/posts/${id}/like`,
+      { role } // Send role in request body
+    );
+    console.log('Post liked:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Like post error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to like post');
+  }
+};
+
+export const reportPost = async (
+  id: string,
+  reason: string,
+  role: string
+): Promise<IPost> => {
+  try {
+    const response = await clientAxiosInstance.post<IAxiosResponse<IPost>>(
+      `/client/community/posts/${id}/report`,
+      { reason, role }
+    );
+    console.log('Post reported:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Report post error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to report post');
+  }
+};
+
+// Community Comment Routes
+export const createComment = async (
+  postId: string,
+  textContent: string,
+  role: string
+): Promise<IComment> => {
+  try {
+    const response = await clientAxiosInstance.post<IAxiosResponse<IComment>>(
+      `/client/community/posts/${postId}/comments`,
+      { textContent, role }
+    );
+    console.log('Comment created:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Create comment error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to create comment');
+  }
+};
+
+export const likeComment = async (id: string, role: string): Promise<IComment> => {
+  try {
+    const response = await clientAxiosInstance.patch<IAxiosResponse<IComment>>(
+      `/client/community/comments/${id}/like`,
+      { role }
+    );
+    console.log('Comment liked:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Like comment error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to like comment');
+  }
+};
+
+export const deleteComment = async (id: string, role: string): Promise<void> => {
+  try {
+    const response = await clientAxiosInstance.delete<IAxiosResponse>(
+      `/client/community/comments/${id}`,
+      { data: { role } }
+    );
+    console.log('Comment deleted:', response.data);
+  } catch (error: any) {
+    console.error('Delete comment error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to delete comment');
+  }
+};
+
+export const reportComment = async (
+  id: string,
+  reason: string,
+  role: string
+): Promise<IComment> => {
+  try {
+    const response = await clientAxiosInstance.post<IAxiosResponse<IComment>>(
+      `/client/community/comments/${id}/report`,
+      { reason, role }
+    );
+    console.log('Comment reported:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Report comment error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to report comment');
   }
 };

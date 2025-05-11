@@ -1,4 +1,3 @@
-
 import { inject, injectable } from "tsyringe";
 import { IUpdateTrainerProfileUseCase } from "@/entities/useCaseInterfaces/trainer/update-trainer-profile.usecase.interface";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
@@ -21,39 +20,23 @@ export class UpdateTrainerProfileUseCase implements IUpdateTrainerProfileUseCase
     }
 
     if (data.profileImage && typeof data.profileImage === "string" && data.profileImage.startsWith("data:")) {
-      try {
-        const uploadResult = await this._cloudinaryService.uploadImage(data.profileImage, {
-          folder: "trainer_profiles",
-          public_id: `trainer_${trainerId}_${Date.now()}`,
-        });
-        data.profileImage = uploadResult.secure_url;
-      } catch (error) {
-        console.error("Profile image upload error:", error);
-        throw new CustomError(
-          "Failed to upload profile image",
-          HTTP_STATUS.INTERNAL_SERVER_ERROR
-        );
-      }
+      const uploadResult = await this._cloudinaryService.uploadImage(data.profileImage, {
+        folder: "trainer_profiles",
+        public_id: `trainer_${trainerId}_${Date.now()}`,
+      });
+      data.profileImage = uploadResult.secure_url;
     }
 
     if (data.certifications && Array.isArray(data.certifications)) {
       const uploadedCerts: string[] = [];
       for (const cert of data.certifications) {
         if (typeof cert === "string" && cert.startsWith("data:")) {
-          try {
-            const uploadResult = await this._cloudinaryService.uploadFile(cert, {
-              folder: "trainer_certifications",
-              public_id: `cert_${trainerId}_${Date.now()}_${uploadedCerts.length}`,
-              resource_type: "auto",
-            });
-            uploadedCerts.push(uploadResult.secure_url);
-          } catch (error) {
-            console.error("Certificate upload error:", error);
-            throw new CustomError(
-              "Failed to upload certificate",
-              HTTP_STATUS.INTERNAL_SERVER_ERROR
-            );
-          }
+          const uploadResult = await this._cloudinaryService.uploadFile(cert, {
+            folder: "trainer_certifications",
+            public_id: `cert_${trainerId}_${Date.now()}_${uploadedCerts.length}`,
+            resource_type: "auto",
+          });
+          uploadedCerts.push(uploadResult.secure_url);
         } else {
           uploadedCerts.push(cert);
         }
@@ -64,7 +47,7 @@ export class UpdateTrainerProfileUseCase implements IUpdateTrainerProfileUseCase
     const updatedTrainer = await this._trainerRepository.findByIdAndUpdate(trainerId, data);
     if (!updatedTrainer) {
       throw new CustomError(
-        "Failed to update trainer profile",
+        ERROR_MESSAGES.FAILED_TO_UPDATE,
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react"; // Removed React import
+import { useState } from "react"; 
 import { Search, Filter, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import AnimatedBackground from "@/components/Animation/AnimatedBackgorund";

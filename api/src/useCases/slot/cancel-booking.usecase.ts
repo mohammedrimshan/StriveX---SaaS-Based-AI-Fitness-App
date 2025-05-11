@@ -3,7 +3,7 @@ import { ICancelBookingUseCase } from "../../entities/useCaseInterfaces/slot/can
 import { ISlotRepository } from "../../entities/repositoryInterfaces/slot/slot-repository.interface";
 import { ISlotEntity } from "../../entities/models/slot.entity";
 import { CustomError } from "../../entities/utils/custom.error";
-import { HTTP_STATUS } from "../../shared/constants";
+import { HTTP_STATUS, ERROR_MESSAGES } from "../../shared/constants";
 import { SlotStatus } from "../../shared/constants";
 
 @injectable()
@@ -19,31 +19,28 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
     );
     if (!slot) {
       throw new CustomError(
-        "Slot not found or not booked by this client",
+        ERROR_MESSAGES.SLOT_NOT_FOUND_OR_NOT_BOOKED,
         HTTP_STATUS.NOT_FOUND
       );
     }
-
-    // Parse date and startTime to create a Date object
     const [year, month, day] = slot.date.split("-").map(Number);
     const [hours, minutes] = slot.startTime.split(":").map(Number);
     const slotStartTime = new Date(year, month - 1, day, hours, minutes);
 
-    // Validate the parsed Date
+
     if (isNaN(slotStartTime.getTime())) {
       throw new CustomError(
-        "Invalid slot date or time",
+        ERROR_MESSAGES.INVALID_SLOT_DATE_TIME,
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }
 
-    // Calculate cancellation threshold (30 minutes before slot start)
     const cancellationThreshold = new Date(
       slotStartTime.getTime() - 30 * 60 * 1000
     );
     if (new Date() > cancellationThreshold) {
       throw new CustomError(
-        "Cannot cancel within 30 minutes of slot start",
+        ERROR_MESSAGES.CANNOT_CANCEL_WITHIN_30_MINUTES,
         HTTP_STATUS.BAD_REQUEST
       );
     }
@@ -56,7 +53,7 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
     );
     if (!updatedSlot) {
       throw new CustomError(
-        "Failed to cancel booking",
+        ERROR_MESSAGES.FAILED_CANCEL_BOOKING,
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }

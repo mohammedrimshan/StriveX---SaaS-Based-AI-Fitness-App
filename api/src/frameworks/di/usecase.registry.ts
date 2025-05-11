@@ -159,6 +159,50 @@ import { IValidateChatPermissionsUseCase } from "@/entities/useCaseInterfaces/ch
 import { ValidateChatPermissionsUseCase } from "@/useCases/chat/validate-chat-permissions.usecase";
 import { IDeleteMessageUseCase } from "@/entities/useCaseInterfaces/chat/delete-message-usecase.interface";
 import { DeleteMessageUseCase } from "@/useCases/chat/delete-message.usecase";
+import { ICreateWorkoutProgressUseCase } from "@/entities/useCaseInterfaces/progress/create-workout-progress.usecase.interface";
+import { CreateWorkoutProgressUseCase } from "@/useCases/progress/create-workout-progress.usecase";
+import { IUpdateWorkoutProgressUseCase } from "@/entities/useCaseInterfaces/progress/update-workout-progress.usecase.interface";
+import { UpdateWorkoutProgressUseCase } from "@/useCases/progress/update-workout-progress.usecase";
+import { IGetWorkoutProgressByUserAndWorkoutUseCase } from "@/entities/useCaseInterfaces/progress/get-workout-progress-by-user-and-workout.usecase.interface";
+import { GetWorkoutProgressByUserAndWorkoutUseCase } from "@/useCases/progress/get-workout-progress-by-user-and-workout.usecase";
+import { IUpdateVideoProgressUseCase } from "@/entities/useCaseInterfaces/progress/update-video-progress.usecase.interface";
+import { UpdateVideoProgressUseCase } from "@/useCases/progress/update-video-progress.usecase";
+import { IGetVideoProgressByUserAndWorkoutUseCase } from "@/entities/useCaseInterfaces/progress/get-video-progress-by-user-and-workout.usecase.interface";
+import { GetVideoProgressByUserAndWorkoutUseCase } from "@/useCases/progress/get-video-progress-by-user-and-workout.usecase";
+import { IGetUserVideoProgressUseCase } from "@/entities/useCaseInterfaces/progress/get-user-video-progress.usecase.interface";
+import { GetUserVideoProgressUseCase } from "@/useCases/progress/get-user-video-progress.usecase";
+import { IGetUserWorkoutProgressUseCase } from "@/entities/useCaseInterfaces/progress/get-user-workout-progress.usecase.interface";
+import { GetUserWorkoutProgressUseCase } from "@/useCases/progress/get-user-workout-progress.usecase";
+import { IGetUserProgressMetricsUseCase } from "@/entities/useCaseInterfaces/progress/get-user-progress-metrics.usecase.interface";
+import { GetUserProgressMetricsUseCase } from "@/useCases/progress/get-user-progress-metrics.usecase";
+import { ICreateCommentUseCase } from "@/entities/useCaseInterfaces/community/create-comment-usecase.interface";
+import { CreateCommentUseCase } from "@/useCases/community/create-comment.usecase";
+import { ICreatePostUseCase } from "@/entities/useCaseInterfaces/community/create-post-usecase.interface";
+import { CreatePostUseCase } from "@/useCases/community/create-post.usecase";
+import { IDeleteCommentUseCase } from "@/entities/useCaseInterfaces/community/delete-comment-usecase.interface";
+import { DeleteCommentUseCase } from "@/useCases/community/delete-comment.usecase";
+import { IDeletePostUseCase } from "@/entities/useCaseInterfaces/community/delete-post-usecase.interface";
+import { DeletePostUseCase } from "@/useCases/community/delete-post.usecase";
+import { IGetPostUseCase } from "@/entities/useCaseInterfaces/community/get-post-usecase.interface";
+import { GetPostUseCase } from "@/useCases/community/get-post.usecase";
+import { IGetPostsUseCase } from "@/entities/useCaseInterfaces/community/get-posts-usecase.interface";
+import { GetPostsUseCase } from "@/useCases/community/get-posts.usecase";
+import { IGetReportedPostsUseCase } from "@/entities/useCaseInterfaces/community/get-reported-posts-usecase.interface";
+import { GetReportedPostsUseCase } from "@/useCases/community/get-reported-posts.usecase";
+import { IGetReportedCommentsUseCase } from "@/entities/useCaseInterfaces/community/get-reported-comments-usecase.interface";
+import { GetReportedCommentsUseCase } from "@/useCases/community/get-reported-comments.usecase";
+import { ILikePostUseCase } from "@/entities/useCaseInterfaces/community/like-post-usecase.interface";
+import { LikePostUseCase } from "@/useCases/community/like-post.usecase";
+import { ILikeCommentUseCase } from "@/entities/useCaseInterfaces/community/like-comment-usecase.interface";
+import { LikeCommentUseCase } from "@/useCases/community/like-comment.usecase";
+import { IReportPostUseCase } from "@/entities/useCaseInterfaces/community/report-post-usecase.interface";
+import { ReportPostUseCase } from "@/useCases/community/report-post.usecase";
+import { IReportCommentUseCase } from "@/entities/useCaseInterfaces/community/report-comment-usecase.interface";
+import { ReportCommentUseCase } from "@/useCases/community/report-comment.usecase";
+import { IHardDeletePostUseCase } from "@/entities/useCaseInterfaces/community/hard-delete-post-usecase.interface";
+import { HardDeletePostUseCase } from "@/useCases/community/hard-delete-post.usecase";
+import { IHardDeleteCommentUseCase } from "@/entities/useCaseInterfaces/community/hard-delete-comment-usecase.interface";
+import { HardDeleteCommentUseCase } from "@/useCases/community/hard-delete-comment.usecase";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 
 export class UseCaseRegistry {
@@ -205,16 +249,14 @@ export class UseCaseRegistry {
       useClass: SocketService,
     });
 
-
     //* ====== Register Slot Expiry Processor ====== *//
-    
+
     container.register<SlotExpiryProcessor>("SlotExpiryProcessor", {
       useClass: SlotExpiryProcessor,
     });
-    
+
     // ✅ Then resolve
-    
-    
+
     //* ====== Register Strategies ====== *//
     container.register("ClientRegisterStrategy", {
       useClass: ClientRegisterStrategy,
@@ -468,19 +510,13 @@ export class UseCaseRegistry {
       }
     );
 
-    container.register<IGetTrainerClientsUseCase>(
-      "IGetTrainerClientsUseCase",
-      {
-        useClass: GetTrainerClientsUseCase,
-      }
-    );
+    container.register<IGetTrainerClientsUseCase>("IGetTrainerClientsUseCase", {
+      useClass: GetTrainerClientsUseCase,
+    });
 
-    container.register<IAutoMatchTrainerUseCase>(
-      "IAutoMatchTrainerUseCase",
-      {
-        useClass: AutoMatchTrainerUseCase,
-      }
-    );
+    container.register<IAutoMatchTrainerUseCase>("IAutoMatchTrainerUseCase", {
+      useClass: AutoMatchTrainerUseCase,
+    });
 
     container.register<IManualSelectTrainerUseCase>(
       "IManualSelectTrainerUseCase",
@@ -499,90 +535,234 @@ export class UseCaseRegistry {
     container.register<IGetMatchedTrainersUseCase>(
       "IGetMatchedTrainersUseCase",
       {
-        useClass:GetMatchedTrainersUseCase,
+        useClass: GetMatchedTrainersUseCase,
       }
     );
 
     container.register<ISelectTrainerFromMatchedListUseCase>(
       "ISelectTrainerFromMatchedListUseCase",
       {
-        useClass:SelectTrainerFromMatchedListUseCase,
+        useClass: SelectTrainerFromMatchedListUseCase,
       }
     );
 
     container.register<IGetPendingClientRequestsUseCase>(
       "IGetPendingClientRequestsUseCase",
       {
-        useClass:GetPendingClientRequestsUseCase,
+        useClass: GetPendingClientRequestsUseCase,
       }
     );
 
     container.register<ITrainerAcceptRejectRequestUseCase>(
       "ITrainerAcceptRejectRequestUseCase",
       {
-        useClass:TrainerAcceptRejectRequestUseCase,
+        useClass: TrainerAcceptRejectRequestUseCase,
       }
     );
 
-    container.register<IBookSlotUseCase>(
-      "IBookSlotUseCase",{
-        useClass:BookSlotUseCase,
-      });
+    container.register<IBookSlotUseCase>("IBookSlotUseCase", {
+      useClass: BookSlotUseCase,
+    });
 
-    container.register<ICreateSlotUseCase>(
-      "ICreateSlotUseCase",{
-          useClass:CreateSlotUseCase,
-      });
+    container.register<ICreateSlotUseCase>("ICreateSlotUseCase", {
+      useClass: CreateSlotUseCase,
+    });
 
-    container.register<ICancelBookingUseCase>(
-      "ICancelBookingUseCase",{
-          useClass:CancelBookingUseCase,
-      });
+    container.register<ICancelBookingUseCase>("ICancelBookingUseCase", {
+      useClass: CancelBookingUseCase,
+    });
 
-      container.register<IGetTrainerSlotsUseCase>(
-        "IGetTrainerSlotsUseCase",{
-            useClass:GetTrainerSlotsUseCase,
-        });
+    container.register<IGetTrainerSlotsUseCase>("IGetTrainerSlotsUseCase", {
+      useClass: GetTrainerSlotsUseCase,
+    });
 
-     container.register<IGetSelectedTrainerSlotsUseCase>(
-        "IGetSelectedTrainerSlotsUseCase",{
-            useClass:GetSelectedTrainerSlotsUseCase,
-        });
-        
+    container.register<IGetSelectedTrainerSlotsUseCase>(
+      "IGetSelectedTrainerSlotsUseCase",
+      {
+        useClass: GetSelectedTrainerSlotsUseCase,
+      }
+    );
+
     container.register<IToggleSlotAvailabilityUseCase>(
-      "IToggleSlotAvailabilityUseCase",{
-        useClass:ToggleSlotAvailabilityUseCase,
-      });
+      "IToggleSlotAvailabilityUseCase",
+      {
+        useClass: ToggleSlotAvailabilityUseCase,
+      }
+    );
 
-    container.register<IGetUserBookingsUseCase>(
-      "IGetUserBookingsUseCase",{ 
-        useClass:GetUserBookingsUseCase,
-      });
+    container.register<IGetUserBookingsUseCase>("IGetUserBookingsUseCase", {
+      useClass: GetUserBookingsUseCase,
+    });
 
-    container.register<IGetChatHistoryUseCase>(
-      "IGetChatHistoryUseCase",{
-        useClass:GetChatHistoryUseCase,
-      });
+    container.register<IGetChatHistoryUseCase>("IGetChatHistoryUseCase", {
+      useClass: GetChatHistoryUseCase,
+    });
 
     container.register<IGetChatParticipantsUseCase>(
-      "IGetChatParticipantsUseCase",{
-        useClass:GetChatParticipantsUseCase,
-      });
+      "IGetChatParticipantsUseCase",
+      {
+        useClass: GetChatParticipantsUseCase,
+      }
+    );
 
-    container.register<IGetRecentChatsUseCase>(
-      "IGetRecentChatsUseCase",{
-        useClass:GetRecentChatsUseCase,
-      });
+    container.register<IGetRecentChatsUseCase>("IGetRecentChatsUseCase", {
+      useClass: GetRecentChatsUseCase,
+    });
 
     container.register<IValidateChatPermissionsUseCase>(
-      "IValidateChatPermissionsUseCase",{
-        useClass:ValidateChatPermissionsUseCase,
-      });
+      "IValidateChatPermissionsUseCase",
+      {
+        useClass: ValidateChatPermissionsUseCase,
+      }
+    );
 
-    container.register<IDeleteMessageUseCase>(
-      "IDeleteMessageUseCase",{
-        useClass:DeleteMessageUseCase,
-      });
+    container.register<IDeleteMessageUseCase>("IDeleteMessageUseCase", {
+      useClass: DeleteMessageUseCase,
+    });
 
+    container.register<ICreateWorkoutProgressUseCase>(
+      "ICreateWorkoutProgressUseCase",
+      {
+        useClass: CreateWorkoutProgressUseCase,
+      }
+    );
+
+    container.register<IUpdateWorkoutProgressUseCase>(
+      "IUpdateWorkoutProgressUseCase",
+      {
+        useClass: UpdateWorkoutProgressUseCase,
+      }
+    );
+
+    container.register<IGetWorkoutProgressByUserAndWorkoutUseCase>(
+      "IGetWorkoutProgressByUserAndWorkoutUseCase",
+      {
+        useClass: GetWorkoutProgressByUserAndWorkoutUseCase,
+      }
+    );
+
+    container.register<IUpdateVideoProgressUseCase>(
+      "IUpdateVideoProgressUseCase",
+      {
+        useClass: UpdateVideoProgressUseCase,
+      }
+    );
+
+    container.register<IGetVideoProgressByUserAndWorkoutUseCase>(
+      "IGetVideoProgressByUserAndWorkoutUseCase",
+      {
+        useClass: GetVideoProgressByUserAndWorkoutUseCase,
+      }
+    );
+
+    container.register<IGetUserVideoProgressUseCase>(
+      "IGetUserVideoProgressUseCase",
+      {
+        useClass: GetUserVideoProgressUseCase,
+      }
+    );
+
+    container.register<IGetWorkoutProgressByUserAndWorkoutUseCase>(
+      "IGetWorkoutProgressByUserAndWorkoutUseCase",
+      {
+        useClass: GetWorkoutProgressByUserAndWorkoutUseCase,
+      }
+    );
+
+    container.register<IGetVideoProgressByUserAndWorkoutUseCase>(
+      "IGetVideoProgressByUserAndWorkoutUseCase",
+      {
+        useClass: GetVideoProgressByUserAndWorkoutUseCase,
+      }
+    );
+
+    container.register<IGetUserVideoProgressUseCase>(
+      "IGetUserVideoProgressUseCase",
+      {
+        useClass: GetUserVideoProgressUseCase,
+      }
+    );
+
+    container.register<IGetWorkoutProgressByUserAndWorkoutUseCase>(
+      "IGetWorkoutProgressByUserAndWorkoutUseCase",
+      {
+        useClass: GetWorkoutProgressByUserAndWorkoutUseCase,
+      }
+    );
+
+    container.register<IGetUserWorkoutProgressUseCase>(
+      "IGetUserWorkoutProgressUseCase",
+      {
+        useClass: GetUserWorkoutProgressUseCase,
+      }
+    );
+
+    container.register<IGetUserProgressMetricsUseCase>(
+      "IGetUserProgressMetricsUseCase",
+      {
+        useClass: GetUserProgressMetricsUseCase,
+      }
+    );
+
+    container.register<ICreateCommentUseCase>("ICreateCommentUseCase", {
+      useClass: CreateCommentUseCase,
+    });
+
+    container.register<ICreatePostUseCase>("ICreatePostUseCase", {
+      useClass: CreatePostUseCase,
+    });
+
+    container.register<ICreateCommentUseCase>("ICreateCommentUseCase", {
+      useClass: CreateCommentUseCase,
+    });
+
+    container.register<IDeleteCommentUseCase>("IDeleteCommentUseCase", {
+      useClass: DeleteCommentUseCase,
+    });
+
+    container.register<IDeletePostUseCase>("IDeletePostUseCase", {
+      useClass: DeletePostUseCase,
+    });
+
+    container.register<IGetPostUseCase>("IGetPostUseCase", {
+      useClass: GetPostUseCase,
+    });
+
+    container.register<IGetPostsUseCase>("IGetPostsUseCase", {
+      useClass: GetPostsUseCase,
+    });
+
+    container.register<IGetReportedPostsUseCase>("IGetReportedPostsUseCase", {
+      useClass: GetReportedPostsUseCase,
+    });
+
+    container.register<IGetReportedCommentsUseCase>(
+      "IGetReportedCommentsUseCase",
+      { useClass: GetReportedCommentsUseCase }
+    );
+
+    container.register<ILikePostUseCase>("ILikePostUseCase", {
+      useClass: LikePostUseCase,
+    });
+
+    container.register<ILikeCommentUseCase>("ILikeCommentUseCase", {
+      useClass: LikeCommentUseCase,
+    });
+
+    container.register<IReportPostUseCase>("IReportPostUseCase", {
+      useClass: ReportPostUseCase,
+    });
+
+    container.register<IReportCommentUseCase>("IReportCommentUseCase", {
+      useClass: ReportCommentUseCase,
+    });
+
+    container.register<IHardDeletePostUseCase>("IHardDeletePostUseCase", {
+      useClass: HardDeletePostUseCase,
+    });
+
+    container.register<IHardDeleteCommentUseCase>("IHardDeleteCommentUseCase", {
+      useClass: HardDeleteCommentUseCase,
+    });
   }
 }

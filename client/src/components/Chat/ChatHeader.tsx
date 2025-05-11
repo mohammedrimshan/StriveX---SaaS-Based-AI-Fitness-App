@@ -2,6 +2,7 @@
 
 import { Menu, Phone, Video, MoreHorizontal, X } from 'lucide-react'
 import { useChatParticipants } from "@/hooks/chat/useChatQueries"
+import { useSocket } from "@/context/socketContext"
 import { UserAvatar } from "./user-avatar"
 import type { UserRole } from "@/types/UserRole"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -16,9 +17,17 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ participantId, role, onToggleSidebar, showSidebar }: ChatHeaderProps) {
   const { data: participantsData } = useChatParticipants(role)
-  const participant = participantsData?.participants.find((p) => p.userId === participantId)
+  const { userStatus } = useSocket()
+  const participant = participantsData?.participants.find((p) => p.id === participantId)
 
   if (!participant) return null
+
+  // Merge participant with real-time userStatus
+  const enrichedParticipant = {
+    ...participant,
+    isOnline: userStatus.get(participantId)?.status === "online" || participant.status === "online",
+    lastSeen: userStatus.get(participantId)?.lastSeen || participant.lastSeen,
+  }
 
   const formatLastSeen = (lastSeen?: string) => {
     if (!lastSeen) return "recently"
@@ -59,29 +68,35 @@ export function ChatHeader({ participantId, role, onToggleSidebar, showSidebar }
         </motion.button>
         <UserAvatar
           user={{
-            id: participant.userId,
-            firstName: participant.firstName,
-            lastName: participant.lastName,
-            avatar: participant.avatar || "",
-            isOnline: participant.isOnline,
-            lastSeen: participant.lastSeen,
+            id: enrichedParticipant.id,
+            firstName: enrichedParticipant.name.split(" ")[0],
+            lastName: enrichedParticipant.name.split(" ")[1] || "",
+            avatar: enrichedParticipant.avatar || "",
+            isOnline: enrichedParticipant.isOnline,
+            lastSeen: enrichedParticipant.lastSeen,
           }}
           size="md"
           className="ring-2 ring-emerald-100 ring-offset-2"
         />
         <div>
-          <h3 className="font-semibold text-slate-800">{`${participant.firstName} ${participant.lastName}`}</h3>
+          <h3 className="font-semibold text-slate-800">{enrichedParticipant.name}</h3>
           <p className="text-xs text-slate-500 flex items-center gap-1">
             <motion.span
               animate={
-                participant.isOnline
+                enrichedParticipant.isOnline
                   ? { scale: [1, 1.2, 1], backgroundColor: "#10b981" }
                   : { backgroundColor: "#9ca3af" }
               }
-              transition={{ duration: 2, repeat: participant.isOnline ? Number.POSITIVE_INFINITY : 0, repeatDelay: 1 }}
-              className={`inline-block w-2 h-2 rounded-full`}
+              transition={{
+                duration: 2,
+                repeat: enrichedParticipant.isOnline ? Number.POSITIVE_INFINITY : 0,
+                repeatDelay: 1,
+              }}
+              className="inline-block w-2 h-2 rounded-full"
             ></motion.span>
-            {participant.isOnline ? "Active now" : `Last seen ${formatLastSeen(participant.lastSeen)}`}
+            {enrichedParticipant.isOnline
+              ? "Active now"
+              : `Last seen ${formatLastSeen(enrichedParticipant.lastSeen)}`}
           </p>
         </div>
       </div>

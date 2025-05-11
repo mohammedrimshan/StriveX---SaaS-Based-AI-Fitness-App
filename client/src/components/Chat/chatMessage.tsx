@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState, useCallback } from "react"
 import { Check, CheckCheck, Reply, Trash2, SmilePlus, Download } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import type { IMessage } from "@/types/Chat"
@@ -39,14 +39,13 @@ interface ChatMessageProps {
     avatar: string
   }
   isCurrentUser: boolean
-  showAvatar?: boolean
   onReply: () => void
   localMessages: ExtendedMessage[]
   participants: Participant[]
 }
 
 export const ChatMessage = React.memo(
-  ({ message, sender, isCurrentUser, showAvatar = true, onReply, localMessages, participants }: ChatMessageProps) => {
+  ({ message, sender, isCurrentUser, onReply, localMessages, participants }: ChatMessageProps) => {
     const [showActions, setShowActions] = useState(false)
     const [showEmojiPicker, setShowEmojiPicker] = useState(false)
     const { addReaction, removeReaction } = useSocket()
@@ -85,22 +84,61 @@ export const ChatMessage = React.memo(
     }
 
     const formattedTime =
-      new Date(message.createdAt || message.timestamp).getHours().toString().padStart(2, "0") +
+      new Date(message.createdAt || message?.timestamp).getHours().toString().padStart(2, "0") +
       ":" +
-      new Date(message.createdAt || message.timestamp).getMinutes().toString().padStart(2, "0")
+      new Date(message.createdAt || message?.timestamp).getMinutes().toString().padStart(2, "0")
 
     const emojis = ["❤️", "👍", "😂", "😮", "😢", "🙏"]
 
+    // Memoize the reaction handler to prevent unnecessary re-renders
+    const handleReactionClick = useCallback((emoji: string) => {
+      const hasReacted = currentUserReactions[emoji]
+      console.log('Reaction clicked:', {
+        messageId: message.id,
+        emoji,
+        hasReacted,
+        participantId,
+        action: hasReacted ? 'remove' : 'add',
+      })
+      
+      // Update local state optimistically for immediate feedback
+      setCurrentUserReactions(prev => ({
+        ...prev,
+        [emoji]: !hasReacted
+      }))
+      
+      if (hasReacted) {
+        removeReaction(String(message.id), emoji, participantId)
+      } else {
+        addReaction(String(message.id), emoji, participantId)
+      }
+      setShowEmojiPicker(false)
+    }, [message.id, currentUserReactions, participantId, addReaction, removeReaction])
+
+    // Update reactions whenever the message reactions change
     useEffect(() => {
-      if (!message.reactions) return
+      if (!message.reactions) {
+        setCurrentUserReactions({})
+        return
+      }
+      
       const userReactions: { [emoji: string]: boolean } = {}
       const currentUserId = isCurrentUser ? String(message.senderId) : String(participantId)
+      
       message.reactions.forEach((reaction) => {
         const users = Array.isArray(reaction.users) ? reaction.users : [reaction.users].filter(Boolean)
         userReactions[reaction.emoji] = users.includes(currentUserId)
       })
+      
+      console.log('Updated currentUserReactions:', {
+        messageId: message.id,
+        userId: currentUserId,
+        reactions: userReactions,
+        rawReactions: message.reactions,
+      })
+      
       setCurrentUserReactions(userReactions)
-    }, [message.reactions, isCurrentUser, message.senderId, participantId])
+    }, [message.reactions, isCurrentUser, message.senderId, participantId, message.id])
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -112,17 +150,8 @@ export const ChatMessage = React.memo(
       return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
 
-    const handleReactionClick = (emoji: string) => {
-      const hasReacted = currentUserReactions[emoji]
-      if (hasReacted) {
-        removeReaction(String(message.id), emoji, participantId)
-      } else {
-        addReaction(String(message.id), emoji, participantId)
-      }
-      setShowEmojiPicker(false)
-    }
-
     const handleDelete = () => {
+      console.log('Deleting message:', { messageId: message.id, participantId })
       deleteMessage({ messageId: String(message.id), participantId })
     }
 
@@ -148,43 +177,44 @@ export const ChatMessage = React.memo(
 
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className={cn("flex w-full gap-3 mb-3 group relative", isCurrentUser ? "justify-end" : "justify-start")}
+        transition={{ duration: 0.2 }}
+        className={cn("flex w-full gap-2 mb-1.5 group relative", isCurrentUser ? "justify-end" : "justify-start")}
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
-        {!isCurrentUser && showAvatar && (
+        {/* Always show avatar for non-current user */}
+        {!isCurrentUser && (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="flex-shrink-0 self-end"
           >
             <img
               src={sender.avatar || "/placeholder.svg"}
               alt={`${sender.firstName} ${sender.lastName}`}
-              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+              className="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm"
             />
           </motion.div>
         )}
-        <div className={cn("flex flex-col", isCurrentUser ? "items-end" : "items-start", "max-w-[75%] md:max-w-[60%]")}>
-          {!isCurrentUser && showAvatar && (
-            <div className="text-xs text-slate-500 mb-1 ml-1 font-medium">
+        <div className={cn("flex flex-col", isCurrentUser ? "items-end" : "items-start", "max-w-[65%]")}>
+          {!isCurrentUser && (
+            <div className="text-xs text-slate-500 mb-0.5 ml-1 font-medium">
               {`${sender.firstName} ${sender.lastName}`}
             </div>
           )}
 
           {message.replyToId && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                "rounded-t-lg px-3 py-1 text-xs mb-1 max-w-[90%] border-l-2",
+                "rounded-t-md px-2 py-0.5 text-xs mb-0.5 max-w-[90%] border-l-2",
                 isCurrentUser
-                  ? "bg-slate-100 text-slate-700 rounded-tr-none self-end border-emerald-400"
+                  ? "bg-slate-100 text-slate-600 rounded-tr-none self-end border-emerald-400"
                   : "bg-slate-100 rounded-tl-none border-slate-300",
               )}
             >
@@ -204,13 +234,13 @@ export const ChatMessage = React.memo(
               whileHover={{ scale: 1.01 }}
               className={cn(
                 isCurrentUser
-                  ? "bg-emerald-500 text-white rounded-2xl rounded-br-none px-4 py-3"
-                  : "bg-white text-slate-800 rounded-2xl rounded-bl-none px-4 py-3",
-                "pb-5 shadow-sm hover:shadow-md transition-all duration-200 border border-slate-100",
+                  ? "bg-emerald-500 text-white rounded-lg rounded-br-none"
+                  : "bg-white text-slate-800 rounded-lg rounded-bl-none",
+                "px-3 py-2 min-w-[100px] pb-4 shadow-sm hover:shadow transition-all duration-200 border border-slate-100",
               )}
             >
               {message.deleted ? (
-                <i className="text-slate-400">This message was deleted</i>
+                <i className="text-slate-400 text-sm">This message was deleted</i>
               ) : (
                 <>
                   {message.media && message.media.type === "image" && (
@@ -220,14 +250,14 @@ export const ChatMessage = React.memo(
                       transition={{ duration: 0.3 }}
                       src={message.media.url || "/placeholder.svg"}
                       alt="Image"
-                      className="rounded-lg mb-2 max-h-60 w-auto object-cover"
+                      className="rounded-md mb-1.5 max-h-48 w-auto object-cover"
                     />
                   )}
                   {message.media && message.media.type === "video" && (
-                    <video src={message.media.url} controls className="rounded-lg mb-2 max-h-60 w-auto" />
+                    <video src={message.media.url} controls className="rounded-md mb-1.5 max-h-48 w-auto" />
                   )}
                   {message.media && message.media.type === "file" && (
-                    <div className="bg-white bg-opacity-20 p-3 rounded-lg mb-2 flex items-center gap-2 border border-white/20">
+                    <div className="bg-white bg-opacity-20 p-2 rounded-md mb-1.5 flex items-center gap-2 border border-white/20">
                       {isPdfUrl(message.media.url) ? (
                         <a
                           href={message.media.url}
@@ -235,10 +265,10 @@ export const ChatMessage = React.memo(
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 w-full"
                         >
-                          <div className="p-2 bg-red-100 rounded-md">
+                          <div className="p-1 bg-red-100 rounded-md">
                             <svg
-                              width="24"
-                              height="24"
+                              width="16"
+                              height="16"
                               viewBox="0 0 24 24"
                               fill="none"
                               stroke="currentColor"
@@ -252,16 +282,16 @@ export const ChatMessage = React.memo(
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <div className="text-sm font-medium truncate">{getFilenameFromUrl(message.media.url)}</div>
-                            <div className="text-xs text-slate-400">PDF Document</div>
+                            <div className="text-xs font-medium truncate">{getFilenameFromUrl(message.media.url)}</div>
+                            <div className="text-xs text-slate-400">PDF</div>
                           </div>
-                          <Download size={18} className={isCurrentUser ? "text-white/80" : "text-slate-500"} />
+                          <Download size={14} className={isCurrentUser ? "text-white/80" : "text-slate-500"} />
                         </a>
                       ) : (
                         <>
                           <svg
-                            width="20"
-                            height="20"
+                            width="16"
+                            height="16"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -275,26 +305,27 @@ export const ChatMessage = React.memo(
                             <line x1="16" y1="17" x2="8" y2="17" />
                             <polyline points="10 9 9 9 8 9" />
                           </svg>
-                          <div className="text-sm truncate">{message.media.url}</div>
+                          <div className="text-xs truncate">{message.media.url}</div>
                         </>
                       )}
                     </div>
                   )}
-                  <p className={cn("mb-2 whitespace-pre-wrap", isCurrentUser ? "text-white" : "text-slate-800")}>
+                  <p className={cn("whitespace-pre-wrap mb-3 text-sm", isCurrentUser ? "text-white" : "text-slate-800")}>
                     {message.text}
                   </p>
                   <div
                     className={cn(
                       "message-time flex items-center gap-1 absolute bottom-1 text-xs font-medium",
-                      isCurrentUser ? "right-4 text-white/80" : "left-4 text-slate-500",
+                      isCurrentUser ? "right-3 text-white/80" : "left-3 text-slate-500",
+                      "whitespace-nowrap",
                     )}
                   >
                     <span>{formattedTime}</span>
                     {isCurrentUser &&
                       (message.status === "READ" ? (
-                        <CheckCheck size={12} className="text-blue-300" />
+                        <CheckCheck size={10} className="text-blue-300" />
                       ) : (
-                        <Check size={12} />
+                        <Check size={10} />
                       ))}
                   </div>
                 </>
@@ -305,13 +336,13 @@ export const ChatMessage = React.memo(
               {showActions && !message.deleted && (
                 <motion.div
                   ref={actionRef}
-                  initial={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -5 }}
                   transition={{ duration: 0.2 }}
                   className={cn(
-                    "absolute -top-10 flex bg-white shadow-md rounded-full p-1 gap-1 z-10",
-                    isCurrentUser ? "right-4" : "left-12",
+                    "absolute -top-8 flex bg-white shadow-md rounded-full p-0.5 gap-0.5 z-10",
+                    isCurrentUser ? "right-2" : "left-10",
                   )}
                 >
                   <TooltipProvider>
@@ -321,10 +352,10 @@ export const ChatMessage = React.memo(
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                          className="hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                          className="hover:bg-slate-100 rounded-full w-6 h-6 flex items-center justify-center transition-colors"
                           aria-label="Add reaction"
                         >
-                          <SmilePlus size={16} className="text-slate-600" />
+                          <SmilePlus size={14} className="text-slate-600" />
                         </motion.button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -340,10 +371,10 @@ export const ChatMessage = React.memo(
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={onReply}
-                          className="hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                          className="hover:bg-slate-100 rounded-full w-6 h-6 flex items-center justify-center transition-colors"
                           aria-label="Reply"
                         >
-                          <Reply size={16} className="text-slate-600" />
+                          <Reply size={14} className="text-slate-600" />
                         </motion.button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -360,10 +391,10 @@ export const ChatMessage = React.memo(
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={handleDelete}
-                            className="hover:bg-red-50 text-red-500 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                            className="hover:bg-red-50 text-red-500 rounded-full w-6 h-6 flex items-center justify-center transition-colors"
                             aria-label="Delete"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </motion.button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -384,8 +415,8 @@ export const ChatMessage = React.memo(
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
                   className={cn(
-                    "absolute -top-20 flex bg-white shadow-md rounded-full p-1 gap-1 z-20 border border-slate-100",
-                    isCurrentUser ? "right-4" : "left-12",
+                    "absolute -top-16 flex bg-white shadow-md rounded-full p-0.5 gap-0.5 z-20 border border-slate-100",
+                    isCurrentUser ? "right-2" : "left-10",
                   )}
                 >
                   {emojis.map((emoji) => (
@@ -395,7 +426,7 @@ export const ChatMessage = React.memo(
                       whileTap={{ scale: 0.9 }}
                       onClick={() => handleReactionClick(emoji)}
                       className={cn(
-                        "hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors",
+                        "hover:bg-slate-100 rounded-full w-6 h-6 flex items-center justify-center transition-colors",
                         currentUserReactions[emoji] && "bg-emerald-100",
                       )}
                       aria-label={`${currentUserReactions[emoji] ? "Remove" : "Add"} ${emoji} reaction`}
@@ -410,20 +441,19 @@ export const ChatMessage = React.memo(
 
           {message.reactions && message.reactions.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className={cn("flex flex-wrap gap-1 mt-1", isCurrentUser ? "justify-end" : "justify-start")}
+              transition={{ duration: 0.2 }}
+              className={cn("flex flex-wrap gap-1 mt-0.5", isCurrentUser ? "justify-end" : "justify-start")}
             >
               {message.reactions.map((reaction, index) => {
                 const users = Array.isArray(reaction.users) ? reaction.users : [reaction.users].filter(Boolean)
                 return (
                   <motion.div
-                    key={index}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
+                    key={`${reaction.emoji}-${index}`}
+                    whileHover={{ scale: 1.05 }}
                     className={cn(
-                      "bg-white shadow-sm rounded-full px-2 py-0.5 text-xs flex items-center gap-1 hover:shadow-md transition-all duration-200 border border-slate-100",
+                      "bg-white shadow-sm rounded-full px-1.5 py-0.5 text-xs flex items-center gap-1 hover:shadow transition-all duration-200 border border-slate-100",
                       currentUserReactions[reaction.emoji] && "bg-emerald-50 border-emerald-100",
                     )}
                     onClick={() => handleReactionClick(reaction.emoji)}
@@ -441,17 +471,18 @@ export const ChatMessage = React.memo(
           )}
         </div>
 
-        {isCurrentUser && showAvatar && (
+        {/* Always show avatar for current user */}
+        {isCurrentUser && (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="flex-shrink-0 self-end"
           >
             <img
               src={sender.avatar || "/placeholder.svg"}
               alt={`${sender.firstName} ${sender.lastName}`}
-              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+              className="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm"
             />
           </motion.div>
         )}
@@ -459,17 +490,18 @@ export const ChatMessage = React.memo(
     )
   },
   (prevProps, nextProps) => {
+    // Improved comparison function for better re-rendering optimization
+    const prevReactions = JSON.stringify(prevProps.message.reactions || []);
+    const nextReactions = JSON.stringify(nextProps.message.reactions || []);
+    
     return (
       String(prevProps.message.id) === String(nextProps.message.id) &&
       prevProps.message.text === nextProps.message.text &&
-      prevProps.message.reactions === nextProps.message.reactions &&
+      prevReactions === nextReactions &&
       String(prevProps.message.replyToId) === String(nextProps.message.replyToId) &&
+      prevProps.message.status === nextProps.message.status &&
       prevProps.isCurrentUser === nextProps.isCurrentUser &&
-      prevProps.showAvatar === nextProps.showAvatar &&
-      String(prevProps.sender.id) === String(nextProps.sender.id) &&
-      prevProps.sender.firstName === nextProps.sender.firstName &&
-      prevProps.sender.lastName === nextProps.sender.lastName &&
-      prevProps.sender.avatar === nextProps.sender.avatar
+      String(prevProps.sender.id) === String(nextProps.sender.id)
     )
   },
 )

@@ -15,9 +15,9 @@ import AnimatedBackground from "@/components/Animation/AnimatedBackgorund";
 import AnimatedTitle from "@/components/Animation/AnimatedTitle";
 import { getAllCategoriesForClients } from "@/services/client/clientService";
 
-// Define types for our form data, aligned with ProfileForm
+// Define types for our form data, aligned with backend WORKOUT_TYPES
 type FormData = {
-  preferredWorkout: "Cardio" | "Meditation" | "Pilates" | "Yoga" | "Calisthenics";
+  preferredWorkout: "cardio" | "meditation" | "pilates" | "yoga" | "calisthenics" | "weightTraining";
   fitnessGoal: "weightLoss" | "muscleGain" | "endurance" | "flexibility" | "maintenance";
   experienceLevel: "beginner" | "intermediate" | "advanced" | "expert";
   skillsToGain: string[];
@@ -55,45 +55,51 @@ const SKILLS = [
   "weightLoss",
 ] as const;
 
-// Fallback workout types, aligned with ProfileForm
+// Fallback workout types, aligned with backend WORKOUT_TYPES
 const FALLBACK_WORKOUT_TYPES: FormData["preferredWorkout"][] = [
-  "Cardio",
-  "Meditation",
-  "Pilates",
-  "Yoga",
-  "Calisthenics",
+  "cardio",
+  "meditation",
+  "pilates",
+  "yoga",
+  "calisthenics",
+  "weightTraining",
 ];
 
-// Mapping for API category titles to schema-compatible values, from ProfileForm
+// Mapping for API category titles to backend-compatible lowercase values
 const workoutTypeMapping: Record<string, string> = {
-  cardio: "Cardio",
-  CARDIO: "Cardio",
-  "cardio workout": "Cardio",
-  meditation: "Meditation",
-  MEDITATION: "Meditation",
-  pilates: "Pilates",
-  PILATES: "Pilates",
-  yoga: "Yoga",
-  YOGA: "Yoga",
-  calisthenics: "Calisthenics",
-  CALISTHENICS: "Calisthenics",
+  cardio: "cardio",
+  CARDIO: "cardio",
+  "cardio workout": "cardio",
+  meditation: "meditation",
+  MEDITATION: "meditation",
+  pilates: "pilates",
+  PILATES: "pilates",
+  yoga: "yoga",
+  YOGA: "yoga",
+  calisthenics: "calisthenics",
+  CALISTHENICS: "calisthenics",
+  weightTraining: "weightTraining",
+  WEIGHTTRAINING: "weightTraining",
+  "weight training": "weightTraining",
 };
 
 // Helper to convert API values to display format
 const formatValueForDisplay = (value: string): string => {
+  if (!value) return ""; // Add null/undefined check
   return value
     .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase());
 };
 
-// Get icon for workout type, aligned with ProfileForm values
+// Get icon for workout type, aligned with backend values
 const getWorkoutIcon = (type: FormData["preferredWorkout"]) => {
   const iconMap: Partial<Record<FormData["preferredWorkout"], JSX.Element>> = {
-    Yoga: <Leaf className="w-4 h-4 sm:w-5 sm:h-5" />,
-    Cardio: <Heart className="w-4 h-4 sm:w-5 sm:h-5" />,
-    Pilates: <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />,
-    Meditation: <Brain className="w-4 h-4 sm:w-5 sm:h-5" />,
-    Calisthenics: <Zap className="w-4 h-4 sm:w-5 sm:h-5" />,
+    yoga: <Leaf className="w-4 h-4 sm:w-5 sm:h-5" />,
+    cardio: <Heart className="w-4 h-4 sm:w-5 sm:h-5" />,
+    pilates: <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />,
+    meditation: <Brain className="w-4 h-4 sm:w-5 sm:h-5" />,
+    calisthenics: <Zap className="w-4 h-4 sm:w-5 sm:h-5" />,
+    weightTraining: <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5" />,
   };
   return iconMap[type] || <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5" />;
 };
@@ -122,6 +128,9 @@ export function TrainerPreferencesPage() {
   // Extract and map categories
   const workoutTypes: FormData["preferredWorkout"][] = categoryData?.categories
     ?.filter((category) => {
+      // Skip undefined or null categories
+      if (!category || !category.title) return false;
+      
       const normalizedTitle = category.title.toLowerCase();
       return Object.keys(workoutTypeMapping).some(
         (key) => key.toLowerCase() === normalizedTitle
@@ -129,15 +138,20 @@ export function TrainerPreferencesPage() {
     })
     .map((category) => {
       const normalizedTitle = category.title.toLowerCase();
-      return workoutTypeMapping[normalizedTitle] as FormData["preferredWorkout"];
+      const mappedType = workoutTypeMapping[normalizedTitle];
+      // Ensure we're returning a valid workout type
+      return mappedType as FormData["preferredWorkout"];
     }) || FALLBACK_WORKOUT_TYPES;
+
+  // Use fallback if no valid workout types are found
+  const displayWorkoutTypes = workoutTypes.length > 0 ? workoutTypes : FALLBACK_WORKOUT_TYPES;
 
   // Debug fetched categories
   console.log("Fetched categories:", categoryData?.categories);
-  console.log("Mapped workout types:", workoutTypes);
+  console.log("Mapped workout types:", displayWorkoutTypes);
 
   const [formData, setFormData] = useState<FormData>({
-    preferredWorkout: "Cardio",
+    preferredWorkout: "cardio",
     fitnessGoal: "weightLoss",
     experienceLevel: "beginner",
     skillsToGain: [],
@@ -253,13 +267,13 @@ export function TrainerPreferencesPage() {
                     Retry
                   </button>
                 </div>
-              ) : workoutTypes.length === 0 ? (
+              ) : displayWorkoutTypes.length === 0 ? (
                 <div className="text-gray-600">No workout categories available.</div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-                  {workoutTypes.map((type) => (
+                  {displayWorkoutTypes.map((type, index) => (
                     <motion.div
-                      key={type}
+                      key={`${type}-${index}`}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleSelectChange("preferredWorkout", type)}
@@ -313,7 +327,7 @@ export function TrainerPreferencesPage() {
                       className={`p-2 sm:p-3 rounded-full mb-1 sm:mb-2 ${
                         formData.fitnessGoal === goal
                           ? "bg-indigo-500 text-white"
-                          : "bg-gray-100 text-gray-600"
+                        : "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {getGoalIcon(goal)}
@@ -577,48 +591,48 @@ export function TrainerPreferencesPage() {
                   ))}
                 </div>
               </div>
-            </div>
 
-            <form onSubmit={handleSubmit}>
               <CardContent className="px-4 sm:px-6 lg:px-12 pb-4">
-                <div className="min-h-[300px] sm:min-h-[350px] md:min-h-[400px]">
-                  {renderStepContent(currentStep)}
-                </div>
+                <form onSubmit={handleSubmit}>
+                  <div className="min-h-[300px] sm:min-h-[350px] md:min-h-[400px]">
+                    {renderStepContent(currentStep)}
+                  </div>
+
+                  <CardFooter className="flex justify-between p-4 sm:p-6 lg:px-12 bg-gradient-to-r from-purple-50 to-indigo-50 border-t border-indigo-100">
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(currentStep - 1)}
+                        disabled={currentStep === 0}
+                        className="gap-2 px-4 sm:px-6 bg-white border-2 border-gray-200 hover:bg-gray-50 hover:text-indigo-700 rounded-md py-1.5 sm:py-2 text-sm sm:text-base"
+                      >
+                        Back
+                      </button>
+                    </motion.div>
+
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      {currentStep < steps.length - 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => validateStep(currentStep) && setCurrentStep(currentStep + 1)}
+                          disabled={!validateStep(currentStep)}
+                          className="gap-2 px-4 sm:px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 rounded-md py-1.5 sm:py-2 text-sm sm:text-base"
+                        >
+                          Next
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="gap-2 px-4 sm:px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 rounded-md py-1.5 sm:py-2 text-sm sm:text-base"
+                        >
+                          Find My Trainer
+                        </button>
+                      )}
+                    </motion.div>
+                  </CardFooter>
+                </form>
               </CardContent>
-
-              <CardFooter className="flex justify-between p-4 sm:p-6 lg:px-12 bg-gradient-to-r from-purple-50 to-indigo-50 border-t border-indigo-100">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep(currentStep - 1)}
-                    disabled={currentStep === 0}
-                    className="gap-2 px-4 sm:px-6 bg-white border-2 border-gray-200 hover:bg-gray-50 hover:text-indigo-700 rounded-md py-1.5 sm:py-2 text-sm sm:text-base"
-                  >
-                    Back
-                  </button>
-                </motion.div>
-
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  {currentStep < steps.length - 1 ? (
-                    <button
-                      type="button"
-                      onClick={() => validateStep(currentStep) && setCurrentStep(currentStep + 1)}
-                      disabled={!validateStep(currentStep)}
-                      className="gap-2 px-4 sm:px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 rounded-md py-1.5 sm:py-2 text-sm sm:text-base"
-                    >
-                      Next
-                    </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="gap-2 px-4 sm:px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0 rounded-md py-1.5 sm:py-2 text-sm sm:text-base"
-                    >
-                      Find My Trainer
-                    </button>
-                  )}
-                </motion.div>
-              </CardFooter>
-            </form>
+            </div>
           </Card>
         </motion.div>
       </div>

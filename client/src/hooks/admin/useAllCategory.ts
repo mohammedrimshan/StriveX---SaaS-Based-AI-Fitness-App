@@ -11,6 +11,7 @@ interface FetchCategoryParams {
 export interface CategoryType {
   _id: string;
   title: string;
+  metValue?: number;
   description?: string;
   status: boolean;
   categoryId?: string;
@@ -44,7 +45,7 @@ export const useAllCategoryAdminQuery = (
 };
 
 export const useAllCategoryMutation = (
-  addEditFunc: (data: { id?: string; name: string; description?: string }) => Promise<IAxiosResponse>,
+  addEditFunc: (data: { id?: string; name: string; metValue?: number; description?: string }) => Promise<IAxiosResponse>,
   toggleStatusFunc: (categoryId: string, status: boolean) => Promise<IAxiosResponse>
 ) => {
   const queryClient = useQueryClient();
@@ -54,6 +55,7 @@ export const useAllCategoryMutation = (
     {
       id?: string;
       name?: string;
+      metValue?: number;
       description?: string;
       status?: boolean;
       action?: "add" | "edit" | "toggle";
@@ -70,6 +72,7 @@ export const useAllCategoryMutation = (
         return await addEditFunc({
           id: data.id,
           name: data.name!,
+          metValue: data.metValue,
           description: data.description,
         });
       }

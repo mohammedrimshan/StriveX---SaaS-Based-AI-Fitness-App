@@ -32,6 +32,15 @@ import { ISlotRepository } from "@/entities/repositoryInterfaces/slot/slot-repos
 import { SlotRepository } from "@/interfaceAdapters/repositories/slot/slot.repository";
 import { IMessageRepository } from "@/entities/repositoryInterfaces/chat/message-repository.interface";
 import { MessageRepository } from "@/interfaceAdapters/repositories/chat/message.repository";
+import { IWorkoutProgressRepository } from "@/entities/repositoryInterfaces/progress/workout-progress.repository.interface";
+import { WorkoutProgressRepository } from "@/interfaceAdapters/repositories/progress/workout-progrss.repository";
+import { IWorkoutVideoProgressRepository } from "@/entities/repositoryInterfaces/progress/workout-video-progress-repository.interface";
+import { WorkoutVideoProgressRepository } from "@/interfaceAdapters/repositories/progress/workout-video-progress.repository";
+import { IPostRepository } from "@/entities/repositoryInterfaces/community/post-repository.interface";
+import { PostRepository } from "@/interfaceAdapters/repositories/community/post.repository";
+import { ICommentRepository } from "@/entities/repositoryInterfaces/community/comment-repository.interface";
+import { CommentRepository } from "@/interfaceAdapters/repositories/community/comment.repository";
+
 
 export class RepositoryRegistry {
   static registerRepositories(): void {
@@ -99,5 +108,21 @@ export class RepositoryRegistry {
       useClass: MessageRepository,
     });
 
+    container.register<IWorkoutProgressRepository>("IWorkoutProgressRepository", {
+      useClass: WorkoutProgressRepository,
+    });
+
+    container.register<IWorkoutVideoProgressRepository>("IWorkoutVideoProgressRepository", {
+      useClass: WorkoutVideoProgressRepository,
+    });
+
+    container.register<IPostRepository>("IPostRepository", {
+      useClass: PostRepository,
+    });
+
+    container.register<ICommentRepository>("ICommentRepository", {
+      useClass: CommentRepository,
+    });
+    
   }
 }

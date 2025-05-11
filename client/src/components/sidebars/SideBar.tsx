@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LogOut, ArrowLeftCircle } from "lucide-react";
-import Link from "next/link";
+import { useNavigate } from "react-router-dom"; 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,20 +20,26 @@ interface NavItemProps {
 
 const NavItem = ({ item, isActive, onClick }: NavItemProps) => {
   const Icon = item.icon;
+  const navigate = useNavigate();
+
+  const handleItemClick = (e:any) => {
+    e.preventDefault(); 
+    navigate(item.path); 
+    onClick(); 
+  };
 
   return (
-    <Link
-      href={item.path}
+    <div
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors cursor-pointer",
         isActive
           ? "bg-violet-600 text-white font-medium"
           : "text-foreground/70 hover:bg-violet-100/10 hover:text-violet-400"
       )}
-      onClick={onClick}>
+      onClick={handleItemClick}>
       <Icon className="h-5 w-5" />
       <span>{item.title}</span>
-    </Link>
+    </div>
   );
 };
 
@@ -56,6 +62,7 @@ export function AppSidebar({
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   
   const navItems = SideBarItems[role];
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -63,8 +70,18 @@ export function AppSidebar({
       if (storedIndex) {
         setActiveIndex(Number.parseInt(storedIndex, 10));
       }
+
+      // Find the active index based on current path
+      const currentPath = window.location.pathname;
+      const index = navItems.findIndex(item => 
+        currentPath.includes(item.path) || currentPath === item.path
+      );
+      
+      if (index !== -1) {
+        setActiveIndex(index);
+      }
     }
-  }, []);
+  }, [navItems]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -96,6 +113,12 @@ export function AppSidebar({
     if (typeof window !== "undefined") {
       localStorage.removeItem("activeItem");
     }
+  };
+
+  const handleNavItemClick = (index:any, path:any) => {
+    setActiveIndex(index);
+    navigate(path); // Use React Router navigation
+    onClose();
   };
 
   return (
@@ -151,10 +174,7 @@ export function AppSidebar({
                   key={index}
                   item={item}
                   isActive={index === activeIndex}
-                  onClick={() => {
-                    setActiveIndex(index);
-                    onClose();
-                  }}
+                  onClick={() => handleNavItemClick(index, item.path)}
                 />
               ))}
             </div>

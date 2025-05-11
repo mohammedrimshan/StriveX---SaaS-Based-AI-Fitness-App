@@ -14,9 +14,6 @@ import AnimatedTitle from "@/components/Animation/AnimatedTitle";
 const ManualTrainersListing = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedTrainer, setSelectedTrainer] = useState<TrainerProfile | null>(
-    null
-  );
   const { successToast, errorToast } = useToaster();
   const navigate = useNavigate();
   const { mutate, isPending: isSelecting } = useManualSelectTrainer(); // Use the hook
@@ -36,7 +33,6 @@ const ManualTrainersListing = () => {
   };
 
   const handleSelectTrainer = (trainer: TrainerProfile) => {
-    setSelectedTrainer(trainer);
     mutate(
       { trainerId: trainer.id },
       {
@@ -47,15 +43,15 @@ const ManualTrainersListing = () => {
             successToast(
               `You've selected ${trainer.firstName} ${trainer.lastName} as your trainer`
             );
+            // Navigate to home page instead of showing modal
+            navigate("/");
           } else {
             errorToast(response.message || "Failed to select trainer");
-            setSelectedTrainer(null);
           }
         },
         onError: (err) => {
           console.log(err, "error response");
           errorToast(`${err.response.data.message || "Unknown error"}`);
-          setSelectedTrainer(null);
         },
       }
     );
@@ -139,45 +135,6 @@ const ManualTrainersListing = () => {
             onPageChange={handlePageChange}
             className="mt-8"
           />
-        )}
-
-        {selectedTrainer && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold mb-4">Trainer Selected!</h3>
-              <p className="mb-4">
-                You've chosen{" "}
-                <span className="font-semibold">
-                  {selectedTrainer.firstName} {selectedTrainer.lastName}
-                </span>{" "}
-                as your trainer.
-              </p>
-              <p className="mb-6">Would you like to schedule a session now?</p>
-              <div className="flex justify-end gap-4">
-                <button
-                  onClick={() => setSelectedTrainer(null)}
-                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-                  disabled={isSelecting}
-                >
-                  Not now
-                </button>
-                <button
-                  onClick={() => {
-                    navigate(`/schedule/${selectedTrainer.id}`); // Redirect to scheduling page
-                    setSelectedTrainer(null);
-                  }}
-                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                  disabled={isSelecting}
-                >
-                  {isSelecting ? (
-                    <Loader2 className="h-5 w-5 animate-spin inline-block" />
-                  ) : (
-                    "Schedule Session"
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
         )}
       </div>
     </AnimatedBackground>

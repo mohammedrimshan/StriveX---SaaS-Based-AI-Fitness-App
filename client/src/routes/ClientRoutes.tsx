@@ -21,6 +21,7 @@ import { MatchedTrainersPage } from "@/pages/client/MatchedTrainersList";
 import ManualTrainersListing from "@/pages/client/ManualTrainer";
 import BookingPage from "@/pages/client/BookingPage";
 import { ChatLayout } from "@/components/Chat/ChatLayout";
+import CommunityForum from "@/components/Community/CommunityForum";
 export const ClientRoutes = () => {
   return (
     <Routes>
@@ -154,6 +155,10 @@ export const ClientRoutes = () => {
 
           <Route path="/chat" element={
                           <AuthRoute allowedRoles={["client"]} element={<ChatLayout />} />
+                        } />
+
+<Route path="/community" element={
+                          <AuthRoute allowedRoles={["client"]} element={<CommunityForum />} />
                         } />
         {/* Add more protected routes as needed */}
       </Route>

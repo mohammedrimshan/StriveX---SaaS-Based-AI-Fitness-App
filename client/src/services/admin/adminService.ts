@@ -178,24 +178,27 @@ export const getAllCategories = async ({
   const response = await adminAxiosInstance.get("/admin/categories", {
     params: { page, limit, searchTerm: search },
   });
+  console.log("Categories response:", response.data);
   return response.data;
 };
 
 export const addAndEditCategory = async (categoryData: {
   id?: string;
   name: string;
+  metValue:number;
   description?: string;
 }): Promise<IAxiosResponse> => {
   if (categoryData.id) {
     const response = await adminAxiosInstance.put(
       `/admin/categories/${categoryData.id}`,
-      { name: categoryData.name, description: categoryData.description }
+      { name: categoryData.name,metValue:categoryData.metValue, description: categoryData.description }
     );
     return response.data;
   } else {
     const response = await adminAxiosInstance.post("/admin/categories", {
       name: categoryData.name,
-      description: categoryData.description,
+      metValue:categoryData.metValue,
+      description: categoryData.description
     });
     console.log(response.data);
     return response.data;

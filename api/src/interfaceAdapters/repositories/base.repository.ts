@@ -1,4 +1,3 @@
-// api/src/interfaceAdapters/repositories/common/base.repository.ts
 import { injectable } from "tsyringe";
 import { Model } from "mongoose";
 import { IBaseRepository } from "@/entities/repositoryInterfaces/base-repository.interface";
@@ -63,7 +62,7 @@ export class BaseRepository<T> implements IBaseRepository<T> {
     return {
       ...rest,
       id: _id?.toString(),
-      category: category?.title || category?.toString(),
+      category: category?.title || category || undefined,
     } as T;
   }
 }

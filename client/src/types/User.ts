@@ -71,6 +71,7 @@ export interface ITrainer extends User {
 export interface Category {
   id: string;
   name: string;
+  metValue: number;
   description: string;
   isListed: boolean;
   createdAt: Date;

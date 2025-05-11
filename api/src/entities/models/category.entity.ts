@@ -5,6 +5,7 @@ export interface ICategoryEntity {
   categoryId: string;
   title: string;
   description?:string;
+  metValue: number;
   status: boolean;
   createdAt?: Date;
   updatedAt?: Date;

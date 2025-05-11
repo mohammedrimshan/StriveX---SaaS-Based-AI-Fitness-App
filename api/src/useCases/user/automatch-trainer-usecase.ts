@@ -29,7 +29,7 @@ export class AutoMatchTrainerUseCase implements IAutoMatchTrainerUseCase {
 
     if (client.selectionMode !== "auto") {
       throw new CustomError(
-        "Selection mode must be auto for auto-matching",
+        ERROR_MESSAGES.INVALID_SELECTION_MODE,
         HTTP_STATUS.BAD_REQUEST
       );
     }
@@ -70,7 +70,7 @@ export class AutoMatchTrainerUseCase implements IAutoMatchTrainerUseCase {
 
     if (!updatedClient) {
       throw new CustomError(
-        "Failed to update preferences",
+        ERROR_MESSAGES.FAILED_TO_UPDATE_PREFERENCES,
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }
@@ -106,7 +106,7 @@ export class AutoMatchTrainerUseCase implements IAutoMatchTrainerUseCase {
           skillMatchCount * 2 +
           workoutMatch * 3 +
           -clientCount * 0.5;
-console.log(score,"Score")
+
         return { trainer, score };
       })
     );

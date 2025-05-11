@@ -3,7 +3,7 @@ import { ICreateSlotUseCase } from "../../entities/useCaseInterfaces/slot/create
 import { ISlotRepository } from "../../entities/repositoryInterfaces/slot/slot-repository.interface";
 import { ISlotEntity } from "../../entities/models/slot.entity";
 import { CustomError } from "../../entities/utils/custom.error";
-import { HTTP_STATUS } from "../../shared/constants";
+import { HTTP_STATUS, ERROR_MESSAGES } from "../../shared/constants";
 import slotExpiryQueue from "../../frameworks/queue/bull/slot-expiry.setup";
 import { SlotStatus } from "../../shared/constants";
 
@@ -17,40 +17,45 @@ export class CreateSlotUseCase implements ICreateSlotUseCase {
     trainerId: string,
     slotData: { date: string; startTime: string; endTime: string }
   ): Promise<ISlotEntity> {
-    
     const slotDate = new Date(slotData.date);
     if (isNaN(slotDate.getTime())) {
-      throw new CustomError("Invalid date format", HTTP_STATUS.BAD_REQUEST);
+      throw new CustomError(
+        ERROR_MESSAGES.INVALID_DATE_FORMAT,
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
-  
-    
-    const [startHours, startMinutes] = slotData.startTime.split(":").map(Number);
+
+    const [startHours, startMinutes] = slotData.startTime
+      .split(":")
+      .map(Number);
     const [endHours, endMinutes] = slotData.endTime.split(":").map(Number);
-  
-    
+
     const startTime = new Date(slotDate);
     startTime.setHours(startHours, startMinutes, 0, 0);
-  
+
     const endTime = new Date(slotDate);
     endTime.setHours(endHours, endMinutes, 0, 0);
-  
-    
+
     if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
       throw new CustomError(
-        `Invalid time format for slot (${slotData.startTime}–${slotData.endTime})`,
+        ERROR_MESSAGES.INVALID_TIME_FORMAT(
+          slotData.startTime,
+          slotData.endTime
+        ),
         HTTP_STATUS.BAD_REQUEST
       );
     }
-  
-    
+
     if (startTime >= endTime) {
       throw new CustomError(
-        `Start time (${slotData.startTime}) must be before end time (${slotData.endTime})`,
+        ERROR_MESSAGES.START_TIME_BEFORE_END_TIME(
+          slotData.startTime,
+          slotData.endTime
+        ),
         HTTP_STATUS.BAD_REQUEST
       );
     }
-  
-    
+
     const overlappingSlots = await this.slotRepository.findOverlappingSlots(
       trainerId,
       startTime,
@@ -58,22 +63,27 @@ export class CreateSlotUseCase implements ICreateSlotUseCase {
     );
     if (overlappingSlots.length > 0) {
       throw new CustomError(
-        `Slot (${slotData.startTime}–${slotData.endTime}) overlaps with existing slot`,
+        ERROR_MESSAGES.SLOT_OVERLAPS(slotData.startTime, slotData.endTime),
         HTTP_STATUS.BAD_REQUEST
       );
     }
-  
-    
-    const formattedDate = `${slotDate.getFullYear()}-${String(slotDate.getMonth() + 1).padStart(2, '0')}-${String(slotDate.getDate()).padStart(2, '0')}`;
-    const formattedStartTime = `${String(startHours).padStart(2, '0')}:${String(startMinutes).padStart(2, '0')}`;
-    const formattedEndTime = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+
+    const formattedDate = `${slotDate.getFullYear()}-${String(
+      slotDate.getMonth() + 1
+    ).padStart(2, "0")}-${String(slotDate.getDate()).padStart(2, "0")}`;
+    const formattedStartTime = `${String(startHours).padStart(2, "0")}:${String(
+      startMinutes
+    ).padStart(2, "0")}`;
+    const formattedEndTime = `${String(endHours).padStart(2, "0")}:${String(
+      endMinutes
+    ).padStart(2, "0")}`;
     const [year, month, day] = formattedDate.split("-").map(Number);
     const expiresAt = new Date(year, month - 1, day, endHours, endMinutes);
     const slot: Partial<ISlotEntity> = {
       trainerId,
-      date: formattedDate,        
-      startTime: formattedStartTime, 
-      endTime: formattedEndTime,     
+      date: formattedDate,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
       status: SlotStatus.AVAILABLE,
       isBooked: false,
       isAvailable: true,
@@ -81,13 +91,12 @@ export class CreateSlotUseCase implements ICreateSlotUseCase {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-  
+
     const savedSlot = await this.slotRepository.save(slot);
-  
-    
+
     const slotEndTime = new Date(slotDate);
     slotEndTime.setHours(endHours, endMinutes, 0, 0);
-  
+
     const delay = slotEndTime.getTime() - Date.now();
     if (delay > 0) {
       await slotExpiryQueue.add(
@@ -95,8 +104,7 @@ export class CreateSlotUseCase implements ICreateSlotUseCase {
         { delay: expiresAt.getTime() - Date.now() }
       );
     }
-  
+
     return savedSlot as ISlotEntity;
   }
-  
 }

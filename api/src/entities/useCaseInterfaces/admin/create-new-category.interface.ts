@@ -1,3 +1,3 @@
 export interface ICreateNewCategoryUseCase {
-  execute(title: string, description?: string): Promise<void>; 
+  execute(title: string, metValue: number, description?: string): Promise<void>; 
 }

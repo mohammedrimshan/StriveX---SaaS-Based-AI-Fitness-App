@@ -20,4 +20,5 @@ export interface IClientRepository extends IBaseRepository<IClientEntity>{
         skip: number,
         limit: number
       ): Promise<{ items: IClientEntity[] | []; total: number }>;
+      findByClientNewId(clientId: string): Promise<IClientEntity | null>
 }

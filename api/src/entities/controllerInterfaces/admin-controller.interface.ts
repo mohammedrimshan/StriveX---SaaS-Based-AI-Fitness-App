@@ -7,4 +7,8 @@ export interface IAdminController {
   getMembershipPlans(req: Request, res: Response): Promise<void>;
   getTrainerRequests(req: Request, res: Response): Promise<void>;
   updateTrainerRequest(req: Request, res: Response): Promise<void>;
+  getReportedPosts(req: Request, res: Response): Promise<void>;
+  getReportedComments(req: Request, res: Response): Promise<void>;
+  hardDeletePost(req: Request, res: Response): Promise<void>;
+  hardDeleteComment(req: Request, res: Response): Promise<void>;
 }

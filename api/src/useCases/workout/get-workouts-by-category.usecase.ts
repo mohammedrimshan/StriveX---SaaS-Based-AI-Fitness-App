@@ -3,7 +3,7 @@ import { IWorkoutRepository } from "@/entities/repositoryInterfaces/workout/work
 import { IGetWorkoutsByCategoryUseCase } from "@/entities/useCaseInterfaces/workout/get-workout-by-category-usecase.interface";
 import { IWorkoutEntity } from "@/entities/models/workout.entity";
 import { CustomError } from "@/entities/utils/custom.error";
-import { HTTP_STATUS } from "@/shared/constants";
+import { HTTP_STATUS,ERROR_MESSAGES } from "@/shared/constants";
 
 @injectable()
 export class GetWorkoutsByCategoryUseCase implements IGetWorkoutsByCategoryUseCase {
@@ -14,11 +14,10 @@ export class GetWorkoutsByCategoryUseCase implements IGetWorkoutsByCategoryUseCa
 
   async execute(categoryId: string): Promise<IWorkoutEntity[]> {
     try {
-      const workouts = await this._workoutRepository.findByCategory(categoryId);
-      return workouts;
+      return await this._workoutRepository.findByCategory(categoryId);
     } catch (error) {
       throw new CustomError(
-        "Failed to fetch workouts by category",
+        ERROR_MESSAGES.FETCH_WORKOUT_BY_CATEGORY_FAILED,
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }

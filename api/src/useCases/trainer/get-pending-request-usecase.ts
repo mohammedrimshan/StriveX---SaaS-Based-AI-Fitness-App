@@ -27,8 +27,6 @@ export class GetPendingClientRequestsUseCase implements IGetPendingClientRequest
       pageSize
     );
 
-console.log(clients,"Clients....")
-
     return {
       user: clients,
       total: Math.ceil(total / pageSize),

@@ -16,7 +16,7 @@ export class CreateNewCategoryUseCase implements ICreateNewCategoryUseCase {
     this._categoryRepository = categoryRepository
   }
 
-  async execute(title: string, description?: string): Promise<void> {
+  async execute(title: string, metValue: number, description?: string ): Promise<void> {
     const isCategoryExists = await this._categoryRepository.findByTitle(title);
 
     if (isCategoryExists) {
@@ -28,6 +28,7 @@ export class CreateNewCategoryUseCase implements ICreateNewCategoryUseCase {
     await this._categoryRepository.save({
       categoryId,
       title,
+      metValue,
       description,
       status: true, 
     });

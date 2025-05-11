@@ -33,21 +33,21 @@ export class TrainerVerificationUseCase implements ITrainerVerificationUseCase {
 
     if (trainer.approvalStatus !== TrainerApprovalStatus.PENDING) {
       throw new CustomError(
-        "Trainer has already been approved or rejected",
+        ERROR_MESSAGES.TRAINER_ALREADY_APPROVED_OR_REJECTED,
         HTTP_STATUS.BAD_REQUEST
       );
     }
 
     if (![TrainerApprovalStatus.APPROVED, TrainerApprovalStatus.REJECTED].includes(approvalStatus)) {
       throw new CustomError(
-        "Invalid approval status",
+        ERROR_MESSAGES.INVALID_ACTION,
         HTTP_STATUS.BAD_REQUEST
       );
     }
 
     if (approvalStatus === TrainerApprovalStatus.REJECTED && !rejectionReason) {
       throw new CustomError(
-        "Rejection reason is required when rejecting a trainer",
+       ERROR_MESSAGES.REJECTION_REASON_REQUIRED,
         HTTP_STATUS.BAD_REQUEST
       );
     }

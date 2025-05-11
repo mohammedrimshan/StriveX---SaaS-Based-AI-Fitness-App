@@ -2,9 +2,10 @@ import { inject, injectable } from "tsyringe";
 import { IUpdateUserProfileUseCase } from "@/entities/useCaseInterfaces/users/update-user-profile-usecase.interface";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
 import { CustomError } from "@/entities/utils/custom.error";
-import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
+import { ERROR_MESSAGES, HTTP_STATUS, WORKOUT_TYPES } from "@/shared/constants";
 import { ICloudinaryService } from "@/interfaceAdapters/services/cloudinary.service";
 import { IClientEntity } from "@/entities/models/client.entity";
+
 @injectable()
 export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
   constructor(
@@ -19,7 +20,8 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
     if (!existingUser) {
       throw new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
-  
+
+    // Validate healthConditions
     if (data.healthConditions) {
       if (!Array.isArray(data.healthConditions)) {
         throw new CustomError(
@@ -29,7 +31,18 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
       }
       data.healthConditions = data.healthConditions.map((condition) => String(condition));
     }
-  
+
+    // Validate preferredWorkout
+    if (data.preferredWorkout) {
+      if (!WORKOUT_TYPES.includes(data.preferredWorkout)) {
+        throw new CustomError(
+          "Invalid preferredWorkout type",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+    }
+
+    // Handle profile image upload if it’s a base64 string
     if (data.profileImage && typeof data.profileImage === "string" && data.profileImage.startsWith("data:")) {
       console.log("Profile image length:", data.profileImage.length);
       console.log("Profile image preview:", data.profileImage.substring(0, 50));
@@ -47,7 +60,7 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
         );
       }
     }
-  
+
     const updatedUser = await this._clientRepository.findByIdAndUpdate(userId, data);
     if (!updatedUser) {
       throw new CustomError(
@@ -55,7 +68,7 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }
-  
+
     return updatedUser;
   }
 }

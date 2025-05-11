@@ -6,6 +6,7 @@ export const CategorySchema = new Schema<ICategoryModel>(
     categoryId: { type: String, required: true, unique: true },
     status: { type: Boolean, default: true },
     title: { type: String, required: true },
+    metValue: { type: Number, required: true },
     description: { type: String, required: false },
   },
   { timestamps: true }

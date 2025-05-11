@@ -40,7 +40,7 @@ export class CategoryRepository extends BaseRepository<ICategoryEntity> implemen
   ): Promise<PaginatedCategories> {
     const [categories, total, all] = await Promise.all([
       CategoryModel.find(filter)
-        .select("status title _id description") 
+        .select("status title _id description metValue") 
         .skip(skip)
         .limit(limit),
       CategoryModel.countDocuments(filter),
@@ -66,12 +66,13 @@ export class CategoryRepository extends BaseRepository<ICategoryEntity> implemen
     }
   }
 
-  async updateCategory(id: any, title: string, description?: string): Promise<ICategoryEntity> {
+  async updateCategory(id: any, title: string,metValue?: number, description?: string ): Promise<ICategoryEntity> {
     const updatedCategory = await CategoryModel.findByIdAndUpdate(
       id,
       {
         $set: {
           title,
+          metValue,
           description: description !== undefined ? description : undefined,
           updatedAt: new Date().toISOString(),
         },

@@ -1,13 +1,13 @@
 export const ROLES = {
   ADMIN: "admin",
   USER: "client",
-  TRAINER: "trainer"
+  TRAINER: "trainer",
 } as const;
-
+export type RoleType = (typeof ROLES)[keyof typeof ROLES];
 export enum MessageStatus {
   SENT = "sent",
   DELIVERED = "delivered",
-  READ = "read"
+  READ = "read",
 }
 
 export type TRole = "client" | "trainer" | "admin";
@@ -24,14 +24,15 @@ export enum SlotStatus {
 }
 
 export const WORKOUT_TYPES = [
-  "yoga",
-  "cardio",
-  "weightTraining",
-  "meditation",
-  "calisthenics",
-  "pilates",
+  "Yoga",
+  "Cardio",
+  "WeightTraining",
+  "Meditation",
+  "Calisthenics",
+  "Pilates",
+  "General",
 ] as const;
-export type WorkoutType = typeof WORKOUT_TYPES[number];
+export type WorkoutType = (typeof WORKOUT_TYPES)[number];
 
 export type Gender = "male" | "female" | "other";
 
@@ -42,7 +43,7 @@ export const FITNESS_GOALS = [
   "flexibility",
   "maintenance",
 ] as const;
-export type FitnessGoal = typeof FITNESS_GOALS[number];
+export type FitnessGoal = (typeof FITNESS_GOALS)[number];
 
 export const EXPERIENCE_LEVELS = [
   "beginner",
@@ -50,13 +51,13 @@ export const EXPERIENCE_LEVELS = [
   "advanced",
   "expert",
 ] as const;
-export type ExperienceLevel = typeof EXPERIENCE_LEVELS[number];
+export type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];
 
 export enum PaymentStatus {
-  PENDING = 'pending',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  REFUNDED = 'refunded'
+  PENDING = "pending",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  REFUNDED = "refunded",
 }
 
 export const SKILLS = [
@@ -71,8 +72,7 @@ export const SKILLS = [
   "nutrition",
   "weightLoss",
 ] as const;
-export type Skill = typeof SKILLS[number];
-
+export type Skill = (typeof SKILLS)[number];
 
 export const ACTIVITY_LEVELS = [
   "sedentary",
@@ -81,7 +81,7 @@ export const ACTIVITY_LEVELS = [
   "active",
   "veryActive",
 ] as const;
-export type ActivityLevel = typeof ACTIVITY_LEVELS[number];
+export type ActivityLevel = (typeof ACTIVITY_LEVELS)[number];
 
 export enum TrainerSelectionStatus {
   PENDING = "pending",
@@ -146,7 +146,8 @@ export const ERROR_MESSAGES = {
   ID_NOT_PROVIDED: "ID not provided",
   TOKEN_EXPIRED: "Token has expired",
   TOKEN_INVALID: "Invalid token",
-  FORBIDDEN: "Access denied. You do not have permission to perform this action.",
+  FORBIDDEN:
+    "Access denied. You do not have permission to perform this action.",
   BLOCKED_ACCOUNT: "Your account has been blocked",
   INVALID_CREDENTIALS: "Invalid email or password",
   INVALID_ROLE: "Invalid user role",
@@ -189,10 +190,10 @@ export const ERROR_MESSAGES = {
   FILE_SIZE_EXCEEDED: "File size exceeded maximum limit",
   UPLOAD_FAILED: "Failed to upload file",
   BLOCKED: "Your account has been blocked.",
-  UPDATE_FAILED:"Updation Failed",
+  UPDATE_FAILED: "Updation Failed",
   CATEGORY_EXISTS: "Category Already Exists",
   CATEGORY_NOT_FOUND: "Category Not Found",
-  CURRENT_PASSWORD:"Current Password Wrong",
+  CURRENT_PASSWORD: "Current Password Wrong",
   WORKOUT_NOT_FOUND: "Workout not found",
   INVALID_WORKOUT_DATA: "Invalid workout data provided",
   PROFILE_UPDATE_FAILED: "Failed to update user profile",
@@ -206,6 +207,66 @@ export const ERROR_MESSAGES = {
   TRAINER_NOT_IN_MATCHED_LIST: "Trainer is not in the matched list",
   TRAINER_NOT_APPROVED: "Trainer is not approved",
   FAILED_TO_UPDATE_SELECTION: "Failed to update trainer selection",
+  WORKOUT_UPDATE_FAILED: "Update Workout Failed",
+  EXERCISE_NOT_FOUND: "Exercise not found",
+  EXERCISE_UPDATE_FAILED: "Failed to update exercise",
+  WORKOUT_STATUS_UPDATE_FAILED: "Failed to toggle workout status",
+  PROGRESS_RECORD_FAILED: "Failed to record progress",
+  INVALID_PAGE_NUMBER: "Invalid page number",
+  INVALID_LIMIT: "Invalid limit value",
+  FETCH_WORKOUT_FAILED: "Failed to fetch workouts",
+  FETCH_WORKOUT_BY_CATEGORY_FAILED: "Failed to fetch workouts by category",
+  WORKOUT_ID_REQUIRED: "Workout ID is required",
+  FAILED_TO_FETCH_WORKOUT: "Failed to fetch workout by ID",
+  FAILED_TO_FETCH_PROGRESS: "Failed to fetch user progress",
+  FAILED_TO_DELETE_WORKOUT: "Failed to delete workout",
+  INVALID_INPUT: "Invalid input provided",
+  FAILED_TO_DELETE_EXERCISE: "Failed to delete exercise",
+  INVALID_VIDEO_COUNT:
+    "Number of uploaded videos must match number of exercises",
+  VIDEO_UPLOAD_FAILED: (index: number) =>
+    `Failed to upload video for exercise ${index}`,
+  EXERCISE_MISSING_VIDEO_URL: (index: number) =>
+    `Exercise at index ${index} is missing a required video URL`,
+  CREATE_WORKOUT_FAILED: "Failed to create workout",
+  VIDEO_URL_REQUIRED: "Video URL is required",
+  VIDEOS_UPLOAD_FAILED: "Failed to upload video",
+  INVALID_SELECTION_MODE: "Selection mode must be auto for auto-matching",
+  FAILED_TO_UPDATE_PREFERENCES: "Failed to update preferences",
+   INCOMPLETE_CLIENT_PROFILE: "Client profile is incomplete. Please update fitness goal and activity level.",
+  CANNOT_REASSIGN_TRAINER: "Cannot reassign trainer while current assignment is accepted",
+  CANNOT_SEND_REQUEST_AGAIN: "Trainer request already pending. Cannot send request again.",
+  FAILED_TO_UPDATE: "Failed to update preferences",
+   INVALID_TRAINER_ROLE: "Account is not a trainer",
+  STRIPE_ACCOUNT_EXISTS: "Stripe Connect account already exists",
+  STRIPE_ACCOUNT_CREATION_FAILED: "Failed to create Stripe Connect account",
+ TRAINER_NOT_ASSIGNED_TO_CLIENT: "Trainer is not assigned to this client",
+  INVALID_TRAINER_EMAIL: "Invalid trainer email",
+ INVALID_ACTION: "Invalid action",
+ REQUEST_NOT_PENDING: "Client request is not in pending status",
+   TRAINER_ALREADY_APPROVED_OR_REJECTED: "Trainer's application has already been processed.",
+  INVALID_APPROVAL_STATUS: "Invalid approval status.",
+  REJECTION_REASON_REQUIRED: "Please provide a reason for rejecting the trainer.",
+  MEMBERSHIP_NOT_FOUND:"Membership plan not found",
+   ALREADY_BOOKED_SESSION: "You already have a booked session. Only one session can be booked at a time.",
+  SLOT_NOT_FOUND: "Slot not found",
+  SLOT_NOT_AVAILABLE: "Slot is not available",
+  INVALID_SLOT_DATE_TIME: "Invalid slot date or time",
+  PAST_SLOT_BOOKING: "Cannot book past slot",
+  FAILED_BOOKING_SLOT: "Failed to book slot",
+   SLOT_NOT_FOUND_OR_NOT_BOOKED: "Slot not found or not booked by this client",
+  CANNOT_CANCEL_WITHIN_30_MINUTES: "Cannot cancel within 30 minutes of slot start",
+  FAILED_CANCEL_BOOKING: "Failed to cancel booking",
+   INVALID_DATE_FORMAT: "Invalid date format",
+  INVALID_TIME_FORMAT: (startTime: string, endTime: string) => `Invalid time format for slot (${startTime}–${endTime})`,
+  START_TIME_BEFORE_END_TIME: (startTime: string, endTime: string) => `Start time (${startTime}) must be before end time (${endTime})`,
+  SLOT_OVERLAPS: (startTime: string, endTime: string) => `Slot (${startTime}–${endTime}) overlaps with existing slot`,
+  INVALID_CLIENT_ID: "Valid Client ID is required",
+  NO_BOOKINGS_FOUND: "No bookings found for the provided client ID",
+   TRAINER_AND_SLOT_ID_REQUIRED: "Trainer ID and Slot ID are required",
+  UNAUTHORIZED_TOGGLE_SLOT: "Unauthorized: Only the trainer can toggle slot availability",
+  BOOKED_SLOT_CANNOT_TOGGLE: "Cannot toggle availability of a booked slot",
+  FAILED_TO_UPDATE_SLOT_AVAILABILITY: "Failed to update slot availability",
 } as const;
 
 export const VERIFICATION_MAIL_CONTENT = (otp: string) => `
@@ -279,8 +340,6 @@ export const VERIFICATION_MAIL_CONTENT = (otp: string) => `
 </div>
 `;
 
-
-
 // api\src\shared\constants.ts
 export const APPROVAL_MAIL_CONTENT = (trainerName: string) => `
 <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
@@ -339,7 +398,10 @@ export const APPROVAL_MAIL_CONTENT = (trainerName: string) => `
 </div>
 `;
 
-export const REJECTION_MAIL_CONTENT = (trainerName: string, rejectionReason: string) => `
+export const REJECTION_MAIL_CONTENT = (
+  trainerName: string,
+  rejectionReason: string
+) => `
 <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
   <!-- Logo Text Section -->
   <div style="text-align: center; margin-bottom: 30px;">
@@ -382,7 +444,6 @@ export const REJECTION_MAIL_CONTENT = (trainerName: string, rejectionReason: str
   </div>
 </div>
 `;
-
 
 export const PASSWORD_RESET_MAIL_CONTENT = (resetLink: string) => `
 <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
@@ -441,7 +502,6 @@ export const PASSWORD_RESET_MAIL_CONTENT = (resetLink: string) => `
 </div>
 `;
 
-
 export const RE_REGISTRATION_MAIL_CONTENT = (trainerName: string): string => `
 <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
   <!-- Logo Text Section -->
@@ -486,8 +546,10 @@ export const RE_REGISTRATION_MAIL_CONTENT = (trainerName: string): string => `
 </div>
 `;
 
-
-export const TRAINER_ACCEPTANCE_MAIL_CONTENT = (trainerName: string, clientName: string) => `
+export const TRAINER_ACCEPTANCE_MAIL_CONTENT = (
+  trainerName: string,
+  clientName: string
+) => `
 <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
   <div style="text-align: center; margin-bottom: 30px;">
     <h1 style="font-size: 48px; font-weight: bold; margin: 0;">
@@ -518,7 +580,11 @@ export const TRAINER_ACCEPTANCE_MAIL_CONTENT = (trainerName: string, clientName:
 </div>
 `;
 
-export const TRAINER_REJECTION_MAIL_CONTENT = (trainerName: string, clientName: string, rejectionReason: string) => `
+export const TRAINER_REJECTION_MAIL_CONTENT = (
+  trainerName: string,
+  clientName: string,
+  rejectionReason: string
+) => `
 <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; background-color: #faf8ff; border: 1px solid #e6e0fa; border-radius: 10px;">
   <div style="text-align: center; margin-bottom: 30px;">
     <h1 style="font-size: 48px; font-weight: bold; margin: 0;">

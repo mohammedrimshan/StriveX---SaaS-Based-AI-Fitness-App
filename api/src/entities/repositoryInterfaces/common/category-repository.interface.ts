@@ -18,6 +18,7 @@ export interface ICategoryRepository extends IBaseRepository<ICategoryEntity> {
   updateCategory(
     id: any,
     title: string,
-    description?: string
+    metValue?: number, 
+    description?: string,
   ): Promise<ICategoryEntity>;
 }

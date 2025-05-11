@@ -9,8 +9,7 @@ import { HTTP_STATUS, ROLES, TrainerSelectionStatus, TRole } from "@/shared/cons
 export class GetChatParticipantsUseCase implements IGetChatParticipantsUseCase {
   constructor(
     @inject("IClientRepository") private _clientRepository: IClientRepository,
-    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
-    @inject("SocketService") private _socketService: any
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository
   ) {}
 
   async execute(
@@ -25,6 +24,7 @@ export class GetChatParticipantsUseCase implements IGetChatParticipantsUseCase {
 
     if (role === ROLES.USER) {
       const client = await this._clientRepository.findById(userId);
+      console.log(client, "client");
       if (!client) throw new CustomError("Client not found", HTTP_STATUS.NOT_FOUND);
       if (!client.isPremium) throw new CustomError("Client is not a premium user", HTTP_STATUS.FORBIDDEN);
       if (client.selectStatus !== TrainerSelectionStatus.ACCEPTED) {
@@ -41,7 +41,7 @@ export class GetChatParticipantsUseCase implements IGetChatParticipantsUseCase {
         id: trainer.id!,
         name: `${trainer.firstName} ${trainer.lastName}`,
         avatar: trainer.profileImage || "",
-        status: this.getUserStatus(trainer.id!),
+        status: trainer.isOnline ? "online" : "offline",
       });
     } else if (role === ROLES.TRAINER) {
       const trainer = await this._trainerRepository.findById(userId);
@@ -58,21 +58,11 @@ export class GetChatParticipantsUseCase implements IGetChatParticipantsUseCase {
           id: client.id!,
           name: `${client.firstName} ${client.lastName}`,
           avatar: client.profileImage || "",
-          status: this.getUserStatus(client.id!),
+          status: client.isOnline ? "online" : "offline",
         });
       }
     }
 
     return participants;
-  }
-
-  private getUserStatus(userId: string): "online" | "offline" {
-    try {
-      const socketId = this._socketService.getSocketId(userId);
-      const isOnline = this._socketService.getIO().sockets.sockets.get(socketId);
-      return isOnline ? "online" : "offline";
-    } catch {
-      return "offline";
-    }
   }
 }

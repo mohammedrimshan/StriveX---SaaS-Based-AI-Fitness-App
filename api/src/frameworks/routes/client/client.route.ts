@@ -14,6 +14,10 @@ import {
   paymentController,
   slotController,
   chatController,
+  workoutVideoProgressController,
+  workoutProgressController,
+  postController,
+  commentController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -320,5 +324,193 @@ export class ClientRoutes extends BaseRoute {
         chatController.deleteMessage(req, res);
       }
     );
+
+    // Create workout progress
+    router.post(
+      "/client/progress/workout",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        workoutProgressController.createProgress(req, res);
+      }
+    );
+
+    // Update workout progress
+    router.patch(
+      "/client/progress/workout/:id",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        workoutProgressController.updateProgress(req, res);
+      }
+    );
+
+    // Get user workout progress
+    router.get(
+      "/client/progress/workout/user/:userId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        workoutProgressController.getUserProgress(req, res);
+      }
+    );
+
+    // Get workout progress by user and workout
+    router.get(
+      "/client/progress/workout/user/:userId/workout/:workoutId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        workoutProgressController.getProgressByUserAndWorkout(req, res);
+      }
+    );
+
+    // Get user progress metrics
+    router.get(
+      "/client/progress/workout/metrics/:userId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        workoutProgressController.getUserProgressMetrics(req, res);
+      }
+    );
+
+    // Workout Video Progress Routes
+    router.patch(
+      "/client/progress/video",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        workoutVideoProgressController.updateVideoProgress(req, res);
+      }
+    );
+
+    router.get(
+      "/client/progress/video/user/:userId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        workoutVideoProgressController.getUserVideoProgress(req, res);
+      }
+    );
+
+    router.get(
+      "/client/progress/video/user/:userId/workout/:workoutId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        workoutVideoProgressController.getVideoProgressByUserAndWorkout(
+          req,
+          res
+        );
+      }
+    );
+
+    router
+    .route("/client/community/posts")
+    .post(
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        postController.createPost(req, res);
+      }
+    )
+    .get(
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        postController.getPosts(req, res);
+      }
+    );
+
+  router
+    .route("/client/community/posts/:id")
+    .get(
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        postController.getPost(req, res);
+      }
+    )
+    .delete(
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        postController.deletePost(req, res);
+      }
+    );
+
+  router.patch(
+    "/client/community/posts/:id/like",
+    verifyAuth,
+    authorizeRole(["client"]),
+    blockStatusMiddleware.checkStatus as RequestHandler,
+    (req: Request, res: Response) => {
+      postController.likePost(req, res);
+    }
+  );
+
+  router.post(
+    "/client/community/posts/:id/report",
+    verifyAuth,
+    authorizeRole(["client"]),
+    blockStatusMiddleware.checkStatus as RequestHandler,
+    (req: Request, res: Response) => {
+      postController.reportPost(req, res);
+    }
+  );
+
+  // Community Comment Routes
+  router.post(
+    "/client/community/posts/:id/comments",
+    verifyAuth,
+    authorizeRole(["client"]),
+    blockStatusMiddleware.checkStatus as RequestHandler,
+    (req: Request, res: Response) => {
+      commentController.createComment(req, res);
+    }
+  );
+
+  router.patch(
+    "/client/community/comments/:id/like",
+    verifyAuth,
+    authorizeRole(["client"]),
+    blockStatusMiddleware.checkStatus as RequestHandler,
+    (req: Request, res: Response) => {
+      commentController.likeComment(req, res);
+    }
+  );
+
+  router.delete(
+    "/client/community/comments/:id",
+    verifyAuth,
+    authorizeRole(["client"]),
+    blockStatusMiddleware.checkStatus as RequestHandler,
+    (req: Request, res: Response) => {
+      commentController.deleteComment(req, res);
+    }
+  );
+
+  router.post(
+    "/client/community/comments/:id/report",
+    verifyAuth,
+    authorizeRole(["client"]),
+    blockStatusMiddleware.checkStatus as RequestHandler,
+    (req: Request, res: Response) => {
+      commentController.reportComment(req, res);
+    }
+  );
   }
 }
