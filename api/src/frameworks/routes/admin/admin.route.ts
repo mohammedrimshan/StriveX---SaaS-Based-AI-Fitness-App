@@ -276,5 +276,14 @@ export class AdminRoutes extends BaseRoute {
         adminController.hardDeleteComment(req, res);
       }
     );
+
+    router.get(
+      "/admin/transactions",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      (req: Request, res: Response) => {
+        adminController.getTransactionHistory(req, res);
+      }
+    );
   }
 }

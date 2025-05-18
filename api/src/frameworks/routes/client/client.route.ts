@@ -512,5 +512,15 @@ export class ClientRoutes extends BaseRoute {
       commentController.reportComment(req, res);
     }
   );
+
+  router.get(
+    "/client/community/posts/:id/comments",
+    verifyAuth,
+    authorizeRole(["client"]),
+    blockStatusMiddleware.checkStatus as RequestHandler,
+    (req: Request, res: Response) => {
+      commentController.getComments(req, res);
+    }
+  );
   }
 }

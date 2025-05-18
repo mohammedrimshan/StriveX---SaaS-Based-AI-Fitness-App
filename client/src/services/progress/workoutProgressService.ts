@@ -180,7 +180,7 @@ export const getUserWorkoutVideoProgress = async (
       `/client/progress/video/user/${userId}`
     );
     console.log("User video progress:", response.data);
-    return response.data.data;
+    return response.data;
   } catch (error: any) {
     console.error("Get user video progress error:", error.response?.data);
     throw new Error(

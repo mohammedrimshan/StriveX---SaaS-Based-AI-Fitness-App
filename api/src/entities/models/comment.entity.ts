@@ -11,4 +11,5 @@ export interface ICommentEntity {
     updatedAt: Date;
     isDeleted: boolean;
     reports: IReport[];
+    mediaUrl:string;
   }

@@ -1,41 +1,53 @@
-import { IReport } from "@/services/client/clientService";
+import { RoleType } from "./constant";
 
-export type User = {
-  id: string;
-  name: string;
-  avatarUrl?: string; // Optional, as avatar might not always be available
-  preferredWorkout?: string;
-  specialization?: string;
-  isTrainer: boolean;
-  email?: string; // Add email for compatibility with IPostAuthor
-  firstName?: string; // Add for compatibility with IPostAuthor
-  lastName?: string; // Add for compatibility with IPostAuthor
-  role?: string; // Add for compatibility with IPostAuthor
-};
+export interface IReport {
+  userId: string;
+  reason: string;
+  reportedAt: Date;
+}
 
-export type Comment = {
-  id: string;
-  content: string;
-  author: User;
-  createdAt: string;
-  likes: number;
-  hasLiked: boolean;
-};
+export interface IAuthor {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profileImage?: string;
+  role?: RoleType;
+  category?: string; // Added category field for user profiles
+}
 
-export type Post = {
-  id: string;
+export interface IPostEntity {
+  id?: string;
   authorId: string;
-  author?: User; // Make optional to handle undefined cases
-  textContent: string; // Use textContent instead of content
-  mediaUrl?: string; // Use mediaUrl instead of imageUrl/videoUrl
+  role: RoleType;
+  textContent: string;
+  mediaUrl?: string;
   category: string;
-  likes: string[]; // Use array of user IDs instead of number
-  comments: Comment[];
-  commentCount: number;
-  createdAt: string;
-  updatedAt: string;
+  likes: string[];
+  createdAt: Date;
+  updatedAt: Date;
   isDeleted: boolean;
   reports: IReport[];
-  role: string;
-  hasLiked: boolean; // Keep for UI state
-};
+  commentsCount?: number;
+  author?: IAuthor | null;
+}
+
+export interface ICommentEntity {
+  id?: string;
+  postId: string;
+  authorId: string;
+  role: RoleType;
+  textContent: string;
+  likes: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  isDeleted: boolean;
+  reports: IReport[];
+  author?: IAuthor | null;
+}
+
+export interface IClientEntity {
+  // This is just a placeholder based on your imports
+  id?: string;
+  name?: string;
+}

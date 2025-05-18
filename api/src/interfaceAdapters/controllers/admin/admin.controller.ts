@@ -19,6 +19,7 @@ import { IGetReportedPostsUseCase } from "@/entities/useCaseInterfaces/community
 import { IGetReportedCommentsUseCase } from "@/entities/useCaseInterfaces/community/get-reported-comments-usecase.interface";
 import { IHardDeletePostUseCase } from "@/entities/useCaseInterfaces/community/hard-delete-post-usecase.interface";
 import { IHardDeleteCommentUseCase } from "@/entities/useCaseInterfaces/community/hard-delete-comment-usecase.interface";
+import { IGetTransactionHistoryUseCase } from "@/entities/useCaseInterfaces/admin/get-transaction-history.interface";
 import mongoose from "mongoose";
 @injectable()
 export class AdminController implements IAdminController {
@@ -36,7 +37,9 @@ export class AdminController implements IAdminController {
     @inject("IHardDeletePostUseCase")
     private _hardDeletePostUseCase: IHardDeletePostUseCase,
     @inject("IHardDeleteCommentUseCase")
-    private _hardDeleteCommentUseCase: IHardDeleteCommentUseCase
+    private _hardDeleteCommentUseCase: IHardDeleteCommentUseCase,
+    @inject("IGetTransactionHistoryUseCase")
+    private _getTransactionHistoryUseCase: IGetTransactionHistoryUseCase
   ) {}
 
   async getMembershipPlans(req: Request, res: Response): Promise<void> {
@@ -267,6 +270,88 @@ export class AdminController implements IAdminController {
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DELETE_SUCCESS,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+  async getTransactionHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId, role, page = 1, limit = 10, search, status } = req.query;
+
+      // Validate pagination
+      const pageNumber = Number(page);
+      const pageSize = Number(limit);
+
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      // Validate role if provided
+      if (role && role !== "client" && role !== "trainer") {
+        throw new CustomError(
+          "Role must be either 'client' or 'trainer'",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      // Validate userId if provided
+      if (userId && (typeof userId !== "string" || userId.trim() === "")) {
+        throw new CustomError(
+          "User ID must be a non-empty string",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      // Validate search if provided
+      if (search && (typeof search !== "string" || search.trim() === "")) {
+        throw new CustomError(
+          "Search must be a non-empty string",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      // Validate status if provided
+      if (
+        status &&
+        status !== "all" &&
+        status !== "completed" &&
+        status !== "pending"
+      ) {
+        throw new CustomError(
+          "Status must be 'all', 'completed', or 'pending'",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      // Execute the use case
+      const { items: transactions, total } =
+        await this._getTransactionHistoryUseCase.execute({
+          userId,
+          role: role as "client" | "trainer" | undefined,
+          page: pageNumber,
+          limit: pageSize,
+          search: search as string | undefined,
+          status: status as "all" | "completed" | "pending" | undefined,
+        });
+
+      // Respond with the transaction history
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        transactions,
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: pageNumber,
+        totalTransactions: total,
       });
     } catch (error) {
       handleErrorResponse(res, error);

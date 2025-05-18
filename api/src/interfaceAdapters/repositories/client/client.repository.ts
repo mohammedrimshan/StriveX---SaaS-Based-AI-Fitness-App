@@ -115,4 +115,19 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
     const transformedItems = items.map((item: any) => this.mapToEntity(item));
     return { items: transformedItems, total };
   }
+  async findByIds(ids: string[]): Promise<{ id: string; name: string }[]> {
+    try {
+      const clients = await this.model
+        .find({ clientId: { $in: ids } })
+        .select("clientId firstName lastName")
+        .lean();
+      return clients.map((client) => ({
+        id: client.clientId,
+        name: `${client.firstName} ${client.lastName}`.trim(),
+      }));
+    } catch (error) {
+      console.error(`Error finding clients by clientIds:`, error);
+      throw error;
+    }
+  }
 }

@@ -40,8 +40,8 @@ import { IPostRepository } from "@/entities/repositoryInterfaces/community/post-
 import { PostRepository } from "@/interfaceAdapters/repositories/community/post.repository";
 import { ICommentRepository } from "@/entities/repositoryInterfaces/community/comment-repository.interface";
 import { CommentRepository } from "@/interfaceAdapters/repositories/community/comment.repository";
-
-
+import { INotificationRepository } from "@/entities/repositoryInterfaces/notification/notification-repository.interface";
+import { NotificationRepository } from "@/interfaceAdapters/repositories/notification/notification.repository";
 export class RepositoryRegistry {
   static registerRepositories(): void {
     container.register<IClientRepository>("IClientRepository", {
@@ -108,13 +108,19 @@ export class RepositoryRegistry {
       useClass: MessageRepository,
     });
 
-    container.register<IWorkoutProgressRepository>("IWorkoutProgressRepository", {
-      useClass: WorkoutProgressRepository,
-    });
+    container.register<IWorkoutProgressRepository>(
+      "IWorkoutProgressRepository",
+      {
+        useClass: WorkoutProgressRepository,
+      }
+    );
 
-    container.register<IWorkoutVideoProgressRepository>("IWorkoutVideoProgressRepository", {
-      useClass: WorkoutVideoProgressRepository,
-    });
+    container.register<IWorkoutVideoProgressRepository>(
+      "IWorkoutVideoProgressRepository",
+      {
+        useClass: WorkoutVideoProgressRepository,
+      }
+    );
 
     container.register<IPostRepository>("IPostRepository", {
       useClass: PostRepository,
@@ -123,6 +129,9 @@ export class RepositoryRegistry {
     container.register<ICommentRepository>("ICommentRepository", {
       useClass: CommentRepository,
     });
-    
+
+    container.register<INotificationRepository>("INotificationRepository", {
+      useClass: NotificationRepository,
+    });
   }
 }

@@ -3,6 +3,7 @@ import { TrainerApprovalStatus } from "@/shared/constants";
 import { Gender } from "@/shared/constants";
 
 export interface ITrainerEntity extends IUserEntity {
+  fcmToken?: string;
   dateOfBirth?: string;
   gender?: Gender;
   qualifications?: string[]; 

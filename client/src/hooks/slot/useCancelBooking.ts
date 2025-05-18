@@ -7,8 +7,9 @@ export const useCancelBooking = () => {
   return useMutation({
     mutationFn: cancelBooking,
     onSuccess: () => {
-      // Refetch slots after cancelling
+      // Invalidate both trainer slots and user bookings queries
       queryClient.invalidateQueries({ queryKey: ['trainerSlots'] });
+      queryClient.invalidateQueries({ queryKey: ['userBookings'] });
     },
   });
 };

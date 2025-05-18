@@ -3,7 +3,7 @@ import { TrainerApprovalStatus } from "@/shared/constants";
 import { IBaseRepository } from "../base-repository.interface";
 export interface ITrainerRepository extends IBaseRepository<ITrainerEntity>{
   findByEmail(email: string): Promise<ITrainerEntity | null>;
-  findById(id: string): Promise<ITrainerEntity | null>;
+  findById(id: any): Promise<ITrainerEntity | null>;
   updateByEmail(
     email: string,
     updates: Partial<ITrainerEntity>

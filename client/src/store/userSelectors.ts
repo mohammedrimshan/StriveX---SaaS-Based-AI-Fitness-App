@@ -1,6 +1,15 @@
 // frontend/src/store/selectors/userSelectors.ts
 import { RootState } from './store';
-import { User } from '@/components/Community';
+
+ interface User {
+  id: string;
+  role:string;
+  name?: string;
+  avatarUrl?: string;
+  preferredWorkout?: string;      
+  isTrainer?: boolean;
+  specialization?:string;
+}
 
 export const selectCurrentUser = (state: RootState): User | null => {
   const client = state.client.client;
@@ -12,6 +21,7 @@ export const selectCurrentUser = (state: RootState): User | null => {
     return {
       id: client.id,
       name: `${client.firstName} ${client.lastName}`,
+      role:client.role,
       avatarUrl: client.profileImage || '',
       isTrainer: false,
       preferredWorkout: client.preferredWorkout || 'General',
@@ -20,6 +30,7 @@ export const selectCurrentUser = (state: RootState): User | null => {
     return {
       id: trainer.id,
       name: `${trainer.firstName} ${trainer.lastName}`,
+      role:trainer.role,
       avatarUrl: trainer.profileImage || '',
       isTrainer: true,
       specialization: trainer.specialization?.join(', ') || 'General',
@@ -28,6 +39,7 @@ export const selectCurrentUser = (state: RootState): User | null => {
     return {
       id: admin.id,
       name: `${admin.firstName} ${admin.lastName}`,
+      role:admin.role,
       avatarUrl: admin.profileImage || '',
       isTrainer: false,
       preferredWorkout: 'General',

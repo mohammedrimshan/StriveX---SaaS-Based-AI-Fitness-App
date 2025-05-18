@@ -3,7 +3,8 @@ import { FetchUsersParams, UsersResponse } from "@/hooks/admin/useAllUsers";
 import { IAxiosResponse } from "@/types/Response";
 import { IClient, ITrainer, IAdmin } from "@/types/User";
 import { Workout, Exercise } from "@/types/Workouts";
-import { MembershipPlanType,MembershipPlanResponse,MembershipPlansPaginatedResponse } from "@/types/membership";
+import { MembershipPlanResponse,MembershipPlansPaginatedResponse } from "@/types/membership";
+import { FetchTransactionsParams, TransactionResponse } from "@/types/transaction";
 export interface WorkoutExercise {
   name: string;
   description: string;
@@ -407,3 +408,28 @@ export const addMembershipPlan = async (planData: {
     return response.data;
   };
   
+
+export const getTransactionHistory = async ({
+  page = 1,
+  limit = 10,
+  userId,
+  role,
+  search = "",
+  status, // Add status parameter
+}: FetchTransactionsParams): Promise<TransactionResponse> => {
+  try {
+    const response = await adminAxiosInstance.get("/admin/transactions", {
+      params: { page, limit, userId, role, search, status }, // Use 'search' and include 'status'
+    });
+    console.log("Get transaction history response:", response.data);
+    return {
+      transactions: response.data.transactions,
+      totalPages: response.data.totalPages,
+      currentPage: response.data.currentPage,
+      totalTransactions: response.data.totalTransactions,
+    };
+  } catch (error: any) {
+    console.error("Get transaction history error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to fetch transaction history");
+  }
+};

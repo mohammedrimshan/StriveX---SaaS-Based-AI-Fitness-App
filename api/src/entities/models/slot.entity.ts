@@ -15,4 +15,5 @@ import { SlotStatus } from "@/shared/constants";
     expiresAt: Date;
     createdAt: Date;
     updatedAt: Date;
+    cancellationReason?: string;
   }

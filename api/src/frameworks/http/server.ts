@@ -35,12 +35,10 @@ export class Server {
       })
     );
 
-    // Apply dataParser first to handle webhook raw body
     this._app.use(dataParser);
 
-    // Apply body parsing middleware after dataParser
-    this._app.use(express.json({ limit: "10mb" }));
-    this._app.use(express.urlencoded({ limit: "10mb", extended: true }));
+    this._app.use(express.json({ limit: "40mb" }));
+    this._app.use(express.urlencoded({ limit: "40mb", extended: true }));
 
     this._app.use(
       fileUpload({

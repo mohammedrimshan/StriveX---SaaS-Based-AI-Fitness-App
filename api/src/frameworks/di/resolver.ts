@@ -15,6 +15,7 @@ import { WorkoutVideoProgressController } from "@/interfaceAdapters/controllers/
 import { WorkoutProgressController } from "@/interfaceAdapters/controllers/workout-progress.controller";
 import { PostController } from "@/interfaceAdapters/controllers/post.controller";
 import { CommentController } from "@/interfaceAdapters/controllers/comment.controller";
+import { NotificationController } from "@/interfaceAdapters/controllers/notification.controller";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 DependancyInjection.registerAll();
 
@@ -49,3 +50,5 @@ export const workoutProgressController = container.resolve(WorkoutProgressContro
 export const postController = container.resolve(PostController);
 
 export const commentController = container.resolve(CommentController);
+
+export const notificationController = container.resolve(NotificationController)

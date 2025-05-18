@@ -1,6 +1,7 @@
 import 'module-alias/register';
 import 'reflect-metadata';
 import "./frameworks/di/resolver";
+import './frameworks/config/firebase';
 import { createServer } from "http";
 import { Server } from './frameworks/http/server';
 import { config } from './shared/config';

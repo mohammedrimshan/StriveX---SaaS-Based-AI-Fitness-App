@@ -1,10 +1,9 @@
-"use client";
-
+// D:\StriveX\client\src\components\WorkoutDetails.tsx
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, Clock, BarChart3, Play, Dumbbell } from "lucide-react";
-import { io, Socket } from "socket.io-client";
-import { useSelector, useDispatch } from "react-redux"; // Add useDispatch
+import { Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import AnimatedBackground from "@/components/Animation/AnimatedBackgorund";
 import ExerciseItem from "./ExerciseItem";
 import VideoPlayer from "./VideoPlayer";
@@ -14,23 +13,35 @@ import { motion } from "framer-motion";
 import { useAllWorkouts } from "@/hooks/client/useAllWorkouts";
 import { useGetUserWorkoutVideoProgress } from "@/hooks/progress/useGetUserWorkoutVideoProgress";
 import { useUpdateWorkoutVideoProgress } from "@/hooks/progress/useUpdateWorkoutVideoProgress";
+import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { Workout } from "@/types/Workouts";
-import { setWorkoutProgress, updateExerciseProgress, addCompletedExercise } from "@/store/slices/workoutProgress.slice"; 
+import { Workout, Exercise } from "@/types/Workouts";
+
+interface WorkoutProgressType {
+  exerciseProgress: { exerciseId: string; videoProgress: number; status: "Not Started" | "In Progress" | "Completed" }[];
+  completedExercises: string[];
+}
+
+interface IWorkoutVideoProgressEntity {
+  workoutId: string;
+  exerciseProgress: { exerciseId: string; videoProgress: number; status: "Not Started" | "In Progress" | "Completed" }[];
+  completedExercises: string[];
+}
+
+const isValidObjectId = (id: string): boolean => /^[0-9a-fA-F]{24}$/.test(id);
 
 const WorkoutDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [workoutCompleted, setWorkoutCompleted] = useState(false);
-  const dispatch = useDispatch(); // Add dispatch
-  const client = useSelector((state: RootState) => state.client.client);
-  const userId = client?.id;
-  // Retrieve workout progress from Redux
-  const workoutProgress = useSelector((state: RootState) => state.workoutProgress[id || ""] || {
+  const [workoutProgress, setWorkoutProgress] = useState<WorkoutProgressType>({
     exerciseProgress: [],
     completedExercises: [],
   });
+
+  const client = useSelector((state: RootState) => state.client.client);
+  const userId = client?.id;
 
   const { data: paginatedData, isLoading, isError } = useAllWorkouts(1, 10, {});
   const { data: videoProgressData, isLoading: isVideoProgressLoading } = useGetUserWorkoutVideoProgress(userId || "");
@@ -41,42 +52,49 @@ const WorkoutDetails = () => {
 
     const socketInstance = io("http://localhost:5001");
     socketInstance.emit("register", { userId, role: "client" });
-    socketInstance.on("workoutCompleted", (data) => {
+    socketInstance.on("workoutCompleted", (data: { userId: string; workoutId: string }) => {
       if (data.userId === userId && data.workoutId === id) {
         setWorkoutCompleted(true);
       }
     });
     setSocket(socketInstance);
 
-    // Sync with backend video progress data
     if (videoProgressData) {
       if (Array.isArray(videoProgressData)) {
-        const videoProgress = videoProgressData.find((item) => item.workoutId === id);
+        const videoProgress = videoProgressData.find((item: IWorkoutVideoProgressEntity) => item.workoutId === id);
         if (videoProgress) {
-          // Update Redux store with backend data
-          dispatch(
-            setWorkoutProgress({
-              workoutId: id,
-              exerciseProgress: videoProgress.exerciseProgress || [],
-              completedExercises: videoProgress.completedExercises || [],
-            })
-          );
-          setWorkoutCompleted(
-            videoProgress.exerciseProgress?.every((ep: any) => ep.status === "Completed") || false
-          );
+          setWorkoutProgress({
+            exerciseProgress: videoProgress.exerciseProgress.map((ep) => ({
+              ...ep,
+              status: ep.status as "Not Started" | "In Progress" | "Completed",
+            })),
+            completedExercises: videoProgress.completedExercises || [],
+          });
+
+          setWorkoutCompleted(videoProgress.exerciseProgress.every((ep) => ep.status === "Completed"));
+
+          const firstIncompleteIdx = videoProgress.exerciseProgress.findIndex((ep) => ep.status !== "Completed");
+          if (firstIncompleteIdx >= 0) {
+            setCurrentExerciseIdx(firstIncompleteIdx);
+          }
         }
       } else if (typeof videoProgressData === "object" && videoProgressData !== null) {
-        if (videoProgressData.workoutId === id) {
-          dispatch(
-            setWorkoutProgress({
-              workoutId: id,
-              exerciseProgress: videoProgressData.exerciseProgress || [],
-              completedExercises: videoProgressData.completedExercises || [],
-            })
-          );
-          setWorkoutCompleted(
-            videoProgressData.exerciseProgress?.every((ep: any) => ep.status === "Completed") || false
-          );
+        const typedData = videoProgressData as any;
+        if (typedData.workoutId === id) {
+          setWorkoutProgress({
+            exerciseProgress: (typedData.exerciseProgress || []).map((ep: any) => ({
+              ...ep,
+              status: ep.status as "Not Started" | "In Progress" | "Completed",
+            })),
+            completedExercises: typedData.completedExercises || [],
+          });
+
+          setWorkoutCompleted(typedData.exerciseProgress?.every((ep: any) => ep.status === "Completed") || false);
+
+          const firstIncompleteIdx = typedData.exerciseProgress?.findIndex((ep: any) => ep.status !== "Completed");
+          if (firstIncompleteIdx >= 0) {
+            setCurrentExerciseIdx(firstIncompleteIdx);
+          }
         }
       } else {
         console.log("Video progress data is in an unexpected format:", videoProgressData);
@@ -86,10 +104,14 @@ const WorkoutDetails = () => {
     return () => {
       socketInstance.disconnect();
     };
-  }, [userId, id, videoProgressData, dispatch]);
+  }, [userId, id, videoProgressData]);
 
   if (!userId) {
     return <div>Please log in to view workout details.</div>;
+  }
+
+  if (!id) {
+    return <div>Workout ID is missing.</div>;
   }
 
   if (isLoading || isVideoProgressLoading) {
@@ -101,43 +123,57 @@ const WorkoutDetails = () => {
   }
 
   const workouts = paginatedData.data;
-  const workout = workouts.find((w: Workout) => w.id === id);
+  const workout = workouts.find((w: Workout) => w.id === id || w._id === id);
 
   if (!workout) {
     return <div>Workout not found.</div>;
   }
 
-  const currentExercise = workout.exercises[currentExerciseIndex];
+  if (!workout.exercises || workout.exercises.length === 0) {
+    return <div>This workout has no exercises.</div>;
+  }
+
+  console.log("Workout data:", workout);
+
+  const safeExerciseIndex = Math.min(Math.max(0, currentExerciseIdx), workout.exercises.length - 1);
+  const currentExercise = workout.exercises[safeExerciseIndex];
+  const currentExerciseId = currentExercise.id || currentExercise._id;
+
+  if (!currentExerciseId || !isValidObjectId(currentExerciseId)) {
+    console.error("Invalid exerciseId for current exercise:", currentExercise);
+    return <div>Error: Current exercise is missing a valid ID.</div>;
+  }
 
   const markExerciseAsCompleted = (exerciseId: string) => {
+    if (!isValidObjectId(exerciseId)) {
+      console.error("Invalid exerciseId in markExerciseAsCompleted:", exerciseId);
+      return;
+    }
+
     if (!workoutProgress.completedExercises.includes(exerciseId)) {
       const newCompletedExercises = [...workoutProgress.completedExercises, exerciseId];
       const newExerciseProgress = [
         ...workoutProgress.exerciseProgress.filter((ep) => ep.exerciseId !== exerciseId),
-        { exerciseId, videoProgress: 100, status: "Completed" },
+        { exerciseId, videoProgress: 100, status: "Completed" as const },
       ];
 
-      // Update Redux store
-      dispatch(
-        setWorkoutProgress({
-          workoutId: id!,
-          exerciseProgress: newExerciseProgress,
-          completedExercises: newCompletedExercises,
-        })
-      );
-      dispatch(addCompletedExercise({ workoutId: id!, exerciseId }));
+      setWorkoutProgress({
+        exerciseProgress: newExerciseProgress,
+        completedExercises: newCompletedExercises,
+      });
 
-      // Ensure status is always explicitly set
-      const status = newCompletedExercises.length === workout.exercises.length ? "Completed" : "In Progress";
+      const isWorkoutComplete = newCompletedExercises.length === workout.exercises.length;
+      if (isWorkoutComplete) {
+        setWorkoutCompleted(true);
+      }
 
-      // Sync with backend
       updateVideoProgress(
         {
-          workoutId: workout.id,
+          workoutId: workout.id || workout._id || "",
           videoProgress: 100,
-          status,
+          status: isWorkoutComplete ? "Completed" : "In Progress",
           completedExercises: newCompletedExercises,
-          userId,
+          userId: userId || "",
           exerciseId,
         },
         {
@@ -145,8 +181,8 @@ const WorkoutDetails = () => {
             console.error("Failed to update video progress:", error);
           },
           onSuccess: () => {
-            if (status === "Completed" && socket) {
-              socket.emit("workoutCompleted", { userId, workoutId: workout.id });
+            if (isWorkoutComplete && socket) {
+              socket.emit("workoutCompleted", { userId, workoutId: workout.id || workout._id });
             }
           },
         }
@@ -227,8 +263,9 @@ const WorkoutDetails = () => {
               <ProgressTracker
                 totalExercises={workout.exercises.length}
                 completedExercises={workoutProgress.completedExercises.length}
-                currentExerciseIndex={currentExerciseIndex}
+                currentExerciseIndex={safeExerciseIndex}
                 exerciseProgress={workoutProgress.exerciseProgress}
+                workout={workout}
               />
             </div>
           </motion.div>
@@ -243,23 +280,31 @@ const WorkoutDetails = () => {
               videoUrl={currentExercise.videoUrl}
               exerciseName={currentExercise.name}
               exerciseDescription={currentExercise.description}
-              workoutId={workout.id}
-              exerciseId={currentExercise.id || `${currentExerciseIndex}`}
+              workoutId={workout.id || workout._id || ""}
+              exerciseId={currentExerciseId}
+              userId={userId}
               completedExercises={workoutProgress.completedExercises}
               onComplete={markExerciseAsCompleted}
+              onNext={() => {
+                if (safeExerciseIndex < workout.exercises.length - 1) {
+                  const nextIndex = safeExerciseIndex + 1;
+                  setCurrentExerciseIdx(nextIndex);
+                }
+              }}
             />
 
             <div className="mt-6 flex justify-between">
               <button
                 className={`px-6 py-3 rounded-xl bg-white shadow-md text-violet-600 hover:bg-violet-50 transition-colors ${
-                  currentExerciseIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+                  safeExerciseIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 onClick={() => {
-                  if (currentExerciseIndex > 0) {
-                    setCurrentExerciseIndex(currentExerciseIndex - 1);
+                  if (safeExerciseIndex > 0) {
+                    const prevIndex = safeExerciseIndex - 1;
+                    setCurrentExerciseIdx(prevIndex);
                   }
                 }}
-                disabled={currentExerciseIndex === 0}
+                disabled={safeExerciseIndex === 0}
               >
                 Previous
               </button>
@@ -267,13 +312,14 @@ const WorkoutDetails = () => {
               <button
                 className="px-6 py-3 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-md flex items-center"
                 onClick={() => {
-                  markExerciseAsCompleted(currentExercise.id || `${currentExerciseIndex}`);
-                  if (currentExerciseIndex < workout.exercises.length - 1) {
-                    setCurrentExerciseIndex(currentExerciseIndex + 1);
+                  markExerciseAsCompleted(currentExerciseId);
+                  if (safeExerciseIndex < workout.exercises.length - 1) {
+                    const nextIndex = safeExerciseIndex + 1;
+                    setCurrentExerciseIdx(nextIndex);
                   }
                 }}
               >
-                {currentExerciseIndex < workout.exercises.length - 1 ? (
+                {safeExerciseIndex < workout.exercises.length - 1 ? (
                   <>Next Exercise</>
                 ) : (
                   <>Finish Workout</>
@@ -291,19 +337,28 @@ const WorkoutDetails = () => {
               <h2 className="text-xl font-bold text-violet-800 mb-4">Exercises</h2>
               <div className="bg-white rounded-xl overflow-hidden shadow-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {workout.exercises.map((exercise: Workout["exercises"][number], index: number) => (
-                    <ExerciseItem
-                      key={exercise.id || index}
-                      id={exercise.id || `${index}`}
-                      name={exercise.name}
-                      description={exercise.description}
-                      duration={exercise.duration}
-                      videoUrl={exercise.videoUrl}
-                      isActive={currentExerciseIndex === index}
-                      isCompleted={workoutProgress.completedExercises.includes(exercise.id || `${index}`)}
-                      onClick={() => setCurrentExerciseIndex(index)}
-                    />
-                  ))}
+                  {workout.exercises.map((exercise: Exercise, index: number) => {
+                    const exerciseId = exercise.id || exercise._id;
+                    if (!exerciseId || !isValidObjectId(exerciseId)) {
+                      console.error("Invalid exerciseId for exercise:", exercise);
+                      return null;
+                    }
+                    return (
+                      <ExerciseItem
+                        key={exerciseId}
+                        id={exerciseId}
+                        name={exercise.name}
+                        description={exercise.description}
+                        duration={exercise.duration}
+                        videoUrl={exercise.videoUrl}
+                        isActive={safeExerciseIndex === index}
+                        isCompleted={workoutProgress.completedExercises.includes(exerciseId)}
+                        onClick={() => {
+                          setCurrentExerciseIdx(index);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>

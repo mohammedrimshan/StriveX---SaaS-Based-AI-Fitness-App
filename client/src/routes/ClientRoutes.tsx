@@ -21,7 +21,8 @@ import { MatchedTrainersPage } from "@/pages/client/MatchedTrainersList";
 import ManualTrainersListing from "@/pages/client/ManualTrainer";
 import BookingPage from "@/pages/client/BookingPage";
 import { ChatLayout } from "@/components/Chat/ChatLayout";
-import CommunityForum from "@/components/Community/CommunityForum";
+import Community from "@/components/Community/index.tsx";
+import WorkoutProgressDashboard from "@/pages/client/WorkoutProgressChart";
 export const ClientRoutes = () => {
   return (
     <Routes>
@@ -145,21 +146,30 @@ export const ClientRoutes = () => {
         <Route
           path="/booking"
           element={
-            <AuthRoute
-              allowedRoles={["client"]}
-              element={<BookingPage />}
-            />
+            <AuthRoute allowedRoles={["client"]} element={<BookingPage />} />
           }
         />
 
+        <Route
+          path="/chat"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<ChatLayout />} />
+          }
+        />
 
-          <Route path="/chat" element={
-                          <AuthRoute allowedRoles={["client"]} element={<ChatLayout />} />
-                        } />
+        <Route
+          path="/community"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<Community />} />
+          }
+        />
 
-<Route path="/community" element={
-                          <AuthRoute allowedRoles={["client"]} element={<CommunityForum />} />
-                        } />
+         <Route
+          path="/progress"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<WorkoutProgressDashboard />} />
+          }
+        />
         {/* Add more protected routes as needed */}
       </Route>
       <Route

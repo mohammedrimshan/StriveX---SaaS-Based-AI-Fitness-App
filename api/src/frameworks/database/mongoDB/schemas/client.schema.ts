@@ -4,6 +4,7 @@ import { ROLES, FITNESS_GOALS, WORKOUT_TYPES,EXPERIENCE_LEVELS, ACTIVITY_LEVELS,
 
 export const clientSchema = new Schema<IClientModel>(
   {
+    fcmToken: { type: String, required: false, default: null },
     clientId: { type: String, required: true, unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -44,6 +45,10 @@ export const clientSchema = new Schema<IClientModel>(
     timestamps: true,
   }
 );
+
+clientSchema.statics.updateFCMToken = async function (clientId: string, fcmToken: string): Promise<void> {
+  await this.updateOne({ clientId }, { fcmToken });
+}
 
 clientSchema.index({ clientId: 1 }, { unique: true });
 clientSchema.index({ selectedTrainerId: 1, selectStatus: 1 });

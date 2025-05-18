@@ -1,0 +1,60 @@
+import { injectable, inject } from 'tsyringe';
+import { INotificationRepository } from '@/entities/repositoryInterfaces/notification/notification-repository.interface';
+import { IFCMService } from '@/entities/services/fcm-service.interface';
+import { INotificationSocketService } from '@/entities/services/socket-service.interface';
+import { INotificationEntity } from '@/entities/models/notification.entity';
+import { CustomError } from '@/entities/utils/custom.error';
+import { HTTP_STATUS } from '@/shared/constants';
+
+@injectable()
+export class NotificationService {
+  constructor(
+    @inject('INotificationRepository') private notificationRepository: INotificationRepository,
+    @inject('IFCMService') private fcmService: IFCMService,
+    @inject('INotificationSocketService') private socketService: INotificationSocketService
+  ) {}
+
+  async sendToUser(userId: string, title: string, message: string, type: INotificationEntity['type']): Promise<INotificationEntity> {
+    const notification: INotificationEntity = {
+      userId,
+      title,
+      message,
+      type,
+      isRead: false,
+      createdAt: new Date(),
+    };
+
+    const savedNotification = await this.notificationRepository.create(notification);
+    this.socketService.emitNotification(userId, savedNotification);
+
+    try {
+      await this.fcmService.sendPushNotification(userId, title, message);
+    } catch (error) {
+      // Silently catch FCM errors to avoid affecting notification storage
+    }
+
+    return savedNotification;
+  }
+
+  async markAsRead(notificationId: string): Promise<void> {
+    try {
+      await this.notificationRepository.markAsRead(notificationId);
+    } catch (error) {
+      throw new CustomError(
+        'Failed to mark notification as read',
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getUserNotifications(userId: string, page: number = 1, limit: number = 10): Promise<INotificationEntity[]> {
+    try {
+      return await this.notificationRepository.findByUserId(userId, page, limit);
+    } catch (error) {
+      throw new CustomError(
+        'Failed to fetch notifications',
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+}

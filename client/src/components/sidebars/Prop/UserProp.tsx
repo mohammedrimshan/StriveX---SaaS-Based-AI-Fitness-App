@@ -12,7 +12,9 @@ import {
   LayoutDashboard,
   Crown ,
  Tags,
- MessageSquare
+ MessageSquare, 
+ Globe,
+ 
 } from "lucide-react";
 
 const navItems = {
@@ -51,6 +53,11 @@ const navItems = {
       title: "Chat",
       icon: MessageSquare,
       path: "/chat",
+    },
+    {
+      title: "Community",
+      icon: Globe ,
+      path: "/community",
     },
     {
       title: "Subscription",
@@ -152,9 +159,9 @@ const navItems = {
       path: "/admin/workouts",
     },
     {
-      title: "Analytics", 
-      icon: Activity,
-      path: "/admin/analytics",
+      title: "Transactions", 
+      icon: CreditCard,
+      path: "/admin/transaction",
     },
     {
       title: "Settings",

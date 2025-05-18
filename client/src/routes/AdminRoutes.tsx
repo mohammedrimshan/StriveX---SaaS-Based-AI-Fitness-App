@@ -14,64 +14,62 @@ import WorkoutsListPage from "@/pages/admin/WorkoutList/WorkoutsListPage";
 import WorkoutDetailPage from "@/pages/admin/WorkoutList/WorkoutDetailPage";
 import MembershipPlans from "@/pages/admin/AddMembership/MembershipPlans";
 import WorkoutFormPage from "@/pages/admin/WorkoutList/WorkoutFormPage";
+import TransactionHistory from "@/pages/admin/TransactionHistory";
 
 export const AdminRoutes = () => {
-	return (
-		<Routes>
-			{/* Admin login route outside of protected layout */}
-			<Route
-				index
-				element={<NoAdminAuthRoute element={<AdminAuth />} />}
-			/>
-			
-			{/* All protected admin routes inside the layout */}
-			<Route
-				path="/"
-				element={
-					<AdminAuthRoute
-						allowedRoles={["admin"]}
-						element={<AdminLayout />}
-					/>
-				}>
-				<Route path="dashboard" element={<AdminDashboard />} />
-				<Route path="clients" element={<UserManagement userType="client"/>} />
-				<Route path="trainers" element={<UserManagement userType="trainer"/>} />
-				<Route path="trainerverification" element={<TrainerVerificationPage />} />
-				<Route path="category" element={<Categories />} />
-				<Route path="workout" element={<AdminWorkoutsPage />} />
-				<Route path="membership" element={<MembershipPlans />} />
-				{/* Add more admin routes here as needed */}
+  return (
+    <Routes>
+      {/* Admin login route outside of protected layout */}
+      <Route index element={<NoAdminAuthRoute element={<AdminAuth />} />} />
 
+      {/* All protected admin routes inside the layout */}
+      <Route
+        path="/"
+        element={
+          <AdminAuthRoute allowedRoles={["admin"]} element={<AdminLayout />} />
+        }
+      >
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="clients" element={<UserManagement userType="client" />} />
+        <Route
+          path="trainers"
+          element={<UserManagement userType="trainer" />}
+        />
+        <Route
+          path="trainerverification"
+          element={<TrainerVerificationPage />}
+        />
+        <Route path="category" element={<Categories />} />
+        <Route path="workout" element={<AdminWorkoutsPage />} />
+        <Route path="membership" element={<MembershipPlans />} />
+        {/* Add more admin routes here as needed */}
 
-				<Route path="/workouts" element={<WorkoutsListPage />} />
-          <Route path="/workouts/:id" element={<WorkoutDetailPage />} />
-          {/* Exercises */}
-          {/* <Route path="/workouts/:workoutId/exercises/new" element={<ExerciseFormPage />} /> */}
-          {/* <Route path="/workouts/:workoutId/exercises/edit/:exerciseId" element={<ExerciseFormPage />} /> */}
-          <Route path="/workouts/new" element={<WorkoutFormPage />} />
-<Route path="/workouts/edit/:id" element={<WorkoutFormPage />} />
-			</Route>
-			{/*//? Forgot and reset pages */}
-			<Route
-				path="/forgot-password"
-				element={
-					<NoAdminAuthRoute
-						element={
-							<ForgotPassword role="admin" signInPath="/admin" />
-						}
-					/>
-				}
-			/>
-			<Route
-				path="/reset-password/:token"
-				element={
-					<NoAdminAuthRoute
-						element={
-							<ResetPassword role="admin" signInPath="/admin" />
-						}
-					/>
-				}
-			/>
-		</Routes>
-	);
+        <Route path="/workouts" element={<WorkoutsListPage />} />
+        <Route path="/workouts/:id" element={<WorkoutDetailPage />} />
+        {/* Exercises */}
+        {/* <Route path="/workouts/:workoutId/exercises/new" element={<ExerciseFormPage />} /> */}
+        {/* <Route path="/workouts/:workoutId/exercises/edit/:exerciseId" element={<ExerciseFormPage />} /> */}
+        <Route path="/workouts/new" element={<WorkoutFormPage />} />
+        <Route path="/workouts/edit/:id" element={<WorkoutFormPage />} />
+        <Route path="/transaction" element={<TransactionHistory />} />
+      </Route>
+      {/*//? Forgot and reset pages */}
+      <Route
+        path="/forgot-password"
+        element={
+          <NoAdminAuthRoute
+            element={<ForgotPassword role="admin" signInPath="/admin" />}
+          />
+        }
+      />
+      <Route
+        path="/reset-password/:token"
+        element={
+          <NoAdminAuthRoute
+            element={<ResetPassword role="admin" signInPath="/admin" />}
+          />
+        }
+      />
+    </Routes>
+  );
 };

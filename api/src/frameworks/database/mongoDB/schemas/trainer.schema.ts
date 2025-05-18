@@ -6,6 +6,7 @@ export const GENDER_ENUM = ["male", "female", "other"];
 
 export const trainerSchema = new Schema<ITrainerModel>(
   {
+    fcmToken: { type: String, required: false, default: null },
     clientId: { type: String, required: true, unique: true },
     googleId: { type: String },
     firstName: { type: String, required: true },
@@ -41,6 +42,10 @@ export const trainerSchema = new Schema<ITrainerModel>(
   }
 );
 
+
+trainerSchema.statics.updateFCMToken = async function (clientId: string, fcmToken: string): Promise<void> {
+  await this.updateOne({ clientId }, { fcmToken });
+};
 trainerSchema.index({ clientId: 1 }, { unique: true });
 trainerSchema.index({ specialization: 1, skills: 1, approvalStatus: 1, clientCount: 1 });
 trainerSchema.index({ isOnline: 1 });

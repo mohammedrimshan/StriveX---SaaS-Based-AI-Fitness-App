@@ -428,12 +428,12 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                       </div>
                     ) : bookingsError ? (
                       <div className="text-center p-8">
-                        <p className="text-red-500 mb-4">Failed to load your bookings</p>
+                        <p className="text-red-500 mb-4">Please Book your Slot</p>
                         <Button
                           onClick={() => refetchBookings()}
                           className="bg-gradient-to-r from-[#e11d48] to-[#f97316] hover:from-[#be123c] hover:to-[#ea580c] text-white"
                         >
-                          Try Again
+                          Book Now
                         </Button>
                       </div>
                     ) : sortedUserBookings.length === 0 ? (

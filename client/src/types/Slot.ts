@@ -33,6 +33,7 @@ export interface ISlot {
   
   export interface CancelSlotData {
     slotId: string;
+    cancellationReason?:string;
   }
   
   export interface CreateSlotData {

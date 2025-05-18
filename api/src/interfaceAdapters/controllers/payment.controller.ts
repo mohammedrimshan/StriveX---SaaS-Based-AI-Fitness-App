@@ -124,7 +124,7 @@ export class PaymentController implements IPaymentController {
         case "payment_intent.succeeded":
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
           stripePaymentId = paymentIntent.id;
-          clientId = paymentIntent.metadata?.clientId || paymentIntent.metadata?.userId; // Fallback to userId if clientId is missing
+          clientId = paymentIntent.metadata?.clientId || paymentIntent.metadata?.userId; 
           paymentStatus = PaymentStatus.COMPLETED;
 
           if (!stripePaymentId) {

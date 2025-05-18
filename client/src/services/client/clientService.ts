@@ -14,6 +14,7 @@ import { PaginatedTrainersResponse } from "@/types/Response";
 import { PaginatedResponse } from "@/types/Response";
 import { Workout } from "@/types/Workouts";
 import { MembershipPlansPaginatedResponse } from "@/types/membership";
+import { UserRole } from "@/types/UserRole";
 import {
   SlotsResponse,
   BookSlotData,
@@ -28,19 +29,27 @@ export interface IReport {
 }
 
 export interface IPost {
-  id: string;
+  id?: string;
   authorId: string;
-  role:string;
+  role: UserRole;
   textContent: string;
   mediaUrl?: string;
   category: string;
+  hasLiked:boolean;
   likes: string[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   isDeleted: boolean;
   reports: IReport[];
+  commentsCount?: number;
+  author?: {
+    _id: string; 
+    firstName: string;
+    lastName: string;
+    email: string;
+    profileImage?: string;
+  } | null;
 }
-
 export interface IComment {
   id: string;
   postId: string;
@@ -53,13 +62,13 @@ export interface IComment {
   reports: IReport[];
 }
 
-export interface PaginatedPostsResponse {
-  success: boolean;
-  posts: IPost[];
-  totalPosts: number;
-  currentSkip: number;
-  limit: number;
-}
+// export interface PaginatedPostsResponse {
+//   success: boolean;
+//   posts: IPost[];
+//   totalPosts: number;
+//   currentSkip: number;
+//   limit: number;
+// }
 
 export interface CreateCheckoutSessionData {
   trainerId: string;
@@ -205,8 +214,25 @@ export const getAllWorkouts = async (
   >(`/client/workouts`, {
     params: { page, limit, filter: JSON.stringify(filter) },
   });
-  console.log("All workouts:", response.data);
-  return response.data.data;
+  const rawData = response.data.data;
+
+  // Map _id to id for workouts and exercises
+  const mappedData: PaginatedResponse<Workout> = {
+    ...rawData,
+    data: rawData.data.map((workout: any) => ({
+      ...workout,
+      id: workout._id?.toString() || workout.id,
+      _id: workout._id?.toString(),
+      exercises: workout.exercises.map((exercise: any) => ({
+        ...exercise,
+        id: exercise._id?.toString() || exercise.id,
+        _id: exercise._id?.toString(),
+      })),
+    })),
+  };
+
+  console.log("Mapped workouts:", mappedData);
+  return mappedData;
 };
 
 export const getAllTrainers = async (
@@ -427,7 +453,7 @@ export const getBookingDetials = async (): Promise<UserBookingsResponse> => {
 // Community Post Routes
 export const createPost = async (data: {
   textContent: string;
-  media?: string;
+  mediaUrl?: string;
   role: string;
 }): Promise<IPost> => {
   try {
@@ -443,6 +469,13 @@ export const createPost = async (data: {
   }
 };
 
+export interface PaginatedPostsResponse {
+  items: IPost[];
+  total: number;
+  currentSkip: number;
+  limit: number;
+}
+
 export const getPosts = async (
   category?: string,
   sortBy?: 'latest' | 'likes' | 'comments',
@@ -450,13 +483,17 @@ export const getPosts = async (
   limit: number = 10
 ): Promise<PaginatedPostsResponse> => {
   try {
-    const response = await clientAxiosInstance.get<
-      IAxiosResponse<PaginatedPostsResponse>
-    >('/client/community/posts', {
+    const response = await clientAxiosInstance.get('/client/community/posts', {
       params: { category, sortBy, skip, limit },
     });
-    console.log('Posts fetched:', response.data);
-    return response.data.data;
+    console.log('getPosts raw response:', response.data);
+    const data = response.data;
+    return {
+      items: data.posts || [],
+      total: data.totalPosts || 0,
+      currentSkip: data.currentSkip || skip,
+      limit: data.limit || limit,
+    };
   } catch (error: any) {
     console.error('Get posts error:', error.response?.data);
     throw new Error(error.response?.data?.message || 'Failed to fetch posts');
@@ -582,5 +619,36 @@ export const reportComment = async (
   } catch (error: any) {
     console.error('Report comment error:', error.response?.data);
     throw new Error(error.response?.data?.message || 'Failed to report comment');
+  }
+};
+
+export interface PaginatedCommentsResponse {
+  success: boolean;
+  data: {
+    comments: IComment[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export const getComments = async (
+  postId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<PaginatedCommentsResponse> => {
+  try {
+    const response = await clientAxiosInstance.get<PaginatedCommentsResponse>(
+      `/client/community/posts/${postId}/comments`,
+      {
+        params: { page, limit },
+      }
+    );
+    console.log('Comments fetched:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Get comments error:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Failed to fetch comments');
   }
 };

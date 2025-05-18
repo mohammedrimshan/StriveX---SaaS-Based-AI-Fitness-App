@@ -1,19 +1,25 @@
+// D:\StriveX\client\src\components\ProgressTracker.tsx
 import React from "react";
 import { CheckCircle, Circle } from "lucide-react";
 import { motion } from "framer-motion";
+import { Workout } from "@/types/Workouts";
 
 interface ProgressTrackerProps {
   totalExercises: number;
   completedExercises: number;
   currentExerciseIndex: number;
   exerciseProgress: { exerciseId: string; videoProgress: number; status: string }[];
+  workout: Workout;
 }
+
+const isValidObjectId = (id: string): boolean => /^[0-9a-fA-F]{24}$/.test(id);
 
 const ProgressTracker: React.FC<ProgressTrackerProps> = ({
   totalExercises,
   completedExercises,
   currentExerciseIndex,
   exerciseProgress,
+  workout,
 }) => {
   const overallProgress =
     exerciseProgress.length > 0
@@ -58,21 +64,22 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
 
       <div className="flex justify-between mt-4 overflow-x-auto pb-2 scrollbar-thin">
         <div className="flex space-x-1 min-w-0">
-          {Array.from({ length: totalExercises }).map((_, index) => {
-            const exercise = exerciseProgress.find(
-              (ep) => ep.exerciseId === `${index}`
-            );
-            const isCompleted = exercise?.status === "Completed";
+          {workout.exercises.map((exercise, index) => {
+            const exerciseId = exercise.id || exercise._id;
+            if (!exerciseId || !isValidObjectId(exerciseId)) {
+              console.error("Invalid exerciseId in ProgressTracker:", exercise);
+              return null;
+            }
+            const progress = exerciseProgress.find((ep) => ep.exerciseId === exerciseId);
+            const isCompleted = progress?.status === "Completed";
             const isCurrent = index === currentExerciseIndex;
 
             return (
-              <div key={index} className="flex flex-col items-center">
+              <div key={exerciseId} className="flex flex-col items-center">
                 {isCompleted ? (
                   <CheckCircle className="h-5 w-5 text-violet-600" />
                 ) : isCurrent ? (
-                  <Circle className="h-5 w-5 text-violet-400" fill="rgba(139, 92, 246
-
-, 0.2)" />
+                  <Circle className="h-5 w-5 text-violet-400" fill="rgba(139, 92, 246, 0.2)" />
                 ) : (
                   <Circle className="h-5 w-5 text-gray-300" />
                 )}

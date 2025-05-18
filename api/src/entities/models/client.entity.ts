@@ -2,6 +2,7 @@ import { IUserEntity } from "./user.entity";
 import { ExperienceLevel, FitnessGoal, ActivityLevel, Skill, TrainerSelectionStatus, WorkoutType } from "@/shared/constants";
 
 export interface IClientEntity extends IUserEntity {
+  fcmToken?: string;
   googleId?: string;
   fitnessGoal?: FitnessGoal;
   experienceLevel?: ExperienceLevel;

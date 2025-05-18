@@ -7,8 +7,8 @@ export const WorkoutVideoProgressSchema = new Schema<IWorkoutVideoProgressModel>
     workoutId: { type: Schema.Types.ObjectId, required: true, ref: "Workout" },
     exerciseProgress: [
       {
-        exerciseId: { type: String, required: true }, 
-        videoProgress: { type: Number, required: true, min: 0, max: 100 }, 
+        exerciseId: { type: Schema.Types.ObjectId, required: true },
+        videoProgress: { type: Number, required: true, min: 0, max: 100 },
         status: {
           type: String,
           required: true,
@@ -16,9 +16,10 @@ export const WorkoutVideoProgressSchema = new Schema<IWorkoutVideoProgressModel>
           default: "Not Started",
         },
         lastUpdated: { type: Date, required: true, default: Date.now },
+        clientTimestamp: { type: String, required: false },
       },
     ],
-    completedExercises: [{ type: String }], 
+    completedExercises: [{ type: Schema.Types.ObjectId }],
     lastUpdated: { type: Date, required: true, default: Date.now },
   },
   {

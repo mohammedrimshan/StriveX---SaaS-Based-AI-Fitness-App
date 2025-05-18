@@ -52,6 +52,8 @@ export class WorkoutVideoProgressController implements IWorkoutVideoProgressCont
         parseInt(limit as string, 10)
       );
 
+      console.log(result,"GET WORKOUT PROGRESS")
+
       res.status(HTTP_STATUS.OK).json({
         status: "success",
         data: result,

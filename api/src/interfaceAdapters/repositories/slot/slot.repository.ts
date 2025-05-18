@@ -7,7 +7,6 @@ import { BaseRepository } from "../base.repository";
 import { SlotStatus } from "@/shared/constants";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
-import { TrainerModel } from "@/frameworks/database/mongoDB/models/trainer.model";
 import { Types } from "mongoose";
 @injectable()
 export class SlotRepository
@@ -87,7 +86,8 @@ export class SlotRepository
     slotId: string,
     status: SlotStatus,
     clientId?: string,
-    isBooked?: boolean
+    isBooked?: boolean,
+    cancellationReason?: string
   ): Promise<ISlotEntity | null> {
     const slot = await this.findById(slotId);
   
@@ -99,6 +99,7 @@ export class SlotRepository
       status,
       isBooked: status === SlotStatus.BOOKED ? true : false,
       isAvailable: status === SlotStatus.AVAILABLE ? true : false,
+      cancellationReason: status === SlotStatus.AVAILABLE ? cancellationReason : undefined,
     };
   
     updates.clientId = clientId !== undefined ? clientId : undefined; 
@@ -152,6 +153,7 @@ export class SlotRepository
         isAvailable: boolean;
         trainerName: string;
         clientName: string;
+        cancellationReason?: string;
       }
     >
   > {
@@ -259,6 +261,7 @@ export class SlotRepository
                 },
               },
             },
+            cancellationReason: "$cancellationReason",
           },
         },
         {
@@ -276,6 +279,7 @@ export class SlotRepository
             updatedAt: 1,
             isBooked: 1,
             isAvailable: 1,
+            cancellationReason: 1,
           },
         },
       ])
@@ -310,6 +314,7 @@ export class SlotRepository
         isAvailable: boolean;
         trainerName: string;
         clientName: string;
+        cancellationReason?: string;
       }
     >
   > {
@@ -413,6 +418,7 @@ export class SlotRepository
                 },
               },
             },
+            cancellationReason: "$cancellationReason",
           },
         },
         {
@@ -430,6 +436,7 @@ export class SlotRepository
             updatedAt: 1,
             isBooked: 1,
             isAvailable: 1,
+            cancellationReason: 1,
           },
         },
       ])

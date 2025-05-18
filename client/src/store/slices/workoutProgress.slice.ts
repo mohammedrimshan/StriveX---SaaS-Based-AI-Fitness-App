@@ -21,12 +21,17 @@ const workoutProgressSlice = createSlice({
         workoutId: string;
         exerciseProgress: { exerciseId: string; videoProgress: number; status: "Not Started" | "In Progress" | "Completed" }[];
         completedExercises: string[];
-        currentExerciseIndex: number;
-        workoutCompleted: boolean;
+        currentExerciseIndex?: number; 
+        workoutCompleted?: boolean; 
       }>
     ) {
-      const { workoutId, exerciseProgress, completedExercises, currentExerciseIndex, workoutCompleted } = action.payload;
-      state[workoutId] = { exerciseProgress, completedExercises, currentExerciseIndex, workoutCompleted };
+      const { workoutId, exerciseProgress, completedExercises, currentExerciseIndex = 0, workoutCompleted = false } = action.payload;
+      state[workoutId] = {
+        exerciseProgress,
+        completedExercises,
+        currentExerciseIndex,
+        workoutCompleted: workoutCompleted || exerciseProgress.every((ep) => ep.status === "Completed"),
+      };
     },
     updateExerciseProgress(
       state,

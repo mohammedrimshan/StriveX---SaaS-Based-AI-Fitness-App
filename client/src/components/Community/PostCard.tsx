@@ -1,201 +1,492 @@
 "use client"
 
-import { Heart, MessageCircle, MoreHorizontal } from "lucide-react"
-import type { Post, Comment as CommentType, User } from "./index"
-import { useState } from "react"
-import { Button } from "../ui/button"
-import UserAvatar from "./UserAvatar"
-import TimeDisplay from "./TimeDisplay"
-import CategoryBadge from "./CategoryBadge"
-import MediaDisplay from "./MediaDisplay"
-import CommentSection from "./CommentSection"
-import { Card } from "../ui/card"
-import { cn } from "@/lib/utils"
-import { useLikePost, useDeletePost, useReportPost } from "@/hooks/community/useCommunity"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { motion } from "framer-motion"
+import React, { useState, useRef, useEffect } from "react"
+import { useSelector } from "react-redux"
+import { toast } from "react-hot-toast"
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Copy, Facebook, Twitter, Link, Share2 } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import { motion, AnimatePresence } from "framer-motion"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { selectCurrentUser } from "@/store/userSelectors"
+import { useLikePost } from "@/hooks/community/useLikePost"
+import { useDeletePost } from "@/hooks/community/useDeletePost"
+import { useReportPost } from "@/hooks/community/useReportPost"
+import { useGetComments } from "@/hooks/community/useGetComments" // Import the useGetComments hook
 
-interface PostCardProps {
-  post: Post
-  currentUser: User | null
+// Updated interface to match the actual data structure
+interface Author {
+  id: string
+  name?: string
+  firstName?: string
+  lastName?: string
+  avatarUrl?: string
+  profileImage?: string
+  isTrainer?: boolean
 }
 
-const PostCard = ({ post, currentUser }: PostCardProps) => { 
-    console.log(post,"POST")   
-  // Initialize comments state with an empty array if post.comments is null or undefined
-  const [liked, setLiked] = useState(post.hasLiked)
-  const [likeCount, setLikeCount] = useState(post.likes?.length || 0)
-  const [comments, setComments] = useState<CommentType[]>(post.comments || [])
-  const [commentCount, setCommentCount] = useState(post.commentCount || 0)
+interface IPost {
+  id: string
+  authorId: string
+  author?: Author
+  textContent: string
+  content: string
+  category: string
+  createdAt: string
+  likes: string[]
+  commentCount: number // This will be ignored in favor of useGetComments
+  imageUrl?: string
+  videoUrl?: string
+  mediaUrl?: string
+  role?: string
+  isDeleted?: boolean
+  hasLiked?: boolean
+}
 
-  // Fix the isCurrentUserPost check by comparing the authorId from the post with the current user's id
-  const isCurrentUserPost = !!(currentUser && post.authorId === currentUser.id)
-console.log(isCurrentUserPost)
-  const likePostMutation = useLikePost()
-  const deletePostMutation = useDeletePost()
-  const reportPostMutation = useReportPost()
+interface PostCardProps {
+  post: IPost
+  onComment: (postId: string) => void
+}
 
-  const handleLike = () => {
-    const newLikedState = !liked
-    setLiked(newLikedState)
-    setLikeCount((prev:any) => (newLikedState ? prev + 1 : prev - 1))
-    likePostMutation.mutate(post.id, {
-      onError: () => {
-        setLiked(liked)
-        setLikeCount(likeCount)
-      },
-    })
+const PostCard: React.FC<PostCardProps> = ({ post, onComment }) => {
+  console.log(post, "pc")
+  const currentUser = useSelector(selectCurrentUser)
+  const [isSaved, setIsSaved] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [showShareMenu, setShowShareMenu] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const [likeScale, setLikeScale] = useState(1)
+  const { likePost, isLiking } = useLikePost()
+  const { deletePost, isDeleting } = useDeletePost()
+  const { reportPost, isReporting } = useReportPost()
+  
+  // Use the useGetComments hook to fetch comment data
+  const { total: commentCount, isLoading: isCommentsLoading, error: commentsError } = useGetComments(post.id, 1, 10)
+
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const shareMenuRef = useRef<HTMLDivElement>(null)
+
+  const getInitials = (name?: string) => {
+    if (!name) return "U"
+
+    const nameParts = name.split(" ")
+    if (nameParts.length >= 2) {
+      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+    }
+
+    return name[0].toUpperCase()
   }
 
-  const handleDelete = () => {
-    if (isCurrentUserPost) {
-      deletePostMutation.mutate(post.id)
+  const formatTimeAgo = (date: Date | string) => {
+    return formatDistanceToNow(new Date(date), { addSuffix: true })
+  }
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!currentUser?.role || !currentUser?.id) {
+      toast.error("Please log in to like posts")
+      return
+    }
+    
+    setLikeScale(1.5)
+    setTimeout(() => setLikeScale(1), 300)
+    
+    likePost({ id: post.id, role: currentUser.role, userId: currentUser.id })
+  }
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowDropdown(false)
+    if (currentUser?.role) {
+      deletePost(
+        { id: post.id, role: currentUser.role },
+        {
+          onSuccess: () => toast.success("Post deleted successfully"),
+          onError: (err) => toast.error(err.message || "Failed to delete post"),
+        }
+      )
     }
   }
 
-  const handleReport = () => {
-    if (!isCurrentUserPost) {
-      reportPostMutation.mutate({ postId: post.id, reason: "Inappropriate content" })
+  const handleReport = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowDropdown(false)
+    if (currentUser?.role) {
+      reportPost(
+        {
+          id: post.id,
+          reason: "Inappropriate content",
+          role: currentUser.role,
+        },
+        {
+          onSuccess: () => toast.success("Post reported successfully"),
+          onError: (err) => toast.error(err.message || "Failed to report post"),
+        }
+      )
     }
   }
 
-  const handleAddComment = (postId: string, content: string) => {
-    // Ensure we're working with an array
-    setComments((prev) => [
-      ...(Array.isArray(prev) ? prev : []),
-      {
-        id: `temp-${Date.now()}`,
-        content,
-        author: currentUser!,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-        hasLiked: false,
-      },
-    ])
-    setCommentCount((prev) => prev + 1)
+  const toggleDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowDropdown(!showDropdown)
+    if (showShareMenu) setShowShareMenu(false)
   }
+
+  const toggleShareMenu = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowShareMenu(!showShareMenu)
+    if (showDropdown) setShowDropdown(false)
+  }
+
+  const closeDropdown = (e: React.MouseEvent) => {
+    if (showDropdown) {
+      e.stopPropagation()
+      setShowDropdown(false)
+    }
+  }
+
+  const handleShare = (platform: string) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    const postUrl = `${window.location.origin}/posts/${post.id}`
+    
+    switch (platform) {
+      case 'copy':
+        navigator.clipboard.writeText(postUrl)
+          .then(() => toast.success("Link copied to clipboard"))
+          .catch(() => toast.error("Failed to copy link"))
+        break
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank')
+        break
+      case 'twitter':
+        const text = `Check out this post: ${(post.textContent || post.content).substring(0, 100)}...`
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`, '_blank')
+        break
+      case 'direct':
+        if (navigator.share) {
+          navigator.share({
+            title: 'Check out this post',
+            text: post.textContent || post.content,
+            url: postUrl
+          })
+          .catch((error) => console.log('Error sharing', error))
+        } else {
+          toast.error("Native sharing not supported on this browser")
+        }
+        break
+      default:
+        break
+    }
+    
+    setShowShareMenu(false)
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false)
+      }
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false)
+      }
+    }
+    
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
+
+  const isAuthor = post.authorId === currentUser?.id
+  const hasLiked = post.hasLiked || post.likes.includes(currentUser?.id || "")
+  const isTrainer = post.author?.isTrainer || post.role === "trainer"
+
+  const postImage = post.mediaUrl || post.imageUrl
+
+  const authorName =
+    post.author?.name ||
+    (post.author?.firstName && post.author?.lastName
+      ? `${post.author.firstName} ${post.author.lastName}`.trim()
+      : "Anonymous")
+
+  // Handle comments error (optional)
+  useEffect(() => {
+    if (commentsError) {
+      console.error("Error fetching comments:", commentsError)
+      // Optionally show a toast or fallback to post.commentCount
+      // toast.error("Failed to load comments count")
+    }
+  }, [commentsError])
 
   return (
-    <motion.div
+    <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      whileHover={{ y: -5 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 mb-4 overflow-hidden"
+      onClick={() => onComment(post.id)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <Card className="overflow-hidden border-slate-700 bg-slate-900/95 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-300 hover:shadow-violet-900/20">
-        <div className="p-4">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center space-x-3">
-              <UserAvatar user={post.author} />
-              <div>
-                <div className="flex items-center">
-                  <h3 className="font-semibold text-slate-100">{post.author?.name ?? "Unknown User"}</h3>
-                  {post.author?.isTrainer && (
-                    <motion.span
-                      className="ml-2 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white text-xs px-2 py-0.5 rounded-full"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      Trainer
-                    </motion.span>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-slate-400">
-                  <TimeDisplay timestamp={post.createdAt} />
-                  <span>•</span>
-                  <CategoryBadge category={post.category} isTrainer={post.author?.isTrainer ?? false} />
-                </div>
-              </div>
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+      {/* Post header */}
+      <div className="flex justify-between items-center p-3">
+        <motion.div 
+          className="flex items-center space-x-2"
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+        >
+          <Avatar className="h-10 w-10 border border-gray-200 ring-2 ring-offset-2 ring-opacity-50 ring-blue-100">
+            {post.author?.profileImage || post.author?.avatarUrl ? (
+              <AvatarImage
+                src={post.author.profileImage || post.author.avatarUrl}
+                alt={authorName}
+                className="object-cover"
+              />
+            ) : (
+              <AvatarFallback className="bg-gradient-to-r from-blue-400 to-purple-500 text-white text-xs font-medium">
+                {post.author ? getInitials(post.author.name) : "U"}
+              </AvatarFallback>
+            )}
+          </Avatar>
+          <div>
+            <div className="flex items-center">
+              <h3 className="font-semibold text-sm">{authorName}</h3>
+              {isTrainer && (
+                <motion.svg
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-4 h-4 ml-1 text-[#0095F6] fill-current"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <MoreHorizontal className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px] bg-slate-800 border-slate-700 text-slate-200">
-                {isCurrentUserPost ? (
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </motion.svg>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">{post.category}</p>
+          </div>
+        </motion.div>
+        
+        {/* Fixed dropdown menu */}
+        <div className="relative" ref={dropdownRef} onClick={(e) => e.stopPropagation()}>
+          <motion.button
+            whileHover={{ rotate: 90 }}
+            transition={{ duration: 0.2 }}
+            onClick={toggleDropdown}
+            className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+          >
+            <MoreHorizontal className="h-5 w-5 text-gray-700" />
+          </motion.button>
+          
+          <AnimatePresence>
+            {showDropdown && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute right-0 top-10 w-48 rounded-xl shadow-lg bg-white border border-gray-100 py-1 z-50"
+              >
+                <div 
+                  className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={handleReport}
+                >
+                  Report
+                </div>
+                {isAuthor && (
                   <>
-                    <DropdownMenuItem className="hover:bg-slate-700 focus:bg-slate-700">Edit post</DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-red-400 hover:text-red-300 hover:bg-red-900/20 focus:bg-red-900/20"
+                    <div 
+                      className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={closeDropdown}
+                    >
+                      Edit Post
+                    </div>
+                    <div 
+                      className="text-sm py-2 px-3 cursor-pointer text-red-500 hover:bg-red-50 transition-colors"
                       onClick={handleDelete}
                     >
-                      Delete post
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <>
-                    <DropdownMenuItem className="hover:bg-slate-700 focus:bg-slate-700">Save post</DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-slate-700" />
-                    <DropdownMenuItem
-                      className="text-red-400 hover:text-red-300 hover:bg-red-900/20 focus:bg-red-900/20"
-                      onClick={handleReport}
-                    >
-                      Report post
-                    </DropdownMenuItem>
+                      Delete Post
+                    </div>
                   </>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                <div 
+                  className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={handleShare('copy')}
+                >
+                  Copy Link
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
 
-          <div className="mt-3">
-            <p className="text-slate-300 whitespace-pre-line">{post.content || post.textContent}</p>
-            <MediaDisplay imageUrl={post.imageUrl} videoUrl={post.videoUrl} />
-          </div>
-
-          <div className="mt-4 flex items-center justify-between">
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLike}
-                className={cn(
-                  "gap-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50",
-                  liked && "text-pink-500 hover:text-pink-400",
-                )}
-                disabled={likePostMutation.isPending}
-              >
-                <motion.div animate={liked ? { scale: [1, 1.3, 1] } : {}} transition={{ duration: 0.3 }}>
-                  <Heart className={cn("h-5 w-5", liked && "fill-pink-500")} />
-                </motion.div>
-                <span>{likeCount}</span>
-              </Button>
-            </motion.div>
-
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
-              >
-                <MessageCircle className="h-5 w-5" />
-                <span>{commentCount}</span>
-              </Button>
-            </motion.div>
-          </div>
-
-          <CommentSection
-            comments={comments}
-            postId={post.id}
-            commentCount={commentCount}
-            onAddComment={handleAddComment}
-            currentUser={currentUser}
+      {/* Post image with hover effect */}
+      {postImage && (
+        <div className="relative aspect-square bg-black overflow-hidden">
+          <motion.img
+            src={postImage || "/placeholder.svg"}
+            alt={(post.textContent || post.content).substring(0, 20)}
+            className="w-full h-full object-contain"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+            animate={{ 
+              filter: isHovered ? "brightness(1.1)" : "brightness(1)" 
+            }}
           />
         </div>
-      </Card>
+      )}
+
+      {/* Post actions */}
+      <div className="p-4">
+        <div className="flex justify-between">
+          <div className="flex space-x-4">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              animate={{ scale: likeScale }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              onClick={handleLike}
+              className="text-black focus:outline-none"
+              disabled={isLiking}
+              aria-label={hasLiked ? "Unlike" : "Like"}
+            >
+              <Heart
+                className={`h-6 w-6 ${hasLiked ? "fill-red-500 text-red-500" : "fill-none"} transition-colors duration-300`}
+                strokeWidth={hasLiked ? 0 : 2}
+              />
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.stopPropagation()
+                onComment(post.id)
+              }}
+              className="text-black focus:outline-none"
+              aria-label="Comment"
+            >
+              <MessageCircle className="h-6 w-6 fill-none" />
+            </motion.button>
+
+            {/* Share button with dropdown */}
+            <div className="relative" ref={shareMenuRef}>
+              <motion.button 
+                whileHover={{ scale: 1.1, rotate: 15 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={toggleShareMenu} 
+                className="text-black focus:outline-none" 
+                aria-label="Share"
+              >
+                <Send className="h-6 w-6 fill-none" />
+              </motion.button>
+              
+              {/* Share options menu */}
+              <AnimatePresence>
+                {showShareMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute left-0 bottom-10 w-48 rounded-xl shadow-lg bg-white border border-gray-100 py-1 z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div 
+                      className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      onClick={handleShare('copy')}
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy Link
+                    </div>
+                    <div 
+                      className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      onClick={handleShare('facebook')}
+                    >
+                      <Facebook className="h-4 w-4 text-blue-600" />
+                      Share to Facebook
+                    </div>
+                    <div 
+                      className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      onClick={handleShare('twitter')}
+                    >
+                      <Twitter className="h-4 w-4 text-blue-400" />
+                      Share to Twitter
+                    </div>
+                    {typeof navigator.share === "function" && (
+                      <div 
+                        className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2"
+                        onClick={handleShare('direct')}
+                      >
+                        <Share2 className="h-4 w-4" />
+                        Share...
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsSaved(!isSaved)
+            }}
+            className="text-black focus:outline-none"
+            aria-label={isSaved ? "Unsave" : "Save"}
+          >
+            <Bookmark 
+              className={`h-6 w-6 ${isSaved ? "fill-black" : "fill-none"} transition-all duration-300`} 
+            />
+          </motion.button>
+        </div>
+
+        {/* Likes count with animated number */}
+        {post.likes.length > 0 && (
+          <motion.div 
+            className="mt-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            <p className="text-sm font-semibold">
+              {post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}
+            </p>
+          </motion.div>
+        )}
+
+        {/* Caption */}
+        <motion.div 
+          className="mt-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <p className="text-sm">
+            <span className="font-semibold">{authorName}</span>{" "}
+            {post.textContent || post.content}
+          </p>
+        </motion.div>
+
+        {/* Comments preview with highlight effect */}
+        {commentCount > 0 && (
+          <motion.button
+            whileHover={{ color: "#3B82F6" }}
+            className="text-sm text-gray-500 mt-2"
+            onClick={(e) => {
+              e.stopPropagation()
+              onComment(post.id)
+            }}
+            disabled={isCommentsLoading}
+          >
+            {isCommentsLoading ? "Loading comments..." : `View all ${commentCount} comments`}
+          </motion.button>
+        )}
+
+        {/* Timestamp */}
+        <p className="text-xs uppercase text-gray-400 mt-2">{formatTimeAgo(post.createdAt)}</p>
+      </div>
     </motion.div>
   )
 }

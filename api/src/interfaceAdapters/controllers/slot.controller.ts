@@ -108,13 +108,17 @@ export class SlotController implements ISlotController {
   async cancelBooking(req: Request, res: Response): Promise<void> {
     try {
       const clientId = (req as CustomRequest).user.id;
-      const { slotId } = req.body;
+      const { slotId, cancellationReason } = req.body;
 
       if (!slotId) {
         throw new CustomError("Slot ID is required", HTTP_STATUS.BAD_REQUEST);
       }
 
-      const slot = await this.cancelBookingUseCase.execute(clientId, slotId);
+      if (!cancellationReason || cancellationReason.trim() === "") {
+        throw new CustomError("Cancellation reason is required", HTTP_STATUS.BAD_REQUEST);
+      }
+
+      const slot = await this.cancelBookingUseCase.execute(clientId, slotId, cancellationReason);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -150,7 +154,7 @@ export class SlotController implements ISlotController {
   async getSelectedTrainerSlots(req: Request, res: Response): Promise<void> {
     try {
       const clientId = (req as CustomRequest).user.id;
-     console.log(clientId)
+      console.log(clientId)
       const slots = await this.getSelectedTrainerSlotsUseCase.execute(clientId);
   
       res.status(HTTP_STATUS.OK).json({
@@ -163,7 +167,7 @@ export class SlotController implements ISlotController {
     }
   }
   
-async getUserBookings(req: Request, res: Response): Promise<void> {
+  async getUserBookings(req: Request, res: Response): Promise<void> {
     try {
       const userClientId = (req as CustomRequest).user.id;
 

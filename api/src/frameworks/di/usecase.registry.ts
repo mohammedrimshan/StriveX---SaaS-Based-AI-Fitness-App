@@ -1,4 +1,4 @@
-import { container } from "tsyringe";
+import { container, delay } from "tsyringe";
 
 import { IBcrypt } from "../../frameworks/security/bcrypt.interface";
 import { PasswordBcrypt } from "../../frameworks/security/password.bcrypt";
@@ -26,6 +26,11 @@ import { GeminiService } from "@/interfaceAdapters/services/gemini.service";
 import { IStripeService } from "@/entities/services/stripe-service.interface";
 import { StripeService } from "@/interfaceAdapters/services/stripe.service";
 import { SocketService } from "@/interfaceAdapters/services/socket.service";
+import { INotificationSocketService } from "@/entities/services/socket-service.interface";
+import { SocketNotificationService } from "@/interfaceAdapters/services/socket-notification.service";
+import { NotificationService } from "@/interfaceAdapters/services/notification.service";
+import { FCMService } from "@/interfaceAdapters/services/fcm.service";
+import { IFCMService } from "@/entities/services/fcm-service.interface";
 
 import { IRegisterUserUseCase } from "../../entities/useCaseInterfaces/auth/register-usecase.interface";
 import { RegisterUserUseCase } from "../../useCases/auth/register-user.usecase";
@@ -203,6 +208,13 @@ import { IHardDeletePostUseCase } from "@/entities/useCaseInterfaces/community/h
 import { HardDeletePostUseCase } from "@/useCases/community/hard-delete-post.usecase";
 import { IHardDeleteCommentUseCase } from "@/entities/useCaseInterfaces/community/hard-delete-comment-usecase.interface";
 import { HardDeleteCommentUseCase } from "@/useCases/community/hard-delete-comment.usecase";
+import { IGetTransactionHistoryUseCase } from "@/entities/useCaseInterfaces/admin/get-transaction-history.interface";
+import { GetTransactionHistoryUseCase } from "@/useCases/admin/get-transaction-history.usecase";
+import { IGetCommentsUseCase } from "@/entities/useCaseInterfaces/community/get-comments-usecase.interface";
+import { GetCommentsUseCase } from "@/useCases/community/get-comments.usecase";
+
+import { IGetNotifications } from "@/entities/useCaseInterfaces/Notification/getnotification.usecase.interface";
+import { GetNotifications } from "@/useCases/notification/get-notifications";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 
 export class UseCaseRegistry {
@@ -247,6 +259,18 @@ export class UseCaseRegistry {
 
     container.register<SocketService>("SocketService", {
       useClass: SocketService,
+    });
+
+    container.register<IFCMService>("IFCMService", {
+      useClass: FCMService,
+    });
+
+    container.register("INotificationSocketService", {
+      useClass: delay(() => SocketNotificationService),
+    });
+
+    container.register<NotificationService>("NotificationService", {
+      useClass: NotificationService,
     });
 
     //* ====== Register Slot Expiry Processor ====== *//
@@ -763,6 +787,21 @@ export class UseCaseRegistry {
 
     container.register<IHardDeleteCommentUseCase>("IHardDeleteCommentUseCase", {
       useClass: HardDeleteCommentUseCase,
+    });
+
+    container.register<IGetTransactionHistoryUseCase>(
+      "IGetTransactionHistoryUseCase",
+      {
+        useClass: GetTransactionHistoryUseCase,
+      }
+    );
+
+    container.register<IGetCommentsUseCase>("IGetCommentsUseCase", {
+      useClass: GetCommentsUseCase,
+    });
+
+    container.register<IGetNotifications>("IGetNotifications", {
+      useClass: GetNotifications,
     });
   }
 }

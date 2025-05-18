@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge"
 import type { ISlot } from "@/types/Slot"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Input } from "@mui/material"
 
 interface UserBookingsProps {
   bookings: ISlot[]
@@ -64,9 +65,14 @@ export function UserBookings({ bookings, onBookingCancelled }: UserBookingsProps
   }, [bookings, currentTime])
 
   // Handle cancellation
-  const handleCancelBooking = (slotId: string) => {
+  const handleCancelBooking = (slotId: string, cancellationReason: string) => {
+    if (!cancellationReason.trim()) {
+      errorToast("Please provide a cancellation reason")
+      return
+    }
+
     cancelBooking(
-      { slotId },
+      { slotId, cancellationReason },
       {
         onSuccess: () => {
           successToast("Booking cancelled successfully")
@@ -155,12 +161,13 @@ export function UserBookings({ bookings, onBookingCancelled }: UserBookingsProps
 interface SessionCardProps {
   booking: any; // Using any here for simplicity, but should use a proper type
   isCancelling: boolean;
-  onCancel: (slotId: string) => void;
+  onCancel: (slotId: string, cancellationReason: string) => void;
   onJoin: (slotId: string) => void;
   isPast?: boolean;
 }
 
 function SessionCard({ booking, isCancelling, onCancel, onJoin, isPast = false }: SessionCardProps) {
+  const [cancellationReason, setCancellationReason] = useState("")
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -200,7 +207,7 @@ function SessionCard({ booking, isCancelling, onCancel, onJoin, isPast = false }
               {booking.joinAvailable ? "Join Session" : "Join (10m before)"}
             </Button>
 
-            <TooltipProvider>
+             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div>
@@ -219,14 +226,25 @@ function SessionCard({ booking, isCancelling, onCancel, onJoin, isPast = false }
                         <AlertDialogHeader>
                           <AlertDialogTitle>Cancel your booking?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to cancel this session? This action cannot be undone.
+                            Please provide a reason for cancelling this session. This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
+                        <div className="my-4">
+                          <Input
+                            placeholder="Enter cancellation reason"
+                            value={cancellationReason}
+                            onChange={(e) => setCancellationReason(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                          <AlertDialogCancel onClick={() => setCancellationReason("")}>
+                            No, keep it
+                          </AlertDialogCancel>
                           <AlertDialogAction 
-                            onClick={() => onCancel(booking.id)}
+                            onClick={() => onCancel(booking.id, cancellationReason)}
                             className="bg-red-500 hover:bg-red-600"
+                            disabled={!cancellationReason.trim()}
                           >
                             Yes, cancel
                           </AlertDialogAction>

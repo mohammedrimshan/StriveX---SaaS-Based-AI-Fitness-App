@@ -1,5 +1,4 @@
 import { RoleType } from "@/shared/constants";
-import { IClientEntity } from "./client.entity";
 
 export interface IReport {
   userId: string;
@@ -8,7 +7,7 @@ export interface IReport {
 }
 
 export interface IPostEntity {
-  id?: string;
+  id: string;
   authorId: string;
   role: RoleType;
   textContent: string;
@@ -21,10 +20,11 @@ export interface IPostEntity {
   reports: IReport[];
   commentsCount?: number;
   author?: {
-    _id: string; // Expects a non-nullable string
+    _id: string; 
     firstName: string;
     lastName: string;
     email: string;
     profileImage?: string;
+    
   } | null;
 }

@@ -3,4 +3,5 @@ import { IBaseRepository } from "../base-repository.interface";
 
 export interface IMembershipPlanRepository extends IBaseRepository<IMembershipPlanEntity> {
   findActivePlans(): Promise<IMembershipPlanEntity[]>;
+  findByIds(ids: string[]): Promise<{ id: string; name: string }[]>;
 }

@@ -1,6 +1,7 @@
+
 export interface Exercise {
-  _id?: string;
-  id: string;
+  _id?: string; 
+  id?: string; 
   name: string;
   description: string;
   duration: number;

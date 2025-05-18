@@ -8,14 +8,18 @@ import { IDeletePostUseCase } from "@/entities/useCaseInterfaces/community/delet
 import { ILikePostUseCase } from "@/entities/useCaseInterfaces/community/like-post-usecase.interface";
 import { IReportPostUseCase } from "@/entities/useCaseInterfaces/community/report-post-usecase.interface";
 import { SocketService } from "../services/socket.service";
+import { FrontendPost } from "@/entities/models/socket.entity";
 import {
   ERROR_MESSAGES,
   HTTP_STATUS,
   SUCCESS_MESSAGES,
+  RoleType,
+  WorkoutType,
 } from "@/shared/constants";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { CustomError } from "@/entities/utils/custom.error";
 import mongoose from "mongoose";
+import { IPostEntity } from "@/entities/models/post.entity";
 
 @injectable()
 export class PostController implements IPostController {
@@ -27,8 +31,9 @@ export class PostController implements IPostController {
     @inject("IDeletePostUseCase")
     private _deletePostUseCase: IDeletePostUseCase,
     @inject("ILikePostUseCase") private _likePostUseCase: ILikePostUseCase,
-    @inject("IReportPostUseCase") private _reportPostUseCase: IReportPostUseCase,
-    @inject("SocketService") private _socketService : SocketService
+    @inject("IReportPostUseCase")
+    private _reportPostUseCase: IReportPostUseCase,
+    @inject("SocketService") private _socketService: SocketService
   ) {}
 
   async createPost(req: Request, res: Response): Promise<void> {
@@ -48,15 +53,81 @@ export class PostController implements IPostController {
         req.user!.id
       );
 
-      const io = this._socketService.getIO()
-      io.emit("newPost",{
-        id:post.id,
+      // Fetch author details to include in the emitted post
+      let author: {
+        _id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        profileImage?: string;
+      } | null = null;
+      const role = req.user!.role as RoleType;
+      if (role === "client") {
+        const client = await this._socketService["_clientRepository"].findById(
+          req.user!.id
+        );
+        if (client && client.id) {
+          author = {
+            _id: client.id.toString(),
+            firstName: client.firstName || "Unknown",
+            lastName: client.lastName || "",
+            email: client.email || "",
+            profileImage: client.profileImage || undefined,
+          };
+        } else {
+          throw new CustomError("Client not found", HTTP_STATUS.NOT_FOUND);
+        }
+      } else if (role === "trainer") {
+        const trainer = await this._socketService[
+          "_trainerRepository"
+        ].findById(req.user!.id);
+        if (trainer && trainer.id) {
+          author = {
+            _id: trainer.id.toString(),
+            firstName: trainer.firstName || "Unknown",
+            lastName: trainer.lastName || "",
+            email: trainer.email || "",
+            profileImage: trainer.profileImage || undefined,
+          };
+        } else {
+          throw new CustomError("Trainer not found", HTTP_STATUS.NOT_FOUND);
+        }
+      } else if (role === "admin") {
+        author = {
+          _id: req.user!.id,
+          firstName: "Admin",
+          lastName: "",
+          email: "admin@example.com",
+          profileImage: undefined,
+        };
+      }
+
+      if (!author) {
+        throw new CustomError(
+          "Failed to fetch author details",
+          HTTP_STATUS.INTERNAL_SERVER_ERROR
+        );
+      }
+
+      // Map to FrontendPost format
+      const frontendPost: FrontendPost = {
+        id: post.id,
         authorId: post.authorId,
+        author,
+        role,
         textContent: post.textContent,
         mediaUrl: post.mediaUrl,
-        category: post.category,
-        createdAt: post.createdAt,
-      })
+        category: post.category as WorkoutType,
+        likes: post.likes || [],
+        commentsCount: post.commentsCount || 0,
+        createdAt: post.createdAt.toISOString(),
+        isDeleted: post.isDeleted || false,
+      };
+
+      // Emit to community room
+      const io = this._socketService.getIO();
+      console.log(io,"IOCREATE")
+      io.to("community").emit("newPost", frontendPost);
 
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
@@ -164,27 +235,37 @@ export class PostController implements IPostController {
     }
   }
 
-  async likePost(req: Request, res: Response): Promise<void> {
+ async likePost(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      console.log(`LIKE POST: postId=${id}, userId=${req.user!.id}`);
       if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-        throw new CustomError(
-          ERROR_MESSAGES.INVALID_ID,
-          HTTP_STATUS.BAD_REQUEST
-        );
+        throw new CustomError(ERROR_MESSAGES.INVALID_ID, HTTP_STATUS.BAD_REQUEST);
       }
 
       const post = await this._likePostUseCase.execute(id, req.user!.id);
+      console.log(`POST:`, post);
 
       const io = this._socketService.getIO();
-      io.emit("postLiked", { postId: id, userId: req.user!.id, likes: post.likes });
-      
+      const clients = await io.in("community").allSockets();
+      console.log(
+        `[DEBUG] Emitting postLiked to ${clients.size} clients for post ${id}, userId=${req.user!.id}, likes:`,
+        post.likes
+      );
+      io.to("community").emit("postLiked", {
+        postId: id,
+        userId: req.user!.id,
+        likes: post.likes || [],
+        hasLiked: post.likes.includes(req.user!.id),
+      });
+
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
         post,
       });
     } catch (error) {
+      console.error(`[DEBUG] likePost error:`, error);
       handleErrorResponse(res, error);
     }
   }

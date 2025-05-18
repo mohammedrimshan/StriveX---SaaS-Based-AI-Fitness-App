@@ -12,7 +12,7 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
     @inject("ISlotRepository") private slotRepository: ISlotRepository
   ) {}
 
-  async execute(clientId: string, slotId: string): Promise<ISlotEntity> {
+  async execute(clientId: string, slotId: string, cancellationReason?: string): Promise<ISlotEntity> {
     const slot = await this.slotRepository.findBookedSlotByClientId(
       clientId,
       slotId
@@ -26,7 +26,6 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
     const [year, month, day] = slot.date.split("-").map(Number);
     const [hours, minutes] = slot.startTime.split(":").map(Number);
     const slotStartTime = new Date(year, month - 1, day, hours, minutes);
-
 
     if (isNaN(slotStartTime.getTime())) {
       throw new CustomError(
@@ -45,11 +44,19 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
       );
     }
 
+    if (!cancellationReason || cancellationReason.trim() === "") {
+      throw new CustomError(
+        "Cancellation reason is required",
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
     const updatedSlot = await this.slotRepository.updateStatus(
       slotId,
       SlotStatus.AVAILABLE,
       undefined,
-      false 
+      false,
+      cancellationReason
     );
     if (!updatedSlot) {
       throw new CustomError(
