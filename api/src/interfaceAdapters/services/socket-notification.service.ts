@@ -3,14 +3,17 @@ import { INotificationSocketService } from "@/entities/services/socket-service.i
 import { INotificationEntity } from "@/entities/models/notification.entity";
 import { SocketService } from "@/interfaceAdapters/services/socket.service";
 
-
 @injectable()
 export class SocketNotificationService implements INotificationSocketService {
-  constructor(@inject("SocketService") private socketService: SocketService) {}
+  constructor(
+    @inject("SocketService") private socketService: SocketService
+  ) {}
+
   emitNotification(userId: string, notification: INotificationEntity): void {
-    const socketId = this.socketService.getSocketId(userId);
-    if (socketId) {
-      this.socketService.getIO().to(socketId).emit("notification", notification);
-    }
+    console.log(userId, "NOTIFICATION USER ID");
+    this.socketService
+      .getIO()
+      .to(`user:${userId}`)
+      .emit("notification", notification);
   }
 }

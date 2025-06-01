@@ -49,3 +49,29 @@ export interface LoginUserDTO {
   password: string;
   role: TRole; 
 }
+
+export interface ClientInfoDTO {
+ clientId: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  profileImage?: string;
+}
+
+export interface SlotResponseDTO {
+   id: string;
+  trainerId: string;
+  trainerName: string;
+  clientId?: string;
+  clientName?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  isBooked: boolean;
+  isAvailable: boolean;
+  cancellationReason?: string; 
+  videoCallStatus?: string; 
+  videoCallRoomName?: string; 
+  client?: ClientInfoDTO;
+}

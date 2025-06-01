@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useParams } from "react-router-dom";
 import { ClientAuth } from "@/pages/client/clientAuth";
 import { ClientLayout } from "@/layouts/ClientLayout";
 import { AuthRoute } from "@/utils/protected/ProtectedRoute";
@@ -23,6 +23,9 @@ import BookingPage from "@/pages/client/BookingPage";
 import { ChatLayout } from "@/components/Chat/ChatLayout";
 import Community from "@/components/Community/index.tsx";
 import WorkoutProgressDashboard from "@/pages/client/WorkoutProgressChart";
+import VideoCallPage from "@/components/VideoCall/VideoCallPage";
+import Notifications from "@/components/Notification/Notifications";
+import UserDashBoard from "@/pages/client/DashBoard";
 export const ClientRoutes = () => {
   return (
     <Routes>
@@ -164,13 +167,45 @@ export const ClientRoutes = () => {
           }
         />
 
-         <Route
+        <Route
           path="/progress"
           element={
-            <AuthRoute allowedRoles={["client"]} element={<WorkoutProgressDashboard />} />
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<WorkoutProgressDashboard />}
+            />
           }
         />
-        {/* Add more protected routes as needed */}
+
+        <Route
+          path="/notifications"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<Notifications />} />
+          }
+        />
+
+        <Route
+          path="/video-call/:slotId"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={
+                <VideoCallPage
+                  userType="client"
+                  params={{ slotId: useParams().slotId ?? "" }}
+                />
+              }
+            />
+          }
+        />
+
+         <Route
+          path="/dashboard"
+          element={
+            <AuthRoute allowedRoles={["client"]} element={<UserDashBoard />} />
+          }
+        />
+        {/* Add morHae protected routes as needed */}
       </Route>
       <Route
         path="/forgot-password"

@@ -1,5 +1,5 @@
 import { trainerAxiosInstance } from "@/api/trainer.axios";
-import { ITrainer } from "@/types/User";
+import { IClient, ITrainer } from "@/types/User";
 import { CategoryResponse } from "../admin/adminService";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/trainer/useTrainerPasswordChange";
@@ -21,7 +21,8 @@ export interface TrainerClient {
 // Interface for paginated clients response
 export interface TrainerClientsPaginatedResponse {
   success: boolean;
-  clients: TrainerClient[];
+  message: string;
+  clients: IClient[];
   totalPages: number;
   currentPage: number;
   totalClients: number;
@@ -177,6 +178,27 @@ export const getTrainerOwnSlots = async (): Promise<SlotsResponse> => {
       "/trainer/trainerslots"
     );
     console.log("Trainer's own slots:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Get trainer slots error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to fetch trainer slots");
+  }
+};
+
+export const getTrainerBookedAndCancelledSlots = async (
+  trainerId: string,
+  date?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<SlotsResponse> => {
+  try {
+    const response = await trainerAxiosInstance.get<SlotsResponse>(
+      "/trainer/slotbooks",
+      {
+        params: { trainerId },
+      }
+    );
+    console.log("Trainer's booked and cancelled slots:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("Get trainer slots error:", error.response?.data);

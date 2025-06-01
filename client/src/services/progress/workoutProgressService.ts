@@ -1,5 +1,6 @@
 import { clientAxiosInstance } from "@/api/client.axios";
 import { IAxiosResponse } from "@/types/Response";
+import { ProgressMetricsResponse } from "@/types/progressMetrics";
 
 export interface IWorkoutProgressEntity {
   id: string;
@@ -23,10 +24,11 @@ export interface IWorkoutVideoProgressEntity {
 }
 
 export interface CreateWorkoutProgressData {
-  userId: string; // Added userId to ensure it's included in the request
+  userId: string;
   workoutId: string;
   duration: number;
   caloriesBurned: number;
+completed: boolean;
 }
 
 export interface UpdateWorkoutProgressData {
@@ -48,13 +50,16 @@ export const createWorkoutProgress = async (
   data: CreateWorkoutProgressData
 ): Promise<IWorkoutProgressEntity> => {
   try {
-    // Validate that userId is present
     if (!data.userId) {
-      throw new Error("userId is required to create workout progress");
+      throw new Error("Invalid or missing userId");
     }
-
+    if (!data.workoutId) {
+      throw new Error("Invalid or missing workoutId");
+    }
+    if (!data.duration || data.duration <= 0) {
+      throw new Error("Invalid or missing duration");
+    }
     console.log("Creating workout progress with data:", data);
-
     const response = await clientAxiosInstance.post<IAxiosResponse<IWorkoutProgressEntity>>(
       "/client/progress/workout",
       data
@@ -170,7 +175,6 @@ export const getUserWorkoutVideoProgress = async (
   userId: string
 ): Promise<IWorkoutVideoProgressEntity[]> => {
   try {
-    // Don't make API call if userId is empty
     if (!userId) {
       console.warn("getUserWorkoutVideoProgress called with empty userId");
       return [];
@@ -179,7 +183,7 @@ export const getUserWorkoutVideoProgress = async (
     const response = await clientAxiosInstance.get<IAxiosResponse<IWorkoutVideoProgressEntity[]>>(
       `/client/progress/video/user/${userId}`
     );
-    console.log("User video progress:", response.data);
+    console.log("User video progress:", response);
     return response.data;
   } catch (error: any) {
     console.error("Get user video progress error:", error.response?.data);
@@ -209,6 +213,28 @@ export const getWorkoutVideoProgressByUserAndWorkout = async (
     console.error("Get video progress by user and workout error:", error.response?.data);
     throw new Error(
       error.response?.data?.message || "Failed to fetch video progress"
+    );
+  }
+};
+
+export const getUserProgressMetrics = async (
+  userId: string
+): Promise<ProgressMetricsResponse> => {
+  try {
+    if (!userId) {
+      console.warn("getUserProgressMetrics called with empty userId");
+      throw new Error("userId is required");
+    }
+
+    const response = await clientAxiosInstance.get<IAxiosResponse<ProgressMetricsResponse>>(
+      `/client/progress/workout/metrics/${userId}`
+    );
+    console.log("User progress metrics response:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Get user progress metrics error:", error.response?.data || error.message);
+    throw new Error(
+      error.response?.data?.message || error.message || "Failed to fetch user progress metrics"
     );
   }
 };

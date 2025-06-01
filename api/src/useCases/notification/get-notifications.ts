@@ -11,7 +11,7 @@ export class GetNotifications implements IGetNotifications {
 
   async execute(page: number = 1, limit: number = 10): Promise<INotificationEntity[]> {
     const skip = (page - 1) * limit;
-    const { items } = await this.notificationRepository.find(page, skip, limit);
+    const { items } = await this.notificationRepository.find({}, skip, limit);
     return items;
   }
 }

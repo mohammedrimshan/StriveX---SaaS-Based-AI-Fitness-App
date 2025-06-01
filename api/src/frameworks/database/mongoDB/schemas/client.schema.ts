@@ -30,6 +30,7 @@ export const clientSchema = new Schema<IClientModel>(
       },
     },
     waterIntake: { type: Number, required: false },
+    waterIntakeTarget: { type: Number, required: false, default: 2000 },
     dietPreference: { type: String, required: false },
     isPremium: { type: Boolean, default: false },
     sleepFrom: { type: String, required: false }, 

@@ -109,6 +109,7 @@ export const profileFormSchema = z.object({
     .min(0, { message: "Water intake cannot be negative" })
     .max(10000, { message: "Water intake is unrealistically high" })
     .optional(),
+    waterIntakeTarget: z.number().min(0, "Target water intake cannot be negative").max(8000, "Target water intake cannot exceed 8L").optional(),
 });
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;

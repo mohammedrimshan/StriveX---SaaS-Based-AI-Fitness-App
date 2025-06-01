@@ -1,20 +1,29 @@
-
 export interface ISlot {
-    id: string;
-    trainerId: string;
-    trainerName: string;
-    clientId?: string;
-    date:string;
-    startTime: string; 
-    endTime: string;  
-    isAvailable:boolean;
-    isBooked:boolean;
-    status: 'AVAILABLE' | 'BOOKED' | 'CANCELLED' | 'COMPLETED';
-    createdAt: string;
-    updatedAt: string;
-    clientName?: string;
-  }
-
+  id: string;
+  trainerId: string;
+  trainerName: string;
+  clientId?: string;
+  client?: {
+    clientId: string;
+    name: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    profileImage?: string;
+  };
+  date: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  isBooked: boolean;
+  status: 'AVAILABLE' | 'BOOKED' | 'CANCELLED' | 'COMPLETED';
+  createdAt: string;
+  updatedAt: string;
+  clientName?: string;
+  videoCallStatus?: 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'FAILED';
+  videoCallRoomName?: string;
+  cancellationReason?: string;
+}
   export interface UserBookingsResponse {
     success: boolean;
     bookings: ISlot[];

@@ -31,6 +31,8 @@ import { SocketNotificationService } from "@/interfaceAdapters/services/socket-n
 import { NotificationService } from "@/interfaceAdapters/services/notification.service";
 import { FCMService } from "@/interfaceAdapters/services/fcm.service";
 import { IFCMService } from "@/entities/services/fcm-service.interface";
+import { VideoSocketService } from "@/interfaceAdapters/services/video-socket.service";
+import { ZegoTokenService } from "@/interfaceAdapters/services/zego-token.service";
 
 import { IRegisterUserUseCase } from "../../entities/useCaseInterfaces/auth/register-usecase.interface";
 import { RegisterUserUseCase } from "../../useCases/auth/register-user.usecase";
@@ -212,9 +214,20 @@ import { IGetTransactionHistoryUseCase } from "@/entities/useCaseInterfaces/admi
 import { GetTransactionHistoryUseCase } from "@/useCases/admin/get-transaction-history.usecase";
 import { IGetCommentsUseCase } from "@/entities/useCaseInterfaces/community/get-comments-usecase.interface";
 import { GetCommentsUseCase } from "@/useCases/community/get-comments.usecase";
-
 import { IGetNotifications } from "@/entities/useCaseInterfaces/Notification/getnotification.usecase.interface";
 import { GetNotifications } from "@/useCases/notification/get-notifications";
+import { IUpdateFCMTokenUseCase } from "@/entities/useCaseInterfaces/Notification/update-fcm-token-usecase.interface";
+import { UpdateFCMTokenUseCase } from "@/useCases/notification/update-fcm-token.usecase";
+import { IStartVideoCallUseCase } from "@/entities/useCaseInterfaces/videocall/startvideo-usecase.interface";
+import { StartVideoCallUseCase } from "@/useCases/videocall/start-video-call.usecase";
+import { IJoinVideoCallUseCase } from "@/entities/useCaseInterfaces/videocall/join-video-usecase.interface";
+import { JoinVideoCallUseCase } from "@/useCases/videocall/join-video-call.usecase";
+import { IEndVideoCallUseCase } from "@/entities/useCaseInterfaces/videocall/end-video-usecase.interface";
+import { EndVideoCallUseCase } from "@/useCases/videocall/end-video-call.usecase";
+import { IGetBookedTrainerSlotsUseCase } from "@/entities/useCaseInterfaces/slot/get-booked-slots.usecase.interface";
+import { GetBookedTrainerSlotsUseCase } from "@/useCases/slot/get-booked-slots.usecase";
+import { IGetVideoCallDetailsUseCase } from "@/entities/useCaseInterfaces/videocall/get-video-call-details.usecase.interface";
+import { GetVideoCallDetailsUseCase } from "@/useCases/videocall/get-video-call-details.usecase";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 
 export class UseCaseRegistry {
@@ -271,6 +284,14 @@ export class UseCaseRegistry {
 
     container.register<NotificationService>("NotificationService", {
       useClass: NotificationService,
+    });
+
+    container.register<VideoSocketService>("VideoSocketService", {
+      useClass: VideoSocketService,
+    });
+
+    container.register<ZegoTokenService>("ZegoTokenService", {
+      useClass: ZegoTokenService,
     });
 
     //* ====== Register Slot Expiry Processor ====== *//
@@ -803,5 +824,35 @@ export class UseCaseRegistry {
     container.register<IGetNotifications>("IGetNotifications", {
       useClass: GetNotifications,
     });
+
+    container.register<IUpdateFCMTokenUseCase>("IUpdateFCMTokenUseCase", {
+      useClass: UpdateFCMTokenUseCase,
+    });
+
+    container.register<IStartVideoCallUseCase>("IStartVideoCallUseCase", {
+      useClass: StartVideoCallUseCase,
+    });
+
+    container.register<IJoinVideoCallUseCase>("IJoinVideoCallUseCase", {
+      useClass: JoinVideoCallUseCase,
+    });
+
+    container.register<IEndVideoCallUseCase>("IEndVideoCallUseCase", {
+      useClass: EndVideoCallUseCase,
+    });
+
+    container.register<IGetBookedTrainerSlotsUseCase>(
+      "IGetBookedTrainerSlotsUseCase",
+      {
+        useClass: GetBookedTrainerSlotsUseCase,
+      }
+    );
+
+    container.register<IGetVideoCallDetailsUseCase>(
+      "IGetVideoCallDetailsUseCase",
+      {
+        useClass: GetVideoCallDetailsUseCase,
+      }
+    );
   }
 }

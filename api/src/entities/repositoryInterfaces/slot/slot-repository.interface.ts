@@ -1,6 +1,7 @@
 import { ISlotEntity } from "@/entities/models/slot.entity";
-import { SlotStatus } from "@/shared/constants";
+import { SlotStatus, VideoCallStatus } from "@/shared/constants";
 import { IBaseRepository } from "../base-repository.interface";
+import { ClientInfoDTO } from "@/shared/dto/user.dto";
 
 export interface ISlotRepository extends IBaseRepository<ISlotEntity> {
   findByTrainerId(
@@ -45,4 +46,18 @@ export interface ISlotRepository extends IBaseRepository<ISlotEntity> {
 
   findTrainerSlotsByClientId(userClientId: string): Promise<ISlotEntity[]>;
   findBookedSlotsByClientId(clientId: string): Promise<ISlotEntity[]>;
+  findByRoomName(roomName: string): Promise<ISlotEntity | null>;
+  updateVideoCallStatus(
+    slotId: string,
+    videoCallStatus: VideoCallStatus,
+    videoCallRoomName?: string,
+    jitsiJwt?: string ,
+  ): Promise<ISlotEntity | null>;
+  findSlotsWithClients(trainerId: string): Promise<(ISlotEntity & { client?: ClientInfoDTO; cancellationReason?: string })[]>
+  endVideoCall(slotId: string): Promise<ISlotEntity | null>;
+  getVideoCallDetails(slotId: string): Promise<{
+    videoCallStatus: VideoCallStatus;
+    videoCallRoomName?: string;
+    videoCallJwt?: string;
+  } | null>;
 }

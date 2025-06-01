@@ -1,7 +1,15 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { io, Socket } from "socket.io-client";
 import { WorkoutType, WORKOUT_TYPES } from "../../../api/src/shared/constants";
 import { IPost, UserRole } from "@/types/Post";
+import { INotification } from "../types/notification";
 
 interface IPostAuthor {
   _id: string;
@@ -49,6 +57,8 @@ interface SocketContextType {
   userStatus: Map<string, { status: "online" | "offline"; lastSeen?: string }>;
   posts: IPost[];
   communityMessages: ICommunityMessage[];
+  notifications: INotification[];
+  unreadCount: number;
   sendMessage: (data: {
     senderId: string;
     receiverId: string;
@@ -58,7 +68,11 @@ interface SocketContextType {
   }) => void;
   deleteMessage: (messageId: string, receiverId: string) => void;
   addReaction: (messageId: string, emoji: string, receiverId: string) => void;
-  removeReaction: (messageId: string, emoji: string, receiverId: string) => void;
+  removeReaction: (
+    messageId: string,
+    emoji: string,
+    receiverId: string
+  ) => void;
   markAsRead: (senderId: string, receiverId: string) => void;
   startTyping: (chatId: string, userId: string) => void;
   stopTyping: (chatId: string, userId: string) => void;
@@ -82,15 +96,28 @@ interface SocketProviderProps {
   currentUser: { id: string; role: string } | null;
 }
 
-export const SocketProvider = ({ children, userId, role, currentUser }: SocketProviderProps) => {
+export const SocketProvider = ({
+  children,
+  userId,
+  role,
+  currentUser,
+}: SocketProviderProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<IMessage[]>([]);
-  const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
-  const [userStatus, setUserStatus] = useState<Map<string, { status: "online" | "offline"; lastSeen?: string }>>(new Map());
+  const [typingUsers, setTypingUsers] = useState<Map<string, string>>(
+    new Map()
+  );
+  const [userStatus, setUserStatus] = useState<
+    Map<string, { status: "online" | "offline"; lastSeen?: string }>
+  >(new Map());
   const [posts, setPosts] = useState<IPost[]>([]);
-  const [communityMessages, setCommunityMessages] = useState<ICommunityMessage[]>([]);
+  const [communityMessages, setCommunityMessages] = useState<
+    ICommunityMessage[]
+  >([]);
+  const [notifications, setNotifications] = useState<INotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const clearMessages = () => {
     console.log("[DEBUG] Clearing socket messages");
@@ -104,13 +131,19 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
 
   useEffect(() => {
     if (!userId || !role || !["client", "trainer", "admin"].includes(role)) {
-      console.warn("[DEBUG] Socket connection skipped: Invalid userId or role", { userId, role });
+      console.warn(
+        "[DEBUG] Socket connection skipped: Invalid userId or role",
+        { userId, role }
+      );
       setError("Invalid userId or role");
       return;
     }
 
-    const socketUrl = import.meta.env.VITE_PRIVATE_API_URL.replace("/api/v1/pvt", "");
-    const options = {
+    const socketUrl = import.meta.env.VITE_PRIVATE_API_URL.replace(
+      "/api/v1/pvt",
+      ""
+    );
+    const newSocket = io(socketUrl, {
       withCredentials: true,
       transports: ["websocket", "polling"],
       autoConnect: true,
@@ -119,65 +152,106 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       timeout: 30000,
-    };
+      auth: {
+        userId,
+        role,
+      },
+    });
 
-    const newSocket = io(socketUrl, options);
-
-    const onConnect = () => {
+    newSocket.on("connect", () => {
+      console.log("[DEBUG] Client: Socket connected with ID:", newSocket.id);
       setIsConnected(true);
       setError(null);
       newSocket.emit("register", { userId, role });
-      console.log("[DEBUG] Socket connected:", newSocket.id, "Registered with:", { userId, role });
-    };
+      newSocket.emit("joinNotificationsRoom", { userId });
+      newSocket.emit("getRooms", (rooms: string[]) => {
+        console.log("[DEBUG] Client: Rooms after connect:", rooms);
+        if (!rooms.includes(`notifications:${userId}`)) {
+          console.warn("[DEBUG] Client not in notification room, rejoining...");
+          newSocket.emit("joinNotificationsRoom", { userId });
+        }
+      });
+    });
 
-    const onDisconnect = (reason: string) => {
+    newSocket.on("disconnect", (reason: string) => {
       setIsConnected(false);
       setError(`Socket disconnected: ${reason}`);
       console.log(`[DEBUG] Socket disconnected: reason=${reason}`);
-    };
+    });
 
-    const onReconnectAttempt = (attempt: number) => {
+    newSocket.on("reconnect_attempt", (attempt: number) => {
       console.log(`[DEBUG] Reconnect attempt ${attempt}`);
-    };
+    });
 
-    const onReconnect = (attempt: number) => {
+    newSocket.on("reconnect", (attempt: number) => {
       console.log(`[DEBUG] Reconnected after ${attempt} attempts`);
       newSocket.emit("register", { userId, role });
-    };
+      newSocket.emit("joinNotificationsRoom", { userId });
+      newSocket.emit("getRooms", (rooms: string[]) => {
+        console.log("[DEBUG] Client: Rooms after reconnect:", rooms);
+      });
+    });
 
-    const onError = (err: any) => {
+    newSocket.on("error", (err: any) => {
       console.error("[DEBUG] Socket error:", err);
       setError(err.message || "Socket error occurred");
-    };
+    });
 
-    const onConnectionStatus = (status: { isConnected: boolean; userId: string; role: string }) => {
+    newSocket.on("connectionStatus", (status: {
+      isConnected: boolean;
+      userId: string;
+      role: string;
+    }) => {
       console.log("[DEBUG] Connection status:", status);
       setIsConnected(status.isConnected);
       if (!status.isConnected) {
         setError("Connection lost");
       }
-    };
+    });
 
-    const onRegisterSuccess = ({ userId: registeredUserId }: { userId: string }) => {
+    newSocket.on("registerSuccess", ({ userId: registeredUserId }: { userId: string }) => {
       console.log("[DEBUG] Register success:", registeredUserId);
+      newSocket.emit("joinUserRoom", { userId: registeredUserId });
       newSocket.emit("joinCommunity", { userId: registeredUserId });
-    };
+      newSocket.emit("joinNotificationsRoom", { userId: registeredUserId });
+      newSocket.emit("getRooms", (rooms: string[]) => {
+        console.log("[DEBUG] Client: Rooms after register:", rooms);
+      });
+    });
 
-    const onReceiveMessage = (message: IMessage & { tempId?: string }) => {
+    newSocket.on("notification", (notification: INotification) => {
+      console.log("[DEBUG] Client: Notification received via socket:", notification);
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === notification.id)) return prev;
+        return [notification, ...prev];
+      });
+      if (!notification.isRead) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    });
+
+    newSocket.on("receiveMessage", (message: IMessage & { tempId?: string }) => {
       console.log("[DEBUG] Received message via socket:", message);
       if (!message.receiverId) {
         console.warn("[DEBUG] Message missing receiverId:", message);
       }
 
       const standardizedMessage: IMessage = {
-        id: message.id || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id:
+          message.id ||
+          `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         senderId: message.senderId,
         receiverId: message.receiverId,
         text: message.text || "",
         status: message.status || "SENT",
-        timestamp: message.timestamp || message.createdAt || new Date().toISOString(),
+        timestamp:
+          message.timestamp || message.createdAt || new Date().toISOString(),
         media: message.media
-          ? { type: message.media.type, url: message.media.url, name: message.media.name }
+          ? {
+              type: message.media.type,
+              url: message.media.url,
+              name: message.media.name,
+            }
           : undefined,
         replyToId: message.replyToId,
         reactions: message.reactions || [],
@@ -201,19 +275,22 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
         }
         return [...prev, standardizedMessage];
       });
-    };
+    });
 
-    const onMessageDeleted = ({ messageId }: { messageId: string }) => {
+    newSocket.on("messageDeleted", ({ messageId }: { messageId: string }) => {
       console.log("[DEBUG] Message deleted:", messageId);
       setMessages((prev) =>
         prev.map((msg) =>
           String(msg.id) === String(messageId) ? { ...msg, deleted: true } : msg
         )
       );
-    };
+    });
 
-    const onReactionAdded = (message: IMessage) => {
-      console.log("[DEBUG] Reaction added event received:", { messageId: message.id, reactions: message.reactions });
+    newSocket.on("reactionAdded", (message: IMessage) => {
+      console.log("[DEBUG] Reaction added event received:", {
+        messageId: message.id,
+        reactions: message.reactions,
+      });
       setMessages((prev) =>
         prev.map((msg) =>
           String(msg.id) === String(message.id)
@@ -221,10 +298,13 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
             : msg
         )
       );
-    };
+    });
 
-    const onReactionRemoved = (message: IMessage) => {
-      console.log("[DEBUG] Reaction removed event received:", { messageId: message.id, reactions: message.reactions });
+    newSocket.on("reactionRemoved", (message: IMessage) => {
+      console.log("[DEBUG] Reaction removed event received:", {
+        messageId: message.id,
+        reactions: message.reactions,
+      });
       setMessages((prev) =>
         prev.map((msg) =>
           String(msg.id) === String(message.id)
@@ -232,9 +312,15 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
             : msg
         )
       );
-    };
+    });
 
-    const onMessagesRead = ({ senderId, receiverId }: { senderId: string; receiverId: string }) => {
+    newSocket.on("messagesRead", ({
+      senderId,
+      receiverId,
+    }: {
+      senderId: string;
+      receiverId: string;
+    }) => {
       console.log("[DEBUG] Messages read:", { senderId, receiverId });
       setMessages((prev) =>
         prev.map((msg) =>
@@ -245,30 +331,50 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
             : msg
         )
       );
-    };
+    });
 
-    const onTyping = ({ chatId, userId }: { chatId: string; userId: string }) => {
+    newSocket.on("typing", ({
+      chatId,
+      userId,
+    }: {
+      chatId: string;
+      userId: string;
+    }) => {
       console.log("[DEBUG] Typing event received:", { chatId, userId });
       setTypingUsers((prev) => new Map(prev).set(userId, chatId));
-    };
+    });
 
-    const onStopTyping = ({ chatId, userId }: { chatId: string; userId: string }) => {
+    newSocket.on("stopTyping", ({
+      chatId,
+      userId,
+    }: {
+      chatId: string;
+      userId: string;
+    }) => {
       console.log("[DEBUG] Stop typing event received:", { chatId, userId });
       setTypingUsers((prev) => {
         const newMap = new Map(prev);
         newMap.delete(userId);
         return newMap;
       });
-    };
+    });
 
-    const onUserStatus = ({ userId, status, lastSeen }: { userId: string; status: "online" | "offline"; lastSeen?: string }) => {
+    newSocket.on("userStatus", ({
+      userId,
+      status,
+      lastSeen,
+    }: {
+      userId: string;
+      status: "online" | "offline";
+      lastSeen?: string;
+    }) => {
       console.log("[DEBUG] User status update:", { userId, status, lastSeen });
       setUserStatus((prev) => {
         const newStatus = new Map(prev);
         newStatus.set(userId, { status, lastSeen });
         return newStatus;
       });
-    };
+    });
 
     const standardizePost = (post: any): IPost => {
       const author =
@@ -283,21 +389,29 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
             }
           : null;
       if (!post.author || !post.author._id) {
-        console.warn("[DEBUG] Author is missing or incomplete:", { postId: post.id });
+        console.warn("[DEBUG] Author is missing or incomplete:", {
+          postId: post.id,
+        });
       }
-      
+
       const category = WORKOUT_TYPES.includes(post.category as WorkoutType)
         ? (post.category as WorkoutType)
         : "General";
       return {
-        id: post.id || post.postId || `post-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id:
+          post.id ||
+          post.postId ||
+          `post-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         authorId: post.authorId || (author?._id ?? ""),
         author,
         textContent: post.textContent || "",
         mediaUrl: post.mediaUrl,
         category,
         likes: post.likes || [],
-        hasLiked: post.hasLiked || (post.likes && userId && post.likes.includes(userId)) || false,
+        hasLiked:
+          post.hasLiked ||
+          (post.likes && userId && post.likes.includes(userId)) ||
+          false,
         commentCount: post.commentsCount || post.commentCount || 0,
         createdAt: post.createdAt || new Date().toISOString(),
         updatedAt: post.updatedAt || new Date().toISOString(),
@@ -307,15 +421,20 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
       };
     };
 
-    const onInitialPosts = (posts: any[]) => {
+    newSocket.on("posts", (posts: any[]) => {
       setPosts(posts.map(standardizePost));
-    };
+    });
 
-    const onNewPost = (post: any) => {
-      console.log("[DEBUG] Raw newPost event received:", JSON.stringify(post, null, 2));
+    newSocket.on("newPost", (post: any) => {
+      console.log(
+        "[DEBUG] Raw newPost event received:",
+        JSON.stringify(post, null, 2)
+      );
       setPosts((prev) => {
         const standardizedPost = standardizePost(post);
-        const existingIndex = prev.findIndex((p) => String(p.id) === String(standardizedPost.id));
+        const existingIndex = prev.findIndex(
+          (p) => String(p.id) === String(standardizedPost.id)
+        );
         if (existingIndex >= 0) {
           const updatedPosts = [...prev];
           updatedPosts[existingIndex] = standardizedPost;
@@ -323,39 +442,61 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
         }
         return [...prev, standardizedPost];
       });
-    };
+    });
 
-    const onPostDeleted = ({ postId }: { postId: string }) => {
+    newSocket.on("postDeleted", ({ postId }: { postId: string }) => {
       console.log("[DEBUG] Post deleted:", postId);
       setPosts((prev) =>
         prev.map((post) =>
-          String(post.id) === String(postId) ? { ...post, isDeleted: true } : post
+          String(post.id) === String(postId)
+            ? { ...post, isDeleted: true }
+            : post
         )
       );
-    };
+    });
 
-    const onPostLiked = ({ postId, userId: likerId, likes, hasLiked }: { postId: string; userId: string; likes: string[]; hasLiked: boolean }) => {
-      console.log("[DEBUG] Post liked event received:", { postId, likerId, likes, hasLiked, currentUserId: userId });
+    newSocket.on("postLiked", ({
+      postId,
+      userId: likerId,
+      likes,
+      hasLiked,
+    }: {
+      postId: string;
+      userId: string;
+      likes: string[];
+      hasLiked: boolean;
+    }) => {
+      console.log("[DEBUG] Post liked event received:", {
+        postId,
+        likerId,
+        likes,
+        hasLiked,
+      });
       if (!postId || !Array.isArray(likes)) {
-        console.error("[DEBUG] Invalid postLiked event data:", { postId, likes, hasLiked });
+        console.error("[DEBUG] Invalid postLiked event data:", {
+          postId,
+          likes,
+          hasLiked,
+        });
         return;
       }
       setPosts((prev) => {
         const updatedPosts = prev.map((post) =>
           String(post.id) === String(postId)
-            ? {
-                ...post,
-                likes,
-                hasLiked,
-              }
+            ? { ...post, likes, hasLiked }
             : post
         );
-        console.log("[DEBUG] Updated posts state after like:", JSON.stringify(updatedPosts, null, 2));
+        console.log(
+          "[DEBUG] Updated socket posts:",
+          updatedPosts.find((p) => p.id === postId)
+        );
         return updatedPosts;
       });
-    };
+    });
 
-    const onReceiveCommunityMessage = (message: ICommunityMessage & { tempId?: string }) => {
+    newSocket.on("receiveCommunityMessage", (
+      message: ICommunityMessage & { tempId?: string }
+    ) => {
       console.log("[DEBUG] Received community message:", message);
       setCommunityMessages((prev) => {
         const existingIndex = prev.findIndex(
@@ -371,59 +512,41 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
         }
         return [...prev, message];
       });
-    };
-
-    newSocket.on("connect", onConnect);
-    newSocket.on("disconnect", onDisconnect);
-    newSocket.on("reconnect_attempt", onReconnectAttempt);
-    newSocket.on("reconnect", onReconnect);
-    newSocket.on("error", onError);
-    newSocket.on("connectionStatus", onConnectionStatus);
-    newSocket.on("registerSuccess", onRegisterSuccess);
-    newSocket.on("receiveMessage", onReceiveMessage);
-    newSocket.on("messageDeleted", onMessageDeleted);
-    newSocket.on("reactionAdded", onReactionAdded);
-    newSocket.on("reactionRemoved", onReactionRemoved);
-    newSocket.on("messagesRead", onMessagesRead);
-    newSocket.on("typing", onTyping);
-    newSocket.on("stopTyping", onStopTyping);
-    newSocket.on("userStatus", onUserStatus);
-    newSocket.on("posts", onInitialPosts);
-    newSocket.on("newPost", onNewPost);
-    newSocket.on("postDeleted", onPostDeleted);
-    newSocket.on("postLiked", onPostLiked);
-    newSocket.on("receiveCommunityMessage", onReceiveCommunityMessage);
+    });
 
     setSocket(newSocket);
 
     return () => {
       console.log("[DEBUG] Cleaning up socket connection");
-      newSocket.off("connect", onConnect);
-      newSocket.off("disconnect", onDisconnect);
-      newSocket.off("reconnect_attempt", onReconnectAttempt);
-      newSocket.off("reconnect", onReconnect);
-      newSocket.off("error", onError);
-      newSocket.off("connectionStatus", onConnectionStatus);
-      newSocket.off("registerSuccess", onRegisterSuccess);
-      newSocket.off("receiveMessage", onReceiveMessage);
-      newSocket.off("messageDeleted", onMessageDeleted);
-      newSocket.off("reactionAdded", onReactionAdded);
-      newSocket.off("reactionRemoved", onReactionRemoved);
-      newSocket.off("messagesRead", onMessagesRead);
-      newSocket.off("typing", onTyping);
-      newSocket.off("stopTyping", onStopTyping);
-      newSocket.off("userStatus", onUserStatus);
-      newSocket.off("posts", onInitialPosts);
-      newSocket.off("newPost", onNewPost);
-      newSocket.off("postDeleted", onPostDeleted);
-      newSocket.off("postLiked", onPostLiked);
-      newSocket.off("receiveCommunityMessage", onReceiveCommunityMessage);
+      newSocket.off("connect");
+      newSocket.off("disconnect");
+      newSocket.off("reconnect_attempt");
+      newSocket.off("reconnect");
+      newSocket.off("error");
+      newSocket.off("connectionStatus");
+      newSocket.off("registerSuccess");
+      newSocket.off("notification");
+      newSocket.off("receiveMessage");
+      newSocket.off("messageDeleted");
+      newSocket.off("reactionAdded");
+      newSocket.off("reactionRemoved");
+      newSocket.off("messagesRead");
+      newSocket.off("typing");
+      newSocket.off("stopTyping");
+      newSocket.off("userStatus");
+      newSocket.off("posts");
+      newSocket.off("newPost");
+      newSocket.off("postDeleted");
+      newSocket.off("postLiked");
+      newSocket.off("receiveCommunityMessage");
       newSocket.disconnect();
       setSocket(null);
       setIsConnected(false);
       setMessages([]);
       setPosts([]);
       setCommunityMessages([]);
+      setNotifications([]);
+      setUnreadCount(0);
       setTypingUsers(new Map());
       setUserStatus(new Map());
       setError(null);
@@ -438,7 +561,9 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
     replyToId?: string;
   }) => {
     if (socket && isConnected) {
-      const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const tempId = `temp-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
       const tempMessage: IMessage = {
         id: tempId,
         tempId,
@@ -449,7 +574,11 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
         timestamp: new Date().toISOString(),
         _fromSocket: true,
         media: data.media
-          ? { type: data.media.type, url: data.media.url, name: data.media.name }
+          ? {
+              type: data.media.type,
+              url: data.media.url,
+              name: data.media.name,
+            }
           : undefined,
         replyToId: data.replyToId,
         reactions: [],
@@ -479,14 +608,23 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
     }
   };
 
-  const addReaction = (messageId: string, emoji: string, receiverId: string) => {
+  const addReaction = (
+    messageId: string,
+    emoji: string,
+    receiverId: string
+  ) => {
     if (!userId) {
       setError("Cannot add reaction - userId is not defined");
       console.error("[DEBUG] Cannot add reaction - userId is not defined");
       return;
     }
     if (socket && isConnected) {
-      console.log("[DEBUG] Adding reaction:", { messageId, emoji, receiverId, userId });
+      console.log("[DEBUG] Adding reaction:", {
+        messageId,
+        emoji,
+        receiverId,
+        userId,
+      });
       socket.emit("addReaction", { messageId, emoji, receiverId });
     } else {
       setError("Cannot add reaction - socket not connected");
@@ -494,14 +632,23 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
     }
   };
 
-  const removeReaction = (messageId: string, emoji: string, receiverId: string) => {
+  const removeReaction = (
+    messageId: string,
+    emoji: string,
+    receiverId: string
+  ) => {
     if (!userId) {
       setError("Cannot remove reaction - userId is not defined");
       console.error("[DEBUG] Cannot remove reaction - userId is not defined");
       return;
     }
     if (socket && isConnected) {
-      console.log("[DEBUG] Removing reaction:", { messageId, emoji, receiverId, userId });
+      console.log("[DEBUG] Removing reaction:", {
+        messageId,
+        emoji,
+        receiverId,
+        userId,
+      });
       socket.emit("removeReaction", { messageId, emoji, receiverId });
     } else {
       setError("Cannot remove reaction - socket not connected");
@@ -511,7 +658,10 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
 
   const markAsRead = (senderId: string, receiverId: string) => {
     if (socket && isConnected) {
-      console.log("[DEBUG] Marking messages as read:", { senderId, receiverId });
+      console.log("[DEBUG] Marking messages as read:", {
+        senderId,
+        receiverId,
+      });
       socket.emit("markAsRead", { senderId, receiverId });
     } else {
       setError("Cannot mark as read - socket not connected");
@@ -547,7 +697,9 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
     role: UserRole;
   }) => {
     if (socket && isConnected) {
-      const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const tempId = `temp-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
       const tempMessage: ICommunityMessage = {
         id: tempId,
         tempId,
@@ -564,7 +716,9 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
       socket.emit("sendCommunityMessage", { ...data, tempId });
     } else {
       setError("Cannot send community message - socket not connected");
-      console.error("[DEBUG] Cannot send community message - socket not connected");
+      console.error(
+        "[DEBUG] Cannot send community message - socket not connected"
+      );
     }
   };
 
@@ -579,6 +733,8 @@ export const SocketProvider = ({ children, userId, role, currentUser }: SocketPr
         userStatus,
         posts,
         communityMessages,
+        notifications,
+        unreadCount,
         sendMessage,
         deleteMessage,
         addReaction,

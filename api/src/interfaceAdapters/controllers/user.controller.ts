@@ -155,6 +155,7 @@ export class UserController implements IUserController {
         "activityLevel",
         "healthConditions",
         "waterIntake",
+        "waterIntakeTarget",
         "dietPreference",
       ];
 
@@ -242,6 +243,61 @@ export class UserController implements IUserController {
     }
   }
 
+
+  /**
+   * @swagger
+   * /api/v1/pvt/_cl/client/trainers:
+   *   get:
+   *     summary: Get all trainers with pagination and search
+   *     tags: [Client]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: string
+   *           default: "1"
+   *         description: Page number for pagination
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: string
+   *           default: "5"
+   *         description: Number of trainers per page
+   *       - in: query
+   *         name: search
+   *         schema:
+   *           type: string
+   *           default: ""
+   *         description: Search term for filtering trainers
+   *     responses:
+   *       200:
+   *         description: List of trainers
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 message:
+   *                   type: string
+   *                 trainers:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/Trainer'
+   *                 totalPages:
+   *                   type: number
+   *                 currentPage:
+   *                   type: number
+   *                 totalTrainers:
+   *                   type: number
+   *       400:
+   *         description: Invalid pagination parameters
+   *       401:
+   *         description: Unauthorized
+   */
   // Get all trainers with pagination and search
   async getAllTrainers(req: Request, res: Response): Promise<void> {
     try {

@@ -24,7 +24,6 @@ export class GetChatParticipantsUseCase implements IGetChatParticipantsUseCase {
 
     if (role === ROLES.USER) {
       const client = await this._clientRepository.findById(userId);
-      console.log(client, "client");
       if (!client) throw new CustomError("Client not found", HTTP_STATUS.NOT_FOUND);
       if (!client.isPremium) throw new CustomError("Client is not a premium user", HTTP_STATUS.FORBIDDEN);
       if (client.selectStatus !== TrainerSelectionStatus.ACCEPTED) {

@@ -25,87 +25,87 @@ export const useGetPost = (postId: string) => {
   });
 
   useEffect(() => {
-    if (socket && postId && isValidObjectId(postId)) {
-      socket.emit('joinPost', postId);
-      console.log(`[DEBUG] Joined post room: post:${postId}`);
+    if (!socket || !postId || !isValidObjectId(postId)) return;
 
-      socket.on('postDeleted', ({ postId: deletedId }: { postId: string }) => {
+    // Join the specific post room
+    socket.emit('joinPost', postId);
+    console.log(`[DEBUG] Joined post room: post:${postId}`);
+
+    const handlePostDeleted = ({ postId: deletedId }: { postId: string }) => {
+      if (deletedId === postId) {
         console.log('[DEBUG] Post deleted:', deletedId);
-        if (deletedId === postId) {
-          queryClient.setQueryData(['post', postId], (old: IPost | undefined) => {
-            if (!old) {
-              console.warn('[DEBUG] No post data to mark as deleted');
-              return undefined;
-            }
-            return { ...old, isDeleted: true };
-          });
-        }
-      });
+        queryClient.setQueryData(['post', postId], (old: IPost | undefined) => {
+          if (!old) return undefined;
+          return { ...old, isDeleted: true };
+        });
+      }
+    };
 
-      socket.on('postLiked', ({ postId: likedId, userId, likes }: { postId: string; userId: string; likes: string[] }) => {
+    const handlePostLiked = ({ postId: likedId, userId, likes }: { postId: string; userId: string; likes: string[] }) => {
+      if (likedId === postId) {
         console.log('[DEBUG] Post liked:', { likedId, userId, likes });
-        if (likedId === postId) {
-          queryClient.setQueryData(['post', postId], (old: IPost | undefined) => {
-            if (!old) {
-              console.warn('[DEBUG] No post data to update likes');
-              return undefined;
-            }
-            return {
-              ...old,
-              likes,
-              hasLiked: likes.includes(userId),
-            };
-          });
-        }
-      });
+        queryClient.setQueryData(['post', postId], (old: IPost | undefined) => {
+          if (!old) return undefined;
+          return {
+            ...old,
+            likes,
+            hasLiked: likes.includes(userId),
+          };
+        });
+      }
+    };
 
-      socket.on('receiveCommunityMessage', (comment: IComment) => {
+    const handleReceiveCommunityMessage = (comment: IComment) => {
+      if (comment.postId === postId) {
         console.log('[DEBUG] Received community message:', comment);
-        if (comment.postId === postId) {
-          queryClient.setQueryData(['post', postId], (old: IPost | undefined) => {
-            if (!old) {
-              console.warn('[DEBUG] No post data to update comment count');
-              return undefined;
-            }
+        // Update comment count in post
+        queryClient.setQueryData(['post', postId], (old: IPost | undefined) => {
+          if (!old) return undefined;
+          return {
+            ...old,
+            commentCount: (old.commentCount || 0) + 1,
+          };
+        });
+
+        // Update comments list
+        queryClient.setQueryData(['comments', postId], (old: any) => {
+          if (!old) {
             return {
-              ...old,
-              commentCount: (old.commentCount || 0) + 1,
-            };
-          });
-          queryClient.setQueryData(['comments', postId], (old: any) => {
-            if (!old) {
-              return {
-                success: true,
-                data: {
-                  comments: [comment],
-                  total: 1,
-                  page: 1,
-                  limit: 10,
-                  totalPages: 1,
-                },
-              };
-            }
-            return {
-              ...old,
+              success: true,
               data: {
-                ...old.data,
-                comments: [comment, ...old.data.comments],
-                total: old.data.total + 1,
-                totalPages: Math.ceil((old.data.total + 1) / old.data.limit),
+                comments: [comment],
+                total: 1,
+                page: 1,
+                limit: 10,
+                totalPages: 1,
               },
             };
-          });
-        }
-      });
+          }
 
-      return () => {
-        socket.emit('leavePost', postId);
-        socket.off('postDeleted');
-        socket.off('postLiked');
-        socket.off('receiveCommunityMessage');
-        console.log(`[DEBUG] Left post room: post:${postId}`);
-      };
-    }
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              comments: [comment, ...old.data.comments],
+              total: old.data.total + 1,
+              totalPages: Math.ceil((old.data.total + 1) / old.data.limit),
+            },
+          };
+        });
+      }
+    };
+
+    socket.on('postDeleted', handlePostDeleted);
+    socket.on('postLiked', handlePostLiked);
+    socket.on('receiveCommunityMessage', handleReceiveCommunityMessage);
+
+    return () => {
+      socket.emit('leavePost', postId);
+      socket.off('postDeleted', handlePostDeleted);
+      socket.off('postLiked', handlePostLiked);
+      socket.off('receiveCommunityMessage', handleReceiveCommunityMessage);
+      console.log(`[DEBUG] Left post room: post:${postId}`);
+    };
   }, [socket, queryClient, postId]);
 
   return {

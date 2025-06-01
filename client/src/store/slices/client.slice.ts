@@ -14,6 +14,7 @@ export interface Client {
 	activityLevel?: "sedentary" | "light" | "moderate" | "active" | "veryActive";
 	healthConditions?: string[];
 	waterIntake?: number;
+	waterIntakeTarget?: number;
 	dietPreference?: string;
 	preferredWorkout?:string;
 	workoutExperience?:string;

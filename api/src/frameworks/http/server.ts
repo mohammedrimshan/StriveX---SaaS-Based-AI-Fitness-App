@@ -5,6 +5,8 @@ import rateLimit from "express-rate-limit";
 import express, { Application, NextFunction, Request, Response } from "express";
 import morgan from "morgan";
 import fileUpload from "express-fileupload";
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from "../config/swagger";
 import { config } from "../../shared/config";
 import { AuthRoutes } from "../routes/auth/auth.route";
 import { PrivateRoutes } from "../routes/private/private.route";
@@ -58,6 +60,7 @@ export class Server {
   }
 
   private configureRoutes(): void {
+    this._app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     this._app.use("/api/v1/auth", new AuthRoutes().router);
     this._app.use("/api/v1/pvt", new PrivateRoutes().router);
     this._app.use("/api/v1/pvt/_cl/chats", new ChatRoutes().router);

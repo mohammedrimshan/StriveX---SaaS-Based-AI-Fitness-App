@@ -4,10 +4,13 @@ import { ISlotEntity } from "../../../entities/models/slot.entity";
 import { ClientModel } from "@/frameworks/database/mongoDB/models/client.model";
 import { ISlotRepository } from "../../../entities/repositoryInterfaces/slot/slot-repository.interface";
 import { BaseRepository } from "../base.repository";
-import { SlotStatus } from "@/shared/constants";
+import { SlotStatus, VideoCallStatus } from "@/shared/constants";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
 import { Types } from "mongoose";
+import { CancellationModel } from "@/frameworks/database/mongoDB/models/cancellation.model";
+import { ClientInfoDTO } from "@/shared/dto/user.dto";
+import { TrainerModel } from "@/frameworks/database/mongoDB/models/trainer.model";
 @injectable()
 export class SlotRepository
   extends BaseRepository<ISlotEntity>
@@ -90,33 +93,33 @@ export class SlotRepository
     cancellationReason?: string
   ): Promise<ISlotEntity | null> {
     const slot = await this.findById(slotId);
-  
+
     if (!slot) {
       throw new CustomError("Slot not found", HTTP_STATUS.NOT_FOUND);
     }
-  
+
     const updates: Partial<ISlotEntity> = {
       status,
       isBooked: status === SlotStatus.BOOKED ? true : false,
       isAvailable: status === SlotStatus.AVAILABLE ? true : false,
-      cancellationReason: status === SlotStatus.AVAILABLE ? cancellationReason : undefined,
+      cancellationReason:
+        status === SlotStatus.AVAILABLE ? cancellationReason : undefined,
     };
-  
-    updates.clientId = clientId !== undefined ? clientId : undefined; 
-  
+
+    updates.clientId = clientId !== undefined ? clientId : undefined;
+
     if (status === SlotStatus.BOOKED && !clientId) {
       throw new CustomError(
         "Client ID required for booking a slot",
         HTTP_STATUS.BAD_REQUEST
       );
     }
-  
-    console.log('updateStatus - slotId:', slotId, 'updates:', updates);
-  
+
+    console.log("updateStatus - slotId:", slotId, "updates:", updates);
+
     return this.update(slotId, updates);
   }
 
-  
   async findBookedSlotByClientId(
     clientId: string,
     slotId: string
@@ -128,15 +131,18 @@ export class SlotRepository
     return slot ? this.mapToEntity(slot) : null;
   }
 
-  async findAnyBookedSlotByClientId(clientId: string): Promise<ISlotEntity | null> {
-    const slot = await this.model.findOne({
-      clientId,
-      status: SlotStatus.BOOKED,
-    }).lean();
-  
+  async findAnyBookedSlotByClientId(
+    clientId: string
+  ): Promise<ISlotEntity | null> {
+    const slot = await this.model
+      .findOne({
+        clientId,
+        status: SlotStatus.BOOKED,
+      })
+      .lean();
+
     return slot ? this.mapToEntity(slot) : null;
   }
-  
 
   async getSlotsWithStatus(
     trainerId: string,
@@ -444,5 +450,136 @@ export class SlotRepository
 
     console.log("findBookedSlotsByClientId - raw slots:", slots);
     return slots;
+  }
+
+  async updateVideoCallStatus(
+    slotId: string,
+    videoCallStatus: VideoCallStatus,
+    videoCallRoomName?: string,
+    videoCallJwt?: string
+  ): Promise<ISlotEntity | null> {
+    const updates: Partial<ISlotEntity> = { videoCallStatus };
+    if (videoCallRoomName) {
+      updates.videoCallRoomName = videoCallRoomName;
+    }
+    if (videoCallJwt) {
+      updates.videoCallJwt = videoCallJwt;
+    }
+    console.log("updateVideoCallStatus - Applying updates:", {
+      slotId,
+      videoCallStatus,
+      videoCallRoomName,
+      videoCallJwt,
+    });
+    const updatedSlot = await this.update(slotId, updates);
+    console.log("updateVideoCallStatus - Updated slot:", {
+      id: updatedSlot?.id,
+      videoCallStatus: updatedSlot?.videoCallStatus,
+      videoCallRoomName: updatedSlot?.videoCallRoomName,
+      videoCallJwt: updatedSlot?.videoCallJwt,
+    });
+    return updatedSlot;
+  }
+  async findByRoomName(roomName: string): Promise<ISlotEntity | null> {
+    const slot = await this.model
+      .findOne({ videoCallRoomName: roomName })
+      .lean();
+    return slot ? this.mapToEntity(slot) : null;
+  }
+
+  async findSlotsWithClients(
+    trainerId: string
+  ): Promise<
+    (ISlotEntity & { client?: ClientInfoDTO; cancellationReasons?: string[] })[]
+  > {
+    const slots = await SlotModel.find({
+      trainerId: new Types.ObjectId(trainerId),
+    }).lean();
+
+    const clientIds = slots
+      .filter((slot) => slot.clientId)
+      .map((slot) => slot.clientId!);
+    console.log(clientIds, "clientIds");
+    const slotIds = slots.map((slot) => slot._id);
+
+    // Fetch clients
+    const clients = await ClientModel.find({ _id: { $in: clientIds } })
+      .select("_id firstName lastName email profileImage")
+      .lean();
+
+    console.log(clients, "clients");
+    const trainer = await TrainerModel.findById(trainerId)
+      .select("firstName lastName")
+      .lean();
+
+    console.log(trainer, "trainer");
+    // Fetch cancellations
+    const cancellations = await CancellationModel.find({
+      slotId: { $in: slotIds },
+    })
+      .select("slotId cancellationReason")
+      .lean();
+
+    // Group cancellations by slotId
+    const cancellationsMap = cancellations.reduce((acc, cancel) => {
+      const slotIdStr = cancel.slotId.toString();
+      if (!acc[slotIdStr]) acc[slotIdStr] = [];
+      acc[slotIdStr].push(cancel.cancellationReason);
+      return acc;
+    }, {} as Record<string, string[]>);
+
+    // Compose final slots
+    return slots.map((slot) => {
+      const client = slot.clientId
+        ? clients.find((c) => c._id.toString() === slot.clientId?.toString())
+        : undefined;
+
+      return {
+        ...slot,
+        id: slot._id.toString(),
+        trainerName: trainer
+          ? `${trainer.firstName} ${trainer.lastName}`
+          : "Unknown Trainer",
+        client: client
+          ? {
+              clientId: client._id.toString(),
+              firstName: client.firstName,
+              lastName: client.lastName,
+              email: client.email,
+              profileImage: client.profileImage,
+            }
+          : undefined,
+        cancellationReasons: cancellationsMap[slot._id.toString()] ?? undefined,
+      };
+    });
+  }
+  async endVideoCall(slotId: string): Promise<ISlotEntity | null> {
+    const slot = await SlotModel.findByIdAndUpdate(
+      slotId,
+      {
+        videoCallStatus: VideoCallStatus.ENDED,
+        videoCallRoomName: null,
+        videoCallJwt: null,
+      },
+      { new: true }
+    );
+    return slot ? (slot.toObject() as ISlotEntity) : null;
+  }
+
+  async getVideoCallDetails(slotId: string): Promise<{
+    videoCallStatus: VideoCallStatus;
+    videoCallRoomName?: string;
+    videoCallJwt?: string;
+  } | null> {
+    const slot = await SlotModel.findById(slotId).select(
+      "videoCallStatus videoCallRoomName videoCallJwt"
+    );
+    return slot
+      ? {
+          videoCallStatus: slot.videoCallStatus ?? VideoCallStatus.NOT_STARTED,
+          videoCallRoomName: slot.videoCallRoomName,
+          videoCallJwt: slot.videoCallJwt,
+        }
+      : null;
   }
 }

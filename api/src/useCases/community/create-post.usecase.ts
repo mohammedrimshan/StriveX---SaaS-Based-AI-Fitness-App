@@ -23,23 +23,11 @@ export class CreatePostUseCase implements ICreatePostUseCase {
     data: Partial<IPostEntity>,
     userId: string
   ): Promise<IPostEntity> {
-    console.log("[DEBUG] Creating post via HTTP:", { data, userId });
-
     const client = await this.clientRepository.findByClientNewId(userId);
     const trainer = await this.trainerRepository.findById(userId);
 
-    console.log(
-      "[DEBUG] Client query result:",
-      JSON.stringify(client, null, 2)
-    );
-    console.log(
-      "[DEBUG] Trainer query result:",
-      JSON.stringify(trainer, null, 2)
-    );
-
     const user: IClientEntity | ITrainerEntity | null = client || trainer;
     if (!user) {
-      console.error("[DEBUG] User not found:", { userId });
       throw new Error("User not found");
     }
 
@@ -54,10 +42,6 @@ export class CreatePostUseCase implements ICreatePostUseCase {
     }
 
     if (!category || !WORKOUT_TYPES.includes(category)) {
-      console.error("[DEBUG] Invalid or missing category:", {
-        category,
-        validCategories: WORKOUT_TYPES,
-      });
       throw new Error(`Category must be one of: ${WORKOUT_TYPES.join(", ")}`);
     }
 
@@ -92,14 +76,12 @@ export class CreatePostUseCase implements ICreatePostUseCase {
     }
 
     if (!author) {
-      console.error("[DEBUG] Failed to construct author:", { userId, role });
       throw new Error("Failed to construct author details");
     }
 
     // Validate textContent
     const textContent = data.textContent || (mediaUrl ? mediaUrl : "");
     if (!textContent) {
-      console.error("[DEBUG] Post content is required:", { data });
       throw new Error("Post content is required");
     }
 
@@ -118,28 +100,13 @@ export class CreatePostUseCase implements ICreatePostUseCase {
       updatedAt: new Date(),
     };
 
-    console.log(
-      "[DEBUG] Post object before saving:",
-      JSON.stringify(postData, null, 2)
-    );
     const savedPost = await this.postRepository.save(postData);
-    console.log(
-      "[DEBUG] Saved post from database:",
-      JSON.stringify(savedPost, null, 2)
-    );
 
     // Verify and update author if null
     if (!savedPost.author) {
-      console.warn("[DEBUG] Saved post missing author, updating:", {
-        postId: savedPost.id,
-      });
       const updatedPost = await this.postRepository.update(savedPost.id, {
         author,
       });
-      console.log(
-        "[DEBUG] Updated post with author:",
-        JSON.stringify(updatedPost, null, 2)
-      );
       if (updatedPost) {
         savedPost.author = updatedPost.author;
       }

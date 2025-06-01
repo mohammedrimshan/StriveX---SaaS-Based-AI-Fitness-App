@@ -48,6 +48,8 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
     refetch: refetchBookings,
   } = useUserBookings()
 
+  console.log(userBookingsData, "DATA")
+
   // Debug log to check the slots data
   useEffect(() => {
     if (slotsData) {

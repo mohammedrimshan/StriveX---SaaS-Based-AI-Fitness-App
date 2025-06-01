@@ -18,6 +18,8 @@ import {
   workoutProgressController,
   postController,
   commentController,
+  notificationController,
+  videoCallController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -144,6 +146,29 @@ export class ClientRoutes extends BaseRoute {
         dietWorkoutController.getAllWorkouts(req, res);
       }
     );
+
+/**
+ * @swagger
+ * /client/trainers:
+ *   get:
+ *     summary: Get all available trainers for the client
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of available trainers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Trainer'
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       403:
+ *         description: Forbidden - Not a client
+ */
 
     router.get(
       "/client/trainers",
@@ -358,7 +383,7 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-    // Get workout progress by user and workout
+    // Get workout progress by user and workout 
     router.get(
       "/client/progress/workout/user/:userId/workout/:workoutId",
       verifyAuth,
@@ -401,6 +426,8 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
+
+//not used yet
     router.get(
       "/client/progress/video/user/:userId/workout/:workoutId",
       verifyAuth,
@@ -415,112 +442,182 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router
-    .route("/client/community/posts")
-    .post(
+      .route("/client/community/posts")
+      .post(
+        verifyAuth,
+        authorizeRole(["client"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          postController.createPost(req, res);
+        }
+      )
+      .get(
+        verifyAuth,
+        authorizeRole(["client"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          postController.getPosts(req, res);
+        }
+      );
+
+    router
+      .route("/client/community/posts/:id")
+      .get(
+        verifyAuth,
+        authorizeRole(["client"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          postController.getPost(req, res);
+        }
+      )
+      .delete(
+        verifyAuth,
+        authorizeRole(["client"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          postController.deletePost(req, res);
+        }
+      );
+
+    router.patch(
+      "/client/community/posts/:id/like",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
-        postController.createPost(req, res);
-      }
-    )
-    .get(
-      verifyAuth,
-      authorizeRole(["client"]),
-      blockStatusMiddleware.checkStatus as RequestHandler,
-      (req: Request, res: Response) => {
-        postController.getPosts(req, res);
+        postController.likePost(req, res);
       }
     );
 
-  router
-    .route("/client/community/posts/:id")
-    .get(
+    router.post(
+      "/client/community/posts/:id/report",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
-        postController.getPost(req, res);
-      }
-    )
-    .delete(
-      verifyAuth,
-      authorizeRole(["client"]),
-      blockStatusMiddleware.checkStatus as RequestHandler,
-      (req: Request, res: Response) => {
-        postController.deletePost(req, res);
+        postController.reportPost(req, res);
       }
     );
 
-  router.patch(
-    "/client/community/posts/:id/like",
-    verifyAuth,
-    authorizeRole(["client"]),
-    blockStatusMiddleware.checkStatus as RequestHandler,
-    (req: Request, res: Response) => {
-      postController.likePost(req, res);
-    }
-  );
+    // Community Comment Routes
+    router.post(
+      "/client/community/posts/:id/comments",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.createComment(req, res);
+      }
+    );
 
-  router.post(
-    "/client/community/posts/:id/report",
-    verifyAuth,
-    authorizeRole(["client"]),
-    blockStatusMiddleware.checkStatus as RequestHandler,
-    (req: Request, res: Response) => {
-      postController.reportPost(req, res);
-    }
-  );
+    router.patch(
+      "/client/community/comments/:id/like",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.likeComment(req, res);
+      }
+    );
 
-  // Community Comment Routes
-  router.post(
-    "/client/community/posts/:id/comments",
-    verifyAuth,
-    authorizeRole(["client"]),
-    blockStatusMiddleware.checkStatus as RequestHandler,
-    (req: Request, res: Response) => {
-      commentController.createComment(req, res);
-    }
-  );
+    router.delete(
+      "/client/community/comments/:id",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.deleteComment(req, res);
+      }
+    );
 
-  router.patch(
-    "/client/community/comments/:id/like",
-    verifyAuth,
-    authorizeRole(["client"]),
-    blockStatusMiddleware.checkStatus as RequestHandler,
-    (req: Request, res: Response) => {
-      commentController.likeComment(req, res);
-    }
-  );
+    router.post(
+      "/client/community/comments/:id/report",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.reportComment(req, res);
+      }
+    );
 
-  router.delete(
-    "/client/community/comments/:id",
-    verifyAuth,
-    authorizeRole(["client"]),
-    blockStatusMiddleware.checkStatus as RequestHandler,
-    (req: Request, res: Response) => {
-      commentController.deleteComment(req, res);
-    }
-  );
+    router.get(
+      "/client/community/posts/:id/comments",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        commentController.getComments(req, res);
+      }
+    );
 
-  router.post(
-    "/client/community/comments/:id/report",
-    verifyAuth,
-    authorizeRole(["client"]),
-    blockStatusMiddleware.checkStatus as RequestHandler,
-    (req: Request, res: Response) => {
-      commentController.reportComment(req, res);
-    }
-  );
+    router.post(
+      "/client/update-fcm-token",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.updateFCMToken(req, res);
+      }
+    );
 
-  router.get(
-    "/client/community/posts/:id/comments",
-    verifyAuth,
-    authorizeRole(["client"]),
-    blockStatusMiddleware.checkStatus as RequestHandler,
-    (req: Request, res: Response) => {
-      commentController.getComments(req, res);
-    }
-  );
+    router.patch(
+      "/client/notifications/:notificationId/read",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.markNotificationAsRead(req, res);
+      }
+    );
+
+    router.get(
+      "/client/notifications",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.getUserNotifications(req, res);
+      }
+    );
+
+    router.post(
+      "/client/video-call/start/:slotId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        videoCallController.startVideoCall(req, res);
+      }
+    );
+
+    router.post(
+      "/client/video-call/join/:slotId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        videoCallController.joinVideoCall(req, res);
+      }
+    );
+
+    router.get(
+      "/client/video-call/:slotId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        videoCallController.getVideoCallDetails(req, res);
+      }
+    );
+
+     router.post(
+      "/client/video-call/:slotId/end",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        videoCallController.endVideoCall(req, res);
+      }
+    );
   }
 }

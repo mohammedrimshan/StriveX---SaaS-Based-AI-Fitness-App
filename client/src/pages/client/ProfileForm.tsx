@@ -109,6 +109,7 @@ const ProfileForm: React.FC = () => {
       activityLevel: "moderate",
       healthConditions: [],
       waterIntake: 2000,
+      waterIntakeTarget: 2000,
       profileImage: "",
     },
   });
@@ -178,6 +179,7 @@ const ProfileForm: React.FC = () => {
         activityLevel: clientData.activityLevel ?? "moderate",
         healthConditions: clientData.healthConditions ?? [],
         waterIntake: clientData.waterIntake ?? 2000,
+        waterIntakeTarget: clientData.waterIntakeTarget ?? 2000,
         profileImage: newProfileImage,
       });
 
@@ -210,6 +212,7 @@ const ProfileForm: React.FC = () => {
       height: data.height ?? undefined,
       weight: data.weight ?? undefined,
       waterIntake: data.waterIntake ?? undefined,
+      waterIntakeTarget: data.waterIntakeTarget ?? undefined,
       profileImage: profileImage,
       id: clientData.id,
     };
@@ -866,8 +869,12 @@ const ProfileForm: React.FC = () => {
                                     <FormControl>
                                       <WaterIntake
                                         value={field.value ?? 0}
+                                        targetValue={form.watch("waterIntakeTarget") ?? 2000}
                                         onChange={(value) =>
                                           field.onChange(value ?? undefined)
+                                        }
+                                        onTargetChange={(value) =>
+                                          form.setValue("waterIntakeTarget", value ?? undefined)
                                         }
                                       />
                                     </FormControl>

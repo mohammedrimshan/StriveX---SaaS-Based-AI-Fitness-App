@@ -5,6 +5,7 @@ import { IClientRepository } from '@/entities/repositoryInterfaces/client/client
 import { ITrainerRepository } from '@/entities/repositoryInterfaces/trainer/trainer-repository.interface';
 import { CustomError } from '@/entities/utils/custom.error';
 import { HTTP_STATUS } from '@/shared/constants';
+import { INotificationEntity } from '@/entities/models/notification.entity';
 
 interface IFCMTokenHolder {
   fcmToken?: string;
@@ -17,20 +18,35 @@ export class FCMService implements IFCMService {
     @inject('ITrainerRepository') private trainerModel: ITrainerRepository
   ) {}
 
-  async sendPushNotification(userId: string, title: string, message: string): Promise<void> {
+  async sendPushNotification(
+    userId: string,
+    title: string,
+    message: string,
+    notificationId: string,
+    type: INotificationEntity['type'] = "INFO"
+  ): Promise<void> {
     try {
+      // Find user
       let user: IFCMTokenHolder | null = await this.clientModel.findById({ clientId: userId });
       if (!user) {
         user = await this.trainerModel.findById({ clientId: userId });
       }
       if (!user?.fcmToken) {
+        console.warn(`[DEBUG] No FCM token for user ${userId}`);
         return;
       }
+
+      // Send FCM message
       const fcmMessage: Message = {
         token: user.fcmToken,
         notification: { title, body: message },
+        data: {
+          id: notificationId,
+          type,
+        },
       };
       await getMessaging().send(fcmMessage);
+      console.log(`[DEBUG] Push notification sent to ${userId}, ID: ${notificationId}`);
     } catch (error) {
       if (error instanceof CustomError) {
         throw error;

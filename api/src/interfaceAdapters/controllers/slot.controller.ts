@@ -12,6 +12,9 @@ import { CustomError } from "../../entities/utils/custom.error";
 import { HTTP_STATUS, SUCCESS_MESSAGES } from "../../shared/constants";
 import { handleErrorResponse } from "../../shared/utils/errorHandler";
 import { CustomRequest } from "../middlewares/auth.middleware";
+import { SlotResponseDTO } from "@/shared/dto/user.dto";
+import { Types } from "mongoose";
+import { IGetBookedTrainerSlotsUseCase } from "@/entities/useCaseInterfaces/slot/get-booked-slots.usecase.interface";
 
 @injectable()
 export class SlotController implements ISlotController {
@@ -24,7 +27,8 @@ export class SlotController implements ISlotController {
     private cancelBookingUseCase: ICancelBookingUseCase,
     @inject("IToggleSlotAvailabilityUseCase") private toggleSlotAvailabilityUseCase: IToggleSlotAvailabilityUseCase,
     @inject("IGetSelectedTrainerSlotsUseCase") private getSelectedTrainerSlotsUseCase: IGetSelectedTrainerSlotsUseCase,
-    @inject("IGetUserBookingsUseCase") private getUserBookingsUseCase: IGetUserBookingsUseCase
+    @inject("IGetUserBookingsUseCase") private getUserBookingsUseCase: IGetUserBookingsUseCase,
+    @inject("IGetBookedTrainerSlotsUseCase") private getBookedTrainerSlotsUseCase: IGetBookedTrainerSlotsUseCase
   ) {}
 
   async createSlot(req: Request, res: Response): Promise<void> {
@@ -108,15 +112,29 @@ export class SlotController implements ISlotController {
   async cancelBooking(req: Request, res: Response): Promise<void> {
     try {
       const clientId = (req as CustomRequest).user.id;
-      const { slotId, cancellationReason } = req.body;
+      const { slotId, cancellationReason } = req.body as { slotId: string; cancellationReason: string }; // Explicit typing
 
-      if (!slotId) {
-        throw new CustomError("Slot ID is required", HTTP_STATUS.BAD_REQUEST);
+      // Validate clientId
+      if (!clientId || typeof clientId !== "string" || clientId.trim() === "") {
+        throw new CustomError("Valid Client ID is required", HTTP_STATUS.UNAUTHORIZED);
       }
 
+      // Validate slotId
+      if (!slotId || !Types.ObjectId.isValid(slotId)) {
+        throw new CustomError("Valid Slot ID is required", HTTP_STATUS.BAD_REQUEST);
+      }
+
+      // Validate cancellationReason
       if (!cancellationReason || cancellationReason.trim() === "") {
         throw new CustomError("Cancellation reason is required", HTTP_STATUS.BAD_REQUEST);
       }
+
+      // Optional: Add length validation for cancellationReason
+      if (cancellationReason.length > 500) {
+        throw new CustomError("Cancellation reason must be 500 characters or less", HTTP_STATUS.BAD_REQUEST);
+      }
+
+      console.log(`CancelBooking - clientId: ${clientId}, slotId: ${slotId}, reason: ${cancellationReason}`);
 
       const slot = await this.cancelBookingUseCase.execute(clientId, slotId, cancellationReason);
 
@@ -186,6 +204,30 @@ export class SlotController implements ISlotController {
         success: true,
         message: "Bookings retrieved successfully",
         bookings, 
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+   
+
+   async getBookedTrainerSlots(req: Request, res: Response): Promise<void> {
+    try {
+      const { trainerId} = req.query;
+
+      if (!trainerId|| typeof trainerId !== "string" ) {
+        res.status(400).json({ error: "trainerId and date are required as strings" });
+        return;
+      }
+
+     
+
+      const slots: SlotResponseDTO[] = await this.getBookedTrainerSlotsUseCase.execute(trainerId);
+      console.log(slots, "SLOTS DATA RETRIEVED");
+      res.status(200).json({
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        slots,
       });
     } catch (error) {
       handleErrorResponse(res, error);

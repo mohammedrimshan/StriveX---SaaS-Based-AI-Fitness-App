@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { TextField, Button } from "@mui/material";
 import { Eye, EyeOff } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
 import { useFormik } from "formik";
 import sgn2 from "@/assets/common/sgn2.jpg";
 import adminBg from "@/assets/common/admin-bg.jpg";

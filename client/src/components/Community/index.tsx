@@ -11,11 +11,13 @@ import { useGetPosts } from "@/hooks/community/useGetPosts"
 import { useCreatePost } from "@/hooks/community/useCreatePost"
 import { selectCurrentUser } from "@/store/userSelectors"
 import AnimatedBackground from "../Animation/AnimatedBackgorund"
-import type { IPost } from "@/types/Post"
+import type { IPost, PaginatedPostsResponse } from "@/types/Post"
 import type { WorkoutType } from "@/types/Consts"
 import { useSocket } from "@/context/socketContext"
+import { useQueryClient } from '@tanstack/react-query';
 
 const Community = ({ userId, role }) => {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("home")
   const [activeFilter, setActiveFilter] = useState<WorkoutType | "all">("all")
   const [selectedPost, setSelectedPost] = useState<IPost | null>(null)
@@ -37,19 +39,21 @@ const Community = ({ userId, role }) => {
   const { createPost, isCreating } = useCreatePost()
 
   // Synchronize displayed posts with fetched and socket posts
-  useEffect(() => {
-    const postMap = new Map<string, IPost>()
-    fetchedPosts.forEach((post) => postMap.set(post.id, post))
+useEffect(() => {
+    const postMap = new Map<string, IPost>();
+    // Use cache directly
+    const cachedPosts = queryClient.getQueryData<PaginatedPostsResponse>(['posts', { category: activeFilter === "all" ? undefined : activeFilter, sortBy: 'latest', skip: 0, limit: 10 }])?.items || [];
+    cachedPosts.forEach((post) => postMap.set(post.id, post));
     socketPosts.forEach((socketPost) => {
       if (activeFilter === "all" || socketPost.category === activeFilter) {
-        postMap.set(socketPost.id, socketPost)
+        postMap.set(socketPost.id, socketPost);
       }
-    })
+    });
     const combinedPosts = Array.from(postMap.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-    setDisplayedPosts(combinedPosts)
-  }, [fetchedPosts, socketPosts, activeFilter])
+    );
+    setDisplayedPosts(combinedPosts);
+  }, [fetchedPosts, socketPosts, activeFilter, queryClient]);
 
   // Set up socket event listeners
   useEffect(() => {
@@ -61,6 +65,8 @@ const Community = ({ userId, role }) => {
     socket.on("newPost", (post: IPost) => {
       console.log("[DEBUG] New post received:", post)
     })
+
+    
 
     socket.on("postDeleted", ({ postId }: { postId: string }) => {
       console.log("[DEBUG] Post deleted:", postId)

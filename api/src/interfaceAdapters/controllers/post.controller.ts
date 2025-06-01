@@ -248,6 +248,7 @@ export class PostController implements IPostController {
 
       const io = this._socketService.getIO();
       const clients = await io.in("community").allSockets();
+      console.log(clients,"clients community")
       console.log(
         `[DEBUG] Emitting postLiked to ${clients.size} clients for post ${id}, userId=${req.user!.id}, likes:`,
         post.likes

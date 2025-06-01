@@ -17,7 +17,7 @@ import { getAllCategoriesForClients } from "@/services/client/clientService";
 
 // Define types for our form data, aligned with backend WORKOUT_TYPES
 type FormData = {
-  preferredWorkout: "cardio" | "meditation" | "pilates" | "yoga" | "calisthenics" | "weightTraining";
+  preferredWorkout: "Cardio" | "Meditation" | "Pilates" | "Yoga" | "Calisthenics" | "WeightTraining";
   fitnessGoal: "weightLoss" | "muscleGain" | "endurance" | "flexibility" | "maintenance";
   experienceLevel: "beginner" | "intermediate" | "advanced" | "expert";
   skillsToGain: string[];
@@ -57,30 +57,30 @@ const SKILLS = [
 
 // Fallback workout types, aligned with backend WORKOUT_TYPES
 const FALLBACK_WORKOUT_TYPES: FormData["preferredWorkout"][] = [
-  "cardio",
-  "meditation",
-  "pilates",
-  "yoga",
-  "calisthenics",
-  "weightTraining",
+  "Cardio",
+  "Meditation",
+  "Pilates",
+  "Yoga",
+  "Calisthenics",
+  "WeightTraining",
 ];
 
 // Mapping for API category titles to backend-compatible lowercase values
 const workoutTypeMapping: Record<string, string> = {
-  cardio: "cardio",
-  CARDIO: "cardio",
-  "cardio workout": "cardio",
-  meditation: "meditation",
-  MEDITATION: "meditation",
-  pilates: "pilates",
-  PILATES: "pilates",
-  yoga: "yoga",
-  YOGA: "yoga",
-  calisthenics: "calisthenics",
-  CALISTHENICS: "calisthenics",
-  weightTraining: "weightTraining",
-  WEIGHTTRAINING: "weightTraining",
-  "weight training": "weightTraining",
+  cardio: "Cardio",
+  CARDIO: "Cardio",
+  "cardio workout": "Cardio",
+  meditation: "Meditation",
+  MEDITATION: "Meditation",
+  pilates: "Pilates",
+  PILATES: "Pilates",
+  yoga: "Yoga",
+  YOGA: "Yoga",
+  calisthenics: "Calisthenics",
+  CALISTHENICS: "Calisthenics",
+  weightTraining: "WeightTraining",
+  WEIGHTTRAINING: "WeightTraining",
+  "weight training": "WeightTraining",
 };
 
 // Helper to convert API values to display format
@@ -94,12 +94,12 @@ const formatValueForDisplay = (value: string): string => {
 // Get icon for workout type, aligned with backend values
 const getWorkoutIcon = (type: FormData["preferredWorkout"]) => {
   const iconMap: Partial<Record<FormData["preferredWorkout"], JSX.Element>> = {
-    yoga: <Leaf className="w-4 h-4 sm:w-5 sm:h-5" />,
-    cardio: <Heart className="w-4 h-4 sm:w-5 sm:h-5" />,
-    pilates: <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />,
-    meditation: <Brain className="w-4 h-4 sm:w-5 sm:h-5" />,
-    calisthenics: <Zap className="w-4 h-4 sm:w-5 sm:h-5" />,
-    weightTraining: <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5" />,
+    Yoga: <Leaf className="w-4 h-4 sm:w-5 sm:h-5" />,
+    Cardio: <Heart className="w-4 h-4 sm:w-5 sm:h-5" />,
+    Pilates: <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />,
+    Meditation: <Brain className="w-4 h-4 sm:w-5 sm:h-5" />,
+    Calisthenics: <Zap className="w-4 h-4 sm:w-5 sm:h-5" />,
+    WeightTraining: <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5" />,
   };
   return iconMap[type] || <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5" />;
 };
@@ -151,7 +151,7 @@ export function TrainerPreferencesPage() {
   console.log("Mapped workout types:", displayWorkoutTypes);
 
   const [formData, setFormData] = useState<FormData>({
-    preferredWorkout: "cardio",
+    preferredWorkout: "Cardio",
     fitnessGoal: "weightLoss",
     experienceLevel: "beginner",
     skillsToGain: [],

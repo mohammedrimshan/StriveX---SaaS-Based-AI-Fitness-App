@@ -12,7 +12,7 @@ import { useLikePost } from "@/hooks/community/useLikePost"
 import { useDeletePost } from "@/hooks/community/useDeletePost"
 import { useReportPost } from "@/hooks/community/useReportPost"
 import { useGetComments } from "@/hooks/community/useGetComments" // Import the useGetComments hook
-
+import { useSocket } from "@/context/socketContext";
 // Updated interface to match the actual data structure
 interface Author {
   id: string
@@ -50,6 +50,7 @@ interface PostCardProps {
 const PostCard: React.FC<PostCardProps> = ({ post, onComment }) => {
   console.log(post, "pc")
   const currentUser = useSelector(selectCurrentUser)
+    const { socket, isConnected } = useSocket();
   const [isSaved, setIsSaved] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [showShareMenu, setShowShareMenu] = useState(false)
@@ -80,18 +81,28 @@ const PostCard: React.FC<PostCardProps> = ({ post, onComment }) => {
     return formatDistanceToNow(new Date(date), { addSuffix: true })
   }
 
-  const handleLike = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!currentUser?.role || !currentUser?.id) {
-      toast.error("Please log in to like posts")
-      return
-    }
-    
-    setLikeScale(1.5)
-    setTimeout(() => setLikeScale(1), 300)
-    
-    likePost({ id: post.id, role: currentUser.role, userId: currentUser.id })
+const handleLike = (e: React.MouseEvent) => {
+  e.stopPropagation();
+
+  if (!currentUser?.role || !currentUser?.id) {
+    toast.error("Please log in to like posts");
+    return;
   }
+
+  if (socket && isConnected) {
+    // ✅ join post room and wait for confirmation
+    socket.emit("joinPost", post.id, () => {
+      console.log(`[DEBUG] Confirmed join for room: post:${post.id}`);
+      likePost({ id: post.id, role: currentUser.role, userId: currentUser.id });
+    });
+  } else {
+    likePost({ id: post.id, role: currentUser.role, userId: currentUser.id });
+  }
+
+  setLikeScale(1.5);
+  setTimeout(() => setLikeScale(1), 300);
+};
+
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()

@@ -28,4 +28,9 @@ export interface IClientRepository extends IBaseRepository<IClientEntity> {
   ): Promise<{ items: IClientEntity[] | []; total: number }>;
   findByClientNewId(clientId: string): Promise<IClientEntity | null>;
   findByIds(ids: string[]): Promise<{ id: string; name: string }[]>;
+  findAcceptedClients(
+  trainerId: string,
+  skip: number,
+  limit: number
+): Promise<{ items: IClientEntity[] | []; total: number }>;
 }

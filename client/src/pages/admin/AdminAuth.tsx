@@ -11,12 +11,13 @@ export const AdminAuth = () => {
 	const { mutate: loginAdmin, isPending } = useLoginMutation();
 	const { errorToast, successToast } = useToaster();
 	const dispatch = useDispatch();
-
 	const handleLoginSubmit = (data: Omit<ILoginData, "role">) => {
+		
         loginAdmin(
           { ...data, role: "admin" },
           {
             onSuccess: (data) => {
+				console.log("admin data",data);
               successToast(data.message);
               dispatch(adminLogin(data.user));
             },

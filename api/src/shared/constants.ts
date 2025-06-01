@@ -21,6 +21,13 @@ export enum TrainerApprovalStatus {
 export enum SlotStatus {
   AVAILABLE = "available",
   BOOKED = "booked",
+  CANCELLED = "cancelled",
+}
+
+export enum VideoCallStatus {
+  NOT_STARTED = "not_started",
+  IN_PROGRESS = "in_progress",
+  ENDED = "ended",
 }
 
 export const WORKOUT_TYPES = [

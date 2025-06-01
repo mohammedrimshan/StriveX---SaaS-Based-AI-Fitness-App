@@ -6,7 +6,10 @@ import { IMessageEntity } from "@/entities/models/message.entity";
 import { PipelineStage } from "mongoose";
 
 @injectable()
-export class MessageRepository extends BaseRepository<IMessageEntity> implements IMessageRepository {
+export class MessageRepository
+  extends BaseRepository<IMessageEntity>
+  implements IMessageRepository
+{
   constructor() {
     super(MessageModel);
   }
@@ -17,10 +20,6 @@ export class MessageRepository extends BaseRepository<IMessageEntity> implements
     skip: number,
     limit: number
   ): Promise<{ items: IMessageEntity[]; total: number }> {
-    console.log(
-      `[MessageRepository] Fetching conversation for user1Id: ${user1Id}, user2Id: ${user2Id}, skip: ${skip}, limit: ${limit}`
-    );
-
     const filter = {
       $or: [
         { senderId: user1Id, receiverId: user2Id },
@@ -28,10 +27,8 @@ export class MessageRepository extends BaseRepository<IMessageEntity> implements
       ],
       deleted: false,
     };
-    console.log(`[MessageRepository] Filter: ${JSON.stringify(filter)}`);
 
     const rawItems = await this.model.find(filter).lean();
-    console.log(`[MessageRepository] Raw messages from MongoDB: ${JSON.stringify(rawItems, null, 2)}`);
 
     const [items, total] = await Promise.all([
       this.model
@@ -44,8 +41,6 @@ export class MessageRepository extends BaseRepository<IMessageEntity> implements
     ]);
 
     const transformedItems = items.map((item) => this.mapToEntity(item));
-    console.log(`[MessageRepository] Transformed messages: ${JSON.stringify(transformedItems, null, 2)}`);
-    console.log(`[MessageRepository] Total messages: ${total}`);
 
     return {
       items: transformedItems,
@@ -53,13 +48,14 @@ export class MessageRepository extends BaseRepository<IMessageEntity> implements
     };
   }
 
-  async markMessagesAsRead(senderId: string, receiverId: string): Promise<void> {
-    console.log(`[MessageRepository] Marking messages as read from senderId: ${senderId} to receiverId: ${receiverId}`);
+  async markMessagesAsRead(
+    senderId: string,
+    receiverId: string
+  ): Promise<void> {
     await this.model.updateMany(
       { senderId, receiverId, status: "sent" },
       { $set: { status: "read", readAt: new Date() } }
     );
-    console.log(`[MessageRepository] Messages marked as read`);
   }
 
   async getUnreadCount(receiverId: string, senderId?: string): Promise<number> {
@@ -73,18 +69,16 @@ export class MessageRepository extends BaseRepository<IMessageEntity> implements
       filter.senderId = senderId;
     }
 
-    console.log(`[MessageRepository] Counting unread messages with filter: ${JSON.stringify(filter)}`);
     const count = await this.model.countDocuments(filter);
-    console.log(`[MessageRepository] Unread count: ${count}`);
     return count;
   }
 
   async getRecentChats(
     userId: string,
     limit: number
-  ): Promise<Array<{ userId: string; lastMessage: IMessageEntity; unreadCount: number }>> {
-    console.log(`[MessageRepository] Fetching recent chats for userId: ${userId}, limit: ${limit}`);
-  
+  ): Promise<
+    Array<{ userId: string; lastMessage: IMessageEntity; unreadCount: number }>
+  > {
     const pipeline: PipelineStage[] = [
       {
         $match: {
@@ -143,23 +137,19 @@ export class MessageRepository extends BaseRepository<IMessageEntity> implements
         $limit: limit,
       },
     ];
-  
+
     const results = await this.model.aggregate(pipeline).exec();
-    console.log(`[MessageRepository] Recent chats result: ${JSON.stringify(results, null, 2)}`);
-  
+
     return results.map((result) => ({
-      userId: result.userId, 
+      userId: result.userId,
       lastMessage: this.mapToEntity(result.lastMessage),
       unreadCount: result.unreadCount,
     }));
   }
-  
 
   protected mapToEntity(doc: any): IMessageEntity {
-    console.log(`[MessageRepository] Mapping document: ${JSON.stringify(doc)}`);
     const { _id, __v, ...rest } = doc;
     if (!_id) {
-      console.error(`[MessageRepository] Document missing _id: ${JSON.stringify(doc)}`);
       throw new Error("Message document missing _id");
     }
     const entity = {
@@ -167,7 +157,6 @@ export class MessageRepository extends BaseRepository<IMessageEntity> implements
       id: _id.toString(),
       reactions: rest.reactions || [],
     } as IMessageEntity;
-    console.log(`[MessageRepository] Mapped entity: ${JSON.stringify(entity)}`);
     return entity;
   }
 }

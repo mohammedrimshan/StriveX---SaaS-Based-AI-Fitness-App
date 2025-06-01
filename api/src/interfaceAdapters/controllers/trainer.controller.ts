@@ -262,30 +262,38 @@ export class TrainerController implements ITrainerController {
   }
 
   async getTrainerClients(req: Request, res: Response): Promise<void> {
-    try {
-      const trainerId = (req as CustomRequest).user.id;
-      const { page = 1, limit = 10 } = req.query;
-      const pageNumber = Number(page);
-      const pageSize = Number(limit);
-      if (!trainerId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
-      }
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
-      }
-      const { user: clients, total } = await this._getTrainerClientsUseCase.execute(trainerId, pageNumber, pageSize);
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-        clients,
-        totalPages: total,
-        currentPage: pageNumber,
-        totalClients: clients.length,
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
+  try {
+    const trainerId = (req as CustomRequest).user.id;
+    const { page = 1, limit = 10 } = req.query;
+    const pageNumber = Number(page);
+    const pageSize = Number(limit);
+
+    if (!trainerId) {
+      throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
     }
+
+    if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+      throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+    }
+
+    const { user: clients, total } = await this._getTrainerClientsUseCase.execute(
+      trainerId,
+      (pageNumber - 1) * pageSize, 
+      pageSize
+    );
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+      clients,
+      totalPages: Math.ceil(total / pageSize),
+      currentPage: pageNumber,
+      totalClients: clients.length,
+    });
+  } catch (error) {
+    handleErrorResponse(res, error);
   }
+}
 
   async acceptRejectClientRequest(req: Request, res: Response): Promise<void> {
     try {

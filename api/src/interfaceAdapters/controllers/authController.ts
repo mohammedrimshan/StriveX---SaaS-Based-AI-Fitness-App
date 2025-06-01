@@ -126,6 +126,7 @@ export class AuthController implements IAuthController {
     try {
       const data = req.body as LoginUserDTO;
       const validatedData = loginSchema.parse(data);
+      console.log("req.body12121", req.body);
       if (!validatedData) {
         res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,

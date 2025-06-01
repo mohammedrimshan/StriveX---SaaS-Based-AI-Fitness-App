@@ -41,10 +41,18 @@ export interface IClient extends User{
   activityLevel?: "sedentary" | "light" | "moderate" | "active" | "veryActive";
   healthConditions?: string[];
   waterIntake?: number;
+  waterIntakeTarget?: number;
   dietPreference?: string;
   preferredWorkout?:string;
   workoutExperience?:string;
   profileImage?: string;
+  isPremium: boolean;
+  selectionMode: string; // or SelectionMode enum
+  sleepFrom: string; // or Date if using Date objects
+  wakeUpAt: string; // or Date
+  skillsToGain: string[]; // or SKILLS[] if using enum
+  isOnline: boolean;
+  matchedTrainers: string[];
 }
 export interface ITrainer extends User {
   id: string; 

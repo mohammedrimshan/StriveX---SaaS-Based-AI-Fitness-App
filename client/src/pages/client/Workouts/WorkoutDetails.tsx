@@ -1,6 +1,6 @@
-// D:\StriveX\client\src\components\WorkoutDetails.tsx
-import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+
+import { useState, useEffect, useCallback } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Clock, BarChart3, Play, Dumbbell } from "lucide-react";
 import { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
@@ -9,241 +9,467 @@ import ExerciseItem from "./ExerciseItem";
 import VideoPlayer from "./VideoPlayer";
 import MusicPlayer from "./MusicPlayer";
 import ProgressTracker from "./ProgressTracker";
+import WorkoutCompletionModal from "@/components/modals/WorkoutCompletionModal";
 import { motion } from "framer-motion";
 import { useAllWorkouts } from "@/hooks/client/useAllWorkouts";
 import { useGetUserWorkoutVideoProgress } from "@/hooks/progress/useGetUserWorkoutVideoProgress";
 import { useUpdateWorkoutVideoProgress } from "@/hooks/progress/useUpdateWorkoutVideoProgress";
+import { useCreateWorkoutProgress } from "@/hooks/progress/useCreateWorkoutProgress";
+import { useUpdateWorkoutProgress } from "@/hooks/progress/useUpdateWorkoutProgress";
+import { useGetUserWorkoutProgress } from "@/hooks/progress/useGetUserWorkoutProgress";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { Workout, Exercise } from "@/types/Workouts";
 
 interface WorkoutProgressType {
-  exerciseProgress: { exerciseId: string; videoProgress: number; status: "Not Started" | "In Progress" | "Completed" }[];
+  id?: string;
+  exerciseProgress: { exerciseId: string; videoProgress: number; status: "Not Started" | "In Progress" | "Completed"; lastUpdated?: string }[];
   completedExercises: string[];
 }
 
 interface IWorkoutVideoProgressEntity {
   workoutId: string;
-  exerciseProgress: { exerciseId: string; videoProgress: number; status: "Not Started" | "In Progress" | "Completed" }[];
+  exerciseProgress: { exerciseId: string; videoProgress: number; status: "Not Started" | "In Progress" | "Completed"; lastUpdated?: string }[];
   completedExercises: string[];
+}
+
+interface IWorkoutProgressEntity {
+  id: string;
+  userId: string;
+  workoutId: string;
+  duration: number;
+  caloriesBurned: number;
+  completed: boolean;
+  updatedAt: string;
 }
 
 const isValidObjectId = (id: string): boolean => /^[0-9a-fA-F]{24}$/.test(id);
 
 const WorkoutDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [workoutCompleted, setWorkoutCompleted] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [workoutProgress, setWorkoutProgress] = useState<WorkoutProgressType>({
     exerciseProgress: [],
     completedExercises: [],
   });
+  const [progressId, setProgressId] = useState<string | null>(null);
+  const [existingWorkoutProgress, setExistingWorkoutProgress] = useState<IWorkoutProgressEntity | null>(null); // New state
 
   const client = useSelector((state: RootState) => state.client.client);
   const userId = client?.id;
 
   const { data: paginatedData, isLoading, isError } = useAllWorkouts(1, 10, {});
   const { data: videoProgressData, isLoading: isVideoProgressLoading } = useGetUserWorkoutVideoProgress(userId || "");
+  const { data: workoutProgressData, isLoading: isWorkoutProgressLoading } = useGetUserWorkoutProgress(userId || "");
   const { mutate: updateVideoProgress } = useUpdateWorkoutVideoProgress();
+  const { mutate: createWorkoutProgress, isLoading: isCreatingProgress } = useCreateWorkoutProgress();
+  const { mutate: updateWorkoutProgress } = useUpdateWorkoutProgress();
 
   useEffect(() => {
-    if (!userId || !id) return;
+    if (!userId || !id || !isValidObjectId(userId) || !isValidObjectId(id)) {
+      console.error("Invalid userId or workoutId:", { userId, workoutId: id });
+      setErrorMessage("Invalid user or workout ID.");
+      return;
+    }
+
+    console.log("Initializing WorkoutDetails with userId:", userId);
 
     const socketInstance = io("http://localhost:5001");
-    socketInstance.emit("register", { userId, role: "client" });
+    socketInstance.on("connect", () => {
+      socketInstance.emit("register", { userId, role: "client" });
+    });
     socketInstance.on("workoutCompleted", (data: { userId: string; workoutId: string }) => {
       if (data.userId === userId && data.workoutId === id) {
         setWorkoutCompleted(true);
+        setShowCompletionModal(true);
       }
     });
     setSocket(socketInstance);
 
-    if (videoProgressData) {
-      if (Array.isArray(videoProgressData)) {
-        const videoProgress = videoProgressData.find((item: IWorkoutVideoProgressEntity) => item.workoutId === id);
-        if (videoProgress) {
-          setWorkoutProgress({
-            exerciseProgress: videoProgress.exerciseProgress.map((ep) => ({
-              ...ep,
-              status: ep.status as "Not Started" | "In Progress" | "Completed",
-            })),
-            completedExercises: videoProgress.completedExercises || [],
-          });
-
-          setWorkoutCompleted(videoProgress.exerciseProgress.every((ep) => ep.status === "Completed"));
-
-          const firstIncompleteIdx = videoProgress.exerciseProgress.findIndex((ep) => ep.status !== "Completed");
-          if (firstIncompleteIdx >= 0) {
-            setCurrentExerciseIdx(firstIncompleteIdx);
-          }
-        }
-      } else if (typeof videoProgressData === "object" && videoProgressData !== null) {
-        const typedData = videoProgressData as any;
-        if (typedData.workoutId === id) {
-          setWorkoutProgress({
-            exerciseProgress: (typedData.exerciseProgress || []).map((ep: any) => ({
-              ...ep,
-              status: ep.status as "Not Started" | "In Progress" | "Completed",
-            })),
-            completedExercises: typedData.completedExercises || [],
-          });
-
-          setWorkoutCompleted(typedData.exerciseProgress?.every((ep: any) => ep.status === "Completed") || false);
-
-          const firstIncompleteIdx = typedData.exerciseProgress?.findIndex((ep: any) => ep.status !== "Completed");
-          if (firstIncompleteIdx >= 0) {
-            setCurrentExerciseIdx(firstIncompleteIdx);
-          }
-        }
-      } else {
-        console.log("Video progress data is in an unexpected format:", videoProgressData);
-      }
-    }
-
     return () => {
       socketInstance.disconnect();
     };
-  }, [userId, id, videoProgressData]);
+  }, [userId, id]);
+
+  useEffect(() => {
+    if (!paginatedData?.data || isVideoProgressLoading || isWorkoutProgressLoading) return;
+
+    const workout = paginatedData.data.find((w: Workout) => w.id === id || w._id === id);
+    if (!workout?.exercises) {
+      console.error("Workout or exercises not found for id:", id);
+      setErrorMessage("Workout not found.");
+      return;
+    }
+
+    let videoProgress: IWorkoutVideoProgressEntity | undefined;
+    if (Array.isArray(videoProgressData?.items)) {
+      videoProgress = videoProgressData.items.find((item: IWorkoutVideoProgressEntity) => item.workoutId === id);
+    }
+    console.log("Video progress data:", videoProgress);
+
+    let latestWorkoutProgress: IWorkoutProgressEntity | undefined;
+    if (Array.isArray(workoutProgressData?.items)) {
+      latestWorkoutProgress = workoutProgressData.items.reduce(
+        (latest: IWorkoutProgressEntity | undefined, current: IWorkoutProgressEntity) => {
+          if (!latest || new Date(current.updatedAt) > new Date(latest.updatedAt)) {
+            return current;
+          }
+          return latest;
+        },
+        undefined
+      );
+    }
+    console.log("Existing workout progress:", latestWorkoutProgress);
+    setExistingWorkoutProgress(latestWorkoutProgress || null); // Update state
+
+    const newWorkoutProgress: WorkoutProgressType = {
+      id: latestWorkoutProgress?.id,
+      exerciseProgress: videoProgress?.exerciseProgress?.map((ep) => ({
+        ...ep,
+        status: ep.status as "Not Started" | "In Progress" | "Completed",
+      })) || [],
+      completedExercises: videoProgress?.completedExercises || [],
+    };
+
+    setWorkoutProgress(newWorkoutProgress);
+    setProgressId(latestWorkoutProgress?.id || null);
+    setWorkoutCompleted(latestWorkoutProgress?.completed || false);
+
+    if (videoProgress && workout.exercises) {
+      const completedExerciseIds = new Set(videoProgress.completedExercises || []);
+      console.log("Completed exercise IDs:", Array.from(completedExerciseIds));
+      console.log("Workout exercises:", workout.exercises.map((e: Exercise) => e.id || e._id));
+      const nextExerciseIdx = workout.exercises.findIndex(
+        (exercise: Exercise) => !completedExerciseIds.has(exercise.id || exercise._id)
+      );
+      const newExerciseIdx = nextExerciseIdx !== -1 ? nextExerciseIdx : workout.exercises.length - 1;
+      console.log("Setting currentExerciseIdx:", {
+        completedExerciseIds: Array.from(completedExerciseIds),
+        nextExerciseIdx,
+        newExerciseIdx,
+        exerciseCount: workout.exercises.length,
+      });
+      setCurrentExerciseIdx(newExerciseIdx);
+    }
+  }, [userId, id, videoProgressData, workoutProgressData, paginatedData, isVideoProgressLoading, isWorkoutProgressLoading]);
+
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}m ${secs}s`;
+  };
+
+  const markExerciseAsCompleted = useCallback(
+    (exerciseId: string) => {
+      if (!isValidObjectId(exerciseId)) {
+        console.error("Invalid exerciseId:", exerciseId);
+        setErrorMessage("Invalid exercise ID.");
+        return;
+      }
+
+      if (!workoutProgress.completedExercises.includes(exerciseId)) {
+        const workout = paginatedData?.data.find((w: Workout) => w.id === id || w._id === id);
+        if (!workout?.exercises) {
+          console.error("Workout or exercises not found for id:", id);
+          setErrorMessage("Workout not found.");
+          return;
+        }
+
+        const currentExercise = workout.exercises.find(
+          (e: Exercise) => (e.id || e._id) === exerciseId
+        );
+        if (!currentExercise?.duration) {
+          console.error("Exercise missing duration:", exerciseId);
+          setErrorMessage("Exercise duration is missing.");
+          return;
+        }
+
+        const newCompletedExercises = [...workoutProgress.completedExercises, exerciseId];
+        const newExerciseProgress = [
+          ...workoutProgress.exerciseProgress.filter((ep) => ep.exerciseId !== exerciseId),
+          { exerciseId, videoProgress: 100, status: "Completed" as const, lastUpdated: new Date().toISOString() },
+        ];
+
+        const updatedProgress: WorkoutProgressType = {
+          id: workoutProgress.id,
+          exerciseProgress: newExerciseProgress,
+          completedExercises: newCompletedExercises,
+        };
+
+        setWorkoutProgress(updatedProgress);
+
+        const isWorkoutComplete = newCompletedExercises.length === workout.exercises.length;
+        const partialDuration = workout.exercises
+          .filter((exercise: Exercise) => newCompletedExercises.includes(exercise.id || exercise._id))
+          .reduce((sum: number, exercise: Exercise) => sum + (exercise.duration || 0), 0);
+
+        const metValue = workout.category?.metValue || 5;
+        const weight = client?.weight || 70;
+        const intensityMap = { Beginner: 0.8, Intermediate: 1.0, Advanced: 1.2 };
+        const intensity = intensityMap[workout.difficulty as keyof typeof intensityMap] || 1;
+        const durationInHours = partialDuration / 3600; // seconds to hours
+        const caloriesBurned = Math.round(metValue * weight * durationInHours * intensity);
+
+        if (!partialDuration || !caloriesBurned) {
+          console.error("Invalid progress values:", { partialDuration, caloriesBurned });
+          setErrorMessage("Failed to calculate progress values.");
+          return;
+        }
+
+        console.log("Exercise completed, updating progress:", {
+          exerciseId,
+          partialDuration,
+          caloriesBurned,
+          isWorkoutComplete,
+        });
+
+        updateVideoProgress(
+          {
+            workoutId: id!,
+            videoProgress: 100,
+            status: isWorkoutComplete ? "Completed" : "In Progress",
+            completedExercises: newCompletedExercises,
+            userId: userId!,
+            exerciseId,
+          },
+          {
+            onSuccess: () => {
+              console.log("Video progress updated successfully for exercise:", exerciseId);
+              if (isWorkoutComplete) {
+                setShowCompletionModal(true);
+              }
+            },
+            onError: (error: any) => {
+              console.error("Error updating video progress:", error);
+              setErrorMessage(error.message || "Failed to update video progress.");
+            },
+          }
+        );
+
+        if (progressId) {
+          console.log("Updating workout progress:", {
+            progressId,
+            duration: partialDuration,
+            caloriesBurned,
+            completed: isWorkoutComplete,
+          });
+          updateWorkoutProgress(
+            {
+              progressId,
+              data: {
+                duration: partialDuration,
+                caloriesBurned,
+                completed: isWorkoutComplete,
+              },
+            },
+            {
+              onSuccess: () => {
+                console.log("Workout progress updated successfully");
+                setWorkoutCompleted(isWorkoutComplete);
+                setExistingWorkoutProgress({
+                  id: progressId,
+                  userId: userId!,
+                  workoutId: id!,
+                  duration: partialDuration,
+                  caloriesBurned,
+                  completed: isWorkoutComplete,
+                  updatedAt: new Date().toISOString(),
+                }); // Update state
+                if (isWorkoutComplete && socket) {
+                  socket.emit("workoutCompleted", { userId, workoutId: id });
+                }
+                setErrorMessage(null);
+              },
+              onError: (error: any) => {
+                console.error("Error updating workout progress:", error);
+                setErrorMessage(error.message || "Failed to update workout progress.");
+              },
+            }
+          );
+        } else {
+          console.log("Creating workout progress:", {
+            userId,
+            workoutId: id,
+            duration: partialDuration,
+            caloriesBurned,
+            completed: isWorkoutComplete,
+          });
+          createWorkoutProgress(
+            {
+              userId,
+              workoutId: id,
+              duration: partialDuration,
+              caloriesBurned,
+              completed: isWorkoutComplete,
+              categoryId: workout.category?._id || "67fd2ee8c3806ffcf4a8386d",
+            },
+            {
+              onSuccess: (data) => {
+                setProgressId(data.id);
+                setWorkoutProgress({ ...updatedProgress, id: data.id });
+                setExistingWorkoutProgress({
+                  id: data.id,
+                  userId: userId!,
+                  workoutId: id!,
+                  duration: partialDuration,
+                  caloriesBurned,
+                  completed: isWorkoutComplete,
+                  updatedAt: new Date().toISOString(),
+                }); // Update state
+                console.log("Workout progress created successfully, id:", data.id);
+                setWorkoutCompleted(isWorkoutComplete);
+                if (isWorkoutComplete && socket) {
+                  socket.emit("workoutCompleted", { userId, workoutId: id });
+                }
+                setErrorMessage(null);
+              },
+              onError: (error: any) => {
+                console.error("Error creating workout progress:", error);
+                setErrorMessage(error.message || "Failed to update workout progress.");
+              },
+            }
+          );
+        }
+      }
+    },
+    [workoutProgress, id, userId, updateVideoProgress, paginatedData, createWorkoutProgress, updateWorkoutProgress, progressId, socket, client]
+  );
 
   if (!userId) {
-    return <div>Please log in to view workout details.</div>;
+    return <div className="text-red-600 text-center">Please log in to view workout details.</div>;
   }
 
   if (!id) {
-    return <div>Workout ID is missing.</div>;
+    return <div className="text-red-600 text-center">Workout ID is missing.</div>;
   }
 
-  if (isLoading || isVideoProgressLoading) {
-    return <div>Loading workout details...</div>;
+  if (isLoading || isVideoProgressLoading || isWorkoutProgressLoading || isCreatingProgress) {
+    return <div className="text-center text-gray-600">Loading workout details...</div>;
   }
 
   if (isError || !paginatedData) {
-    return <div>Error fetching workout details. Please try again later.</div>;
+    return <div className="text-red-600 text-center">Error fetching workout details. Please try again later.</div>;
   }
 
   const workouts = paginatedData.data;
   const workout = workouts.find((w: Workout) => w.id === id || w._id === id);
 
   if (!workout) {
-    return <div>Workout not found.</div>;
+    return <div className="text-red-600 text-center">Workout not found.</div>;
   }
 
   if (!workout.exercises || workout.exercises.length === 0) {
-    return <div>This workout has no exercises.</div>;
+    return <div className="text-red-600 text-center">This workout has no exercises.</div>;
   }
 
   console.log("Workout data:", workout);
 
   const safeExerciseIndex = Math.min(Math.max(0, currentExerciseIdx), workout.exercises.length - 1);
   const currentExercise = workout.exercises[safeExerciseIndex];
-  const currentExerciseId = currentExercise.id || currentExercise._id;
+  const currentExerciseId = currentExercise?.id || currentExercise?._id;
 
   if (!currentExerciseId || !isValidObjectId(currentExerciseId)) {
     console.error("Invalid exerciseId for current exercise:", currentExercise);
-    return <div>Error: Current exercise is missing a valid ID.</div>;
+    return <div className="text-red-600 text-center">Error: Current exercise is missing a valid ID.</div>;
   }
 
-  const markExerciseAsCompleted = (exerciseId: string) => {
-    if (!isValidObjectId(exerciseId)) {
-      console.error("Invalid exerciseId in markExerciseAsCompleted:", exerciseId);
-      return;
-    }
+  const completionTime = workoutProgress.exerciseProgress?.length
+    ? new Date(
+        workoutProgress.exerciseProgress[workoutProgress.exerciseProgress.length - 1].lastUpdated || Date.now()
+      ).toISOString()
+    : new Date().toISOString();
 
-    if (!workoutProgress.completedExercises.includes(exerciseId)) {
-      const newCompletedExercises = [...workoutProgress.completedExercises, exerciseId];
-      const newExerciseProgress = [
-        ...workoutProgress.exerciseProgress.filter((ep) => ep.exerciseId !== exerciseId),
-        { exerciseId, videoProgress: 100, status: "Completed" as const },
-      ];
-
-      setWorkoutProgress({
-        exerciseProgress: newExerciseProgress,
-        completedExercises: newCompletedExercises,
-      });
-
-      const isWorkoutComplete = newCompletedExercises.length === workout.exercises.length;
-      if (isWorkoutComplete) {
-        setWorkoutCompleted(true);
-      }
-
-      updateVideoProgress(
-        {
-          workoutId: workout.id || workout._id || "",
-          videoProgress: 100,
-          status: isWorkoutComplete ? "Completed" : "In Progress",
-          completedExercises: newCompletedExercises,
-          userId: userId || "",
-          exerciseId,
-        },
-        {
-          onError: (error) => {
-            console.error("Failed to update video progress:", error);
-          },
-          onSuccess: () => {
-            if (isWorkoutComplete && socket) {
-              socket.emit("workoutCompleted", { userId, workoutId: workout.id || workout._id });
-            }
-          },
-        }
-      );
-    }
+  const modalProps = {
+    isOpen: showCompletionModal,
+    onClose: () => {
+      setShowCompletionModal(false);
+      navigate("/");
+    },
+    userName: client?.name || "User",
+    workoutTitle: workout.title,
+    workoutCategory: workout.category?.name || "Workout",
+    difficulty: workout.difficulty,
+    exercisesCompleted: workoutProgress.completedExercises.length,
+    totalExercises: workout.exercises.length,
+    totalDuration: formatDuration(existingWorkoutProgress?.duration || 0),
+    caloriesBurned: existingWorkoutProgress?.caloriesBurned || 0,
+    exercises: workout.exercises.map((exercise: Exercise) => ({
+      name: exercise.name,
+      duration: formatDuration(exercise.duration || 0),
+    })),
+    completedAt: completionTime,
   };
 
   return (
     <AnimatedBackground>
-      <div className="container mx-auto px-4 py-6 mt-16">
+      <div className="container mx-auto px-4 py-8">
         <motion.div
           className="mb-6"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <Link
-            to="/workouts"
-            className="inline-flex items-center text-violet-600 hover:text-violet-800 transition-colors"
+            to="/"
+            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 transition-colors duration-200"
           >
             <ChevronLeft className="h-5 w-5 mr-1" />
-            <span>Back to Workouts</span>
+            Back to Workouts
           </Link>
         </motion.div>
 
+        {errorMessage && (
+          <motion.div
+            className="mb-6 p-4 bg-red-100 text-red-800 rounded-xl shadow"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            Error: {errorMessage}
+          </motion.div>
+        )}
+
         <motion.header
           className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <div className="flex flex-wrap items-center gap-4 mb-3">
-            <h1 className="text-3xl md:text-4xl font-bold text-violet-800">{workout.title}</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{workout.title}</h1>
             {workout.isPremium && (
-              <span className="bg-violet-600 text-white px-3 py-1 rounded-md text-sm font-semibold">
+              <span className="inline-block bg-indigo-600 text-white px-3 py-1 rounded-md text-sm font-medium">
                 PREMIUM
               </span>
             )}
           </div>
-          <p className="text-gray-700 mb-4 max-w-2xl">{workout.description}</p>
+          <p className="text-gray-600 mb-4 max-w-2xl">{workout.description}</p>
 
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-1 text-violet-700">
-              <Clock size={16} />
+          <div className="flex flex-wrap gap-4 text-gray-600">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-indigo-600" />
               <span>{workout.duration} min</span>
             </div>
-            <div className="flex items-center gap-1 text-violet-700">
-              <BarChart3 size={16} />
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-indigo-600" />
               <span>{workout.difficulty}</span>
             </div>
-            <div className="flex items-center gap-1 text-violet-700">
-              <Dumbbell size={16} />
+            <div className="flex items-center gap-2">
+              <Dumbbell className="h-5 w-5 text-indigo-600" />
               <span>{workout.exercises.length} exercises</span>
             </div>
           </div>
         </motion.header>
 
-        {workoutCompleted && (
+        {workoutCompleted && !showCompletionModal && (
           <motion.div
-            className="mb-6 p-4 bg-green-100 text-green-800 rounded-xl"
-            initial={{ opacity: 0, y: 20 }}
+            className="mb-6 p-4 bg-green-100 text-green-800 rounded-lg shadow"
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
@@ -251,57 +477,56 @@ const WorkoutDetails = () => {
           </motion.div>
         )}
 
+        <WorkoutCompletionModal {...modalProps} />
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <motion.div
-            className="lg:col-span-3 order-3 lg:order-1"
-            initial={{ opacity: 0, x: -20 }}
+            className="lg:col-span-3 order-2 lg:order-1"
+            initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <MusicPlayer category={workout.category} />
-            <div className="mt-6">
-              <ProgressTracker
-                totalExercises={workout.exercises.length}
-                completedExercises={workoutProgress.completedExercises.length}
-                currentExerciseIndex={safeExerciseIndex}
-                exerciseProgress={workoutProgress.exerciseProgress}
-                workout={workout}
-              />
-            </div>
+            <MusicPlayer className="mb-6" category={workout.category} />
+            <ProgressTracker
+              totalExercises={workout.exercises.length}
+              completedExercises={workoutProgress.completedExercises.length}
+              currentExerciseIndex={safeExerciseIndex}
+              exerciseProgress={workoutProgress.exerciseProgress}
+              workout={workout}
+            />
           </motion.div>
 
           <motion.div
             className="lg:col-span-9 order-1 lg:order-2"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <VideoPlayer
-              videoUrl={currentExercise.videoUrl}
+              videoUrl={currentExercise.videoUrl || ""}
               exerciseName={currentExercise.name}
               exerciseDescription={currentExercise.description}
-              workoutId={workout.id || workout._id || ""}
-              exerciseId={currentExerciseId}
-              userId={userId}
+              workoutId={workout.id || workout._id || id}
               completedExercises={workoutProgress.completedExercises}
-              onComplete={markExerciseAsCompleted}
+              onComplete={() => markExerciseAsCompleted(currentExerciseId)}
               onNext={() => {
                 if (safeExerciseIndex < workout.exercises.length - 1) {
-                  const nextIndex = safeExerciseIndex + 1;
-                  setCurrentExerciseIdx(nextIndex);
+                  setCurrentExerciseIdx(safeExerciseIndex + 1);
                 }
               }}
+              workout={workout}
+              userId={userId}
+              exerciseId={currentExerciseId}
             />
 
-            <div className="mt-6 flex justify-between">
+            <div className="mt-6 flex justify-between items-center">
               <button
-                className={`px-6 py-3 rounded-xl bg-white shadow-md text-violet-600 hover:bg-violet-50 transition-colors ${
+                className={`px-6 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-200 ${
                   safeExerciseIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 onClick={() => {
                   if (safeExerciseIndex > 0) {
-                    const prevIndex = safeExerciseIndex - 1;
-                    setCurrentExerciseIdx(prevIndex);
+                    setCurrentExerciseIdx(safeExerciseIndex - 1);
                   }
                 }}
                 disabled={safeExerciseIndex === 0}
@@ -310,20 +535,15 @@ const WorkoutDetails = () => {
               </button>
 
               <button
-                className="px-6 py-3 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-md flex items-center"
+                className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 flex items-center"
                 onClick={() => {
                   markExerciseAsCompleted(currentExerciseId);
                   if (safeExerciseIndex < workout.exercises.length - 1) {
-                    const nextIndex = safeExerciseIndex + 1;
-                    setCurrentExerciseIdx(nextIndex);
+                    setCurrentExerciseIdx(safeExerciseIndex + 1);
                   }
                 }}
               >
-                {safeExerciseIndex < workout.exercises.length - 1 ? (
-                  <>Next Exercise</>
-                ) : (
-                  <>Finish Workout</>
-                )}
+                {safeExerciseIndex < workout.exercises.length - 1 ? "Next Exercise" : "Finish Workout"}
                 <Play className="ml-2 h-4 w-4" />
               </button>
             </div>
@@ -332,11 +552,11 @@ const WorkoutDetails = () => {
               className="mt-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <h2 className="text-xl font-bold text-violet-800 mb-4">Exercises</h2>
-              <div className="bg-white rounded-xl overflow-hidden shadow-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Exercises</h2>
+              <div className="bg-white rounded-xl shadow-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {workout.exercises.map((exercise: Exercise, index: number) => {
                     const exerciseId = exercise.id || exercise._id;
                     if (!exerciseId || !isValidObjectId(exerciseId)) {

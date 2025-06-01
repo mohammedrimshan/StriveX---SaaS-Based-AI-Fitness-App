@@ -10,6 +10,7 @@ export interface IClientEntity extends IUserEntity {
   activityLevel?: ActivityLevel;
   healthConditions?: string[];
   waterIntake?: number;
+  waterIntakeTarget?: number;
   dietPreference?: string;
   equipmentAvailable?: string[];
   calorieTarget?: string;

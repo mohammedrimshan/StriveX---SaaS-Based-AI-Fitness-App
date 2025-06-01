@@ -5,10 +5,10 @@ import { ICommentRepository } from "@/entities/repositoryInterfaces/community/co
 import { IPostRepository } from "@/entities/repositoryInterfaces/community/post-repository.interface";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
+import { NotificationService } from "@/interfaceAdapters/services/notification.service";
 import { IMessageEntity } from "@/entities/models/message.entity";
 import { ICommentEntity } from "@/entities/models/comment.entity";
 import { IPostEntity } from "@/entities/models/post.entity";
-
 import {
   WORKOUT_TYPES,
   WorkoutType,
@@ -19,12 +19,19 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { Server as HttpServer } from "http";
 import { ILikePostUseCase } from "@/entities/useCaseInterfaces/community/like-post-usecase.interface";
-import { FrontendMessage,FrontendPost,UserSocket } from "@/entities/models/socket.entity";
+import {
+  FrontendMessage,
+  FrontendPost,
+  UserSocket,
+} from "@/entities/models/socket.entity";
+
 @injectable()
 export class SocketService {
   private io: Server;
-  private connectedUsers: Map<string, { socketId: string; role: RoleType }> =
-    new Map();
+  private connectedUsers: Map<
+    string,
+    { socketId: string; userId: string; role: RoleType }
+  > = new Map();
   private idMapping: Map<string, string> = new Map();
 
   constructor(
@@ -36,21 +43,23 @@ export class SocketService {
     @inject("IClientRepository") private _clientRepository: IClientRepository,
     @inject("ITrainerRepository")
     private _trainerRepository: ITrainerRepository,
-    @inject("ILikePostUseCase") private _likePostUseCase: ILikePostUseCase
+    @inject("ILikePostUseCase") private _likePostUseCase: ILikePostUseCase,
+    @inject("NotificationService") private _notificationService: NotificationService
   ) {
     this.io = new Server({
       cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
+        origin: "*",
         methods: ["GET", "POST"],
         credentials: true,
       },
-      pingTimeout: 60000,
+      pingTimeout: 120000,
       pingInterval: 25000,
+      
     });
   }
 
   private isValidRole(role: string): role is RoleType {
-    return ["client", "trainer", "admin"].includes(role);
+    return ["client", "trainer"].includes(role);
   }
 
   initialize(server: HttpServer): void {
@@ -119,9 +128,7 @@ export class SocketService {
                   isOnline: true,
                 });
               }
-            } else if (role === "admin") {
-              userExists = true;
-            }
+            } 
           } catch (error) {
             socket.emit("error", { message: "Error during authentication" });
             socket.disconnect();
@@ -139,6 +146,7 @@ export class SocketService {
 
           this.connectedUsers.set(standardizedUserId, {
             socketId: socket.id,
+            userId: userId,
             role,
           });
 
@@ -147,7 +155,17 @@ export class SocketService {
 
           socket.join("community");
           socket.emit("joinCommunity", { userId });
+          socket.join(`user:${userId}`); // Join user-specific room for notifications
+          const clientsInCommunity = await this.io.in("community").allSockets();
+          console.log(
+            `[DEBUG] User ${userId} joined community room. Clients in room: ${clientsInCommunity.size}`
+          );
 
+          this.idMapping.set(userId, socket.id);
+          socket.emit("registerSuccess", { userId });
+          console.log(
+            `[DEBUG] Registered user: ${userId}, role: ${role}, socket: ${socket.id}`
+          );
           try {
             const posts = await this._postRepository.find(
               { isDeleted: false },
@@ -255,15 +273,7 @@ export class SocketService {
                 });
                 return;
               }
-            } else if (role === "admin") {
-              author = {
-                _id: senderId,
-                firstName: "Admin",
-                lastName: "",
-                email: "admin@example.com",
-                profileImage: undefined,
-              };
-            }
+            } 
 
             if (!author) {
               socket.emit("error", {
@@ -338,6 +348,20 @@ export class SocketService {
         }
       );
 
+      socket.on("joinPost", (postId: string) => {
+        console.log(
+          `[DEBUG] User ${socket.userId} joining post room: post:${postId}`
+        );
+        socket.join(`post:${postId}`);
+      });
+
+      socket.on("leavePost", (postId: string) => {
+        console.log(
+          `[DEBUG] User ${socket.userId} leaving post room: post:${postId}`
+        );
+        socket.leave(`post:${postId}`);
+      });
+
       socket.on(
         "likePost",
         async ({
@@ -366,7 +390,7 @@ export class SocketService {
               postId,
               userId
             );
-            const clients = await this.io.in("community").allSockets();
+
             this.io.to("community").emit("postLiked", {
               postId,
               userId,
@@ -454,14 +478,6 @@ export class SocketService {
                 });
                 return;
               }
-            } else if (role === "admin") {
-              author = {
-                _id: senderId,
-                firstName: "Admin",
-                lastName: "",
-                email: "admin@example.com",
-                profileImage: undefined,
-              };
             }
 
             const comment: Partial<ICommentEntity> = {
@@ -568,6 +584,30 @@ export class SocketService {
               this.io
                 .to(receiverSocketId)
                 .emit("receiveMessage", { ...frontendMessage, tempId });
+            }
+
+            if (senderId !== receiverId) {
+              let senderName = "Someone";
+              try {
+                const client = await this._clientRepository.findByClientId(senderId) ||
+                                await this._clientRepository.findById(senderId);
+                if (client) {
+                  senderName = `${client.firstName} ${client.lastName}`;
+                } else {
+                  const trainer = await this._trainerRepository.findById(senderId);
+                  if (trainer) {
+                    senderName = `${trainer.firstName} ${trainer.lastName}`;
+                  }
+                }
+                await this._notificationService.sendToUser(
+                  receiverId,
+                  "New Message",
+                  `${senderName} sent you a new message!`,
+                  "INFO"
+                );
+              } catch (error) {
+                console.error(`Failed to send notification: ${(error as Error).message}`);
+              }
             }
           } catch (error) {
             socket.emit("error", {
@@ -745,6 +785,14 @@ export class SocketService {
         });
       });
 
+      socket.on("getRooms", (callback: (rooms: string[]) => void) => {
+        const rooms = Array.from(socket.rooms).filter(
+          (room) => room !== socket.id
+        );
+        console.log(`[DEBUG] Rooms for socket ${socket.id}:`, rooms);
+        callback(rooms);
+      });
+
       socket.on("disconnect", async (reason) => {
         if (socket.userId && socket.role) {
           try {
@@ -757,8 +805,7 @@ export class SocketService {
                 isOnline: false,
               });
             }
-          } catch (error) {
-          }
+          } catch (error) {}
 
           this.connectedUsers.delete(socket.userId);
           await this.notifyUserStatus(socket.userId, socket.role, false);
@@ -813,8 +860,7 @@ export class SocketService {
           }
         }
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   private async validateRelationship(
@@ -880,8 +926,7 @@ export class SocketService {
           }
         }
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   private getReceiverIdFromChatId(

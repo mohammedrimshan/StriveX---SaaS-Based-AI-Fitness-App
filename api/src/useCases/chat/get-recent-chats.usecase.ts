@@ -40,20 +40,16 @@ export class GetRecentChatsUseCase implements IGetRecentChatsUseCase {
     let currentUserStatus: "online" | "offline" = "offline";
 
     const currentClient = await this._clientRepository.findByClientId(userId);
-    console.log(`Current user client lookup for ${userId}: ${JSON.stringify(currentClient)}`);
     if (currentClient) {
       currentUserName = `${currentClient.firstName} ${currentClient.lastName}`;
       currentUserAvatar = currentClient.profileImage || "";
       currentUserStatus = currentClient.isOnline ? "online" : "offline";
     } else {
       const currentTrainer = await this._trainerRepository.findById(userId);
-      console.log(`Current user trainer lookup for ${userId}: ${JSON.stringify(currentTrainer)}`);
       if (currentTrainer) {
         currentUserName = `${currentTrainer.firstName} ${currentTrainer.lastName}`;
         currentUserAvatar = currentTrainer.profileImage || "";
         currentUserStatus = currentTrainer.isOnline ? "online" : "offline";
-      } else {
-        console.warn(`Current user not found for ID: ${userId} in client or trainer collections`);
       }
     }
 
@@ -67,20 +63,16 @@ export class GetRecentChatsUseCase implements IGetRecentChatsUseCase {
         let participantStatus: "online" | "offline" = "offline";
 
         const client = await this._clientRepository.findByClientId(otherUserId);
-        console.log(`Client lookup for ${otherUserId}: ${JSON.stringify(client)}`);
         if (client) {
           participantName = `${client.firstName} ${client.lastName}`;
           participantAvatar = client.profileImage || "";
           participantStatus = client.isOnline ? "online" : "offline";
         } else {
           const trainer = await this._trainerRepository.findById(otherUserId);
-          console.log(`Trainer lookup for ${otherUserId}: ${JSON.stringify(trainer)}`);
           if (trainer) {
             participantName = `${trainer.firstName} ${trainer.lastName}`;
             participantAvatar = trainer.profileImage || "";
             participantStatus = trainer.isOnline ? "online" : "offline";
-          } else {
-            console.warn(`No user found for ID: ${otherUserId} in client or trainer collections`);
           }
         }
 

@@ -24,9 +24,7 @@ export class TrainerRepository extends BaseRepository<ITrainerEntity> implements
   }
 
   async findById(id: string): Promise<ITrainerEntity | null> {
-    console.log(`Querying trainer with id or clientId: ${id}`);
     const trainer = await this.model.findOne({ $or: [{ _id: id }, { clientId: id }] }).lean();
-    console.log(`Trainer query result: ${JSON.stringify(trainer)}`);
     if (!trainer) return null;
     return this.mapToEntity(trainer);
   }

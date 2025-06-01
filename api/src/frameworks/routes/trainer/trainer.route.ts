@@ -14,6 +14,8 @@ import {
   chatController,
   commentController,
   postController,
+  videoCallController,
+  notificationController
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -277,5 +279,87 @@ export class TrainerRoutes extends BaseRoute {
         commentController.reportComment(req, res);
       }
     );
+
+    router.get(
+      "/trainer/slotbooks",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.getBookedTrainerSlots(req, res);
+      }
+    );
+
+    router.post(
+      "/trainer/video-call/start/:slotId",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        videoCallController.startVideoCall(req, res);
+      }
+    );
+
+    router.post(
+      "/trainer/video-call/join/:slotId",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        videoCallController.joinVideoCall(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/video-call/:slotId",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        videoCallController.getVideoCallDetails(req, res);
+      }
+    );
+
+    router.post(
+      "/trainer/video-call/:slotId/end",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        videoCallController.endVideoCall(req, res);
+      }
+    );
+
+
+     router.post(
+      "/trainer/update-fcm-token",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.updateFCMToken(req, res);
+      }
+    );
+
+    router.patch(
+      "/trainer/notifications/:notificationId/read",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.markNotificationAsRead(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/notifications",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.getUserNotifications(req, res);
+      }
+    );
+
   }
 }

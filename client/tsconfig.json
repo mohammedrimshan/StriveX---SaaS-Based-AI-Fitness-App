@@ -9,6 +9,6 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["next", "next/types/global"]
+    "types": ["next", "next/types/global","@types/socket.io-client"]
   }
 }

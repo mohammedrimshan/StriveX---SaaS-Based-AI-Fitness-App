@@ -3,7 +3,7 @@ import { IWorkoutVideoProgressModel } from "../models/workout-video-progress.mod
 
 export const WorkoutVideoProgressSchema = new Schema<IWorkoutVideoProgressModel>(
   {
-    userId: { type: String, required: true, ref: "Client" },
+    userId: { type: Schema.Types.ObjectId, required: true, ref: "Client" },
     workoutId: { type: Schema.Types.ObjectId, required: true, ref: "Workout" },
     exerciseProgress: [
       {

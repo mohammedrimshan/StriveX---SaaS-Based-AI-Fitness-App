@@ -1,6 +1,6 @@
 import { Schema,Types } from "mongoose";
 import { ISlotModel } from "../models/slot.model";
-import { SlotStatus } from "@/shared/constants";
+import { SlotStatus, VideoCallStatus } from "@/shared/constants";
 
 export const slotSchema = new Schema<ISlotModel>(
   {
@@ -29,7 +29,14 @@ export const slotSchema = new Schema<ISlotModel>(
     isBooked: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true },
     expiresAt: { type: Date },
-    cancellationReason: { type: String, required: false }
+    cancellationReason: { type: String, required: false },
+    videoCallRoomName: { type: String, required: false }, 
+    videoCallJwt: { type: String, required: false },
+    videoCallStatus: {
+      type: String,
+      enum: Object.values(VideoCallStatus),
+      default: VideoCallStatus.NOT_STARTED,
+    },
   },
   {
     timestamps: true,
@@ -38,3 +45,4 @@ export const slotSchema = new Schema<ISlotModel>(
 
 slotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 slotSchema.index({ trainerId: 1, startTime: 1, endTime: 1 });
+slotSchema.index({ videoCallRoomName: 1 });

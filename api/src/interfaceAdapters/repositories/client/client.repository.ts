@@ -7,7 +7,10 @@ import { TrainerSelectionStatus } from "@/shared/constants";
 import { PipelineStage } from "mongoose";
 
 @injectable()
-export class ClientRepository extends BaseRepository<IClientEntity> implements IClientRepository {
+export class ClientRepository
+  extends BaseRepository<IClientEntity>
+  implements IClientRepository
+{
   constructor() {
     super(ClientModel);
   }
@@ -16,7 +19,10 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
     return this.findOneAndMap({ email });
   }
 
-  async updateByEmail(email: string, updates: Partial<IClientEntity>): Promise<IClientEntity | null> {
+  async updateByEmail(
+    email: string,
+    updates: Partial<IClientEntity>
+  ): Promise<IClientEntity | null> {
     return this.findOneAndUpdateAndMap({ email }, updates);
   }
 
@@ -34,17 +40,29 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
     return byClientId ? this.mapToEntity(byClientId) : null;
   }
 
-  async updateByClientId(clientId: string, updates: Partial<IClientEntity>): Promise<IClientEntity | null> {
+  async updateByClientId(
+    clientId: string,
+    updates: Partial<IClientEntity>
+  ): Promise<IClientEntity | null> {
     return this.findOneAndUpdateAndMap({ clientId }, updates);
   }
 
-  async updatePremiumStatus(clientId: string, isPremium: boolean): Promise<IClientEntity> {
-    const updated = await this.findOneAndUpdateAndMap({ clientId }, { isPremium });
+  async updatePremiumStatus(
+    clientId: string,
+    isPremium: boolean
+  ): Promise<IClientEntity> {
+    const updated = await this.findOneAndUpdateAndMap(
+      { clientId },
+      { isPremium }
+    );
     if (!updated) throw new Error("Client not found");
     return updated;
   }
 
-  async findByIdAndUpdate(id: any, updateData: Partial<IClientEntity>): Promise<IClientEntity | null> {
+  async findByIdAndUpdate(
+    id: any,
+    updateData: Partial<IClientEntity>
+  ): Promise<IClientEntity | null> {
     const client = await this.model
       .findByIdAndUpdate(id, { $set: updateData }, { new: true })
       .lean();
@@ -93,12 +111,18 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
           selectStatus: 1,
           createdAt: 1,
           updatedAt: 1,
-          trainerName: { $concat: ["$trainer.firstName", " ", "$trainer.lastName"] },
+          trainerName: {
+            $concat: ["$trainer.firstName", " ", "$trainer.lastName"],
+          },
         },
       },
       {
         $facet: {
-          items: [{ $sort: { createdAt: -1 } }, { $skip: skip }, { $limit: limit }],
+          items: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
           total: [{ $count: "count" }],
         },
       },
@@ -129,5 +153,71 @@ export class ClientRepository extends BaseRepository<IClientEntity> implements I
       console.error(`Error finding clients by clientIds:`, error);
       throw error;
     }
+  }
+
+  async findAcceptedClients(
+    trainerId: string,
+    skip: number,
+    limit: number
+  ): Promise<{ items: IClientEntity[] | []; total: number }> {
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          selectedTrainerId: trainerId,
+          selectStatus: TrainerSelectionStatus.ACCEPTED,
+        },
+      },
+      {
+        $project: {
+          clientId: 1,
+          firstName: 1,
+          lastName: 1,
+          profileImage: 1,
+          email: 1,
+          phoneNumber: 1,
+          fitnessGoal: 1,
+          experienceLevel: 1,
+          preferredWorkout: 1,
+          selectStatus: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          height: 1,
+          weight: 1,
+          status: 1,
+          googleId: 1,
+          activityLevel: 1,
+          healthConditions: 1,
+          waterIntake: 1,
+          dietPreference: 1,
+          isPremium: 1,
+          sleepFrom: 1,
+          wakeUpAt: 1,
+          skillsToGain: 1,
+          selectionMode: 1,
+          matchedTrainers: 1,
+        },
+      },
+      {
+        $facet: {
+          items: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+          total: [{ $count: "count" }],
+        },
+      },
+      {
+        $project: {
+          items: 1,
+          total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
+        },
+      },
+    ];
+
+    const result = await this.model.aggregate(pipeline).exec();
+    const { items, total } = result[0] || { items: [], total: 0 };
+    const transformedItems = items.map((item: any) => this.mapToEntity(item));
+    return { items: transformedItems, total };
   }
 }

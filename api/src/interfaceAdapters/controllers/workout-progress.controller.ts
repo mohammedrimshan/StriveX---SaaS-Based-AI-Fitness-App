@@ -22,28 +22,30 @@ export class WorkoutProgressController implements IWorkoutProgressController {
   ) {}
 
   async createProgress(req: Request, res: Response): Promise<void> {
-    try {
-      const { userId, workoutId, duration, date, completed } = req.body;
-
-      console.log(userId, workoutId, duration, date, completed, "createProgress");
-
-      const progress = await this.createWorkoutProgressUseCase.execute({
-        userId,
-        workoutId,
-        duration,
-        date: date ? new Date(date) : undefined,
-        completed: completed || false, 
-      });
-
-      res.status(HTTP_STATUS.CREATED).json({
-        status: "success",
-        data: progress,
-        message: "Workout progress created successfully",
-      });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
+  try {
+    const { userId, workoutId, categoryId,duration, date, completed, caloriesBurned } = req.body;
+    console.log(userId, workoutId,categoryId, duration, date, completed, caloriesBurned, "Request body in createProgress");
+    console.log("createProgress received:", { userId, workoutId, categoryId ,duration, date, completed, caloriesBurned });
+    const progress = await this.createWorkoutProgressUseCase.execute({
+      userId,
+      workoutId,
+      categoryId,
+      duration,
+      date: date ? new Date(date) : undefined,
+      caloriesBurned,
+      completed: completed || false,
+    });
+    console.log("Progress created:", progress);
+    res.status(HTTP_STATUS.CREATED).json({
+      status: "success",
+      data: progress,
+      message: "Workout progress created successfully",
+    });
+  } catch (error) {
+    console.error("createProgress error:", error);
+    handleErrorResponse(res, error);
   }
+}
 
   async updateProgress(req: Request, res: Response): Promise<void> {
     try {
@@ -108,6 +110,7 @@ export class WorkoutProgressController implements IWorkoutProgressController {
   async getUserProgressMetrics(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
+      console.log(userId, "User ID in getUserProgressMetrics");
       const { startDate, endDate } = req.query;
 
       const metrics = await this.getUserProgressMetricsUseCase.execute(

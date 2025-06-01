@@ -42,6 +42,10 @@ import { ICommentRepository } from "@/entities/repositoryInterfaces/community/co
 import { CommentRepository } from "@/interfaceAdapters/repositories/community/comment.repository";
 import { INotificationRepository } from "@/entities/repositoryInterfaces/notification/notification-repository.interface";
 import { NotificationRepository } from "@/interfaceAdapters/repositories/notification/notification.repository";
+import { ICancellationRepository } from "@/entities/repositoryInterfaces/slot/cancellation.repository.interface";
+import { CancellationRepository } from "@/interfaceAdapters/repositories/slot/cancellation.repository";
+import { IClientProgressHistoryRepository } from "@/entities/repositoryInterfaces/progress/client-progress-history-repository.interface";
+import { ClientProgressHistoryRepository } from "@/interfaceAdapters/repositories/progress/client-progress-history.repository";
 export class RepositoryRegistry {
   static registerRepositories(): void {
     container.register<IClientRepository>("IClientRepository", {
@@ -133,5 +137,16 @@ export class RepositoryRegistry {
     container.register<INotificationRepository>("INotificationRepository", {
       useClass: NotificationRepository,
     });
+
+    container.register<ICancellationRepository>("ICancellationRepository", {
+      useClass: CancellationRepository,
+    });
+
+    container.register<IClientProgressHistoryRepository>(
+      "IClientProgressHistoryRepository",
+      {
+        useClass: ClientProgressHistoryRepository,
+      }
+    );
   }
 }

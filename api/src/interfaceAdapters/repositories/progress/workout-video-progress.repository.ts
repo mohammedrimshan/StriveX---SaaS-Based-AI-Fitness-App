@@ -26,8 +26,9 @@ export class WorkoutVideoProgressRepository
   }
 
   async findUserVideoProgress(userId: string, skip = 0, limit = 10) {
+    console.log(userId," USER ID IN FIND USER VIDEO PROGRESS");
     const [data] = await this.model.aggregate([
-      { $match: { userId } },
+     { $match: { userId: new Types.ObjectId(userId) } },
       {
         $facet: {
           items: [
@@ -87,6 +88,7 @@ export class WorkoutVideoProgressRepository
         },
       },
     ]);
+    console.log("Aggregation Result for findUserVideoProgress :", JSON.stringify(data, null, 2));
 
     const total = data?.total?.[0]?.count || 0;
     return { items: data?.items || [], total };
@@ -196,12 +198,20 @@ export class WorkoutVideoProgressRepository
   }
 
   protected mapToEntity(doc: any): IWorkoutVideoProgressEntity {
-    const { _id, __v, workoutId, completedExercises, ...rest } = doc;
-    return {
-      ...rest,
-      id: _id?.toString(),
-      workoutId: workoutId?._id?.toString() || workoutId,
-      completedExercises: completedExercises.map((id: any) => id.toString()),
-    } as IWorkoutVideoProgressEntity;
-  }
+  const { _id, __v, workoutId, userId, completedExercises, exerciseProgress, ...rest } = doc;
+  return {
+    ...rest,
+    id: _id?.toString(),
+    workoutId: workoutId?._id?.toString() || workoutId?.toString(),
+    userId: userId?.toString(),
+    completedExercises: completedExercises?.map((id: any) => id.toString()) || [],
+    exerciseProgress: exerciseProgress?.map((ep: any) => ({
+      ...ep,
+      exerciseId: ep.exerciseId?.toString(),
+      lastUpdated: ep.lastUpdated || new Date(),
+      exerciseDetails: ep.exerciseDetails || {}, 
+    })) || [],
+    status: rest.status, 
+  } as IWorkoutVideoProgressEntity;
+}
 }

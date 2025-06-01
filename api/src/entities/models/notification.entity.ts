@@ -6,4 +6,5 @@ export interface INotificationEntity {
   type: 'INFO' | 'WARNING' | 'ERROR' | 'SUCCESS';
   isRead: boolean;
   createdAt: Date;
+   _id?: string;
 }

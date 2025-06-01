@@ -40,8 +40,6 @@ export class GetAllPaginatedCategoryUseCase implements IGetAllPaginatedCategoryU
       total: Math.ceil(total / validPageSize), 
       all: total, 
     };
-
-    console.log("Response:", response);
     return response;
   }
 }

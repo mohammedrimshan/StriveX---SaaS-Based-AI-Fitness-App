@@ -10,7 +10,6 @@ export const useCreateWorkoutProgress = () => {
 
   return useMutation<IWorkoutProgressEntity, Error, CreateWorkoutProgressData>({
     mutationFn: (data: CreateWorkoutProgressData) => {
-      // Ensure userId is included in the data
       if (!data.userId) {
         console.error("userId is required in createWorkoutProgress");
         return Promise.reject(new Error("userId is required"));
