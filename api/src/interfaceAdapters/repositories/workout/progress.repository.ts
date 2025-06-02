@@ -1,4 +1,4 @@
-// api/src/interfaceAdapters/repositories/workout/progress.repository.ts
+
 import { injectable } from "tsyringe";
 import { IProgressRepository } from "@/entities/repositoryInterfaces/workout/progress-repository.interface";
 import { ProgressModel } from "@/frameworks/database/mongoDB/models/progress.model";

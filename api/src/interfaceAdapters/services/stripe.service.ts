@@ -50,7 +50,7 @@ export class StripeService implements IStripeService {
       cancel_url: cancelUrl,
       metadata: { clientId, planId: plan.id, sessionId: "<will be set after creation>" },
       payment_intent_data: {
-        metadata: { clientId }, // Add clientId to payment_intent metadata
+        metadata: { clientId }, 
       },
     });
 
@@ -58,7 +58,6 @@ export class StripeService implements IStripeService {
       throw new CustomError("Failed to create checkout session", HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
 
-    // Update session metadata with sessionId
     await this.stripe.checkout.sessions.update(session.id, {
       metadata: { clientId, planId: plan.id, sessionId: session.id },
     });

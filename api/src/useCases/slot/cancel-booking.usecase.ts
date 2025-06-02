@@ -15,15 +15,23 @@ import { NotificationService } from "../../interfaceAdapters/services/notificati
 export class CancelBookingUseCase implements ICancelBookingUseCase {
   constructor(
     @inject("ISlotRepository") private slotRepository: ISlotRepository,
-    @inject("ICancellationRepository") private cancellationRepository: ICancellationRepository,
+    @inject("ICancellationRepository")
+    private cancellationRepository: ICancellationRepository,
     @inject("IClientRepository") private clientRepository: IClientRepository,
     @inject("ITrainerRepository") private trainerRepository: ITrainerRepository,
-    @inject("NotificationService") private notificationService: NotificationService
+    @inject("NotificationService")
+    private notificationService: NotificationService
   ) {}
 
-  async execute(clientId: string, slotId: string, cancellationReason?: string): Promise<ISlotEntity> {
-    // Validate the slot and check if it exists and is booked by the client
-    const slot = await this.slotRepository.findBookedSlotByClientId(clientId, slotId);
+  async execute(
+    clientId: string,
+    slotId: string,
+    cancellationReason?: string
+  ): Promise<ISlotEntity> {
+    const slot = await this.slotRepository.findBookedSlotByClientId(
+      clientId,
+      slotId
+    );
     if (!slot) {
       throw new CustomError(
         ERROR_MESSAGES.SLOT_NOT_FOUND_OR_NOT_BOOKED,
@@ -31,7 +39,6 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
       );
     }
 
-    // Validate slot date and time
     const [year, month, day] = slot.date.split("-").map(Number);
     const [hours, minutes] = slot.startTime.split(":").map(Number);
     const slotStartTime = new Date(year, month - 1, day, hours, minutes);
@@ -43,8 +50,9 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
       );
     }
 
-    // Check if cancellation is within 30 minutes of the slot start time
-    const cancellationThreshold = new Date(slotStartTime.getTime() - 30 * 60 * 1000);
+    const cancellationThreshold = new Date(
+      slotStartTime.getTime() - 30 * 60 * 1000
+    );
     if (new Date() > cancellationThreshold) {
       throw new CustomError(
         ERROR_MESSAGES.CANNOT_CANCEL_WITHIN_30_MINUTES,
@@ -52,7 +60,6 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
       );
     }
 
-    // Validate cancellation reason
     if (!cancellationReason || cancellationReason.trim() === "") {
       throw new CustomError(
         "Cancellation reason is required",
@@ -60,7 +67,6 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
       );
     }
 
-    // Update the slot status to AVAILABLE
     const updatedSlot = await this.slotRepository.updateStatus(
       slotId,
       SlotStatus.AVAILABLE,
@@ -75,7 +81,6 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
       );
     }
 
-    // Save cancellation details in the Cancellation collection
     const cancellationData: Partial<ICancellationEntity> = {
       slotId: slotId,
       clientId: clientId,
@@ -85,7 +90,6 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
     };
     await this.cancellationRepository.save(cancellationData);
 
-    // Send notification to the trainer
     try {
       let clientName = "Someone";
       const client = await this.clientRepository.findByClientNewId(clientId);
@@ -103,7 +107,6 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
         );
       }
     } catch (error) {
-      // Silently catch notification errors to avoid blocking the cancellation operation
       console.error("Notification error:", error);
     }
 

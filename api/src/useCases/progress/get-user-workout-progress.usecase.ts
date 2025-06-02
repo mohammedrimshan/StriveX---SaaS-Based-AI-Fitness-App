@@ -28,7 +28,6 @@ export class GetUserWorkoutProgressUseCase implements IGetUserWorkoutProgressUse
       throw new CustomError("Start date must be before end date", HTTP_STATUS.BAD_REQUEST);
     }
 
-    // Retrieve progress
     return this.workoutProgressRepository.findUserProgress(userId, skip, limit, startDate, endDate);
   }
 }

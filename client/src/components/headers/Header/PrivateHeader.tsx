@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,14 +37,15 @@ import {
   LogOut,
   HelpCircle,
   Dumbbell,
+  Badge,
 } from "lucide-react";
+import { useNotifications } from "@/context/NotificationContext"; 
 
 interface HeaderProps {
   userName?: string;
   userLocation?: string;
   userAvatar?: string;
-  userType: "admin" | "trainer" | "user"; // Make userType required
-  notifications?: number;
+  userType: "admin" | "trainer" | "user";
   onSidebarToggle?: () => void;
   onLogout: () => void;
   className?: string;
@@ -60,12 +55,12 @@ export function PrivateHeader({
   userName = "Alex Johnson",
   userLocation = "New York, US",
   userAvatar = "",
-  userType, // No default value, enforce passing it
-  notifications = 3,
+  userType,
   onSidebarToggle,
   onLogout,
   className,
 }: HeaderProps) {
+  const { unreadCount } = useNotifications(); // Use the hook to get unreadCount
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -145,7 +140,24 @@ export function PrivateHeader({
         navigate("/profile");
         break;
       default:
-        navigate("/profile"); // Fallback
+        navigate("/profile");
+    }
+  };
+
+  // Dynamic notifications navigation
+  const handleNotifications = () => {
+    switch (userType) {
+      case "admin":
+        navigate("/admin/notifications");
+        break;
+      case "trainer":
+        navigate("/trainer/notifications");
+        break;
+      case "user":
+        navigate("/notifications");
+        break;
+      default:
+        navigate("/notifications");
     }
   };
 
@@ -185,7 +197,7 @@ export function PrivateHeader({
                   onClick={() => setOpen(true)}
                   className="w-full justify-between text-muted-foreground"
                 >
-                  <div className="flex items-center">
+                  <div className="flex itemscanter">
                     <Search className="mr-2 h-4 w-4" />
                     <span>
                       {userType === "admin"
@@ -241,7 +253,7 @@ export function PrivateHeader({
         {/* Right Section */}
         <div className="ml-8 flex items-center space-x-6">
           {/* User Info */}
-          <div className="hiddenmehidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
             <div className="flex flex-col items-end">
               <span className="text-sm font-medium">Hi, {userName}</span>
               <div className="flex items-center text-xs text-muted-foreground">
@@ -255,52 +267,19 @@ export function PrivateHeader({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="relative">
-                        <Bell className="h-5 w-5" />
-                        {notifications > 0 && (
-                          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-white flex items-center justify-center">
-                            {notifications}
-                          </span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80" align="end">
-                      <div className="space-y-2">
-                        <h4 className="font-medium leading-none">Notifications</h4>
-                        <p className="text-sm text-muted-foreground">
-                          You have {notifications} unread notifications.
-                        </p>
-                        <div className="border-t border-border pt-2 mt-2">
-                          <div className="flex items-start space-x-2 mb-2">
-                            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white">
-                              <Dumbbell className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Workout Reminder</p>
-                              <p className="text-xs text-muted-foreground">
-                                Your scheduled workout starts in 30 minutes
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center text-white">
-                              <MapPin className="h-4 w-4" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Weekly Goal Progress</p>
-                              <p className="text-xs text-muted-foreground">
-                                You've completed 75% of your weekly fitness goal
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={handleNotifications}
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
               </TooltipTrigger>
               <TooltipContent>Notifications</TooltipContent>
             </Tooltip>
@@ -332,6 +311,10 @@ export function PrivateHeader({
                         <DropdownMenuItem className="cursor-pointer" onClick={handleProfile}>
                           <User className="mr-2 h-4 w-4" />
                           <span>Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={handleNotifications}>
+                          <Bell className="mr-2 h-4 w-4" />
+                          <span>Notifications</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer">
                           <Settings2 className="mr-2 h-4 w-4" />

@@ -65,6 +65,7 @@ const WorkoutDetails = () => {
 
   const { data: paginatedData, isLoading, isError } = useAllWorkouts(1, 10, {});
   const { data: videoProgressData, isLoading: isVideoProgressLoading } = useGetUserWorkoutVideoProgress(userId || "");
+  console.log( "Video progress data:", videoProgressData);
   const { data: workoutProgressData, isLoading: isWorkoutProgressLoading } = useGetUserWorkoutProgress(userId || "");
   const { mutate: updateVideoProgress } = useUpdateWorkoutVideoProgress();
   const { mutate: createWorkoutProgress, isLoading: isCreatingProgress } = useCreateWorkoutProgress();

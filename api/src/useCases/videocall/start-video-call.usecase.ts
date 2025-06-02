@@ -72,8 +72,6 @@ export class StartVideoCallUseCase implements IStartVideoCallUseCase {
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }
-
-    console.log("StartVideoCallUseCase - Updated slot:", updatedSlot);
     return updatedSlot;
   }
 }

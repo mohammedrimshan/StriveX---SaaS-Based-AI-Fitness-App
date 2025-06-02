@@ -26,9 +26,8 @@ export class WorkoutVideoProgressRepository
   }
 
   async findUserVideoProgress(userId: string, skip = 0, limit = 10) {
-    console.log(userId," USER ID IN FIND USER VIDEO PROGRESS");
     const [data] = await this.model.aggregate([
-     { $match: { userId: new Types.ObjectId(userId) } },
+      { $match: { userId: new Types.ObjectId(userId) } },
       {
         $facet: {
           items: [
@@ -88,7 +87,6 @@ export class WorkoutVideoProgressRepository
         },
       },
     ]);
-    console.log("Aggregation Result for findUserVideoProgress :", JSON.stringify(data, null, 2));
 
     const total = data?.total?.[0]?.count || 0;
     return { items: data?.items || [], total };
@@ -104,7 +102,10 @@ export class WorkoutVideoProgressRepository
     clientTimestamp: string = new Date().toISOString()
   ): Promise<IWorkoutVideoProgressEntity> {
     if (!Types.ObjectId.isValid(exerciseId)) {
-      throw new CustomError("Invalid exerciseId format", HTTP_STATUS.BAD_REQUEST);
+      throw new CustomError(
+        "Invalid exerciseId format",
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     const exerciseObjectId = new Types.ObjectId(exerciseId);
@@ -113,7 +114,10 @@ export class WorkoutVideoProgressRepository
       .filter((id) => Types.ObjectId.isValid(id))
       .map((id) => new Types.ObjectId(id));
 
-    if (status === "Completed" && !validCompletedExercises.some((id) => id.equals(exerciseObjectId))) {
+    if (
+      status === "Completed" &&
+      !validCompletedExercises.some((id) => id.equals(exerciseObjectId))
+    ) {
       validCompletedExercises.push(exerciseObjectId);
     }
 
@@ -135,10 +139,11 @@ export class WorkoutVideoProgressRepository
 
     if (
       !Array.isArray(currentProgress) &&
-      currentProgress?.exerciseProgress?.some((ep: any) =>
-        ep.exerciseId.equals(exerciseObjectId) &&
-        ep.status === "Completed" &&
-        status !== "Completed"
+      currentProgress?.exerciseProgress?.some(
+        (ep: any) =>
+          ep.exerciseId.equals(exerciseObjectId) &&
+          ep.status === "Completed" &&
+          status !== "Completed"
       )
     ) {
       return this.mapToEntity(currentProgress);
@@ -191,27 +196,40 @@ export class WorkoutVideoProgressRepository
     }
 
     if (!progress) {
-      throw new CustomError("Failed to update video progress", HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      throw new CustomError(
+        "Failed to update video progress",
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );
     }
 
     return this.mapToEntity(progress);
   }
 
   protected mapToEntity(doc: any): IWorkoutVideoProgressEntity {
-  const { _id, __v, workoutId, userId, completedExercises, exerciseProgress, ...rest } = doc;
-  return {
-    ...rest,
-    id: _id?.toString(),
-    workoutId: workoutId?._id?.toString() || workoutId?.toString(),
-    userId: userId?.toString(),
-    completedExercises: completedExercises?.map((id: any) => id.toString()) || [],
-    exerciseProgress: exerciseProgress?.map((ep: any) => ({
-      ...ep,
-      exerciseId: ep.exerciseId?.toString(),
-      lastUpdated: ep.lastUpdated || new Date(),
-      exerciseDetails: ep.exerciseDetails || {}, 
-    })) || [],
-    status: rest.status, 
-  } as IWorkoutVideoProgressEntity;
-}
+    const {
+      _id,
+      __v,
+      workoutId,
+      userId,
+      completedExercises,
+      exerciseProgress,
+      ...rest
+    } = doc;
+    return {
+      ...rest,
+      id: _id?.toString(),
+      workoutId: workoutId?._id?.toString() || workoutId?.toString(),
+      userId: userId?.toString(),
+      completedExercises:
+        completedExercises?.map((id: any) => id.toString()) || [],
+      exerciseProgress:
+        exerciseProgress?.map((ep: any) => ({
+          ...ep,
+          exerciseId: ep.exerciseId?.toString(),
+          lastUpdated: ep.lastUpdated || new Date(),
+          exerciseDetails: ep.exerciseDetails || {},
+        })) || [],
+      status: rest.status,
+    } as IWorkoutVideoProgressEntity;
+  }
 }

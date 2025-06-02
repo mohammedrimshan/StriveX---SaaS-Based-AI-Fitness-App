@@ -41,7 +41,7 @@ export class PaymentRepository extends BaseRepository<IPaymentEntity> implements
   async updatePaymentStatus(
     stripePaymentId: string,
     status: string,
-    clientId?: string // Changed from userId to clientId
+    clientId?: string 
   ): Promise<IPaymentEntity> {
     try {
       const updateData: any = { status };

@@ -1,4 +1,4 @@
-// D:\StriveX\api\src\interfaceAdapters\repositories\notification.repository.ts
+
 import { injectable } from "tsyringe";
 import { INotificationRepository } from "@/entities/repositoryInterfaces/notification/notification-repository.interface";
 import { INotificationEntity } from "@/entities/models/notification.entity";

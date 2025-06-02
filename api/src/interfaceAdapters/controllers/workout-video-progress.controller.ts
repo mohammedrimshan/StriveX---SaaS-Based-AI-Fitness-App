@@ -20,7 +20,6 @@ export class WorkoutVideoProgressController implements IWorkoutVideoProgressCont
   async updateVideoProgress(req: Request, res: Response): Promise<void> {
     try {
       const { userId, workoutId, videoProgress, exerciseId, status, completedExercises } = req.body;
-      console.log(userId, workoutId, videoProgress, exerciseId, status, completedExercises, "updateVideoProgress");
       
       const progress = await this.updateVideoProgressUseCase.execute(
         userId,
@@ -51,8 +50,6 @@ export class WorkoutVideoProgressController implements IWorkoutVideoProgressCont
         parseInt(skip as string, 10),
         parseInt(limit as string, 10)
       );
-
-      console.log(result,"GET WORKOUT PROGRESS")
 
       res.status(HTTP_STATUS.OK).json({
         status: "success",

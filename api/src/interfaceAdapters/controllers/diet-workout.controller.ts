@@ -274,7 +274,7 @@ export class DietWorkoutController implements IDietWorkoutController {
       }
   
       const workouts = await this._getWorkoutsUseCase.execute(filterObj, pageNumber, limitNumber);
-      console.log("Workouts fetched:", workouts);
+   
   
       res.status(HTTP_STATUS.OK).json({
         success: true,

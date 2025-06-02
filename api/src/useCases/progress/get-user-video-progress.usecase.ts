@@ -23,8 +23,7 @@ export class GetUserVideoProgressUseCase implements IGetUserVideoProgressUseCase
     if (skip < 0 || limit <= 0) {
       throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
     }
-
-    // Retrieve progress
+  
     return this.workoutVideoProgressRepository.findUserVideoProgress(userId, skip, limit);
   }
 }

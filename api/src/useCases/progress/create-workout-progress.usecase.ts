@@ -1,4 +1,3 @@
-// D:\StriveX\api\src\useCases\progress\create-workout-progress.usecase.ts
 import { injectable, inject } from "tsyringe";
 import { ICreateWorkoutProgressUseCase } from "@/entities/useCaseInterfaces/progress/create-workout-progress.usecase.interface";
 import { IWorkoutProgressEntity } from "@/entities/models/workout.progress.entity";
@@ -10,32 +9,37 @@ import { WorkoutModel } from "@/frameworks/database/mongoDB/models/workout.model
 import { SocketService } from "@/interfaceAdapters/services/socket.service";
 
 @injectable()
-export class CreateWorkoutProgressUseCase implements ICreateWorkoutProgressUseCase {
+export class CreateWorkoutProgressUseCase
+  implements ICreateWorkoutProgressUseCase
+{
   constructor(
-    @inject("IWorkoutProgressRepository") private workoutProgressRepository: IWorkoutProgressRepository,
+    @inject("IWorkoutProgressRepository")
+    private workoutProgressRepository: IWorkoutProgressRepository,
     @inject("IClientRepository") private clientRepository: IClientRepository,
     @inject("SocketService") private socketService: SocketService
   ) {}
 
-  async execute(data: Partial<IWorkoutProgressEntity>): Promise<IWorkoutProgressEntity> {
-    console.log("createProgress received:", data);
+  async execute(
+    data: Partial<IWorkoutProgressEntity>
+  ): Promise<IWorkoutProgressEntity> {
     if (!data.userId || !data.workoutId) {
-      throw new CustomError("Missing required fields: userId, workoutId", HTTP_STATUS.BAD_REQUEST);
+      throw new CustomError(
+        "Missing required fields: userId, workoutId",
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     const client = await this.clientRepository.findById(data.userId);
     if (!client) {
-      console.error("User not found for userId:", data.userId);
       throw new CustomError("User not found", HTTP_STATUS.NOT_FOUND);
     }
-    console.log("Client found for userId in createWorkoutProgress:", client);
 
-    const workout = await WorkoutModel.findById(data.workoutId).populate("category").lean();
+    const workout = await WorkoutModel.findById(data.workoutId)
+      .populate("category")
+      .lean();
     if (!workout) {
       throw new CustomError("Workout not found", HTTP_STATUS.NOT_FOUND);
     }
-    console.log("Workout found:", workout);
-
     let duration = data.duration;
     let caloriesBurned = data.caloriesBurned;
     const intensityMap = {
@@ -45,15 +49,21 @@ export class CreateWorkoutProgressUseCase implements ICreateWorkoutProgressUseCa
     };
 
     if (!duration || duration <= 0 || !caloriesBurned) {
-      duration = duration || (workout.duration ? Math.round(workout.duration / 60) : 30);
+      duration =
+        duration || (workout.duration ? Math.round(workout.duration / 60) : 30);
       if (!caloriesBurned && client.weight && workout.category) {
         const category = workout.category as any;
         if (!category || !category.metValue) {
-          throw new CustomError("Category or MET value not found", HTTP_STATUS.NOT_FOUND);
+          throw new CustomError(
+            "Category or MET value not found",
+            HTTP_STATUS.NOT_FOUND
+          );
         }
-        const intensity = intensityMap[workout.difficulty as keyof typeof intensityMap] || 1;
-        caloriesBurned = Math.round(category.metValue * client.weight * (duration / 60) * intensity);
-        console.log("Calculated caloriesBurned:", caloriesBurned);
+        const intensity =
+          intensityMap[workout.difficulty as keyof typeof intensityMap] || 1;
+        caloriesBurned = Math.round(
+          category.metValue * client.weight * (duration / 60) * intensity
+        );
       } else if (!caloriesBurned) {
         caloriesBurned = 0;
       }
@@ -68,7 +78,6 @@ export class CreateWorkoutProgressUseCase implements ICreateWorkoutProgressUseCa
       caloriesBurned,
       completed: data.completed || false,
     });
-    console.log("Progress created:", progress);
 
     if (progress.completed) {
       this.socketService.getIO().emit("workoutCompleted", {

@@ -19,7 +19,6 @@ export class GetSelectedTrainerSlotsUseCase implements IGetSelectedTrainerSlotsU
     }
 
     const client = await this.clientRepository.findByClientNewId(userClientId);
-    console.log(client, "client in get selected trainer slots use case");
     if (!client) {
       throw new CustomError("Client not found", HTTP_STATUS.NOT_FOUND);
     }

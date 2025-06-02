@@ -1,4 +1,4 @@
-// D:\StriveX\api\src\interfaceAdapters\services\video-socket.service.ts
+
 import { Server, Socket } from "socket.io";
 import { inject, injectable } from "tsyringe";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";

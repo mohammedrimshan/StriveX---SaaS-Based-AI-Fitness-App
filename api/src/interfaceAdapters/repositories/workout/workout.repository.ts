@@ -1,4 +1,4 @@
-// D:\StriveX\api\src\interfaceAdapters\repositories\workout\workout.repository.ts
+
 import { injectable } from "tsyringe";
 import { IWorkoutRepository } from "@/entities/repositoryInterfaces/workout/workout-repository.interface";
 import { WorkoutModel, IWorkoutModel } from "@/frameworks/database/mongoDB/models/workout.model";
@@ -25,7 +25,6 @@ export class WorkoutRepository extends BaseRepository<IWorkoutEntity> implements
       .lean()
       .exec();
     if (!workout) return null;
-    console.log("Repository updated workout:", workout);
     return this.mapToEntity(workout);
   }
 
@@ -39,7 +38,7 @@ export class WorkoutRepository extends BaseRepository<IWorkoutEntity> implements
         .lean(),
       this.model.countDocuments(filter),
     ]);
-    console.log("Raw workouts after population:", JSON.stringify(workouts, null, 2));
+   
 
     const transformedWorkouts = workouts.map((w) => this.mapToEntity({
       ...w,
@@ -74,7 +73,7 @@ export class WorkoutRepository extends BaseRepository<IWorkoutEntity> implements
   async updateStatus(id: string, status: boolean): Promise<IWorkoutEntity | null> {
     const workout = await this.model
       .findByIdAndUpdate(id, { status }, { new: true })
-      .lean({ virtuals: true }) // Enable virtuals if needed
+      .lean({ virtuals: true })
       .exec() as Omit<IWorkoutModel, keyof Document> | null;
     if (!workout) return null;
     return this.mapToEntity(workout);

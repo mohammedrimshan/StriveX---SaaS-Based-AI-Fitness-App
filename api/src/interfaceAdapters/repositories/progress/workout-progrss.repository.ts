@@ -1,7 +1,10 @@
 import { injectable } from "tsyringe";
 import { WorkoutProgressModel } from "@/frameworks/database/mongoDB/models/workout-progress.model";
 import { IWorkoutProgressRepository } from "@/entities/repositoryInterfaces/progress/workout-progress.repository.interface";
-import { IWorkoutProgressEntity, IWorkoutVideoProgressEntity } from "@/entities/models/workout.progress.entity";
+import {
+  IWorkoutProgressEntity,
+  IWorkoutVideoProgressEntity,
+} from "@/entities/models/workout.progress.entity";
 import { BaseRepository } from "../base.repository";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
@@ -9,24 +12,35 @@ import { PipelineStage, Types } from "mongoose";
 import { IWorkoutEntity } from "@/entities/models/workout.entity";
 
 @injectable()
-export class WorkoutProgressRepository extends BaseRepository<IWorkoutProgressEntity> implements IWorkoutProgressRepository {
+export class WorkoutProgressRepository
+  extends BaseRepository<IWorkoutProgressEntity>
+  implements IWorkoutProgressRepository
+{
   constructor() {
     super(WorkoutProgressModel);
   }
 
-  async createProgress(data: Partial<IWorkoutProgressEntity>): Promise<IWorkoutProgressEntity> {
+  async createProgress(
+    data: Partial<IWorkoutProgressEntity>
+  ): Promise<IWorkoutProgressEntity> {
     const entity = await this.model.create(data);
     return this.mapToEntity(entity.toObject());
   }
 
-  async updateProgress(id: string, updates: Partial<IWorkoutProgressEntity>): Promise<IWorkoutProgressEntity | null> {
+  async updateProgress(
+    id: string,
+    updates: Partial<IWorkoutProgressEntity>
+  ): Promise<IWorkoutProgressEntity | null> {
     const progress = await this.model
       .findByIdAndUpdate(id, { $set: updates }, { new: true })
       .lean();
     return progress ? this.mapToEntity(progress) : null;
   }
 
-  async findByUserAndWorkout(userId: string, workoutId: string): Promise<IWorkoutProgressEntity | null> {
+  async findByUserAndWorkout(
+    userId: string,
+    workoutId: string
+  ): Promise<IWorkoutProgressEntity | null> {
     const progress = await this.model.findOne({ userId, workoutId }).lean();
     return progress ? this.mapToEntity(progress) : null;
   }
@@ -54,282 +68,289 @@ export class WorkoutProgressRepository extends BaseRepository<IWorkoutProgressEn
     return { items: transformedItems, total };
   }
 
-async getUserProgressMetrics(
-  userId: string,
-  startDate?: Date,
-  endDate?: Date
-): Promise<{
-  workoutProgress: IWorkoutProgressEntity[];
-  bmi: number | null;
-  weightHistory: { weight: number; date: Date }[];
-  heightHistory: { height: number; date: Date }[];
-  waterIntakeLogs: { actual: number; target: number; date: Date }[];
-  totalWaterIntake: number;
-  videoProgress: IWorkoutVideoProgressEntity[];
-  workouts: IWorkoutEntity[];
-}> {
- const fullPipeline: PipelineStage[] = [
-  {
-    $match: {
-      _id: new Types.ObjectId(userId),
-    },
-  },
-  {
-    $project: {
-      _id: 1,
-      weight: 1,
-      height: 1,
-    },
-  },
-  {
-    $lookup: {
-      from: "workoutprogresses",
-      let: { userId: "$_id" },
-      pipeline: [
-        {
-          $match: {
-            $expr: { $eq: ["$userId", "$$userId"] },
-            ...(startDate && { date: { $gte: startDate } }),
-            ...(endDate && { date: { $lte: endDate } }),
+  async getUserProgressMetrics(
+    userId: string,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<{
+    workoutProgress: IWorkoutProgressEntity[];
+    bmi: number | null;
+    weightHistory: { weight: number; date: Date }[];
+    heightHistory: { height: number; date: Date }[];
+    waterIntakeLogs: { actual: number; target: number; date: Date }[];
+    totalWaterIntake: number;
+    videoProgress: IWorkoutVideoProgressEntity[];
+    workouts: IWorkoutEntity[];
+  }> {
+    const fullPipeline: PipelineStage[] = [
+      {
+        $match: {
+          _id: new Types.ObjectId(userId),
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          weight: 1,
+          height: 1,
+        },
+      },
+      {
+        $lookup: {
+          from: "workoutprogresses",
+          let: { userId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$userId", "$$userId"] },
+                ...(startDate && { date: { $gte: startDate } }),
+                ...(endDate && { date: { $lte: endDate } }),
+              },
+            },
+            {
+              $sort: { date: -1 },
+            },
+          ],
+          as: "workoutProgress",
+        },
+      },
+      {
+        $lookup: {
+          from: "clientprogresshistories",
+          let: { userId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$userId", "$$userId"] },
+                ...(startDate && { date: { $gte: startDate } }),
+                ...(endDate && { date: { $lte: endDate } }),
+              },
+            },
+            {
+              $sort: { date: -1 },
+            },
+          ],
+          as: "progressHistory",
+        },
+      },
+      {
+        $lookup: {
+          from: "workoutvideoprogresses",
+          let: { userId: "$_id", workoutIds: "$workoutProgress.workoutId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$userId", "$$userId"] },
+                    { $in: ["$workoutId", "$$workoutIds"] },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                userId: 1,
+                workoutId: 1,
+                exerciseProgress: 1,
+                completedExercises: 1,
+                lastUpdated: 1,
+              },
+            },
+          ],
+          as: "videoProgress",
+        },
+      },
+      {
+        $lookup: {
+          from: "workouts",
+          let: { workoutIds: "$workoutProgress.workoutId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ["$_id", "$$workoutIds"] },
+              },
+            },
+            {
+              $project: {
+                title: 1,
+                exercises: 1,
+              },
+            },
+          ],
+          as: "workouts",
+        },
+      },
+      {
+        $project: {
+          workoutProgress: {
+            $map: {
+              input: "$workoutProgress",
+              as: "progress",
+              in: {
+                id: "$$progress._id",
+                userId: "$$progress.userId",
+                workoutId: "$$progress.workoutId",
+                date: "$$progress.date",
+                duration: "$$progress.duration",
+                caloriesBurned: "$$progress.caloriesBurned",
+                completed: "$$progress.completed",
+                createdAt: "$$progress.createdAt",
+                updatedAt: "$$progress.updatedAt",
+              },
+            },
           },
-        },
-        {
-          $sort: { date: -1 },
-        },
-      ],
-      as: "workoutProgress",
-    },
-  },
-  {
-    $lookup: {
-      from: "clientprogresshistories",
-      let: { userId: "$_id" },
-      pipeline: [
-        {
-          $match: {
-            $expr: { $eq: ["$userId", "$$userId"] },
-            ...(startDate && { date: { $gte: startDate } }),
-            ...(endDate && { date: { $lte: endDate } }),
+          bmi: {
+            $cond: {
+              if: {
+                $and: [{ $gt: ["$weight", 0] }, { $gt: ["$height", 0] }],
+              },
+              then: {
+                $divide: [
+                  "$weight",
+                  {
+                    $pow: [{ $divide: ["$height", 100] }, 2],
+                  },
+                ],
+              },
+              else: null,
+            },
           },
-        },
-        {
-          $sort: { date: -1 },
-        },
-      ],
-      as: "progressHistory",
-    },
-  },
-  {
-    $lookup: {
-      from: "workoutvideoprogresses",
-      let: { userId: "$_id", workoutIds: "$workoutProgress.workoutId" },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ["$userId", "$$userId"] },
-                { $in: ["$workoutId", "$$workoutIds"] },
-              ],
+          weightHistory: {
+            $filter: {
+              input: "$progressHistory",
+              as: "item",
+              cond: { $ne: ["$$item.weight", null] },
+            },
+          },
+          heightHistory: {
+            $filter: {
+              input: "$progressHistory",
+              as: "item",
+              cond: { $ne: ["$$item.height", null] },
+            },
+          },
+          waterIntakeLogs: {
+            $filter: {
+              input: "$progressHistory",
+              as: "item",
+              cond: { $ne: ["$$item.waterIntake", null] },
+            },
+          },
+          totalWaterIntake: {
+            $sum: "$progressHistory.waterIntake",
+          },
+          videoProgress: {
+            $map: {
+              input: "$videoProgress",
+              as: "vp",
+              in: {
+                id: "$$vp._id",
+                userId: "$$vp.userId",
+                workoutId: "$$vp.workoutId",
+                exerciseProgress: "$$vp.exerciseProgress",
+                completedExercises: "$$vp.completedExercises",
+                lastUpdated: "$$vp.lastUpdated",
+              },
+            },
+          },
+          workouts: {
+            $map: {
+              input: "$workouts",
+              as: "w",
+              in: {
+                id: "$$w._id",
+                title: "$$w.title",
+                exercises: "$$w.exercises",
+              },
             },
           },
         },
-        {
-          $project: {
-            userId: 1,
-            workoutId: 1,
-            exerciseProgress: 1,
-            completedExercises: 1,
-            lastUpdated: 1,
-          },
-        },
-      ],
-      as: "videoProgress",
-    },
-  },
-  {
-    $lookup: {
-      from: "workouts",
-      let: { workoutIds: "$workoutProgress.workoutId" },
-      pipeline: [
-        {
-          $match: {
-            $expr: { $in: ["$_id", "$$workoutIds"] },
-          },
-        },
-        {
-          $project: {
-            title: 1,
-            exercises: 1,
-          },
-        },
-      ],
-      as: "workouts",
-    },
-  },
-  {
-    $project: {
-      workoutProgress: {
-        $map: {
-          input: "$workoutProgress",
-          as: "progress",
-          in: {
-            id: "$$progress._id",
-            userId: "$$progress.userId",
-            workoutId: "$$progress.workoutId",
-            date: "$$progress.date",
-            duration: "$$progress.duration",
-            caloriesBurned: "$$progress.caloriesBurned",
-            completed: "$$progress.completed",
-            createdAt: "$$progress.createdAt",
-            updatedAt: "$$progress.updatedAt",
-          },
-        },
       },
-      bmi: {
-        $cond: {
-          if: {
-            $and: [
-              { $gt: ["$weight", 0] },
-              { $gt: ["$height", 0] },
-            ],
-          },
-          then: {
-            $divide: [
-              "$weight",
-              {
-                $pow: [{ $divide: ["$height", 100] }, 2],
+      {
+        $project: {
+          workoutProgress: 1,
+          bmi: 1,
+          weightHistory: {
+            $map: {
+              input: "$weightHistory",
+              as: "item",
+              in: {
+                weight: "$$item.weight",
+                date: "$$item.date",
               },
-            ],
+            },
           },
-          else: null,
-        },
-      },
-      weightHistory: {
-        $filter: {
-          input: "$progressHistory",
-          as: "item",
-          cond: { $ne: ["$$item.weight", null] },
-        },
-      },
-      heightHistory: {
-        $filter: {
-          input: "$progressHistory",
-          as: "item",
-          cond: { $ne: ["$$item.height", null] },
-        },
-      },
-      waterIntakeLogs: {
-        $filter: {
-          input: "$progressHistory",
-          as: "item",
-          cond: { $ne: ["$$item.waterIntake", null] },
-        },
-      },
-      totalWaterIntake: {
-        $sum: "$progressHistory.waterIntake",
-      },
-      videoProgress: {
-        $map: {
-          input: "$videoProgress",
-          as: "vp",
-          in: {
-            id: "$$vp._id",
-            userId: "$$vp.userId",
-            workoutId: "$$vp.workoutId",
-            exerciseProgress: "$$vp.exerciseProgress",
-            completedExercises: "$$vp.completedExercises",
-            lastUpdated: "$$vp.lastUpdated",
+          heightHistory: {
+            $map: {
+              input: "$heightHistory",
+              as: "item",
+              in: {
+                height: "$$item.height",
+                date: "$$item.date",
+              },
+            },
           },
-        },
-      },
-      workouts: {
-        $map: {
-          input: "$workouts",
-          as: "w",
-          in: {
-            id: "$$w._id",
-            title: "$$w.title",
-            exercises: "$$w.exercises",
+          waterIntakeLogs: {
+            $map: {
+              input: "$waterIntakeLogs",
+              as: "item",
+              in: {
+                actual: "$$item.waterIntake",
+                target: "$$item.waterIntakeTarget",
+                date: "$$item.date",
+              },
+            },
           },
+          totalWaterIntake: 1,
+          videoProgress: 1,
+          workouts: 1,
         },
       },
-    },
-  },
-  {
-    $project: {
-      workoutProgress: 1,
-      bmi: 1,
-      weightHistory: {
-        $map: {
-          input: "$weightHistory",
-          as: "item",
-          in: {
-            weight: "$$item.weight",
-            date: "$$item.date",
-          },
-        },
-      },
-      heightHistory: {
-        $map: {
-          input: "$heightHistory",
-          as: "item",
-          in: {
-            height: "$$item.height",
-            date: "$$item.date",
-          },
-        },
-      },
-      waterIntakeLogs: {
-        $map: {
-          input: "$waterIntakeLogs",
-          as: "item",
-          in: {
-            actual: "$$item.waterIntake",
-            target: "$$item.waterIntakeTarget",
-            date: "$$item.date",
-          },
-        },
-      },
-      totalWaterIntake: 1,
-      videoProgress: 1,
-      workouts: 1,
-    },
-  },
-];
+    ];
 
-  const fullResult = await this.model.db.collection("clients").aggregate(fullPipeline).toArray();
-  console.log("Full Result:", JSON.stringify(fullResult, null, 2));
-console.log("Raw progressHistory:", JSON.stringify(fullResult[0]?.progressHistory, null, 2));
-  if (!fullResult.length) {
-    throw new CustomError("No client found for user", HTTP_STATUS.NOT_FOUND);
+    const fullResult = await this.model.db
+      .collection("clients")
+      .aggregate(fullPipeline)
+      .toArray();
+    if (!fullResult.length) {
+      throw new CustomError("No client found for user", HTTP_STATUS.NOT_FOUND);
+    }
+
+    const {
+      workoutProgress,
+      bmi,
+      weightHistory,
+      heightHistory,
+      waterIntakeLogs,
+      totalWaterIntake,
+      videoProgress,
+      workouts,
+    } = fullResult[0];
+
+    return {
+      workoutProgress: workoutProgress.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        workoutId: item.workoutId.toString(),
+      })),
+      bmi,
+      weightHistory,
+      heightHistory,
+      waterIntakeLogs,
+      totalWaterIntake,
+      videoProgress: videoProgress.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+        userId: item.userId.toString(),
+        workoutId: item.workoutId.toString(),
+      })),
+      workouts: workouts.map((item: any) => ({
+        ...item,
+        id: item.id.toString(),
+      })),
+    };
   }
-
-  const { workoutProgress, bmi, weightHistory, heightHistory, waterIntakeLogs, totalWaterIntake, videoProgress, workouts } = fullResult[0];
-
-  return {
-    workoutProgress: workoutProgress.map((item: any) => ({
-      ...item,
-      id: item.id.toString(),
-      workoutId: item.workoutId.toString(),
-    })),
-    bmi,
-    weightHistory,
-    heightHistory,
-    waterIntakeLogs,
-    totalWaterIntake,
-    videoProgress: videoProgress.map((item: any) => ({
-      ...item,
-      id: item.id.toString(),
-      userId: item.userId.toString(),
-      workoutId: item.workoutId.toString(),
-    })),
-    workouts: workouts.map((item: any) => ({
-      ...item,
-      id: item.id.toString(),
-    })),
-  };
-}
 
   protected mapToEntity(doc: any): IWorkoutProgressEntity {
     const { _id, __v, workoutId, ...rest } = doc;

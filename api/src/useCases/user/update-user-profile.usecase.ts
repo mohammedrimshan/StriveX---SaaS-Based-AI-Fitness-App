@@ -47,7 +47,6 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
       }
     }
 
-    // Validate waterIntakeTarget
     if (data.waterIntakeTarget !== undefined) {
       if (typeof data.waterIntakeTarget !== "number" || data.waterIntakeTarget < 0) {
         throw new CustomError(
@@ -57,7 +56,6 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
       }
     }
 
-    // Validate weight
     if (data.weight !== undefined) {
       if (typeof data.weight !== "number" || data.weight <= 0) {
         throw new CustomError(
@@ -66,8 +64,6 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
         );
       }
     }
-
-    // Validate height
     if (data.height !== undefined) {
       if (typeof data.height !== "number" || data.height <= 0) {
         throw new CustomError(
@@ -77,10 +73,8 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
       }
     }
 
-    // Handle profile image upload if it’s a base64 string
     if (data.profileImage && typeof data.profileImage === "string" && data.profileImage.startsWith("data:")) {
-      console.log("Profile image length:", data.profileImage.length);
-      console.log("Profile image preview:", data.profileImage.substring(0, 50));
+    
       try {
         const uploadResult = await this._cloudinaryService.uploadImage(data.profileImage, {
           folder: "profile_images",
@@ -141,9 +135,9 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
     // Save progress history only if there are changes
     if (shouldSaveProgress) {
       try {
-        console.log("Saving progress history:", JSON.stringify(progressFields, null, 2));
+       
         const savedProgress = await this._clientProgressHistoryRepository.save(progressFields);
-        console.log("Saved progress history:", JSON.stringify(savedProgress, null, 2));
+   
       } catch (error) {
         console.error("Failed to save client progress history:", error);
         throw new CustomError(

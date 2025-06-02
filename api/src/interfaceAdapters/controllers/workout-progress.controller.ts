@@ -13,46 +13,59 @@ import { handleErrorResponse } from "@/shared/utils/errorHandler";
 @injectable()
 export class WorkoutProgressController implements IWorkoutProgressController {
   constructor(
-    @inject("ICreateWorkoutProgressUseCase") private createWorkoutProgressUseCase: ICreateWorkoutProgressUseCase,
-    @inject("IUpdateWorkoutProgressUseCase") private updateWorkoutProgressUseCase: IUpdateWorkoutProgressUseCase,
-    @inject("IGetUserWorkoutProgressUseCase") private getUserWorkoutProgressUseCase: IGetUserWorkoutProgressUseCase,
+    @inject("ICreateWorkoutProgressUseCase")
+    private createWorkoutProgressUseCase: ICreateWorkoutProgressUseCase,
+    @inject("IUpdateWorkoutProgressUseCase")
+    private updateWorkoutProgressUseCase: IUpdateWorkoutProgressUseCase,
+    @inject("IGetUserWorkoutProgressUseCase")
+    private getUserWorkoutProgressUseCase: IGetUserWorkoutProgressUseCase,
     @inject("IGetWorkoutProgressByUserAndWorkoutUseCase")
     private getWorkoutProgressByUserAndWorkoutUseCase: IGetWorkoutProgressByUserAndWorkoutUseCase,
-    @inject("IGetUserProgressMetricsUseCase") private getUserProgressMetricsUseCase: IGetUserProgressMetricsUseCase
+    @inject("IGetUserProgressMetricsUseCase")
+    private getUserProgressMetricsUseCase: IGetUserProgressMetricsUseCase
   ) {}
 
   async createProgress(req: Request, res: Response): Promise<void> {
-  try {
-    const { userId, workoutId, categoryId,duration, date, completed, caloriesBurned } = req.body;
-    console.log(userId, workoutId,categoryId, duration, date, completed, caloriesBurned, "Request body in createProgress");
-    console.log("createProgress received:", { userId, workoutId, categoryId ,duration, date, completed, caloriesBurned });
-    const progress = await this.createWorkoutProgressUseCase.execute({
-      userId,
-      workoutId,
-      categoryId,
-      duration,
-      date: date ? new Date(date) : undefined,
-      caloriesBurned,
-      completed: completed || false,
-    });
-    console.log("Progress created:", progress);
-    res.status(HTTP_STATUS.CREATED).json({
-      status: "success",
-      data: progress,
-      message: "Workout progress created successfully",
-    });
-  } catch (error) {
-    console.error("createProgress error:", error);
-    handleErrorResponse(res, error);
+    try {
+      const {
+        userId,
+        workoutId,
+        categoryId,
+        duration,
+        date,
+        completed,
+        caloriesBurned,
+      } = req.body;
+
+      const progress = await this.createWorkoutProgressUseCase.execute({
+        userId,
+        workoutId,
+        categoryId,
+        duration,
+        date: date ? new Date(date) : undefined,
+        caloriesBurned,
+        completed: completed || false,
+      });
+
+      res.status(HTTP_STATUS.CREATED).json({
+        status: "success",
+        data: progress,
+        message: "Workout progress created successfully",
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
   }
-}
 
   async updateProgress(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const updates = req.body;
 
-      const progress = await this.updateWorkoutProgressUseCase.execute(id, updates);
+      const progress = await this.updateWorkoutProgressUseCase.execute(
+        id,
+        updates
+      );
 
       if (!progress) {
         throw new CustomError("Progress not found", HTTP_STATUS.NOT_FOUND);
@@ -91,16 +104,25 @@ export class WorkoutProgressController implements IWorkoutProgressController {
     }
   }
 
-  async getProgressByUserAndWorkout(req: Request, res: Response): Promise<void> {
+  async getProgressByUserAndWorkout(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const { userId, workoutId } = req.params;
 
-      const progress = await this.getWorkoutProgressByUserAndWorkoutUseCase.execute(userId, workoutId);
+      const progress =
+        await this.getWorkoutProgressByUserAndWorkoutUseCase.execute(
+          userId,
+          workoutId
+        );
 
       res.status(HTTP_STATUS.OK).json({
         status: "success",
         data: progress,
-        message: progress ? "Workout progress retrieved successfully" : "No progress found",
+        message: progress
+          ? "Workout progress retrieved successfully"
+          : "No progress found",
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -110,7 +132,7 @@ export class WorkoutProgressController implements IWorkoutProgressController {
   async getUserProgressMetrics(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
-      console.log(userId, "User ID in getUserProgressMetrics");
+
       const { startDate, endDate } = req.query;
 
       const metrics = await this.getUserProgressMetricsUseCase.execute(

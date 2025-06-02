@@ -115,8 +115,6 @@ export class SlotRepository
       );
     }
 
-    console.log("updateStatus - slotId:", slotId, "updates:", updates);
-
     return this.update(slotId, updates);
   }
 
@@ -290,7 +288,6 @@ export class SlotRepository
         },
       ])
       .exec();
-    console.log(slots, "slots");
     return slots;
   }
 
@@ -325,7 +322,6 @@ export class SlotRepository
     >
   > {
     if (!clientId || typeof clientId !== "string" || clientId.trim() === "") {
-      console.error("findBookedSlotsByClientId - Invalid clientId:", clientId);
       throw new CustomError(
         "Valid Client ID is required",
         HTTP_STATUS.BAD_REQUEST
@@ -336,8 +332,6 @@ export class SlotRepository
       clientId: { $eq: clientId },
       status: SlotStatus.BOOKED,
     };
-
-    console.log("findBookedSlotsByClientId - matchStage:", matchStage);
 
     const slots = await this.model
       .aggregate([
@@ -448,7 +442,6 @@ export class SlotRepository
       ])
       .exec();
 
-    console.log("findBookedSlotsByClientId - raw slots:", slots);
     return slots;
   }
 
@@ -472,12 +465,7 @@ export class SlotRepository
       videoCallJwt,
     });
     const updatedSlot = await this.update(slotId, updates);
-    console.log("updateVideoCallStatus - Updated slot:", {
-      id: updatedSlot?.id,
-      videoCallStatus: updatedSlot?.videoCallStatus,
-      videoCallRoomName: updatedSlot?.videoCallRoomName,
-      videoCallJwt: updatedSlot?.videoCallJwt,
-    });
+
     return updatedSlot;
   }
   async findByRoomName(roomName: string): Promise<ISlotEntity | null> {
@@ -499,28 +487,22 @@ export class SlotRepository
     const clientIds = slots
       .filter((slot) => slot.clientId)
       .map((slot) => slot.clientId!);
-    console.log(clientIds, "clientIds");
     const slotIds = slots.map((slot) => slot._id);
 
-    // Fetch clients
     const clients = await ClientModel.find({ _id: { $in: clientIds } })
       .select("_id firstName lastName email profileImage")
       .lean();
 
-    console.log(clients, "clients");
     const trainer = await TrainerModel.findById(trainerId)
       .select("firstName lastName")
       .lean();
 
-    console.log(trainer, "trainer");
-    // Fetch cancellations
     const cancellations = await CancellationModel.find({
       slotId: { $in: slotIds },
     })
       .select("slotId cancellationReason")
       .lean();
 
-    // Group cancellations by slotId
     const cancellationsMap = cancellations.reduce((acc, cancel) => {
       const slotIdStr = cancel.slotId.toString();
       if (!acc[slotIdStr]) acc[slotIdStr] = [];
@@ -528,7 +510,6 @@ export class SlotRepository
       return acc;
     }, {} as Record<string, string[]>);
 
-    // Compose final slots
     return slots.map((slot) => {
       const client = slot.clientId
         ? clients.find((c) => c._id.toString() === slot.clientId?.toString())

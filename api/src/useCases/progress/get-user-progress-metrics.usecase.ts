@@ -18,7 +18,7 @@ export class GetUserProgressMetricsUseCase
   ) {}
 
   async execute(
-    userId: string, // Expecting Client._id
+    userId: string,
     startDate?: Date,
     endDate?: Date
   ): Promise<{
@@ -29,14 +29,12 @@ export class GetUserProgressMetricsUseCase
     waterIntakeLogs: { actual: number; target: number; date: Date }[];
   }> {
     if (!userId || !Types.ObjectId.isValid(userId)) {
-      console.log(userId, "User ID is invalid or missing");
       throw new CustomError(
         "User ID is required and must be a valid ObjectId",
         HTTP_STATUS.BAD_REQUEST
       );
     }
 
-    // Fetch Client to get clientId
     const client = await this.clientRepository.findByClientNewId(userId);
     if (!client || !client.id) {
       console.log(
@@ -49,11 +47,6 @@ export class GetUserProgressMetricsUseCase
       );
     }
 
-    console.log(
-      startDate,
-      endDate,
-      `Fetching progress metrics for clientId: ${client.id}`
-    );
     return this.workoutProgressRepository.getUserProgressMetrics(
       client.id,
       startDate,

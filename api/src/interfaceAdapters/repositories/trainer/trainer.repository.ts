@@ -1,4 +1,4 @@
-// api/src/interfaceAdapters/repositories/trainer/trainer.repository.ts
+
 import { injectable } from "tsyringe";
 import { ITrainerEntity } from "@/entities/models/trainer.entity";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
