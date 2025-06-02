@@ -16,6 +16,7 @@ import {
  Globe,
  
 } from "lucide-react";
+import { FaCalendarCheck } from "react-icons/fa";
 
 const navItems = {
   client: [
@@ -82,14 +83,24 @@ const navItems = {
       path: "/trainer/dashboard",
     },
     {
-      title: "Clients",
+      title: "Clients Requests",
       icon: Users,
       path: "/trainer/clientrequest",
+    },
+     {
+      title: "Clients",
+      icon: Users,
+      path: "/trainer/clientlist",
     },
     {
       title: "Schedule",
       icon: Calendar,
       path: "/trainer/slotadd",
+    },
+    {
+      title: "Booked Sessions",
+      icon: FaCalendarCheck,
+      path: "/trainer/bookslots",
     },
     {
       title: "Chat",

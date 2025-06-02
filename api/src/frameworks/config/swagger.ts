@@ -2,20 +2,30 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'path';
 import fs from 'fs';
 
-// Correct paths based on your actual directory structure
-const controllerPath = path.join(__dirname, '../../interfaceAdapters/controllers/*.ts');
-const controllerSubPath = path.join(__dirname, '../../interfaceAdapters/controllers/**/*.ts');
-console.log('Swagger scanning controllers:', controllerPath);
-console.log('Swagger scanning subdirectories:', controllerSubPath);
+// Debug paths
+const controllerPath = path.join(__dirname, '../interfaceAdapters/controllers/*.ts');
+const controllerSubPath = path.join(__dirname, '../interfaceAdapters/controllers/**/*.ts');
+const routePath = path.join(__dirname, '../routes/*.ts');
+const routeSubPath = path.join(__dirname, '../routes/**/*.ts');
 
-// Debug: List files in controllers directory (if needed)
+console.log('Swagger scanning controllers:', controllerPath);
+console.log('Swagger scanning controller subdirectories:', controllerSubPath);
+console.log('Swagger scanning routes:', routePath);
+console.log('Swagger scanning route subdirectories:', routeSubPath);
+
+// Debug: List files in directories
 try {
-  const controllerFiles = fs.readdirSync(path.join(__dirname, '../../interfaceAdapters/controllers'));
+  const controllerFiles = fs.readdirSync(path.join(__dirname, '../interfaceAdapters/controllers'));
   console.log('Files in controllers directory:', controllerFiles);
 } catch (err) {
   console.error('Error reading controllers directory:', err);
 }
-
+try {
+  const routeFiles = fs.readdirSync(path.join(__dirname, '../routes'));
+  console.log('Files in routes directory:', routeFiles);
+} catch (err) {
+  console.error('Error reading routes directory:', err);
+}
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -128,6 +138,8 @@ const options: swaggerJsdoc.Options = {
   apis: [
     path.join(__dirname, '../interfaceAdapters/controllers/*.ts'),
     path.join(__dirname, '../interfaceAdapters/controllers/**/*.ts'),
+    path.join(__dirname, '../routes/*.ts'),
+    path.join(__dirname, '../routes/**/*.ts'),
   ],
 };
 
