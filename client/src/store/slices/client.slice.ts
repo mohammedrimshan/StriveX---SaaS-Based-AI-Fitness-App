@@ -6,7 +6,7 @@ export interface Client {
 	firstName: string;
 	lastName: string;
 	email: string;
-	role: string;
+	role?: string;
 	phoneNumber:string;
 	profileImage?: string;
 	fitnessGoal?: "weightLoss" | "muscleGain" | "endurance" | "flexibility" | "maintenance";
@@ -20,6 +20,7 @@ export interface Client {
 	workoutExperience?:string;
 	selectStatus?: string;
 	isPremium?: boolean;
+	membershipPlanId?: string;
 	isActive?: boolean;
 	height?: number;
 	weight?: number;

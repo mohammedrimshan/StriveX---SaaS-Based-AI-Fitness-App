@@ -15,7 +15,7 @@ import WorkoutDetailPage from "@/pages/admin/WorkoutList/WorkoutDetailPage";
 import MembershipPlans from "@/pages/admin/AddMembership/MembershipPlans";
 import WorkoutFormPage from "@/pages/admin/WorkoutList/WorkoutFormPage";
 import TransactionHistory from "@/pages/admin/TransactionHistory";
-
+import SessionHistoryPage from "@/components/common/SessionHistoryPage";
 export const AdminRoutes = () => {
   return (
     <Routes>
@@ -52,6 +52,10 @@ export const AdminRoutes = () => {
         <Route path="/workouts/new" element={<WorkoutFormPage />} />
         <Route path="/workouts/edit/:id" element={<WorkoutFormPage />} />
         <Route path="/transaction" element={<TransactionHistory />} />
+        <Route
+          path="/session-history"
+          element={<SessionHistoryPage />}
+        />
       </Route>
       {/*//? Forgot and reset pages */}
       <Route

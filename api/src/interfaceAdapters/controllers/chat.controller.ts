@@ -1,4 +1,4 @@
-// D:\StriveX\api\src\interfaceAdapters\controllers\chat\chat.controller.ts
+
 import { Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { IGetChatHistoryUseCase } from "@/entities/useCaseInterfaces/chat/get-chat-history-usecase.interface";
@@ -15,12 +15,18 @@ import { SocketService } from "@/interfaceAdapters/services/socket.service";
 @injectable()
 export class ChatController {
   constructor(
-    @inject("IGetChatHistoryUseCase") private _getChatHistoryUseCase: IGetChatHistoryUseCase,
-    @inject("IGetRecentChatsUseCase") private _getRecentChatsUseCase: IGetRecentChatsUseCase,
-    @inject("IGetChatParticipantsUseCase") private _getChatParticipantsUseCase: IGetChatParticipantsUseCase,
-    @inject("IValidateChatPermissionsUseCase") private _validateChatPermissionsUseCase: IValidateChatPermissionsUseCase,
-    @inject("IDeleteMessageUseCase") private _deleteMessageUseCase: IDeleteMessageUseCase,
-    @inject("IMessageRepository") private _messageRepository: IMessageRepository,
+    @inject("IGetChatHistoryUseCase")
+    private _getChatHistoryUseCase: IGetChatHistoryUseCase,
+    @inject("IGetRecentChatsUseCase")
+    private _getRecentChatsUseCase: IGetRecentChatsUseCase,
+    @inject("IGetChatParticipantsUseCase")
+    private _getChatParticipantsUseCase: IGetChatParticipantsUseCase,
+    @inject("IValidateChatPermissionsUseCase")
+    private _validateChatPermissionsUseCase: IValidateChatPermissionsUseCase,
+    @inject("IDeleteMessageUseCase")
+    private _deleteMessageUseCase: IDeleteMessageUseCase,
+    @inject("IMessageRepository")
+    private _messageRepository: IMessageRepository,
     @inject("SocketService") private _socketService: SocketService
   ) {}
 
@@ -33,14 +39,24 @@ export class ChatController {
       const limit = parseInt(req.query.limit as string) || 20;
 
       if (!userId || !role) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
       if (!trainerId) {
-        throw new CustomError("Trainer ID not provided", HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(
+          "Trainer ID not provided",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      await this._validateChatPermissionsUseCase.execute(userId, role, trainerId);
+      await this._validateChatPermissionsUseCase.execute(
+        userId,
+        role,
+        trainerId
+      );
 
       const result = await this._getChatHistoryUseCase.execute(
         role === ROLES.USER ? userId : trainerId,
@@ -84,7 +100,10 @@ export class ChatController {
       const limit = parseInt(req.query.limit as string) || 10;
 
       if (!userId || !role) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
       const chats = await this._getRecentChatsUseCase.execute(userId, limit);
@@ -141,10 +160,16 @@ export class ChatController {
       console.log(userId, "userId in getChatParticipants");
 
       if (!userId || !role) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      const participants = await this._getChatParticipantsUseCase.execute(userId, role);
+      const participants = await this._getChatParticipantsUseCase.execute(
+        userId,
+        role
+      );
 
       console.log(participants, "participants in getChatParticipants");
       res.status(HTTP_STATUS.OK).json({
@@ -159,10 +184,18 @@ export class ChatController {
   async deleteMessage(req: Request, res: Response): Promise<void> {
     try {
       const { messageId } = req.params;
+      console.log(messageId, "messageId in deleteMessage");
       const userId = req.user?.id;
 
       if (!userId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
+      }
+
+      if (messageId.startsWith("temp-")) {
+        throw new CustomError("Invalid message ID", HTTP_STATUS.BAD_REQUEST);
       }
 
       await this._deleteMessageUseCase.execute(messageId, userId);
@@ -174,7 +207,9 @@ export class ChatController {
 
       const io = this._socketService.getIO();
       io.to(userId).emit("messageDeleted", { messageId });
-      const receiverSocketId = this._socketService.getConnectedUser(message.receiverId)?.socketId;
+      const receiverSocketId = this._socketService.getConnectedUser(
+        message.receiverId
+      )?.socketId;
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("messageDeleted", { messageId });
       }

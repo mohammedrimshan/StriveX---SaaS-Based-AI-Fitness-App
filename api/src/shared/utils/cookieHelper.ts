@@ -11,13 +11,13 @@ export const setAuthCookies = (
 	const isProduction = config.server.NODE_ENV === "production";
 
 	res.cookie(accessTokenName, accessToken, {
-		httpOnly: false,
+		httpOnly: true,
 		secure: isProduction,
 		sameSite: "strict",
 	});
 
 	res.cookie(refreshTokenName, refreshToken, {
-		httpOnly: false,
+		httpOnly: true,
 		secure: isProduction,
 		sameSite: "strict",
 	});

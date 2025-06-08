@@ -41,6 +41,8 @@ const TransactionHistory = () => {
     fetchTransactions 
   } = useTransactionHistory(filters);
 
+  console.log(transactions)
+
   const handleTabChange = useCallback((value: string) => {
     console.log("Tab changed to:", value);
     setActiveTab(value);

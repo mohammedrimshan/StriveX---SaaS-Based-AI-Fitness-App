@@ -1,6 +1,5 @@
-// D:\StriveX\client\public\firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/11.7.3/firebase-messaging.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js');
 
 try {
   const firebaseApp = firebase.initializeApp({
@@ -13,7 +12,7 @@ try {
     measurementId: "G-EHQQW9DLZR",
   });
 
-  const messaging = firebase.messaging(firebaseApp);
+  const messaging = firebase.messaging();
 
   messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Received background message:', payload);

@@ -10,6 +10,7 @@ import { ISaveTrainerSelectionPreferencesUseCase } from "@/entities/useCaseInter
 import { IAutoMatchTrainerUseCase } from "@/entities/useCaseInterfaces/users/automatch-trainer-usecase.interface";
 import { IManualSelectTrainerUseCase } from "@/entities/useCaseInterfaces/users/manual-trainer-select-usecase.interface";
 import { IGetMatchedTrainersUseCase } from "@/entities/useCaseInterfaces/users/get-match-trainer.usecase.interface";
+import { IGetClientProfileUseCase } from "@/entities/useCaseInterfaces/users/get-client-profile.usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
 import {
   ERROR_MESSAGES,
@@ -38,14 +39,16 @@ export class UserController implements IUserController {
     private _getTrainerProfileUseCase: IGetTrainerProfileUseCase,
     @inject("ISaveTrainerSelectionPreferencesUseCase")
     private _saveTrainerSelectionPreferencesUseCase: ISaveTrainerSelectionPreferencesUseCase,
-    @inject("IAutoMatchTrainerUseCase") 
+    @inject("IAutoMatchTrainerUseCase")
     private _autoMatchTrainerUseCase: IAutoMatchTrainerUseCase,
-    @inject("IManualSelectTrainerUseCase") 
+    @inject("IManualSelectTrainerUseCase")
     private _manualSelectTrainerUseCase: IManualSelectTrainerUseCase,
     @inject("IGetMatchedTrainersUseCase")
     private _getMatchedTrainersUseCase: IGetMatchedTrainersUseCase,
-    @inject("ISelectTrainerFromMatchedListUseCase") 
-    private selectTrainerFromMatchedListUseCase: ISelectTrainerFromMatchedListUseCase
+    @inject("ISelectTrainerFromMatchedListUseCase")
+    private selectTrainerFromMatchedListUseCase: ISelectTrainerFromMatchedListUseCase,
+    @inject("IGetClientProfileUseCase")
+    private getClientProfileUseCase: IGetClientProfileUseCase
   ) {}
 
   // Get all users with pagination, search and filtering by user type
@@ -243,7 +246,6 @@ export class UserController implements IUserController {
     }
   }
 
-
   /**
    * @swagger
    * /api/v1/pvt/_cl/client/trainers:
@@ -375,126 +377,175 @@ export class UserController implements IUserController {
   /**
    * Saves trainer selection preferences (skills, goals, etc.)
    */
-  async saveTrainerSelectionPreferences(req: Request, res: Response): Promise<void> {
+  async saveTrainerSelectionPreferences(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const clientId = (req as CustomRequest).user.id;
       if (!clientId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
       const preferences = req.body;
-      console.log(preferences,"save preference")
+      console.log(preferences, "save preference");
       if (!preferences.skillsToGain || !preferences.selectionMode) {
-        throw new CustomError(ERROR_MESSAGES.MISSING_PARAMETERS, HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(
+          ERROR_MESSAGES.MISSING_PARAMETERS,
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const savedPreferences = await this._saveTrainerSelectionPreferencesUseCase.execute(
-        clientId, 
-        preferences
-      );
+      const savedPreferences =
+        await this._saveTrainerSelectionPreferencesUseCase.execute(
+          clientId,
+          preferences
+        );
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.TRAINER_SELECTION_SAVED,
-        data: savedPreferences
+        data: savedPreferences,
       });
     } catch (error) {
       handleErrorResponse(res, error);
     }
   }
-  
-   /**
+
+  /**
    * Automatically matches trainers based on client preferences
    */
-   async autoMatchTrainer(req: Request, res: Response): Promise<void> {
+  async autoMatchTrainer(req: Request, res: Response): Promise<void> {
     try {
       const clientId = (req as CustomRequest).user.id;
       if (!clientId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
       const result = await this._autoMatchTrainerUseCase.execute(clientId);
-      console.log(result,"Auto match trainer")
+      console.log(result, "Auto match trainer");
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.TRAINER_ASSIGNED,
         data: {
           matchedTrainers: result.matchedTrainers,
-          selectedTrainer: result.selectedTrainerId
-        }
+          selectedTrainer: result.selectedTrainerId,
+        },
       });
     } catch (error) {
       handleErrorResponse(res, error);
     }
   }
 
-
-    /**
-   * Manually selects a trainer 
+  /**
+   * Manually selects a trainer
    */
-    async manualSelectTrainer(req: Request, res: Response): Promise<void> {
-      try {
-        const clientId = (req as CustomRequest).user.id;
-        const { trainerId } = req.body;
-        console.log(`manualSelectTrainer: clientId=${clientId}, trainerId=${trainerId}`);
-        if (!clientId || !trainerId) {
-          throw new CustomError(ERROR_MESSAGES.MISSING_PARAMETERS, HTTP_STATUS.BAD_REQUEST);
-        }
-  
-        const result = await this._manualSelectTrainerUseCase.execute(clientId, trainerId);
-        console.log(result,"Manual select trainer");
-  
-        res.status(HTTP_STATUS.OK).json({
-          success: true,
-          message: SUCCESS_MESSAGES.TRAINER_ASSIGNED,
-          data: {
-            selectedTrainer: result.selectedTrainerId,
-            status: result.selectStatus,
-            preferences: result
-          }
-        });
-      } catch (error) {
-        handleErrorResponse(res, error);
+  async manualSelectTrainer(req: Request, res: Response): Promise<void> {
+    try {
+      const clientId = (req as CustomRequest).user.id;
+      const { trainerId } = req.body;
+      console.log(
+        `manualSelectTrainer: clientId=${clientId}, trainerId=${trainerId}`
+      );
+      if (!clientId || !trainerId) {
+        throw new CustomError(
+          ERROR_MESSAGES.MISSING_PARAMETERS,
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
-    }
 
-    async getMatchedTrainers(req: Request, res: Response): Promise<void> {
-      try {
-        const clientId = (req as CustomRequest).user.id;
-        const trainers = await this._getMatchedTrainersUseCase.execute(clientId);
-        console.log(trainers,"Get Matched Trainers")
-        res.status(HTTP_STATUS.OK).json({
-          success: true,
-          data: trainers,
-        });
-      } catch (error) {
-        handleErrorResponse(res, error);
-      }
+      const result = await this._manualSelectTrainerUseCase.execute(
+        clientId,
+        trainerId
+      );
+      console.log(result, "Manual select trainer");
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.TRAINER_ASSIGNED,
+        data: {
+          selectedTrainer: result.selectedTrainerId,
+          status: result.selectStatus,
+          preferences: result,
+        },
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
     }
-      /**
+  }
+
+  async getMatchedTrainers(req: Request, res: Response): Promise<void> {
+    try {
+      const clientId = (req as CustomRequest).user.id;
+      const trainers = await this._getMatchedTrainersUseCase.execute(clientId);
+      console.log(trainers, "Get Matched Trainers");
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        data: trainers,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+  /**
    * Controller to handle client trainer selection from matched list
    */
   async selectTrainer(req: Request, res: Response): Promise<void> {
     try {
       const clientId = (req as CustomRequest).user.id;
       const { selectedTrainerId } = req.body;
-      console.log(selectedTrainerId,"Selected Trainer")
+      console.log(selectedTrainerId, "Selected Trainer");
       if (!clientId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
       if (!selectedTrainerId) {
-        throw new CustomError(ERROR_MESSAGES.ID_NOT_PROVIDED, HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(
+          ERROR_MESSAGES.ID_NOT_PROVIDED,
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const result = await this.selectTrainerFromMatchedListUseCase.execute(clientId, selectedTrainerId);
+      const result = await this.selectTrainerFromMatchedListUseCase.execute(
+        clientId,
+        selectedTrainerId
+      );
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
-        data: result, 
+        data: result,
       });
     } catch (error) {
-      handleErrorResponse(res, error); 
+      handleErrorResponse(res, error);
+    }
+  }
+
+  async getClientProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const clientId = req.params.clientId;
+
+      if (!clientId) {
+        throw new CustomError("Client ID is required", HTTP_STATUS.BAD_REQUEST);
+      }
+
+      const profile = await this.getClientProfileUseCase.execute(clientId);
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        profile,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
     }
   }
 }

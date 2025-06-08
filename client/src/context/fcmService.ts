@@ -1,4 +1,3 @@
-
 import { messaging, getToken, onMessage } from "../firebase";
 import { updateFCMToken } from "@/services/notification/notificationService";
 import { INotification } from "../types/notification";
@@ -13,14 +12,17 @@ export const initializeFCM = async (
   try {
     if (!('serviceWorker' in navigator)) {
       console.warn('[DEBUG] Service workers not supported');
+      toast.error('Service workers are not supported in this browser.');
       return;
     }
 
+    // Register service worker
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
       scope: '/firebase-cloud-messaging-push-scope',
     });
     console.log('[DEBUG] Service worker registered:', registration);
 
+    // Request notification permission
     const permission = await Notification.requestPermission();
     console.log('[DEBUG] Notification permission:', permission);
     if (permission === 'denied') {
@@ -37,17 +39,20 @@ export const initializeFCM = async (
       return;
     }
 
+    // Retrieve VAPID key
     const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
     if (!vapidKey) {
       throw new Error('[DEBUG] VITE_FIREBASE_VAPID_KEY missing');
     }
 
+    // Get FCM token
     const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration });
     if (!token) {
       throw new Error('[DEBUG] Failed to retrieve FCM token');
     }
     console.log('[DEBUG] FCM token:', token);
 
+    // Save FCM token
     try {
       await updateFCMToken(role, userId, token);
       console.log('[DEBUG] FCM token saved for user:', userId);
@@ -55,6 +60,7 @@ export const initializeFCM = async (
       console.error('[DEBUG] Failed to save FCM token:', error);
     }
 
+    // Handle foreground messages
     onMessage(messaging, (payload) => {
       console.log('[DEBUG] Raw FCM payload:', payload);
       const notification: INotification = {
@@ -70,6 +76,6 @@ export const initializeFCM = async (
       onNotification(notification);
     });
   } catch (error) {
-    console.error('[DEBUG] FCM initialization failed:', error);
+   kert: console.error('[DEBUG] FCM initialization failed:', error);
   }
 };

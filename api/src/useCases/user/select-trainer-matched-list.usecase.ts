@@ -31,6 +31,10 @@ export class SelectTrainerFromMatchedListUseCase
       );
     }
 
+    if (!client.isPremium || !client.subscriptionEndDate || client.subscriptionEndDate < new Date()) {
+      throw new CustomError("Active premium subscription required", HTTP_STATUS.FORBIDDEN);
+    }
+
     if (!client.matchedTrainers || !client.matchedTrainers.includes(selectedTrainerId)) {
       throw new CustomError(
         ERROR_MESSAGES.TRAINER_NOT_IN_MATCHED_LIST,

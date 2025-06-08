@@ -50,6 +50,7 @@ export const ChatMessage = React.memo(
     const [showEmojiPicker, setShowEmojiPicker] = useState(false)
     const { addReaction, removeReaction } = useSocket()
     const { mutate: deleteMessage } = useDeleteMessage("client" as UserRole)
+    const { deleteMessage: socketDeleteMessage } = useSocket();
     const participantId = isCurrentUser ? String(message.receiverId) : String(message.senderId)
     const [currentUserReactions, setCurrentUserReactions] = useState<{
       [emoji: string]: boolean
@@ -150,11 +151,15 @@ export const ChatMessage = React.memo(
       return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
 
-    const handleDelete = () => {
-      console.log('Deleting message:', { messageId: message.id, participantId })
-      deleteMessage({ messageId: String(message.id), participantId })
-    }
 
+const handleDelete = () => {
+  console.log("Deleting message:", { messageId: message.id, participantId });
+  if (message.id.startsWith("temp-")) {
+    socketDeleteMessage(String(message.id), participantId);
+  } else {
+    deleteMessage({ messageId: String(message.id), participantId });
+  }
+};
     // Function to check if a URL is a PDF
     const isPdfUrl = (url: string) => {
       return (

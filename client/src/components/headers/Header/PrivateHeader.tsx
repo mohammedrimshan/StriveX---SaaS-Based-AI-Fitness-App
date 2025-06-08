@@ -60,7 +60,7 @@ export function PrivateHeader({
   onLogout,
   className,
 }: HeaderProps) {
-  const { unreadCount } = useNotifications(); // Use the hook to get unreadCount
+  const { unreadCount } = useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -164,17 +164,22 @@ export function PrivateHeader({
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 h-16 border-b border-border bg-background shadow-md z-50",
+        "fixed top-0 left-0 right-0 h-14 sm:h-16 border-b border-border bg-background shadow-md z-50",
         className
       )}
     >
-      <div className="container flex h-full items-center px-4">
+      <div className="container flex h-full items-center px-2 sm:px-4 lg:px-6 xl:px-8">
         {/* Hamburger menu button */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={onSidebarToggle}>
-                <Menu className="h-6 w-6" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onSidebarToggle}
+                className="h-8 w-8 sm:h-10 sm:w-10 shrink-0"
+              >
+                <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Toggle sidebar</TooltipContent>
@@ -182,39 +187,63 @@ export function PrivateHeader({
         </TooltipProvider>
 
         {/* Logo */}
-        <div className="ml-2 mr-8 flex items-center space-x-2">
-          <Dumbbell className="h-7 w-7 text-primary" />
-          <span className="text-2xl font-bold gradient-text">StriveX</span>
+        <div className="ml-1 sm:ml-2 mr-2 sm:mr-4 lg:mr-8 flex items-center space-x-1 sm:space-x-2 shrink-0">
+          <Dumbbell className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-primary" />
+          <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold gradient-text">
+            StriveX
+          </span>
         </div>
 
-        {/* Search */}
-        <div className="flex-1 max-w-2xl mx-auto">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  onClick={() => setOpen(true)}
-                  className="w-full justify-between text-muted-foreground"
-                >
-                  <div className="flex itemscanter">
-                    <Search className="mr-2 h-4 w-4" />
-                    <span>
-                      {userType === "admin"
-                        ? "Search users, settings..."
-                        : userType === "trainer"
-                        ? "Search clients, workouts..."
-                        : "Search workouts or nutrition plans..."}
-                    </span>
-                  </div>
-                  <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground">
-                    <span className="text-xs">⌘</span>K
-                  </kbd>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Press ⌘K to search</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        {/* Search - Different design for mobile vs desktop */}
+        <div className="flex-1 max-w-xs sm:max-w-md lg:max-w-2xl mx-auto">
+          {/* Mobile Search - Icon only */}
+          <div className="block sm:hidden">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setOpen(true)}
+                    className="h-8 w-8 shrink-0"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Search</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          {/* Desktop Search - Full search bar */}
+          <div className="hidden sm:block">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => setOpen(true)}
+                    className="w-full justify-between text-muted-foreground h-10 text-sm"
+                  >
+                    <div className="flex items-center min-w-0">
+                      <Search className="mr-2 h-4 w-4 shrink-0" />
+                      <span className="truncate">
+                        {userType === "admin"
+                          ? "Search users, settings..."
+                          : userType === "trainer"
+                          ? "Search clients, workouts..."
+                          : "Search workouts or nutrition plans..."}
+                      </span>
+                    </div>
+                    <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground shrink-0">
+                      <span className="text-xs">⌘</span>K
+                    </kbd>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Press ⌘K to search</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <CommandDialog open={open} onOpenChange={setOpen}>
             <Command className="rounded-lg border shadow-md">
               <CommandInput placeholder="Type to search..." />
@@ -230,15 +259,15 @@ export function PrivateHeader({
                         }}
                       >
                         <div className="flex items-center justify-between w-full">
-                          <span>{item.name}</span>
+                          <span className="truncate mr-2">{item.name}</span>
                           {item.type === "workout" ? (
-                            <Badge variant="secondary" className="bg-primary/20 text-primary">
+                            <Badge variant="secondary" className="bg-primary/20 text-primary shrink-0 text-xs">
                               {item.difficulty}
                             </Badge>
                           ) : item.type === "nutrition" ? (
-                            <Badge variant="outline">{item.calories}</Badge>
+                            <Badge variant="outline" className="shrink-0 text-xs">{item.calories}</Badge>
                           ) : (
-                            <Badge variant="outline">{item.tag}</Badge>
+                            <Badge variant="outline" className="shrink-0 text-xs">{item.tag}</Badge>
                           )}
                         </div>
                       </CommandItem>
@@ -251,14 +280,16 @@ export function PrivateHeader({
         </div>
 
         {/* Right Section */}
-        <div className="ml-8 flex items-center space-x-6">
-          {/* User Info */}
-          <div className="hidden md:flex items-center space-x-4">
+        <div className="ml-2 sm:ml-4 lg:ml-8 flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
+          {/* User Info - Hidden on mobile and small tablets */}
+          <div className="hidden lg:flex items-center space-x-3 xl:space-x-4">
             <div className="flex flex-col items-end">
-              <span className="text-sm font-medium">Hi, {userName}</span>
+              <span className="text-sm font-medium truncate max-w-32 xl:max-w-none">
+                Hi, {userName}
+              </span>
               <div className="flex items-center text-xs text-muted-foreground">
-                <MapPin className="mr-1 h-3 w-3" />
-                {userLocation}
+                <MapPin className="mr-1 h-3 w-3 shrink-0" />
+                <span className="truncate max-w-24 xl:max-w-none">{userLocation}</span>
               </div>
             </div>
           </div>
@@ -270,13 +301,13 @@ export function PrivateHeader({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative"
+                  className="relative h-8 w-8 sm:h-10 sm:w-10 shrink-0"
                   onClick={handleNotifications}
                 >
-                  <Bell className="h-5 w-5" />
+                  <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
-                      {unreadCount}
+                    <span className="absolute -top-1 -right-1 sm:top-0 sm:right-0 inline-flex items-center justify-center px-1 sm:px-2 py-0.5 sm:py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform sm:translate-x-1/2 sm:-translate-y-1/2 min-w-4 sm:min-w-5 h-4 sm:h-5">
+                      {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}
                 </Button>
@@ -293,9 +324,9 @@ export function PrivateHeader({
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <div className="cursor-pointer">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 shrink-0">
                           <AvatarImage src={userAvatar} alt={userName} />
-                          <AvatarFallback className="bg-primary text-white">
+                          <AvatarFallback className="bg-primary text-white text-xs sm:text-sm">
                             {userName
                               .split(" ")
                               .map((n) => n[0])
@@ -304,8 +335,22 @@ export function PrivateHeader({
                         </Avatar>
                       </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end">
-                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuContent 
+                      className="w-48 sm:w-56" 
+                      align="end"
+                      sideOffset={8}
+                    >
+                      <DropdownMenuLabel className="px-2 py-1.5">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none truncate">
+                            {userName}
+                          </p>
+                          <div className="flex items-center text-xs text-muted-foreground lg:hidden">
+                            <MapPin className="mr-1 h-3 w-3 shrink-0" />
+                            <span className="truncate">{userLocation}</span>
+                          </div>
+                        </div>
+                      </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuGroup>
                         <DropdownMenuItem className="cursor-pointer" onClick={handleProfile}>
@@ -315,6 +360,11 @@ export function PrivateHeader({
                         <DropdownMenuItem className="cursor-pointer" onClick={handleNotifications}>
                           <Bell className="mr-2 h-4 w-4" />
                           <span>Notifications</span>
+                          {unreadCount > 0 && (
+                            <Badge variant="destructive" className="ml-auto h-5 text-xs">
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </Badge>
+                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer">
                           <Settings2 className="mr-2 h-4 w-4" />

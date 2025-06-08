@@ -6,7 +6,7 @@ dotenv.config();
 const env = cleanEnv(process.env, {
   CORS_ALLOWED_ORIGIN: str({ default: "http://localhost:5173" }),
   PORT: port({ default: 5000 }),
-  NODE_ENV: str({ default: "development" }),
+  NODE_ENV: str({ default: "production" }),
   DATABASE_URI: str(),
   EMAIL_USER: str(),
   EMAIL_PASS: str(),

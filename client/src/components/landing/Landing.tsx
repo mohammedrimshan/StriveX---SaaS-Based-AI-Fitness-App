@@ -1,8 +1,6 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-// Remove this import since we're handling header in ClientLayout
-// import { Header } from "../components/common/Header/PublicHeader"
 import { Footer } from "@/components/common/Footer"
 import { HeroSection } from "@/components/landing/UserlandingPages/hero-section"
 import { ServicesSection } from "@/components/landing/UserlandingPages/service-section"
@@ -11,9 +9,12 @@ import { DataDrivenSection } from "@/components/landing/UserlandingPages/data-dr
 import { SuccessStoriesSection } from "@/components/landing/UserlandingPages/success-stories-section"
 import { TransformSection } from "@/components/landing/UserlandingPages/transform-section"
 import { ChallengesSection } from "@/components/landing/UserlandingPages/challenges-section"
+import { useOutletContext } from "react-router-dom"
 
 export default function Home() {
   const smokeRef = useRef<HTMLDivElement>(null)
+  const user = useOutletContext<any>() // Access user from Outlet context
+  const isLoggedIn = !!user // Determine if user is logged in
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -36,15 +37,14 @@ export default function Home() {
   return (
     <div className="relative overflow-hidden">
       <div ref={smokeRef} className="smoke-effect fixed inset-0 pointer-events-none z-0" />
-      {/* Remove the Header component from here */}
       <main>
-        <HeroSection />
+        <HeroSection user={user} isLoggedIn={isLoggedIn} />
         <ServicesSection />
         <ChallengesSection />
         <PremiumSection />
         <DataDrivenSection />
         <SuccessStoriesSection />
-        <TransformSection />
+        { !isLoggedIn && <TransformSection /> } {/* Conditionally render TransformSection */}
       </main>
       <Footer />
     </div>

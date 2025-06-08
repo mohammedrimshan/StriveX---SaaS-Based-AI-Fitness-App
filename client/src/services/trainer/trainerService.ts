@@ -4,6 +4,7 @@ import { CategoryResponse } from "../admin/adminService";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/trainer/useTrainerPasswordChange";
 import { SlotsResponse,CreateSlotData } from "@/types/Slot";
+import { WalletHistoryResponse } from "@/types/wallet";
 
 
 export interface TrainerClient {
@@ -30,6 +31,7 @@ export interface TrainerClientsPaginatedResponse {
 
 // Interface for pending client requests
 export interface PendingClientRequest {
+  id?:string;
   clientId: string;
   firstName: string;
   lastName: string;
@@ -203,5 +205,26 @@ export const getTrainerBookedAndCancelledSlots = async (
   } catch (error: any) {
     console.error("Get trainer slots error:", error.response?.data);
     throw new Error(error.response?.data?.message || "Failed to fetch trainer slots");
+  }
+};
+
+// Get trainer wallet history
+export const getTrainerWalletHistory = async (
+  page: number = 1,
+  limit: number = 10,
+  status?: string
+): Promise<WalletHistoryResponse> => {
+  try {
+    const response = await trainerAxiosInstance.get<WalletHistoryResponse>(
+      "/trainer/wallet-history",
+      {
+        params: { page, limit, status },
+      }
+    );
+    console.log("Wallet history response:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Get wallet history error:", error.response?.data);
+    throw new Error(error.response?.data?.message || "Failed to fetch wallet history");
   }
 };

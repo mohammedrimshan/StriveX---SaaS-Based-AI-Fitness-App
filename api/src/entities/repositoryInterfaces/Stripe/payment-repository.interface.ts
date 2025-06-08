@@ -1,5 +1,6 @@
 import { IPaymentEntity } from "@/entities/models/payment.entity";
 import { IBaseRepository } from "../base-repository.interface";
+import { FilterQuery } from "mongoose";
 
 export interface IPaymentRepository extends IBaseRepository<IPaymentEntity> {
   findByStripePaymentId(stripePaymentId: string): Promise<IPaymentEntity | null>;
@@ -9,4 +10,16 @@ export interface IPaymentRepository extends IBaseRepository<IPaymentEntity> {
     userId?: string
   ): Promise<IPaymentEntity>;
   findByStripeSessionId(stripeSessionId: string): Promise<IPaymentEntity | null>;
+  findTrainerPaymentHistory(
+    trainerId: string,
+    skip: number,
+    limit: number,
+    status?: string
+  ): Promise<{ items: IPaymentEntity[]; total: number }>;
+ updateMany(
+  query: FilterQuery<IPaymentEntity>,  
+  update: Partial<IPaymentEntity>
+): Promise<{ modifiedCount: number }>;
+// In IPaymentRepository.ts
+findOne(filter: Partial<IPaymentEntity>): Promise<IPaymentEntity | null>;
 }

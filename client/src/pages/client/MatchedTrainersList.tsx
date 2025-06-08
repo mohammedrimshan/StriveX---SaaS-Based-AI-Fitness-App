@@ -28,6 +28,7 @@ interface ApiTrainer {
   lastName: string;
   email: string;
   phoneNumber: string;
+  profileImage?: string;
   gender: string;
   experience: number;
   specialization?: string[];
@@ -46,18 +47,19 @@ const formatValueForDisplay = (value: string): string => {
 
 // Transform API data to UI format
 const transformTrainerData = (apiTrainer: ApiTrainer): TrainerProfile => {
+  console.log(apiTrainer,'apiTrainer');
   return {
     id: apiTrainer.id,
     firstName: apiTrainer.firstName,
     lastName: apiTrainer.lastName,
     email: apiTrainer.email,
     phoneNumber: apiTrainer.phoneNumber,
-    profileImage: `/assets/trainers/${apiTrainer.gender === "female" ? "female" : "male"}.png`,
+    profileImage: apiTrainer.profileImage,
     bio: `Experienced trainer with ${apiTrainer.experience} years of professional training.`,
     location: "Local Area",
     experience: apiTrainer.experience,
     rating: 4.5,
-    clientCount: 10,
+    clientCount: apiTrainer.clientCount,
     sessionCount: 50,
     specialization: apiTrainer.specialization || [],
     certifications: apiTrainer.certifications || [],
@@ -296,20 +298,6 @@ export function MatchedTrainersPage() {
                           )}
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                          <p className="text-sm font-medium text-gray-800">Available on:</p>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {trainer.availability.map((day: string, index: number) => (
-                              <Badge
-                                key={index}
-                                variant="outline"
-                                className="text-xs bg-green-50 text-green-700 border-green-200"
-                              >
-                                {day}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
                       </CardContent>
                     </Card>
                   </motion.div>

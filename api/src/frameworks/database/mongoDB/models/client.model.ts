@@ -1,9 +1,14 @@
-import { Document,ObjectId, model } from "mongoose";
-import { IClientEntity } from "@/entities/models/client.entity";
+import mongoose, { model, Document, ObjectId } from "mongoose";
 import { clientSchema } from "../schemas/client.schema";
-export interface IClientModel extends Omit<IClientEntity, "id">, Document {
+import { IClientEntity } from "@/entities/models/client.entity";
+export interface IClientModel extends Omit<IClientEntity, "id" | "membershipPlanId">, Document {
+
   _id: ObjectId;
+  membershipPlanId:ObjectId;
   updateFCMToken(clientId: string, fcmToken: string): Promise<void>;
 }
 
-export const ClientModel = model<IClientModel>("Client", clientSchema);
+console.log("ClientModel loaded:", mongoose.models.Client);
+
+export const ClientModel = mongoose.models.Client as mongoose.Model<IClientModel> ||
+  model<IClientModel>("Client", clientSchema);

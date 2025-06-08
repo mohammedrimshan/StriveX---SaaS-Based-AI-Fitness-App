@@ -28,7 +28,7 @@ export default function Hero() {
             <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
               Start Free Trial
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+            <Button size="lg" variant="outline" className="border-white text-black hover:bg-white/10">
               <Play className="mr-2 h-4 w-4" /> Watch Video
             </Button>
           </div>

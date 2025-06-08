@@ -32,7 +32,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
     {
       icon: <Trophy className="text-yellow-400" size={20} />,
       label: 'Workouts',
-      value: completedWorkouts || 3,
+      value: completedWorkouts || 0,
       unit: 'completed',
       color: 'from-yellow-400 to-orange-500',
       bgColor: 'bg-yellow-500/30',
@@ -41,7 +41,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
     {
       icon: <Flame className="text-orange-400" size={20} />,
       label: 'Calories',
-      value: totalCalories || 450,
+      value: totalCalories || 0,
       unit: 'burned',
       color: 'from-orange-400 to-red-500',
       bgColor: 'bg-orange-500/30',

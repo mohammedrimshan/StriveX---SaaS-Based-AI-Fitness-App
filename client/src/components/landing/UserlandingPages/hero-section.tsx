@@ -7,7 +7,49 @@ import bg1 from '@/assets/common/bg1.png'
 import bg2 from '@/assets/common/bg2.png'
 import { useNavigate } from "react-router-dom"
 
-export function HeroSection() {
+interface HeroSectionProps {
+  user?: any // Adjust type based on your user object structure
+  isLoggedIn: boolean
+}
+
+// Typing Effect Component
+const TypingEffect = ({ text, speed = 100, delay = 0 }: { text: string; speed?: number; delay?: number }) => {
+  const [displayText, setDisplayText] = useState("")
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [showCursor, setShowCursor] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (currentIndex < text.length) {
+        setDisplayText(prev => prev + text[currentIndex])
+        setCurrentIndex(prev => prev + 1)
+      }
+    }, currentIndex === 0 ? delay : speed)
+
+    return () => clearTimeout(timer)
+  }, [currentIndex, text, speed, delay])
+
+  useEffect(() => {
+    const cursorTimer = setInterval(() => {
+      setShowCursor(prev => !prev)
+    }, 500)
+
+    return () => clearInterval(cursorTimer)
+  }, [])
+
+  return (
+    <span>
+      {displayText}
+      {currentIndex < text.length && (
+        <span className={`inline-block w-0.5 h-8 bg-violet-500 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}>
+          |
+        </span>
+      )}
+    </span>
+  )
+}
+
+export function HeroSection({ user, isLoggedIn }: HeroSectionProps) {
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true })
   const controls = useAnimation()
@@ -30,7 +72,6 @@ export function HeroSection() {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY })
       
-      // Animate smoke particles based on mouse position
       if (smokeRef.current) {
         const smoke = smokeRef.current
         const rect = smoke.getBoundingClientRect()
@@ -77,7 +118,6 @@ export function HeroSection() {
     },
   }
 
-  // Subtle parallax effect based on mouse position
   const calculateParallax = (strength = 15) => {
     const x = (window.innerWidth / 2 - mousePosition.x) / strength
     const y = (window.innerHeight / 2 - mousePosition.y) / strength
@@ -86,7 +126,6 @@ export function HeroSection() {
 
   return (
     <section ref={ref} className="relative pt-32 pb-20 overflow-hidden">
-      {/* Animated smoke background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <motion.div 
           ref={smokeRef}
@@ -95,7 +134,6 @@ export function HeroSection() {
           animate={{ opacity: 0.7 }}
           transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
         >
-          {/* Multiple smoke layers with different animations */}
           <motion.div 
             className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.15),transparent_60%)]"
             animate={{
@@ -143,32 +181,58 @@ export function HeroSection() {
             }}
           >
             <motion.div variants={itemVariants} className="space-y-3">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                MAXIMIZE <br />
-                POTENTIAL WITH <br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-400">
-                  AI-POWERED <br />
-                  FITNESS
-                </span>{" "}
-                <br />
-                EXCELLENCE!
-              </h1>
+              {isLoggedIn ? (
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                  WELCOME, <br />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-400">
+                    <TypingEffect 
+                      text={user?.firstName?.toUpperCase() || "USER"} 
+                      speed={150} 
+                      delay={500} 
+                    />
+                  </span>
+                  <br />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-400">
+                    CONTINUE YOUR <br />
+                    FITNESS JOURNEY
+                  </span>
+                </h1>
+              ) : (
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                  MAXIMIZE <br />
+                  POTENTIAL WITH <br />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-400">
+                    AI-POWERED <br />
+                    FITNESS
+                  </span>{" "}
+                  <br />
+                  EXCELLENCE!
+                </h1>
+              )}
             </motion.div>
 
             <motion.p variants={itemVariants} className="text-lg text-muted-foreground max-w-lg">
-              Join our exclusive fitness community! Compare goals with
-              <span className="font-semibold text-foreground"> data-driven AI analysis.</span> Push limits, achieve
-              greatness!
+              {isLoggedIn ? (
+                <>Keep pushing your limits with our data-driven AI analysis tailored just for you!</>
+              ) : (
+                <>
+                  Join our exclusive fitness community! Compare goals with
+                  <span className="font-semibold text-foreground"> data-driven AI analysis.</span> Push limits, achieve
+                  greatness!
+                </>
+              )}
             </motion.p>
 
-            <motion.div variants={itemVariants}>
-              <Button 
-                onClick={handleStartJourney}
-                className="bg-gradient-to-r from-violet-700 via-violet-600 to-purple-500 text-white px-8 py-6 text-lg rounded-full hover:shadow-lg hover:shadow-violet-400/20 transition-all duration-300 hover:-translate-y-1"
-              >
-                START YOUR JOURNEY
-              </Button>
-            </motion.div>
+            {!isLoggedIn && (
+              <motion.div variants={itemVariants}>
+                <Button 
+                  onClick={handleStartJourney}
+                  className="bg-gradient-to-r from-violet-700 via-violet-600 to-purple-500 text-white px-8 py-6 text-lg rounded-full hover:shadow-lg hover:shadow-violet-400/20 transition-all duration-300 hover:-translate-y-1"
+                >
+                  START YOUR JOURNEY
+                </Button>
+              </motion.div>
+            )}
           </motion.div>
 
           <motion.div
@@ -185,9 +249,7 @@ export function HeroSection() {
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
-              {/* Using PNG images with transparent backgrounds and proper fade */}
               <div className="absolute inset-0 w-full h-full">
-                {/* First image - always hidden when hovered */}
                 <motion.img
                   src={bg1}
                   alt="Fitness woman with digital interface"
@@ -201,7 +263,6 @@ export function HeroSection() {
                   loading="eager"
                 />
                 
-                {/* Second image - only visible when hovered */}
                 <motion.img
                   src={bg2}
                   alt="Person with fitness smartwatch"
@@ -216,7 +277,6 @@ export function HeroSection() {
                 />
               </div>
               
-              {/* Gradient fade at the bottom of images */}
               <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
             </div>
 

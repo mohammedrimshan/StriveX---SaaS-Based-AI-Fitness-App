@@ -7,13 +7,13 @@ export interface User {
   phoneNumber: string;
   role?: UserRole;
 
-  dateOfBirth?: string; 
+  dateOfBirth?: string;
   height?: number;
   weight?: number;
-  gender?: string;      
-	status: string;
-	createdAt: Date;
-	updatedAt: Date;
+  gender?: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
   isActive?: boolean;
 }
 
@@ -24,27 +24,41 @@ export interface ILoginData {
 }
 
 export interface IAdmin extends User {
-	isAdmin?: boolean;
-  profileImage?:string
+  isAdmin?: boolean;
+  profileImage?: string;
 }
 
-export interface IClient extends User{
+
+export enum TrainerSelectionStatus {
+  PENDING = "pending",
+  ASSIGNED = "assigned",
+  NOT_CONFIRMED = "not_confirmed",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+}
+
+export interface IClient extends User {
   id: string;
-  clientId?:string;
+  clientId?: string;
   isActive?: boolean;
   specialization?: string;
   preferences?: string[];
   status: string;
   googleId?: string;
-  fitnessGoal?: "weightLoss" | "muscleGain" | "endurance" | "flexibility" | "maintenance";
+  fitnessGoal?:
+    | "weightLoss"
+    | "muscleGain"
+    | "endurance"
+    | "flexibility"
+    | "maintenance";
   experienceLevel?: "beginner" | "intermediate" | "advanced" | "expert";
   activityLevel?: "sedentary" | "light" | "moderate" | "active" | "veryActive";
   healthConditions?: string[];
   waterIntake?: number;
   waterIntakeTarget?: number;
   dietPreference?: string;
-  preferredWorkout?:string;
-  workoutExperience?:string;
+  preferredWorkout?: string;
+  workoutExperience?: string;
   profileImage?: string;
   isPremium: boolean;
   selectionMode: string; // or SelectionMode enum
@@ -53,9 +67,19 @@ export interface IClient extends User{
   skillsToGain: string[]; // or SKILLS[] if using enum
   isOnline: boolean;
   matchedTrainers: string[];
+  fcmToken?: string;
+  equipmentAvailable?: string[];
+  calorieTarget?: string;
+  foodAllergies?: string[];
+  workoutCategory?: string;
+  subscriptionStartDate?: Date;
+  subscriptionEndDate?: Date;
+  membershipPlanId?: string;
+  selectedTrainerId?: string;
+  selectStatus: TrainerSelectionStatus;
 }
 export interface ITrainer extends User {
-  id: string; 
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -70,10 +94,11 @@ export interface ITrainer extends User {
   qualifications?: string[];
   specialization?: string[];
   certifications?: string[];
-  approvedByAdmin?: boolean; 
-  approvalStatus?: string; 
-  rejectionReason?: string; 
+  approvedByAdmin?: boolean;
+  approvalStatus?: string;
+  rejectionReason?: string;
   googleId?: string;
+  
 }
 
 export interface Category {
@@ -84,6 +109,5 @@ export interface Category {
   isListed: boolean;
   createdAt: Date;
 }
-
 
 export type UserDTO = IAdmin | IClient | ITrainer;

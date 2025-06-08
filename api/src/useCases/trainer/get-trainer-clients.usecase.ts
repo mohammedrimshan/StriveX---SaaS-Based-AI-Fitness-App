@@ -3,7 +3,6 @@ import { IGetTrainerClientsUseCase } from "@/entities/useCaseInterfaces/trainer/
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS, TrainerSelectionStatus } from "@/shared/constants";
-import { IClientModel } from "@/frameworks/database/mongoDB/models/client.model";
 @injectable()
 export class GetTrainerClientsUseCase implements IGetTrainerClientsUseCase {
   constructor(

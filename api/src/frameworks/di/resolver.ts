@@ -17,10 +17,14 @@ import { PostController } from "@/interfaceAdapters/controllers/post.controller"
 import { CommentController } from "@/interfaceAdapters/controllers/comment.controller";
 import { NotificationController } from "@/interfaceAdapters/controllers/notification.controller";
 import { VideoCallController } from "@/interfaceAdapters/controllers/video.controller";
+import { SessionHistoryController } from "@/interfaceAdapters/controllers/session-history.controller";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
+import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
 DependancyInjection.registerAll();
 
 export const processor = container.resolve<SlotExpiryProcessor>("SlotExpiryProcessor");
+
+export const subscriptionProcessor = container.resolve<SubscriptionExpiryProcessor>("SubscriptionExpiryProcessor");
 
 export const blockStatusMiddleware = container.resolve(BlockStatusMiddleware);
 
@@ -55,3 +59,5 @@ export const commentController = container.resolve(CommentController);
 export const notificationController = container.resolve(NotificationController)
 
 export const videoCallController = container.resolve(VideoCallController)
+
+export const sessionHistoryController = container.resolve(SessionHistoryController);

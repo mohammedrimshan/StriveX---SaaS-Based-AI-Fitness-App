@@ -6,17 +6,22 @@ interface BMIGaugeProps {
 }
 
 const BMIGauge: React.FC<BMIGaugeProps> = ({ bmi }) => {
+  // Handle null/undefined BMI values
+  const isValidBMI = bmi !== null && bmi !== undefined && !isNaN(bmi);
+  const safeBMI = isValidBMI ? bmi : 0;
+
   const getBMICategory = (bmi: number) => {
+    if (!isValidBMI) return { category: 'Enter your details', color: '#9CA3AF', message: 'Fill in height and weight to see your BMI' };
     if (bmi < 18.5) return { category: 'Underweight', color: '#3B82F6', message: 'Consider a balanced diet!' };
     else if (bmi < 25) return { category: 'Normal weight', color: '#22C55E', message: "You're in the Normal range! Keep shining!" };
     else if (bmi < 30) return { category: 'Overweight', color: '#F97316', message: 'Small steps to better health!' };
     else return { category: 'Obesity', color: '#EF4444', message: 'Your health journey starts now!' };
   };
 
-  const { category, color, message } = getBMICategory(bmi);
+  const { category, color, message } = getBMICategory(safeBMI);
   
   // Calculate progress percentage (BMI 15-40 range mapped to 0-100%)
-  const progressPercentage = Math.min(Math.max((bmi - 15) / 25 * 100, 0), 100);
+  const progressPercentage = isValidBMI ? Math.min(Math.max((safeBMI - 15) / 25 * 100, 0), 100) : 0;
 
   const bmiRanges = [
     { label: 'Underweight', min: 0, max: 14, color: '#3B82F6' },
@@ -37,7 +42,7 @@ const BMIGauge: React.FC<BMIGaugeProps> = ({ bmi }) => {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-4xl font-bold text-gray-800 mb-2"
         >
-          {bmi.toFixed(1)}
+          {isValidBMI ? safeBMI.toFixed(1) : '--'}
         </motion.div>
         
         <motion.div
@@ -90,13 +95,15 @@ const BMIGauge: React.FC<BMIGaugeProps> = ({ bmi }) => {
           />
           
           {/* BMI position indicator */}
-          <motion.div
-            className="absolute top-0 w-1 h-full bg-white shadow-md rounded-full"
-            style={{ left: `${progressPercentage}%` }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 1.5 }}
-          />
+          {isValidBMI && (
+            <motion.div
+              className="absolute top-0 w-1 h-full bg-white shadow-md rounded-full"
+              style={{ left: `${progressPercentage}%` }}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 1.5 }}
+            />
+          )}
         </div>
         
         {/* Range labels */}

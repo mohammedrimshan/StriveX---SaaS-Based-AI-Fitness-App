@@ -8,7 +8,7 @@ interface AnimatedTitleProps {
   className?: string
 }
 
-export default function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {
+export default function AnimatedTitle({ title, subtitle, className }: AnimatedTitleProps) {
   const words = title.split(" ")
 
   return (
@@ -16,11 +16,11 @@ export default function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
-      className="text-center mb-12"
+      className={`text-center mb-8 sm:mb-12 ${className || ''}`}
     >
-      <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6 tracking-tight">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 tracking-tight leading-tight sm:leading-tight">
         {words.map((word, wordIndex) => (
-          <span key={wordIndex} className="inline-block mr-4 last:mr-0">
+          <span key={wordIndex} className="inline-block mr-2 sm:mr-4 last:mr-0">
             {word.split("").map((letter, letterIndex) => (
               <motion.span
                 key={`${wordIndex}-${letterIndex}`}
@@ -48,7 +48,7 @@ export default function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="text-xl text-gray-600 max-w-3xl mx-auto"
+          className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-auto leading-relaxed"
         >
           {subtitle}
         </motion.p>
@@ -56,4 +56,3 @@ export default function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {
     </motion.div>
   )
 }
-

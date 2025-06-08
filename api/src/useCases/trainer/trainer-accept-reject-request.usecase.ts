@@ -3,6 +3,7 @@ import { ITrainerAcceptRejectRequestUseCase } from "@/entities/useCaseInterfaces
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { IEmailService } from "@/entities/services/email-service.interface";
+import { IPaymentRepository } from "@/entities/repositoryInterfaces/Stripe/payment-repository.interface";
 import { IClientEntity } from "@/entities/models/client.entity";
 import { CustomError } from "@/entities/utils/custom.error";
 import {
@@ -12,14 +13,19 @@ import {
   TrainerApprovalStatus,
   TRAINER_ACCEPTANCE_MAIL_CONTENT,
   TRAINER_REJECTION_MAIL_CONTENT,
+  PaymentStatus,
 } from "@/shared/constants";
 
 @injectable()
-export class TrainerAcceptRejectRequestUseCase implements ITrainerAcceptRejectRequestUseCase {
+export class TrainerAcceptRejectRequestUseCase
+  implements ITrainerAcceptRejectRequestUseCase
+{
   constructor(
     @inject("IClientRepository") private _clientRepository: IClientRepository,
-    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
-    @inject("IEmailService") private _emailService: IEmailService
+    @inject("ITrainerRepository")
+    private _trainerRepository: ITrainerRepository,
+    @inject("IEmailService") private _emailService: IEmailService,
+    @inject("IPaymentRepository") private _paymentRepository: IPaymentRepository
   ) {}
 
   async execute(
@@ -28,62 +34,119 @@ export class TrainerAcceptRejectRequestUseCase implements ITrainerAcceptRejectRe
     action: "accept" | "reject",
     rejectionReason?: string
   ): Promise<IClientEntity> {
-    const client = await this._clientRepository.findByClientId(clientId);
+    const client =
+      (await this._clientRepository.findById(clientId)) ||
+      (await this._clientRepository.findByClientNewId(clientId));
     if (!client) {
-      throw new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+      throw new CustomError(
+        ERROR_MESSAGES.USER_NOT_FOUND,
+        HTTP_STATUS.NOT_FOUND
+      );
+    }
+
+    if (!client.isPremium || !client.subscriptionEndDate || client.subscriptionEndDate < new Date()) {
+      throw new CustomError("Active premium subscription required", HTTP_STATUS.FORBIDDEN);
     }
 
     const trainer = await this._trainerRepository.findById(trainerId);
     if (!trainer || trainer.approvalStatus !== TrainerApprovalStatus.APPROVED) {
-      throw new CustomError(ERROR_MESSAGES.TRAINER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+      throw new CustomError(
+        ERROR_MESSAGES.TRAINER_NOT_FOUND,
+        HTTP_STATUS.NOT_FOUND
+      );
     }
 
     if (!client.selectedTrainerId || client.selectedTrainerId !== trainerId) {
-      throw new CustomError(ERROR_MESSAGES.TRAINER_NOT_ASSIGNED_TO_CLIENT, HTTP_STATUS.BAD_REQUEST);
+      throw new CustomError(
+        ERROR_MESSAGES.TRAINER_NOT_ASSIGNED_TO_CLIENT,
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     if (!trainer.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trainer.email)) {
-      throw new CustomError(ERROR_MESSAGES.INVALID_TRAINER_EMAIL, HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      throw new CustomError(
+        ERROR_MESSAGES.INVALID_TRAINER_EMAIL,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );
     }
 
     const clientName = `${client.firstName} ${client.lastName}`;
     const trainerName = `${trainer.firstName} ${trainer.lastName}`;
+    const internalClientId = client.id;
 
     if (action === "accept") {
       if (client.selectStatus !== TrainerSelectionStatus.PENDING) {
-        throw new CustomError(ERROR_MESSAGES.REQUEST_NOT_PENDING, HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(
+          ERROR_MESSAGES.REQUEST_NOT_PENDING,
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
       await this._trainerRepository.update(trainerId, {
         clientCount: (trainer.clientCount ?? 0) + 1,
       });
 
-      const updatedClient = await this._clientRepository.updateByClientId(clientId, {
+      const updatedClient = await this._clientRepository.update(clientId, {
         selectStatus: TrainerSelectionStatus.ACCEPTED,
       });
 
       if (!updatedClient) {
-        throw new CustomError(ERROR_MESSAGES.FAILED_TO_UPDATE_SELECTION, HTTP_STATUS.INTERNAL_SERVER_ERROR);
+        throw new CustomError(
+          ERROR_MESSAGES.FAILED_TO_UPDATE_SELECTION,
+          HTTP_STATUS.INTERNAL_SERVER_ERROR
+        );
+      }
+
+      const payments = await this._paymentRepository.find(
+        {
+          clientId: internalClientId,
+          status: PaymentStatus.COMPLETED,
+          $or: [{ trainerId: null }, { trainerId: { $exists: false } }],
+        },
+        0,
+        1000
+      );
+
+      if (payments.items.length > 0) {
+        await this._paymentRepository.updateMany(
+          {
+            clientId: internalClientId,
+            status: PaymentStatus.COMPLETED,
+            $or: [{ trainerId: null }, { trainerId: { $exists: false } }],
+          },
+          { trainerId, updatedAt: new Date() }
+        );
       }
 
       try {
-        const emailContent = TRAINER_ACCEPTANCE_MAIL_CONTENT(trainerName, clientName);
-        await this._emailService.sendEmail(client.email, "New Client Assignment", emailContent);
-      } catch (error: any) {
-        console.error("Failed to send acceptance email:", error.message);
-      }
+        const emailContent = TRAINER_ACCEPTANCE_MAIL_CONTENT(
+          trainerName,
+          clientName
+        );
+        await this._emailService.sendEmail(
+          client.email,
+          "New Client Assignment",
+          emailContent
+        );
+      } catch (error: any) {}
 
       return updatedClient;
     }
 
     if (action === "reject") {
-      const updatedClient = await this._clientRepository.updateByClientId(clientId, {
-        selectStatus: TrainerSelectionStatus.REJECTED,
-        selectedTrainerId: undefined,
-      });
+      const updatedClient = await this._clientRepository.updateByClientId(
+        clientId,
+        {
+          selectStatus: TrainerSelectionStatus.REJECTED,
+          selectedTrainerId: undefined,
+        }
+      );
 
       if (!updatedClient) {
-        throw new CustomError(ERROR_MESSAGES.FAILED_TO_UPDATE_SELECTION, HTTP_STATUS.INTERNAL_SERVER_ERROR);
+        throw new CustomError(
+          ERROR_MESSAGES.FAILED_TO_UPDATE_SELECTION,
+          HTTP_STATUS.INTERNAL_SERVER_ERROR
+        );
       }
 
       try {
@@ -92,14 +155,19 @@ export class TrainerAcceptRejectRequestUseCase implements ITrainerAcceptRejectRe
           clientName,
           rejectionReason ?? "No reason provided."
         );
-        await this._emailService.sendEmail(client.email, "Client Request Rejected", emailContent);
-      } catch (error: any) {
-        console.error("Failed to send rejection email:", error.message);
-      }
+        await this._emailService.sendEmail(
+          client.email,
+          "Client Request Rejected",
+          emailContent
+        );
+      } catch (error: any) {}
 
       return updatedClient;
     }
 
-    throw new CustomError(ERROR_MESSAGES.INVALID_ACTION, HTTP_STATUS.BAD_REQUEST);
+    throw new CustomError(
+      ERROR_MESSAGES.INVALID_ACTION,
+      HTTP_STATUS.BAD_REQUEST
+    );
   }
 }

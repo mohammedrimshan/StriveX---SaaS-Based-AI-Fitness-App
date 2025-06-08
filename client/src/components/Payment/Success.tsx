@@ -1,3 +1,4 @@
+// D:\StriveX\client\src\components\Success.tsx
 "use client";
 
 import { useState } from "react";
@@ -20,14 +21,19 @@ export function PaymentSuccessPage() {
   const query = useQuery();
   const client = useSelector((state: RootState) => state.client.client);
   const planName = query.get("planName");
+  const isUpgrade = query.get("isUpgrade") === "true"; // Read isUpgrade from query params
 
   const handleDownloadPolicy = () => {
     setShowPolicyPdf(true);
     generatePolicyPDF();
   };
 
-  const navigateToTrainerSelection = () => {
-    navigate("/trainer-selection-prompt");
+  const navigateToNext = () => {
+    if (isUpgrade) {
+      navigate("/home"); // Navigate to home for upgrades
+    } else {
+      navigate("/trainer-selection-prompt"); // Navigate to trainer selection for new subscriptions
+    }
   };
 
   const fullName = client ? `${client.firstName} ${client.lastName}` : "Unknown User";
@@ -54,7 +60,12 @@ export function PaymentSuccessPage() {
 
       doc.setFontSize(22);
       doc.setTextColor(255, 255, 255);
-      doc.text("NO RETURN OR REFUND POLICY", pageWidth / 2, 25, { align: "center" });
+      doc.text(
+        isUpgrade ? "PLAN UPGRADE AGREEMENT" : "NO RETURN OR REFUND POLICY",
+        pageWidth / 2,
+        25,
+        { align: "center" }
+      );
 
       doc.setDrawColor(220, 220, 220);
       doc.setLineWidth(0.5);
@@ -75,30 +86,46 @@ export function PaymentSuccessPage() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
       doc.setTextColor(88, 86, 214);
-      doc.text("POLICY TERMS AND CONDITIONS", 20, 120);
+      doc.text(
+        isUpgrade ? "UPGRADE TERMS AND CONDITIONS" : "POLICY TERMS AND CONDITIONS",
+        20,
+        120
+      );
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(60, 60, 60);
 
-      const policyText = [
-        "1. By agreeing to this policy, you acknowledge that all membership fees paid to our fitness center are",
-        "   non-refundable.",
-        "",
-        "2. Once payment has been processed, no refunds will be issued under any circumstances, including but",
-        "   not limited to:",
-        "     a. Change of mind",
-        "     b. Inability to use the facilities due to personal circumstances",
-        "     c. Relocation",
-        "     d. Medical conditions arising after membership purchase",
-        "",
-        "3. Membership fees cannot be transferred to another individual.",
-        "",
-        "4. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
-        "",
-        "5. This agreement constitutes the entire understanding between the member and the fitness center",
-        "   regarding the refund policy.",
-      ];
+      const policyText = isUpgrade
+        ? [
+            "1. By agreeing to this policy, you acknowledge that you are upgrading your existing membership plan.",
+            "",
+            "2. The upgraded membership fees are non-refundable, except as required by applicable law.",
+            "",
+            "3. Any remaining value from your current plan will be prorated and applied as a credit toward the new plan.",
+            "",
+            "4. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
+            "",
+            "5. This agreement constitutes the entire understanding between the member and the fitness center regarding the plan upgrade.",
+          ]
+        : [
+            "1. By agreeing to this policy, you acknowledge that all membership fees paid to our fitness center are",
+            "   non-refundable.",
+            "",
+            "2. Once payment has been processed, no refunds will be issued under any circumstances, including but",
+            "   not limited to:",
+            "     a. Change of mind",
+            "     b. Inability to use the facilities due to personal circumstances",
+            "     c. Relocation",
+            "     d. Medical conditions arising after membership purchase",
+            "",
+            "3. Membership fees cannot be transferred to another individual.",
+            "",
+            "4. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
+            "",
+            "5. This agreement constitutes the entire understanding between the member and the fitness center",
+            "   regarding the refund policy.",
+          ];
 
       let yPosition = 130;
       policyText.forEach((line) => {
@@ -113,12 +140,22 @@ export function PaymentSuccessPage() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
       doc.setTextColor(88, 86, 214);
-      doc.text("PAYMENT CONFIRMATION", 20, pageHeight - 50);
+      doc.text(
+        isUpgrade ? "UPGRADE CONFENT" : "PAYMENT CONFIRMATION",
+        20,
+        pageHeight - 50
+      );
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(60, 60, 60);
-      doc.text("Payment processed and membership activated on: ", 20, pageHeight - 40);
+      doc.text(
+        isUpgrade
+          ? "Plan upgrade processed and membership updated on: "
+          : "Payment processed and membership activated on: ",
+        20,
+        pageHeight - 40
+      );
       doc.text(today.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), 20, pageHeight - 33);
 
       doc.setFont("helvetica", "bold");
@@ -132,7 +169,7 @@ export function PaymentSuccessPage() {
       doc.setTextColor(255, 255, 255);
       doc.text("© 2025 Fitness Center. All Rights Reserved.", pageWidth / 2, pageHeight - 4, { align: "center" });
 
-      const fileName = `Membership_Agreement_${fullName.replace(/\s+/g, "_")}.pdf`;
+      const fileName = `Membership_${isUpgrade ? "Upgrade" : "Agreement"}_${fullName.replace(/\s+/g, "_")}.pdf`;
       doc.save(fileName);
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -143,7 +180,9 @@ export function PaymentSuccessPage() {
     <div className="flex min-h-screen bg-gray-50 flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-5 sm:px-6">
-          <h2 className="text-xl font-bold text-white text-center">Payment Successful!</h2>
+          <h2 className="text-xl font-bold text-white text-center">
+            {isUpgrade ? "Upgrade Successful!" : "Payment Successful!"}
+          </h2>
         </div>
 
         <div className="px-4 py-8 sm:px-6">
@@ -152,9 +191,11 @@ export function PaymentSuccessPage() {
               <Check className="h-8 w-8 text-green-600" />
             </div>
 
-            <h3 className="text-xl font-medium text-gray-900">Membership Activated</h3>
+            <h3 className="text-xl font-medium text-gray-900">
+              {isUpgrade ? "Plan Upgraded" : "Membership Activated"}
+            </h3>
             <p className="mt-1 text-sm text-gray-500">
-              Your {planName || "Premium"} membership is now active
+              Your {planName || "Premium"} {isUpgrade ? "plan upgrade is now active" : "membership is now active"}
             </p>
 
             <div className="mt-8 w-full bg-gray-50 rounded-lg p-6">
@@ -192,18 +233,18 @@ export function PaymentSuccessPage() {
                 ) : (
                   <>
                     <Download className="mr-2 h-4 w-4" />
-                    Download Membership Agreement
+                    Download {isUpgrade ? "Upgrade" : "Membership"} Agreement
                   </>
                 )}
               </Button>
 
               <Button
-                onClick={navigateToTrainerSelection}
+                onClick={navigateToNext}
                 variant="outline"
                 className="flex items-center justify-center border-gray-300"
               >
                 <Home className="mr-2 h-4 w-4" />
-                Continue to Trainer Selection
+                {isUpgrade ? "Return to Dashboard" : "Continue to Trainer Selection"}
               </Button>
             </div>
 

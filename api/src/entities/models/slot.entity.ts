@@ -15,6 +15,7 @@ export interface ISlotEntity {
   expiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
+  bookedAt: Date;
   cancellationReason?: string;
   videoCallRoomName?: string;
   videoCallJwt?: string;

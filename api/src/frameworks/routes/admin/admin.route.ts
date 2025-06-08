@@ -16,6 +16,8 @@ import {
   adminController,
   categoryController,
   dietWorkoutController,
+  notificationController,
+  sessionHistoryController,
 } from "../../di/resolver";
 
 export class AdminRoutes extends BaseRoute {
@@ -283,6 +285,46 @@ export class AdminRoutes extends BaseRoute {
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
         adminController.getTransactionHistory(req, res);
+      }
+    );
+
+    router.post(
+      "/admin/update-fcm-token",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.updateFCMToken(req, res);
+      }
+    );
+
+    router.patch(
+      "/admin/notifications/:notificationId/read",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.markNotificationAsRead(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/notifications",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        notificationController.getUserNotifications(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/session-history",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        sessionHistoryController.getSessionHistory(req, res);
       }
     );
   }

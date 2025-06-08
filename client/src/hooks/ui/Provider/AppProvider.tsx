@@ -1,7 +1,7 @@
 // src/AppProviders.tsx
 import { StrictMode, ReactNode } from 'react';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { Provider } from 'react-redux';
+import { Provider,shallowEqual } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor, store } from '@/store/store';
 import { useSelector } from 'react-redux';
@@ -14,9 +14,14 @@ import { UserRole } from '@/types/UserRole';
 const queryClient = new QueryClient();
 
 const CombinedProviders = ({ children }: { children: ReactNode }) => {
-  const client = useSelector((state: RootState) => state.client.client);
-  const trainer = useSelector((state: RootState) => state.trainer.trainer);
-  const admin = useSelector((state: RootState) => state.admin.admin);
+  const { client, trainer, admin } = useSelector(
+    (state: RootState) => ({
+      client: state.client.client,
+      trainer: state.trainer.trainer,
+      admin: state.admin.admin,
+    }),
+    shallowEqual
+  );
 
   let userId: string | null = null;
   let role: UserRole | null = null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch } from "react-redux";
 import {
@@ -14,13 +14,11 @@ import {
   GraduationCap,
   Target,
   BadgeCheck,
-  Upload,
   Plus,
   X,
   Edit3,
   Save,
   ArrowLeft,
-  ImageIcon,
   Dumbbell,
   Heart,
   Sparkles,
@@ -28,6 +26,7 @@ import {
   Zap,
   Flame,
   Clock,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,21 +47,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useUpdateTrainerProfile } from "@/services/trainer/useTrainerUpdateProfile";
 import { ITrainer } from "@/types/User";
 import { useToaster } from "@/hooks/ui/useToaster";
 import * as Yup from "yup";
-import ReactCrop, { type Crop } from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
 import { useAllCategoryQuery } from "@/hooks/category/useAllCategory";
 import { getAllCategoriesForTrainer } from "@/services/trainer/trainerService";
+import ProfileImageUploader from "@/components/common/ImageCropper/ProfileImageUploader";
 
 interface TrainerProps {
   trainer: ITrainer & { clientId?: string } | null;
@@ -102,22 +93,10 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
   const [newQualification, setNewQualification] = useState("");
   const { successToast, errorToast } = useToaster();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const { data: categoriesData, isLoading: isCategoriesLoading } = useAllCategoryQuery(
     getAllCategoriesForTrainer
   );
-
-  const [showCropDialog, setShowCropDialog] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [crop, setCrop] = useState<Crop>({
-    unit: "%",
-    width: 90,
-    height: 90,
-    x: 5,
-    y: 5,
-  });
-  const [completedCrop, setCompletedCrop] = useState<Crop | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
 
   const { mutate: updateProfile, isPending } = useUpdateTrainerProfile();
 
@@ -323,53 +302,12 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
     return `${trainer.firstName?.[0] || ""}${trainer.lastName?.[0] || ""}`.toUpperCase();
   };
 
-  const onImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const reader = new FileReader();
-      reader.addEventListener("load", () => {
-        setUploadedImage(reader.result as string);
-        setShowCropDialog(true);
-      });
-      reader.readAsDataURL(e.target.files[0]);
-    }
+  const handleImageCropComplete = (croppedImageUrl: string | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      profileImage: croppedImageUrl || "",
+    }));
   };
-
-  const onImageLoaded = useCallback((img: HTMLImageElement) => {
-    imgRef.current = img;
-    return false;
-  }, []);
-
-  const getCroppedImg = useCallback(() => {
-    if (imgRef.current && completedCrop) {
-      const canvas = document.createElement("canvas");
-      const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
-      const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
-      canvas.width = completedCrop.width;
-      canvas.height = completedCrop.height;
-      const ctx = canvas.getContext("2d");
-
-      if (ctx) {
-        ctx.drawImage(
-          imgRef.current,
-          completedCrop.x * scaleX,
-          completedCrop.y * scaleY,
-          completedCrop.width * scaleX,
-          completedCrop.height * scaleY,
-          0,
-          0,
-          completedCrop.width,
-          completedCrop.height
-        );
-
-        const base64Image = canvas.toDataURL("image/jpeg");
-        setFormData((prev) => ({
-          ...prev,
-          profileImage: base64Image,
-        }));
-        setShowCropDialog(false);
-      }
-    }
-  }, [completedCrop]);
 
   useEffect(() => {
     if (isEditing) {
@@ -400,28 +338,6 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
 
   return (
     <div className="p-6">
-      <Dialog open={showCropDialog} onOpenChange={setShowCropDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Crop Profile Image</DialogTitle>
-            <DialogDescription>Adjust the crop area to select your profile picture</DialogDescription>
-          </DialogHeader>
-          <div className="mt-4 flex flex-col items-center justify-center">
-            {uploadedImage && (
-              <ReactCrop crop={crop} onChange={(_, c) => setCrop(c)} onComplete={(_, c) => setCompletedCrop(c)} aspect={1} circularCrop>
-                <img ref={imgRef} src={uploadedImage || "/placeholder.svg"} alt="Upload" className="max-h-[300px] w-auto" onLoad={(e) => onImageLoaded(e.currentTarget)} />
-              </ReactCrop>
-            )}
-            <div className="mt-4 flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowCropDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={getCroppedImg}>Apply</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <AnimatePresence mode="wait">
         {isEditing ? (
           <motion.form
@@ -453,32 +369,13 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
 
             <div className="flex flex-col items-center space-y-6 rounded-lg border border-border bg-card p-6 shadow-sm md:flex-row md:items-start md:space-x-8 md:space-y-0">
               <div className="flex flex-col items-center space-y-4">
-                <Avatar className="h-32 w-32 border-4 border-violet-200">
-                  <AvatarImage src={formData.profileImage} />
-                  <AvatarFallback className="bg-violet-100 text-2xl text-violet-700">{getInitials()}</AvatarFallback>
-                </Avatar>
+              
                 <div className="w-full">
-                  <Label htmlFor="profileImage" className="text-sm font-medium text-violet-700">Profile Image</Label>
-                  <div className="mt-2 flex flex-col gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full gap-2 border-violet-200 text-violet-700 hover:bg-violet-50"
-                      onClick={() => document.getElementById("image-upload")?.click()}
-                      disabled={isPending}
-                    >
-                      <ImageIcon className="h-4 w-4" /> Upload Photo
-                    </Button>
-                    <input
-                      id="image-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={onImageUpload}
-                      disabled={isPending}
-                    />
-                    {formData.profileImage && <p className="text-xs text-muted-foreground">Image uploaded successfully</p>}
-                  </div>
+      
+                  <ProfileImageUploader
+                    initialImage={formData.profileImage}
+                    onCropComplete={handleImageCropComplete}
+                  />
                 </div>
               </div>
 

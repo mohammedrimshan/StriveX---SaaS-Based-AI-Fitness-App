@@ -20,6 +20,7 @@ import {
   commentController,
   notificationController,
   videoCallController,
+  sessionHistoryController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -68,45 +69,45 @@ export class ClientRoutes extends BaseRoute {
     );
 
     /**
- * @swagger
- * /api/v1/pvt/_cl/client/refresh-token:
- *   post:
- *     summary: Refresh client JWT token
- *     tags: [Client]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               refreshToken:
- *                 type: string
- *                 description: Refresh token for generating new access token
- *     responses:
- *       200:
- *         description: New access token generated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 data:
- *                   type: object
- *                   properties:
- *                     accessToken:
- *                       type: string
- *                 message:
- *                   type: string
- *                   example: Token refreshed successfully
- *       401:
- *         description: Invalid or expired refresh token
- */
+     * @swagger
+     * /api/v1/pvt/_cl/client/refresh-token:
+     *   post:
+     *     summary: Refresh client JWT token
+     *     tags: [Client]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               refreshToken:
+     *                 type: string
+     *                 description: Refresh token for generating new access token
+     *     responses:
+     *       200:
+     *         description: New access token generated
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     accessToken:
+     *                       type: string
+     *                 message:
+     *                   type: string
+     *                   example: Token refreshed successfully
+     *       401:
+     *         description: Invalid or expired refresh token
+     */
 
     router.post(
       "/client/refresh-token",
@@ -116,7 +117,6 @@ export class ClientRoutes extends BaseRoute {
         authController.handleTokenRefresh(req, res);
       }
     );
-
 
     /**
      * @swagger
@@ -171,45 +171,44 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-
     /**
- * @swagger
- * /api/v1/pvt/_cl/client/update-password:
- *   put:
- *     summary: Update client password
- *     tags: [Client]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               oldPassword:
- *                 type: string
- *                 description: Current password
- *               newPassword:
- *                 type: string
- *                 description: New password
- *     responses:
- *       200:
- *         description: Password updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: Password updated successfully
- *       401:
- *         description: Unauthorized or incorrect old password
- */
+     * @swagger
+     * /api/v1/pvt/_cl/client/update-password:
+     *   put:
+     *     summary: Update client password
+     *     tags: [Client]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               oldPassword:
+     *                 type: string
+     *                 description: Current password
+     *               newPassword:
+     *                 type: string
+     *                 description: New password
+     *     responses:
+     *       200:
+     *         description: Password updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 message:
+     *                   type: string
+     *                   example: Password updated successfully
+     *       401:
+     *         description: Unauthorized or incorrect old password
+     */
 
     router.put(
       "/client/update-password",
@@ -222,36 +221,35 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-
     /**
- * @swagger
- * /api/v1/pvt/_cl/client/getallcategory:
- *   get:
- *     summary: Get all categories
- *     tags: [Client, Category]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all categories
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Category'
- *                 message:
- *                   type: string
- *                   example: Categories retrieved successfully
- *       401:
- *         description: Unauthorized
- */
+     * @swagger
+     * /api/v1/pvt/_cl/client/getallcategory:
+     *   get:
+     *     summary: Get all categories
+     *     tags: [Client, Category]
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: List of all categories
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 status:
+     *                   type: string
+     *                   example: success
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/Category'
+     *                 message:
+     *                   type: string
+     *                   example: Categories retrieved successfully
+     *       401:
+     *         description: Unauthorized
+     */
     router.get(
       "/client/getallcategory",
       verifyAuth,
@@ -326,7 +324,6 @@ export class ClientRoutes extends BaseRoute {
         dietWorkoutController.getAllWorkouts(req, res);
       }
     );
-
 
     router.get(
       "/client/trainers",
@@ -541,7 +538,7 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-    // Get workout progress by user and workout 
+    // Get workout progress by user and workout
     router.get(
       "/client/progress/workout/user/:userId/workout/:workoutId",
       verifyAuth,
@@ -584,8 +581,7 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-
-//not used yet
+    //not used yet
     router.get(
       "/client/progress/video/user/:userId/workout/:workoutId",
       verifyAuth,
@@ -768,13 +764,44 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-     router.post(
+    router.post(
       "/client/video-call/:slotId/end",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         videoCallController.endVideoCall(req, res);
+      }
+    );
+
+    router.get(
+      "/client/session-history",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        sessionHistoryController.getSessionHistory(req, res);
+      }
+    );
+
+    router.put(
+      "/client/upgrade",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        paymentController.upgradeSubscription(req, res);
+      }
+    );
+
+    // Get client profile
+    router.get(
+      "/client/:clientId/profile",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getClientProfile(req, res);
       }
     );
   }

@@ -11,6 +11,10 @@ import { Types } from "mongoose";
 import { CancellationModel } from "@/frameworks/database/mongoDB/models/cancellation.model";
 import { ClientInfoDTO } from "@/shared/dto/user.dto";
 import { TrainerModel } from "@/frameworks/database/mongoDB/models/trainer.model";
+import {
+  ISessionHistoryModel,
+  SessionHistoryModel,
+} from "@/frameworks/database/mongoDB/models/session-history.model";
 @injectable()
 export class SlotRepository
   extends BaseRepository<ISlotEntity>
@@ -18,6 +22,59 @@ export class SlotRepository
 {
   constructor() {
     super(SlotModel);
+  }
+
+  private async saveToSessionHistory(
+    slot: ISlotEntity,
+    session?: any
+  ): Promise<void> {
+    const existingHistory = await SessionHistoryModel.findOne({
+      trainerId: slot.trainerId,
+      clientId: slot.clientId,
+      date: slot.date,
+      startTime: slot.startTime,
+    }).session(session);
+
+    if (existingHistory) {
+      console.log(`Session history already exists for slot ${slot.id}`);
+      return;
+    }
+
+    const trainer = await TrainerModel.findById(slot.trainerId)
+      .select("firstName lastName")
+      .lean()
+      .session(session);
+    const client = slot.clientId
+      ? await ClientModel.findById(slot.clientId)
+          .select("firstName lastName")
+          .lean()
+          .session(session)
+      : null;
+
+    const sessionHistoryData: Partial<ISessionHistoryModel> = {
+      trainerId: slot.trainerId,
+      trainerName: trainer
+        ? `${trainer.firstName} ${trainer.lastName}`
+        : slot.trainerName || "Unknown Trainer",
+      clientId: slot.clientId,
+      clientName: client
+        ? `${client.firstName} ${client.lastName}`
+        : slot.clientName || "Unknown Client",
+      date: slot.date,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      status: slot.status,
+      videoCallStatus: slot.videoCallStatus,
+      bookedAt: slot.bookedAt,
+      cancellationReason: slot.cancellationReason,
+      createdAt: slot.createdAt,
+      updatedAt: slot.updatedAt,
+    };
+
+    await SessionHistoryModel.create([sessionHistoryData], { session });
+    console.log(
+      `Session history saved for slot ${slot.id} with videoCallStatus: ${slot.videoCallStatus}`
+    );
   }
 
   async findByTrainerId(
@@ -102,6 +159,7 @@ export class SlotRepository
       status,
       isBooked: status === SlotStatus.BOOKED ? true : false,
       isAvailable: status === SlotStatus.AVAILABLE ? true : false,
+      bookedAt: status === SlotStatus.BOOKED ? new Date() : undefined,
       cancellationReason:
         status === SlotStatus.AVAILABLE ? cancellationReason : undefined,
     };
@@ -535,7 +593,12 @@ export class SlotRepository
     });
   }
   async endVideoCall(slotId: string): Promise<ISlotEntity | null> {
-    const slot = await SlotModel.findByIdAndUpdate(
+    const slot = await SlotModel.findById(slotId).lean();
+    if (!slot) {
+      throw new CustomError("Slot not found", HTTP_STATUS.NOT_FOUND);
+    }
+
+    const updatedSlot = await SlotModel.findByIdAndUpdate(
       slotId,
       {
         videoCallStatus: VideoCallStatus.ENDED,
@@ -543,8 +606,28 @@ export class SlotRepository
         videoCallJwt: null,
       },
       { new: true }
-    );
-    return slot ? (slot.toObject() as ISlotEntity) : null;
+    ).lean();
+
+    if (!updatedSlot) {
+      throw new CustomError(
+        "Failed to update slot",
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    if (updatedSlot.status === SlotStatus.BOOKED) {
+      try {
+        await this.saveToSessionHistory(this.mapToEntity(updatedSlot));
+        console.log(`Session history saved for slot ${slotId}`);
+      } catch (error) {
+        console.error(
+          `Failed to save session history for slot ${slotId}:`,
+          error
+        );
+      }
+    }
+
+    return this.mapToEntity(updatedSlot);
   }
 
   async getVideoCallDetails(slotId: string): Promise<{

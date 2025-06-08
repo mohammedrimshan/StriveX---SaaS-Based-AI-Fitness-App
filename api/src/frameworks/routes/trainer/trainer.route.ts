@@ -15,7 +15,8 @@ import {
   commentController,
   postController,
   videoCallController,
-  notificationController
+  notificationController,
+  sessionHistoryController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -330,8 +331,7 @@ export class TrainerRoutes extends BaseRoute {
       }
     );
 
-
-     router.post(
+    router.post(
       "/trainer/update-fcm-token",
       verifyAuth,
       authorizeRole(["trainer"]),
@@ -361,5 +361,24 @@ export class TrainerRoutes extends BaseRoute {
       }
     );
 
+      router.get(
+        "/trainer/session-history",
+        verifyAuth,
+        authorizeRole(["trainer"]),
+        blockStatusMiddleware.checkStatus as RequestHandler,
+        (req: Request, res: Response) => {
+          sessionHistoryController.getSessionHistory(req, res);
+        }
+      );
+
+    router.get(
+      "/trainer/wallet-history",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        trainerController.getWalletHistory(req, res);
+      }
+    );
   }
 }

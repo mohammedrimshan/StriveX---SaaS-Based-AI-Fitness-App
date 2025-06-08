@@ -3,6 +3,7 @@ import { User as UserType } from "@/types/User";
 import { ITrainer } from "@/types/User";
 import { CredentialResponse } from "@react-oauth/google";
 export interface IAxiosResponse<T = any> {
+   profile: IClient | PromiseLike<IClient>;
    success: boolean;
    message: string;
    data: T;

@@ -29,6 +29,7 @@ export const slotSchema = new Schema<ISlotModel>(
     isBooked: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true },
     expiresAt: { type: Date },
+    bookedAt: { type: Date, required: false },
     cancellationReason: { type: String, required: false },
     videoCallRoomName: { type: String, required: false }, 
     videoCallJwt: { type: String, required: false },

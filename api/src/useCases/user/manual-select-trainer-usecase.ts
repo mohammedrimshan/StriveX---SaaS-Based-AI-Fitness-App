@@ -24,6 +24,10 @@ export class ManualSelectTrainerUseCase implements IManualSelectTrainerUseCase {
       throw new CustomError(ERROR_MESSAGES.PREFERENCES_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
+    if (!client.isPremium || !client.subscriptionEndDate || client.subscriptionEndDate < new Date()) {
+      throw new CustomError("Active premium subscription required", HTTP_STATUS.FORBIDDEN);
+    }
+
     if (client.selectionMode !== "manual") {
       throw new CustomError(ERROR_MESSAGES.INVALID_SELECTION_MODE, HTTP_STATUS.BAD_REQUEST);
     }

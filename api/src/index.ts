@@ -10,7 +10,7 @@ import { container } from "tsyringe";
 import { SocketService } from './interfaceAdapters/services/socket.service';
 import { VideoSocketService } from './interfaceAdapters/services/video-socket.service';
 import { NotificationService } from './interfaceAdapters/services/notification.service';
-
+import { subscriptionProcessor, processor as slotExpiryProcessor } from './frameworks/di/resolver';
 const mongoConnect = new MongoConnect();
 mongoConnect.connectDB();
 
@@ -25,7 +25,7 @@ const videoSocketService = container.resolve(VideoSocketService);
 const notificationService = container.resolve(NotificationService);
 socketService.initialize(httpServer);
 videoSocketService.initialize(httpServer);
-
+subscriptionProcessor.start();
 
 httpServer.listen(config.server.PORT, () => {
   console.log(`Server running on port ${config.server.PORT}`);

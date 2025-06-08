@@ -9,11 +9,13 @@ import { IUpdateTrainerPasswordUseCase } from "@/entities/useCaseInterfaces/trai
 import { ITrainerAcceptRejectRequestUseCase } from "@/entities/useCaseInterfaces/trainer/trainer-accept-reject-request-usecase.interface";
 import { IGetPendingClientRequestsUseCase } from "@/entities/useCaseInterfaces/trainer/get-pending-request-usecase.interface";
 import { ICreateStripeConnectAccountUseCase } from "@/entities/useCaseInterfaces/stripe/create-stripe-connect-account.usecase.interface";
+import { IGetTrainerWalletUseCase } from "@/entities/useCaseInterfaces/trainer/get-trainer-wallet-usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
 import { IGetTrainerClientsUseCase } from "@/entities/useCaseInterfaces/trainer/get-clients-usecase.interface";
 import {
   ERROR_MESSAGES,
   HTTP_STATUS,
+  PaymentStatus,
   SUCCESS_MESSAGES,
   TrainerApprovalStatus,
 } from "@/shared/constants";
@@ -41,7 +43,9 @@ export class TrainerController implements ITrainerController {
     private _createStripeConnectAccountUseCase: ICreateStripeConnectAccountUseCase,
     @inject("IGetTrainerClientsUseCase") private _getTrainerClientsUseCase: IGetTrainerClientsUseCase,
     @inject("ITrainerAcceptRejectRequestUseCase") private _trainerAcceptRejectRequestUseCase: ITrainerAcceptRejectRequestUseCase,
-    @inject("IGetPendingClientRequestsUseCase") private _getPendingClientRequestsUseCase: IGetPendingClientRequestsUseCase
+    @inject("IGetPendingClientRequestsUseCase") private _getPendingClientRequestsUseCase: IGetPendingClientRequestsUseCase,
+    @inject("IGetTrainerWalletUseCase")
+    private _getTrainerWalletUseCase: IGetTrainerWalletUseCase,
   ) {}
 
   /** 🔹 Get all trainers with pagination and search */
@@ -300,7 +304,9 @@ export class TrainerController implements ITrainerController {
       const trainerId = (req as CustomRequest).user.id;
       console.log("Trainer ID",trainerId)
       const { clientId, action, rejectionReason } = req.body;
-      console.log(clientId,action)
+      console.log("Request body:", clientId, action, rejectionReason);
+      // Log the clientId and action for debugging
+      console.log(clientId, action);
       if (!trainerId) {
         throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
       }
@@ -358,6 +364,43 @@ export class TrainerController implements ITrainerController {
         totalPages: total,
         currentPage: pageNumber,
         totalRequests: requests.length,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+   async getWalletHistory(req: Request, res: Response): Promise<void> {
+    try {
+       const trainerId = (req as CustomRequest).user.id;
+      const { page = "1", limit = "10", status } = req.query;
+
+      const pageNumber = parseInt(page as string, 10);
+      const limitNumber = parseInt(limit as string, 10);
+      const statusFilter = typeof status === "string" && Object.values(PaymentStatus).includes(status as PaymentStatus)
+        ? status
+        : undefined;
+
+      if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber <= 0 || limitNumber <= 0) {
+        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      }
+
+      const { items, total } = await this._getTrainerWalletUseCase.execute(
+        trainerId,
+        pageNumber,
+        limitNumber,
+        statusFilter
+      );
+
+      res.json({
+        success: true,
+        data: {
+          items,
+          total,
+          page: pageNumber,
+          limit: limitNumber,
+          totalPages: Math.ceil(total / limitNumber),
+        },
       });
     } catch (error) {
       handleErrorResponse(res, error);

@@ -24,6 +24,8 @@ import {
   FrontendPost,
   UserSocket,
 } from "@/entities/models/socket.entity";
+import { ITokenService } from "@/entities/services/token-service.interface";
+import { JwtPayload } from "jsonwebtoken";
 
 @injectable()
 export class SocketService {
@@ -33,6 +35,7 @@ export class SocketService {
     { socketId: string; userId: string; role: RoleType }
   > = new Map();
   private idMapping: Map<string, string> = new Map();
+  private userSocketMap: Map<string, Set<string>> = new Map();
 
   constructor(
     @inject("IMessageRepository")
@@ -44,7 +47,9 @@ export class SocketService {
     @inject("ITrainerRepository")
     private _trainerRepository: ITrainerRepository,
     @inject("ILikePostUseCase") private _likePostUseCase: ILikePostUseCase,
-    @inject("NotificationService") private _notificationService: NotificationService
+    @inject("NotificationService")
+    private _notificationService: NotificationService,
+    @inject("ITokenService") private _jwtService: ITokenService
   ) {
     this.io = new Server({
       cors: {
@@ -54,7 +59,6 @@ export class SocketService {
       },
       pingTimeout: 120000,
       pingInterval: 25000,
-      
     });
   }
 
@@ -66,17 +70,63 @@ export class SocketService {
     this.io.attach(server);
 
     this.io.on("connection", (socket: UserSocket) => {
+      const cookie = socket.handshake.headers.cookie;
+      let accessToken: string | undefined;
+      if (cookie) {
+        const cookies = cookie.split("; ").reduce((acc, curr) => {
+          const [key, value] = curr.split("=");
+          acc[key] = value;
+          return acc;
+        }, {} as Record<string, string>);
+        accessToken = cookies[`${socket.handshake.auth.role}_access_token`];
+      }
+
+      // Map userId to socketIds
+      const { userId } = socket.handshake.auth;
+      if (userId) {
+        if (!this.userSocketMap.has(userId)) {
+          this.userSocketMap.set(userId, new Set());
+        }
+        this.userSocketMap.get(userId)!.add(socket.id);
+        console.log(
+          `[${new Date().toISOString()}] Socket ${socket.id} mapped to user ${userId}, total sockets: ${
+            this.userSocketMap.get(userId)!.size
+          }`
+        );
+      }
+
       socket.on("reconnect", async () => {
         if (socket.userId && socket.role) {
           socket.join("community");
         }
       });
 
+      socket.on("joinUserRoom", ({ userId }) => {
+        socket.join(`user:${userId}`);
+        console.log(
+          `[${new Date().toISOString()}] User ${userId} joined user:${userId} via joinUserRoom`
+        );
+      });
+      socket.on("joinNotificationsRoom", ({ userId }) => {
+        socket.join(`notifications:${userId}`);
+        console.log(
+          `[${new Date().toISOString()}] User ${userId} joined notifications:${userId}`
+        );
+      });
+
       socket.on(
         "register",
         async ({ userId, role }: { userId: string; role: RoleType }) => {
-          if (!userId || !this.isValidRole(role)) {
+          if (!userId || !this.isValidRole(role) || !accessToken) {
             socket.emit("error", { message: "Invalid user ID or role" });
+            socket.disconnect();
+            return;
+          }
+          const decoded = this._jwtService.verifyAccessToken(accessToken) as JwtPayload;
+          console.log(decoded, "Decoded JWT payload");
+          if (!decoded || decoded?.role !== role) {
+            console.error(`[${new Date().toISOString()}] Token verification failed`, { userId, role, decoded });
+            socket.emit("error", { message: "Token validation failed" });
             socket.disconnect();
             return;
           }
@@ -110,6 +160,7 @@ export class SocketService {
                   isOnline: true,
                 });
               }
+           
             } else if (role === "trainer") {
               const trainer = await this._trainerRepository.findById(userId);
               if (trainer && trainer.id) {
@@ -128,7 +179,7 @@ export class SocketService {
                   isOnline: true,
                 });
               }
-            } 
+            }
           } catch (error) {
             socket.emit("error", { message: "Error during authentication" });
             socket.disconnect();
@@ -155,7 +206,16 @@ export class SocketService {
 
           socket.join("community");
           socket.emit("joinCommunity", { userId });
-          socket.join(`user:${userId}`); // Join user-specific room for notifications
+          socket.join(`user:${userId}`);
+          socket.join(`notifications:${userId}`);
+          console.log(
+            `[${new Date().toISOString()}] User ${userId} joined rooms: user:${userId}, notifications:${userId}`
+          );
+          const rooms = Array.from(socket.rooms);
+          console.log(
+            `[${new Date().toISOString()}] User ${userId} rooms:`,
+            rooms
+          );
           const clientsInCommunity = await this.io.in("community").allSockets();
           console.log(
             `[DEBUG] User ${userId} joined community room. Clients in room: ${clientsInCommunity.size}`
@@ -273,7 +333,7 @@ export class SocketService {
                 });
                 return;
               }
-            } 
+            }
 
             if (!author) {
               socket.emit("error", {
@@ -589,12 +649,15 @@ export class SocketService {
             if (senderId !== receiverId) {
               let senderName = "Someone";
               try {
-                const client = await this._clientRepository.findByClientId(senderId) ||
-                                await this._clientRepository.findById(senderId);
+                const client =
+                  (await this._clientRepository.findByClientId(senderId)) ||
+                  (await this._clientRepository.findById(senderId));
                 if (client) {
                   senderName = `${client.firstName} ${client.lastName}`;
                 } else {
-                  const trainer = await this._trainerRepository.findById(senderId);
+                  const trainer = await this._trainerRepository.findById(
+                    senderId
+                  );
                   if (trainer) {
                     senderName = `${trainer.firstName} ${trainer.lastName}`;
                   }
@@ -606,7 +669,9 @@ export class SocketService {
                   "INFO"
                 );
               } catch (error) {
-                console.error(`Failed to send notification: ${(error as Error).message}`);
+                console.error(
+                  `Failed to send notification: ${(error as Error).message}`
+                );
               }
             }
           } catch (error) {
@@ -795,6 +860,20 @@ export class SocketService {
 
       socket.on("disconnect", async (reason) => {
         if (socket.userId && socket.role) {
+          // Clean up userSocketMap
+          const userSockets = this.userSocketMap.get(socket.userId);
+          if (userSockets) {
+            userSockets.delete(socket.id);
+            if (userSockets.size === 0) {
+              this.userSocketMap.delete(socket.userId);
+            }
+            console.log(
+              `[${new Date().toISOString()}] Socket ${socket.id} disconnected for user ${socket.userId}, remaining sockets: ${
+                userSockets.size
+              }`
+            );
+          }
+
           try {
             if (socket.role === "client") {
               await this._clientRepository.findByIdAndUpdate(socket.userId, {

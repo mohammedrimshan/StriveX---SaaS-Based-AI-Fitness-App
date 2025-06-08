@@ -228,7 +228,19 @@ import { IGetBookedTrainerSlotsUseCase } from "@/entities/useCaseInterfaces/slot
 import { GetBookedTrainerSlotsUseCase } from "@/useCases/slot/get-booked-slots.usecase";
 import { IGetVideoCallDetailsUseCase } from "@/entities/useCaseInterfaces/videocall/get-video-call-details.usecase.interface";
 import { GetVideoCallDetailsUseCase } from "@/useCases/videocall/get-video-call-details.usecase";
+import { IGetSessionHistoryUseCase } from "@/entities/useCaseInterfaces/session/get-session-history-usecase.interface";
+import { GetSessionHistoryUseCase } from "@/useCases/session/get-session-history.usecase";
+import { IGetTrainerWalletUseCase } from "@/entities/useCaseInterfaces/trainer/get-trainer-wallet-usecase.interface";
+import { GetTrainerWalletUseCase } from "@/useCases/trainer/get-trainer-wallet.usecase";
+import { IHandleWebhookUseCase } from "@/entities/useCaseInterfaces/stripe/handle-webhook.usecase.interface";
+import { HandleWebhookUseCase } from "@/useCases/stripe/handle-webhook.usecase";
+import { IUpgradeSubscriptionUseCase } from "@/entities/useCaseInterfaces/stripe/upgrade-subscription-usecase.interface";
+import { UpgradeSubscriptionUseCase } from "@/useCases/stripe/upgrade-subscription.usecase";
+import { IGetClientProfileUseCase } from "@/entities/useCaseInterfaces/users/get-client-profile.usecase.interface";
+import { GetClientProfileUseCase } from "@/useCases/user/get-client-profile.usecase";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
+import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
+
 
 export class UseCaseRegistry {
   static registerUseCases(): void {
@@ -300,8 +312,12 @@ export class UseCaseRegistry {
       useClass: SlotExpiryProcessor,
     });
 
-    // ✅ Then resolve
 
+    //* ====== Register Subscription Expiry Processor ====== *//
+    container.register<SubscriptionExpiryProcessor>("SubscriptionExpiryProcessor", {
+      useClass: SubscriptionExpiryProcessor,
+    });
+   
     //* ====== Register Strategies ====== *//
     container.register("ClientRegisterStrategy", {
       useClass: ClientRegisterStrategy,
@@ -854,5 +870,28 @@ export class UseCaseRegistry {
         useClass: GetVideoCallDetailsUseCase,
       }
     );
+
+    container.register<IGetSessionHistoryUseCase>("IGetSessionHistoryUseCase", {
+      useClass: GetSessionHistoryUseCase,
+    });
+
+    container.register<IGetTrainerWalletUseCase>("IGetTrainerWalletUseCase", {
+      useClass: GetTrainerWalletUseCase,
+    });
+
+    container.register<IHandleWebhookUseCase>("IHandleWebhookUseCase", {
+      useClass: HandleWebhookUseCase,
+    });
+
+    container.register<IUpgradeSubscriptionUseCase>(
+      "IUpgradeSubscriptionUseCase",
+      {
+        useClass: UpgradeSubscriptionUseCase,
+      }
+    );
+
+    container.register<IGetClientProfileUseCase>("IGetClientProfileUseCase", {
+      useClass: GetClientProfileUseCase,
+    });
   }
 }

@@ -17,6 +17,9 @@ export interface IClientEntity extends IUserEntity {
   foodAllergies?: string[];
   workoutCategory?: string;
   isPremium?: boolean;
+  subscriptionStartDate?: Date;
+  subscriptionEndDate?: Date;
+  membershipPlanId?: string;
   sleepFrom?: string; 
   wakeUpAt?: string;
   skillsToGain: Skill[]; 

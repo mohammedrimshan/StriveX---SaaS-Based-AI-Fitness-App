@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,6 +10,7 @@ import { jsPDF } from "jspdf";
 import { X, FileText, Check, ArrowRight, Download } from "lucide-react";
 import { RootState } from "@/store/store";
 import { useCreateCheckoutSession } from "@/hooks/payment/useCreateCheckoutSession";
+import { useUpgradeSubscription } from "@/hooks/payment/useUpgradeSubscription";
 import { CreateCheckoutSessionData } from "@/services/client/clientService";
 import { toast } from "react-hot-toast";
 
@@ -21,9 +23,9 @@ interface MembershipPaymentFlowProps {
   planId: string;
   trainerId: string | null;
   onConfirm: () => void;
+  isUpgrade?: boolean;
 }
 
-// Main component that orchestrates the flow
 export function MembershipPaymentFlow({
   isOpen,
   onClose,
@@ -33,12 +35,14 @@ export function MembershipPaymentFlow({
   planId,
   trainerId,
   onConfirm,
+  isUpgrade = false,
 }: MembershipPaymentFlowProps) {
   const [step, setStep] = useState<"policy" | "payment" | "success">("policy");
   const [showPolicyPdf, setShowPolicyPdf] = useState(false);
   const client = useSelector((state: RootState) => state.client.client);
 
   const { mutate: createCheckout, isPending: isCreatingCheckout, error: checkoutError } = useCreateCheckoutSession();
+  const { mutate: upgradeSubscription, isPending: isUpgrading, error: upgradeError } = useUpgradeSubscription();
 
   useEffect(() => {
     if (isOpen) {
@@ -47,38 +51,39 @@ export function MembershipPaymentFlow({
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (step === "payment") {
-      if (!client?.id) {
-        toast.error("Please log in to proceed with checkout");
-        onClose();
-        return;
-      }
-
-      const checkoutData: CreateCheckoutSessionData = {
-        trainerId: trainerId || "default-trainer-id",
-        planId,
-        successUrl: `${window.location.origin}/checkout/success`,
-        cancelUrl: `${window.location.origin}/checkout/cancel`,
-      };
-
-      createCheckout(checkoutData, {
-        onSuccess: (data) => {
-          window.location.href = data.url;
-        },
-        onError: (error) => {
-          console.error("Failed to create checkout session:", error.message);
-          toast.error(error.message || "Failed to create checkout session");
-        },
-      });
+useEffect(() => {
+  if (step === "payment") {
+    if (!client?.id) {
+      toast.error("Please log in to proceed with checkout");
+      onClose();
+      return;
     }
-  }, [step, planId, trainerId, client?.id, createCheckout, onClose]);
 
-  // Check for successful payment redirect
+    const checkoutData: CreateCheckoutSessionData = {
+      trainerId: trainerId || "default-trainer-id",
+      planId,
+      successUrl: `${window.location.origin}/checkout/success?planName=${encodeURIComponent(planName)}&isUpgrade=${isUpgrade}`,
+      cancelUrl: `${window.location.origin}/checkout/cancel`,
+    };
+
+    const mutation = isUpgrade ? upgradeSubscription : createCheckout;
+
+    mutation(checkoutData, {
+      onSuccess: (data) => {
+        window.location.href = data.url;
+      },
+      onError: (error) => {
+        console.error(`Failed to create ${isUpgrade ? "upgrade" : "checkout"} session:`, error.message);
+        toast.error(error.message || `Failed to create ${isUpgrade ? "upgrade" : "checkout"} session`);
+      },
+    });
+  }
+}, [step, planId, trainerId, client?.id, createCheckout, upgradeSubscription, isUpgrade, onClose, planName]);
+
   useEffect(() => {
     if (isOpen && window.location.pathname === "/checkout/success") {
       setStep("success");
-      onConfirm(); // Trigger confirmation (e.g., show toast)
+      onConfirm();
     }
   }, [isOpen, onConfirm]);
 
@@ -115,7 +120,12 @@ export function MembershipPaymentFlow({
 
       doc.setFontSize(22);
       doc.setTextColor(255, 255, 255);
-      doc.text("NO RETURN OR REFUND POLICY", pageWidth / 2, 25, { align: "center" });
+      doc.text(
+        isUpgrade ? "PLAN UPGRADE AGREEMENT" : "NO RETURN OR REFUND POLICY",
+        pageWidth / 2,
+        25,
+        { align: "center" }
+      );
 
       doc.setDrawColor(220, 220, 220);
       doc.setLineWidth(0.5);
@@ -137,30 +147,46 @@ export function MembershipPaymentFlow({
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
       doc.setTextColor(88, 86, 214);
-      doc.text("POLICY TERMS AND CONDITIONS", 20, 120);
+      doc.text(
+        isUpgrade ? "UPGRADE TERMS AND CONDITIONS" : "POLICY TERMS AND CONDITIONS",
+        20,
+        120
+      );
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(60, 60, 60);
 
-      const policyText = [
-        "1. By agreeing to this policy, you acknowledge that all membership fees paid to our fitness center are",
-        "   non-refundable.",
-        "",
-        "2. Once payment has been processed, no refunds will be issued under any circumstances, including but",
-        "   not limited to:",
-        "     a. Change of mind",
-        "     b. Inability to use the facilities due to personal circumstances",
-        "     c. Relocation",
-        "     d. Medical conditions arising after membership purchase",
-        "",
-        "3. Membership fees cannot be transferred to another individual.",
-        "",
-        "4. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
-        "",
-        "5. This agreement constitutes the entire understanding between the member and the fitness center",
-        "   regarding the refund policy.",
-      ];
+      const policyText = isUpgrade
+        ? [
+            "1. By agreeing to this policy, you acknowledge that you are upgrading your existing membership plan.",
+            "",
+            "2. The upgraded membership fees are non-refundable, except as required by applicable law.",
+            "",
+            "3. Any remaining value from your current plan will be prorated and applied as a credit toward the new plan.",
+            "",
+            "4. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
+            "",
+            "5. This agreement constitutes the entire understanding between the member and the fitness center regarding the plan upgrade.",
+          ]
+        : [
+            "1. By agreeing to this policy, you acknowledge that all membership fees paid to our fitness center are",
+            "   non-refundable.",
+            "",
+            "2. Once payment has been processed, no refunds will be issued under any circumstances, including but",
+            "   not limited to:",
+            "     a. Change of mind",
+            "     b. Inability to use the facilities due to personal circumstances",
+            "     c. Relocation",
+            "     d. Medical conditions arising after membership purchase",
+            "",
+            "3. Membership fees cannot be transferred to another individual.",
+            "",
+            "4. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
+            "",
+            "5. This agreement constitutes the entire understanding between the member and the fitness center",
+            "   regarding the refund policy.",
+          ];
 
       let yPosition = 130;
       policyText.forEach((line) => {
@@ -175,12 +201,22 @@ export function MembershipPaymentFlow({
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
       doc.setTextColor(88, 86, 214);
-      doc.text("PAYMENT CONFIRMATION", 20, pageHeight - 50);
+      doc.text(
+        isUpgrade ? "UPGRADE CONFIRMATION" : "PAYMENT CONFIRMATION",
+        20,
+        pageHeight - 50
+      );
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(60, 60, 60);
-      doc.text("Payment processed and membership activated on: ", 20, pageHeight - 40);
+      doc.text(
+        isUpgrade
+          ? "Plan upgrade processed and membership updated on: "
+          : "Payment processed and membership activated on: ",
+        20,
+        pageHeight - 40
+      );
       doc.text(today.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), 20, pageHeight - 33);
 
       doc.setFont("helvetica", "bold");
@@ -194,7 +230,7 @@ export function MembershipPaymentFlow({
       doc.setTextColor(255, 255, 255);
       doc.text("© 2025 Fitness Center. All Rights Reserved.", pageWidth / 2, pageHeight - 4, { align: "center" });
 
-      const fileName = `Membership_Agreement_${fullName.replace(/\s+/g, "_")}.pdf`;
+      const fileName = `Membership_${isUpgrade ? "Upgrade" : "Agreement"}_${fullName.replace(/\s+/g, "_")}.pdf`;
       doc.save(fileName);
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -204,21 +240,29 @@ export function MembershipPaymentFlow({
   const renderStep = () => {
     switch (step) {
       case "policy":
-        return <RefundPolicyStep planName={planName} onAccept={handlePolicyAccepted} onClose={onClose} />;
+        return (
+          <RefundPolicyStep
+            planName={planName}
+            onAccept={handlePolicyAccepted}
+            onClose={onClose}
+            isUpgrade={isUpgrade}
+          />
+        );
       case "payment":
         return (
           <div className="py-10 text-center">
-            {isCreatingCheckout ? (
+            {isCreatingCheckout || isUpgrading ? (
               <>
                 <div className="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p>Preparing checkout...</p>
+                <p>Preparing {isUpgrade ? "upgrade" : "checkout"}...</p>
               </>
-            ) : checkoutError ? (
+            ) : checkoutError || upgradeError ? (
               <div className="p-3 bg-red-50 text-red-700 text-sm rounded-md">
-                {checkoutError.message || "Failed to create checkout session. Please try again."}
+                {(checkoutError || upgradeError)?.message ||
+                  `Failed to create ${isUpgrade ? "upgrade" : "checkout"} session. Please try again.`}
               </div>
             ) : (
-              <p>Redirecting to secure checkout...</p>
+              <p>Redirecting to secure {isUpgrade ? "upgrade" : "checkout"}...</p>
             )}
           </div>
         );
@@ -229,6 +273,7 @@ export function MembershipPaymentFlow({
             onDownload={handleDownloadPolicy}
             showPolicyPdf={showPolicyPdf}
             onClose={onClose}
+            isUpgrade={isUpgrade}
           />
         );
       default:
@@ -241,9 +286,9 @@ export function MembershipPaymentFlow({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-            {step === "policy" && "Membership Agreement"}
-            {step === "payment" && "Secure Checkout"}
-            {step === "success" && "Payment Successful!"}
+            {step === "policy" && (isUpgrade ? "Plan Upgrade Agreement" : "Membership Agreement")}
+            {step === "payment" && (isUpgrade ? "Secure Upgrade" : "Secure Checkout")}
+            {step === "success" && (isUpgrade ? "Upgrade Successful!" : "Payment Successful!")}
           </DialogTitle>
           {step !== "payment" && (
             <button
@@ -262,15 +307,14 @@ export function MembershipPaymentFlow({
   );
 }
 
-// Define props interface for RefundPolicyStep
 interface RefundPolicyStepProps {
   planName: string;
   onAccept: () => void;
-  onClose: () => void; // Add this missing prop
+  onClose: () => void;
+  isUpgrade?: boolean;
 }
 
-// Step 1: Refund Policy Agreement
-function RefundPolicyStep({ planName, onAccept, onClose }: RefundPolicyStepProps) {
+function RefundPolicyStep({ planName, onAccept, onClose, isUpgrade = false }: RefundPolicyStepProps) {
   const [agreed, setAgreed] = useState(false);
   const client = useSelector((state: RootState) => state.client.client);
   const fullName = client ? `${client.firstName} ${client.lastName}` : "Unknown User";
@@ -294,20 +338,32 @@ function RefundPolicyStep({ planName, onAccept, onClose }: RefundPolicyStepProps
           <div className="border rounded-md p-5 bg-white shadow-sm">
             <h3 className="font-semibold mb-3 text-indigo-700 flex items-center">
               <FileText className="h-5 w-5 mr-2" />
-              No Return or Refund Policy
+              {isUpgrade ? "Plan Upgrade Policy" : "No Return or Refund Policy"}
             </h3>
             <div className="text-sm space-y-3 text-gray-700">
-              <p>By agreeing to this policy, you acknowledge that all membership fees paid to our fitness center are non-refundable.</p>
-              <p>Once payment has been processed, no refunds will be issued under any circumstances, including but not limited to:</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Change of mind</li>
-                <li>Inability to use the facilities due to personal circumstances</li>
-                <li>Relocation</li>
-                <li>Medical conditions arising after membership purchase</li>
-              </ul>
-              <p>Membership fees cannot be transferred to another individual.</p>
-              <p>The fitness center reserves the right to terminate memberships for violation of club rules without refund.</p>
-              <p>This agreement constitutes the entire understanding between the member and the fitness center regarding the refund policy.</p>
+              {isUpgrade ? (
+                <>
+                  <p>By agreeing to this policy, you acknowledge that you are upgrading your existing membership plan.</p>
+                  <p>The upgraded membership fees are non-refundable, except as required by applicable law.</p>
+                  <p>Any remaining value from your current plan will be prorated and applied as a credit toward the new plan.</p>
+                  <p>The fitness center reserves the right to terminate memberships for violation of club rules without refund.</p>
+                  <p>This agreement constitutes the entire understanding between the member and the fitness center regarding the plan upgrade.</p>
+                </>
+              ) : (
+                <>
+                  <p>By agreeing to this policy, you acknowledge that all membership fees paid to our fitness center are non-refundable.</p>
+                  <p>Once payment has been processed, no refunds will be issued under any circumstances, including but not limited to:</p>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li>Change of mind</li>
+                    <li>Inability to use the facilities due to personal circumstances</li>
+                    <li>Relocation</li>
+                    <li>Medical conditions arising after membership purchase</li>
+                  </ul>
+                  <p>Membership fees cannot be transferred to another individual.</p>
+                  <p>The fitness center reserves the right to terminate memberships for violation of club rules without refund.</p>
+                  <p>This agreement constitutes the entire understanding between the member and the fitness center regarding the refund policy.</p>
+                </>
+              )}
             </div>
           </div>
 
@@ -322,7 +378,7 @@ function RefundPolicyStep({ planName, onAccept, onClose }: RefundPolicyStepProps
               htmlFor="terms"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              I have read and agree to the No Return or Refund Policy
+              I have read and agree to the {isUpgrade ? "Plan Upgrade Policy" : "No Return or Refund Policy"}
             </label>
           </div>
         </div>
@@ -339,23 +395,22 @@ function RefundPolicyStep({ planName, onAccept, onClose }: RefundPolicyStepProps
             agreed ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" : "bg-gray-300"
           } text-white transition-all duration-300`}
         >
-          Proceed to Payment <ArrowRight className="ml-2 h-4 w-4" />
+          Proceed to {isUpgrade ? "Upgrade" : "Payment"} <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </DialogFooter>
     </>
   );
 }
 
-// Define props interface for SuccessStep
 interface SuccessStepProps {
   planName: string;
   onDownload: () => void;
   showPolicyPdf: boolean;
-  onClose: () => void; // Add this missing prop
+  onClose: () => void;
+  isUpgrade?: boolean;
 }
 
-// Step 3: Success page with PDF download
-function SuccessStep({ planName, onDownload, showPolicyPdf, onClose }: SuccessStepProps) {
+function SuccessStep({ planName, onDownload, showPolicyPdf, onClose, isUpgrade = false }: SuccessStepProps) {
   const client = useSelector((state: RootState) => state.client.client);
   const fullName = client ? `${client.firstName} ${client.lastName}` : "Unknown User";
 
@@ -366,8 +421,12 @@ function SuccessStep({ planName, onDownload, showPolicyPdf, onClose }: SuccessSt
           <Check className="h-8 w-8 text-green-600" />
         </div>
 
-        <h3 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h3>
-        <p className="text-gray-600 mb-6">Your {planName} membership is now active</p>
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">
+          {isUpgrade ? "Upgrade Successful!" : "Payment Successful!"}
+        </h3>
+        <p className="text-gray-600 mb-6">
+          Your {planName} {isUpgrade ? "plan upgrade is now active" : "membership is now active"}
+        </p>
 
         <div className="bg-gray-50 rounded-lg p-6 mb-6 mx-auto max-w-md">
           <h4 className="font-medium text-gray-700 mb-3">Membership Details</h4>
@@ -403,7 +462,7 @@ function SuccessStep({ planName, onDownload, showPolicyPdf, onClose }: SuccessSt
           ) : (
             <>
               <Download className="mr-2 h-4 w-4" />
-              Download Membership Agreement
+              Download {isUpgrade ? "Upgrade" : "Membership"} Agreement
             </>
           )}
         </Button>

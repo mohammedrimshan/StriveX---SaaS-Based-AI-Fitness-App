@@ -12,7 +12,6 @@ import { RootState } from "@/store/store";
 
 export const ClientLayout = () => {
 	const [isSideBarVisible, setIsSideBarVisible] = useState(false);
-	const [notifications] = useState(2);
 	const { successToast, errorToast } = useToaster();
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
@@ -43,7 +42,6 @@ export const ClientLayout = () => {
 					userName={user?.firstName}
 					userAvatar={user?.profileImage}
 					onLogout={handleLogout}
-					notifications={notifications}
 					onSidebarToggle={() => setIsSideBarVisible(!isSideBarVisible)}
 				/>
 			) : (

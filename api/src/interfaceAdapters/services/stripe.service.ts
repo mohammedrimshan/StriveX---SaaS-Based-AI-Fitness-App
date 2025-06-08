@@ -40,7 +40,7 @@ export class StripeService implements IStripeService {
               name: plan.name,
               metadata: { planId: plan.id, clientId },
             },
-            unit_amount: plan.price * 100,
+            unit_amount: Math.round(plan.price * 100), 
           },
           quantity: 1,
         },

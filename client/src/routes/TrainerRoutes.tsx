@@ -14,6 +14,8 @@ import MyClients from "@/pages/trainer/MyClients";
 import Bookslots from "@/pages/trainer/SlotBook";
 import VideoCallPage from "@/components/VideoCall/VideoCallPage";
 import Notifications from "@/components/Notification/Notifications";
+import TrainerWallet from "@/pages/trainer/Wallet/TrainerWallet";
+import SessionHistoryPage from "@/components/common/SessionHistoryPage";
 export const TrainerRoutes = () => {
   return (
     <Routes>
@@ -118,6 +120,25 @@ export const TrainerRoutes = () => {
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
               element={<Notifications />}
+            />
+          }
+        />
+        <Route
+          path="/earnings"
+          element={
+            <TrainerAuthRoute
+              allowedRoles={["trainer"]}
+              element={<TrainerWallet />}
+            />
+          }
+        />
+
+        <Route
+          path="/session-history"
+          element={
+            <TrainerAuthRoute
+              allowedRoles={["trainer"]}
+              element={<SessionHistoryPage />}
             />
           }
         />

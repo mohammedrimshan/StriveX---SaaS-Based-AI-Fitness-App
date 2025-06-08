@@ -9,7 +9,7 @@ import { IDietPlan } from "@/types/Diet";
 // import { PaginatedResult } from "@/types/Workout";
 import { TrainerProfile } from "@/types/trainer";
 import { IWorkoutEntity } from "../../../../api/src/entities/models/workout.entity";
-import { IProgressEntity } from "@/types/Progress";
+import { IWorkoutProgressEntity } from "@/types/Progress";
 import { PaginatedTrainersResponse } from "@/types/Response";
 import { PaginatedResponse } from "@/types/Response";
 import { Workout } from "@/types/Workouts";
@@ -186,9 +186,9 @@ export const getDietPlans = async (userId: string): Promise<IDietPlan[]> => {
 
 export const getUserProgress = async (
   userId: string
-): Promise<IProgressEntity[]> => {
+): Promise<IWorkoutProgressEntity[]> => {
   const response = await clientAxiosInstance.get<
-    IAxiosResponse<IProgressEntity[]>
+    IAxiosResponse<IWorkoutProgressEntity[]>
   >(`/client/${userId}/progress`);
   console.log("User progress:", response.data);
   return response.data.data;
@@ -650,5 +650,38 @@ export const getComments = async (
   } catch (error: any) {
     console.error('Get comments error:', error.response?.data);
     throw new Error(error.response?.data?.message || 'Failed to fetch comments');
+  }
+};
+
+export const upgradeSubscription = async (
+  data: CreateCheckoutSessionData
+): Promise<CheckoutSessionResponse> => {
+  try {
+    const response = await clientAxiosInstance.put<CheckoutSessionResponse>(
+      "/client/upgrade",
+      data
+    );
+    console.log("Subscription upgrade session created:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Upgrade subscription error:", error.response?.data);
+    throw new Error(
+      error.response?.data?.message || "Failed to create upgrade session"
+    );
+  }
+};
+
+export const getClientProfile = async (clientId: string): Promise<IClient> => {
+  try {
+    const response = await clientAxiosInstance.get<IAxiosResponse<IClient>>(
+      `/client/${clientId}/profile`
+    );
+    console.log("Client profile fetched:", response.data);
+    return response.data?.profile;
+  } catch (error: any) {
+    console.error("Get client profile error:", error.response?.data);
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch client profile"
+    );
   }
 };

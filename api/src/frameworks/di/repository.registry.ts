@@ -46,6 +46,8 @@ import { ICancellationRepository } from "@/entities/repositoryInterfaces/slot/ca
 import { CancellationRepository } from "@/interfaceAdapters/repositories/slot/cancellation.repository";
 import { IClientProgressHistoryRepository } from "@/entities/repositoryInterfaces/progress/client-progress-history-repository.interface";
 import { ClientProgressHistoryRepository } from "@/interfaceAdapters/repositories/progress/client-progress-history.repository";
+import { ISessionHistoryRepository } from "@/entities/repositoryInterfaces/session/session-history-repository.interface";
+import { SessionHistoryRepository } from "@/interfaceAdapters/repositories/session/session-history.repository";
 export class RepositoryRegistry {
   static registerRepositories(): void {
     container.register<IClientRepository>("IClientRepository", {
@@ -148,5 +150,9 @@ export class RepositoryRegistry {
         useClass: ClientProgressHistoryRepository,
       }
     );
+
+    container.register<ISessionHistoryRepository>("ISessionHistoryRepository", {
+      useClass: SessionHistoryRepository,
+    });
   }
 }

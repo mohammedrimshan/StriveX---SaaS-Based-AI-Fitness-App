@@ -26,6 +26,7 @@ import WorkoutProgressDashboard from "@/pages/client/WorkoutProgressChart";
 import VideoCallPage from "@/components/VideoCall/VideoCallPage";
 import Notifications from "@/components/Notification/Notifications";
 import UserDashBoard from "@/pages/client/DashBoard";
+import SessionHistoryPage from "@/components/common/SessionHistoryPage";
 export const ClientRoutes = () => {
   return (
     <Routes>
@@ -205,6 +206,17 @@ export const ClientRoutes = () => {
             <AuthRoute allowedRoles={["client"]} element={<UserDashBoard />} />
           }
         />
+
+        <Route
+          path="/session-history"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<SessionHistoryPage />}
+            />
+          }
+        />
+
         {/* Add morHae protected routes as needed */}
       </Route>
       <Route

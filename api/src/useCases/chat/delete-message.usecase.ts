@@ -16,6 +16,7 @@ export class DeleteMessageUseCase implements IDeleteMessageUseCase {
     }
 
     const message = await this._messageRepository.findById(messageId);
+    console.log(message, "MESSAGE TO DELETE");
     if (!message) {
       throw new CustomError("Message not found", HTTP_STATUS.NOT_FOUND);
     }

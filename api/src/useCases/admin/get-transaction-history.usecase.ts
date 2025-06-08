@@ -62,21 +62,35 @@ export class GetTransactionHistoryUseCase
 
     const clientIds = [...new Set(transactions.map((t) => t.clientId))];
 
-    const clients = await this.clientRepository.findByIds(clientIds);
+    // Fetch clients using findByClientNewId
+    const clients = await Promise.all(
+      clientIds.map(async (clientId) => {
+        try {
+          const client = await this.clientRepository.findByClientNewId(clientId);
+          return {
+            id: clientId, // Use the original clientId from the payment
+            name: client
+              ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || "Unknown User"
+              : "Unknown User",
+          };
+        } catch (error) {
+          console.warn(`Error fetching client for clientId: ${clientId}`, error);
+          return { id: clientId, name: "Unknown User" };
+        }
+      })
+    );
+
     let filteredClients = clients;
 
     if (search) {
       filteredClients = clients.filter((client) =>
-        client.name?.toLowerCase().includes(search.toLowerCase())
+        client.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
     const filteredClientIds = filteredClients.map((client) => client.id);
     const clientMap = new Map(
-      filteredClients.map((client) => [
-        client.id,
-        client.name || "Unknown User",
-      ])
+      filteredClients.map((client) => [client.id, client.name])
     );
 
     let finalTransactions = transactions;

@@ -5,6 +5,7 @@ import { IClientEntity } from "@/entities/models/client.entity";
 import { BaseRepository } from "../base.repository";
 import { TrainerSelectionStatus } from "@/shared/constants";
 import { PipelineStage } from "mongoose";
+import { isValidObjectId } from "mongoose";
 
 @injectable()
 export class ClientRepository
@@ -35,11 +36,25 @@ export class ClientRepository
   }
 
   async findByClientNewId(clientId: string): Promise<IClientEntity | null> {
-    const byId = await this.model.findById(clientId).lean();
-    const byClientId = byId || (await this.model.findOne({ clientId }).lean());
-    return byClientId ? this.mapToEntity(byClientId) : null;
-  }
+    if (!clientId || typeof clientId !== "string") {
+      throw new Error("Invalid clientId");
+    }
 
+    try {
+      const query = isValidObjectId(clientId)
+        ? { $or: [{ _id: clientId }, { clientId }] }
+        : { clientId };
+
+      const client = await this.model.findOne(query).lean();
+      return client ? this.mapToEntity(client) : null;
+    } catch (error) {
+      console.error(
+        `Error in findByClientNewId for clientId: ${clientId}`,
+        error
+      );
+      return null;
+    }
+  }
   async updateByClientId(
     clientId: string,
     updates: Partial<IClientEntity>
@@ -105,6 +120,7 @@ export class ClientRepository
           firstName: 1,
           lastName: 1,
           email: 1,
+          profileImage: 1,
           fitnessGoal: 1,
           experienceLevel: 1,
           preferredWorkout: 1,
@@ -141,16 +157,32 @@ export class ClientRepository
   }
   async findByIds(ids: string[]): Promise<{ id: string; name: string }[]> {
     try {
+      const striveXIds = ids.filter((id) => id.includes("striveX-client"));
+      const mongoIds = ids.filter((id) => isValidObjectId(id));
+
+      console.log("StriveX IDs:", striveXIds);
+      console.log("MongoDB IDs:", mongoIds);
+
       const clients = await this.model
-        .find({ clientId: { $in: ids } })
-        .select("clientId firstName lastName")
+        .find({
+          $or: [{ clientId: { $in: striveXIds } }, { _id: { $in: mongoIds } }],
+        })
+        .select("_id clientId firstName lastName")
         .lean();
-      return clients.map((client) => ({
-        id: client.clientId,
-        name: `${client.firstName} ${client.lastName}`.trim(),
-      }));
+
+      return clients.map((client) => {
+        const matchedId = striveXIds.includes(client.clientId)
+          ? client.clientId
+          : (client._id as any).toString();
+        return {
+          id: matchedId,
+          name:
+            `${client.firstName || ""} ${client.lastName || ""}`.trim() ||
+            "Unknown User",
+        };
+      });
     } catch (error) {
-      console.error(`Error finding clients by clientIds:`, error);
+      console.error(`Error finding clients by IDs: ${ids.join(", ")}`, error);
       throw error;
     }
   }
