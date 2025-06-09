@@ -238,9 +238,40 @@ import { IUpgradeSubscriptionUseCase } from "@/entities/useCaseInterfaces/stripe
 import { UpgradeSubscriptionUseCase } from "@/useCases/stripe/upgrade-subscription.usecase";
 import { IGetClientProfileUseCase } from "@/entities/useCaseInterfaces/users/get-client-profile.usecase.interface";
 import { GetClientProfileUseCase } from "@/useCases/user/get-client-profile.usecase";
+import { IGetDashboardStatsUseCase } from "@/entities/useCaseInterfaces/admin/dashboard/getdashboard-stats.usecase.interface";
+import { GetDashboardStatsUseCase } from "@/useCases/admin/dashboard/get-dashboard-stats.use-case";
+import { IGetPopularWorkoutsUseCase } from "@/entities/useCaseInterfaces/admin/dashboard/get-popular-workout.usecase";
+import { GetPopularWorkoutsUseCase } from "@/useCases/admin/dashboard/get-popular-workouts.use-case";
+import { IGetTopPerformingTrainersUseCase } from "@/entities/useCaseInterfaces/admin/dashboard/get-top-performing-trainer.usecase.interface";
+import { GetTopPerformingTrainersUseCase } from "@/useCases/admin/dashboard/get-top-performing-trainers.use-case";
+import { IGetUserAndSessionDataUseCase } from "@/entities/useCaseInterfaces/admin/dashboard/get-user-and-session-data.usecase.interface";
+import { GetUserAndSessionDataUseCase } from "@/useCases/admin/dashboard/get-user-and-session-data.use-case";
+import { IGetRevenueReportUseCase } from "@/entities/useCaseInterfaces/admin/dashboard/get-revenue-report.usecase.interface";
+import { GetRevenueReportUseCase } from "@/useCases/admin/dashboard/get-revenue-report.use-case";
+import { IGetSessionReportUseCase } from "@/entities/useCaseInterfaces/admin/dashboard/get-session-report.usecase.interface";
+import { GetSessionReportUseCase } from "@/useCases/admin/dashboard/get-session-report.use-case";
+import { ICreateReviewUseCase } from "@/entities/useCaseInterfaces/review/create-review-usecase.interface";
+import { CreateReviewUseCase } from "@/useCases/review/create-review.usecase";
+import { IUpdateReviewUseCase } from "@/entities/useCaseInterfaces/review/update-review-usecase.interface";
+import { UpdateReviewUseCase } from "@/useCases/review/update-review.usecase";
+import { IGetTrainerReviewsUseCase } from "@/entities/useCaseInterfaces/review/get-trainer-reviews-usecase.interface";
+import { GetTrainerReviewsUseCase } from "@/useCases/review/get-trainer-reviews.usecase";
+import { IGetTrainerDashboardStatsUseCase } from "@/entities/useCaseInterfaces/trainer/Dashboard/get-dashboard-stats.usecase.interface";
+import { GetTrainerDashboardStatsUseCase } from "@/useCases/trainer/Dashboard/get-dashboard-stats.usecase";
+import { IGetUpcomingSessionsUseCase } from "@/entities/useCaseInterfaces/trainer/Dashboard/get-upcoming-sessions.usecase.interface";
+import { GetUpcomingSessionsUseCase } from "@/useCases/trainer/Dashboard/get-upcoming-sessions.usecase";
+import { IGetWeeklySessionStatsUseCase } from "@/entities/useCaseInterfaces/trainer/Dashboard/get-weekly-session-stats.usecase.interface";
+import { GetWeeklySessionStatsUseCase } from "@/useCases/trainer/Dashboard/get-weekly-session-stats.usecase";
+import { IGetClientFeedbackUseCase } from "@/entities/useCaseInterfaces/trainer/Dashboard/get-client-feedback.usecase.interface";
+import { GetClientFeedbackUseCase } from "@/useCases/trainer/Dashboard/get-client-feedback.usecase";
+import { IGetEarningsReportUseCase } from "@/entities/useCaseInterfaces/trainer/Dashboard/get-earnings-report.usecase.interface";
+import { GetEarningsReportUseCase } from "@/useCases/trainer/Dashboard/get-earnings-report.usecase";
+import { IGetClientProgressUseCase } from "@/entities/useCaseInterfaces/trainer/Dashboard/get-client-progress.usecase.interface";
+import { GetClientProgressUseCase } from "@/useCases/trainer/Dashboard/get-client-progress.usecase";
+import { IGetTrainerSessionHistoryUseCase } from "@/entities/useCaseInterfaces/trainer/Dashboard/get-session-history.usecase.interface";
+import { GetTrainerSessionHistoryUseCase } from "@/useCases/trainer/Dashboard/get-session-history.usecase";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
-
 
 export class UseCaseRegistry {
   static registerUseCases(): void {
@@ -312,12 +343,14 @@ export class UseCaseRegistry {
       useClass: SlotExpiryProcessor,
     });
 
-
     //* ====== Register Subscription Expiry Processor ====== *//
-    container.register<SubscriptionExpiryProcessor>("SubscriptionExpiryProcessor", {
-      useClass: SubscriptionExpiryProcessor,
-    });
-   
+    container.register<SubscriptionExpiryProcessor>(
+      "SubscriptionExpiryProcessor",
+      {
+        useClass: SubscriptionExpiryProcessor,
+      }
+    );
+
     //* ====== Register Strategies ====== *//
     container.register("ClientRegisterStrategy", {
       useClass: ClientRegisterStrategy,
@@ -893,5 +926,90 @@ export class UseCaseRegistry {
     container.register<IGetClientProfileUseCase>("IGetClientProfileUseCase", {
       useClass: GetClientProfileUseCase,
     });
+
+    container.register<IGetDashboardStatsUseCase>("IGetDashboardStatsUseCase", {
+      useClass: GetDashboardStatsUseCase,
+    });
+
+    container.register<IGetTopPerformingTrainersUseCase>(
+      "IGetTopPerformingTrainersUseCase",
+      {
+        useClass: GetTopPerformingTrainersUseCase,
+      }
+    );
+
+    container.register<IGetPopularWorkoutsUseCase>(
+      "IGetPopularWorkoutsUseCase",
+      {
+        useClass: GetPopularWorkoutsUseCase,
+      }
+    );
+
+    container.register<IGetUserAndSessionDataUseCase>(
+      "IGetUserAndSessionDataUseCase",
+      {
+        useClass: GetUserAndSessionDataUseCase,
+      }
+    );
+
+    container.register<IGetRevenueReportUseCase>("IGetRevenueReportUseCase", {
+      useClass: GetRevenueReportUseCase,
+    });
+
+    container.register<IGetSessionReportUseCase>("IGetSessionReportUseCase", {
+      useClass: GetSessionReportUseCase,
+    });
+
+    container.register<ICreateReviewUseCase>("ICreateReviewUseCase", {
+      useClass: CreateReviewUseCase,
+    });
+
+    container.register<IGetTrainerReviewsUseCase>("IGetTrainerReviewsUseCase", {
+      useClass: GetTrainerReviewsUseCase,
+    });
+
+    container.register<IUpdateReviewUseCase>("IUpdateReviewUseCase", {
+      useClass: UpdateReviewUseCase,
+    });
+
+    container.register<IGetTrainerDashboardStatsUseCase>(
+      "IGetTrainerDashboardStatsUseCase",
+      {
+        useClass: GetTrainerDashboardStatsUseCase,
+      }
+    );
+
+    container.register<IGetUpcomingSessionsUseCase>(
+      "IGetUpcomingSessionsUseCase",
+      {
+        useClass: GetUpcomingSessionsUseCase,
+      }
+    );
+
+    container.register<IGetWeeklySessionStatsUseCase>(
+      "IGetWeeklySessionStatsUseCase",
+      {
+        useClass: GetWeeklySessionStatsUseCase,
+      }
+    );
+
+    container.register<IGetClientFeedbackUseCase>("IGetClientFeedbackUseCase", {
+      useClass: GetClientFeedbackUseCase,
+    });
+
+    container.register<IGetEarningsReportUseCase>("IGetEarningsReportUseCase", {
+      useClass: GetEarningsReportUseCase,
+    });
+
+    container.register<IGetClientProgressUseCase>("IGetClientProgressUseCase", {
+      useClass: GetClientProgressUseCase,
+    });
+
+    container.register<IGetTrainerSessionHistoryUseCase>(
+      "IGetTrainerSessionHistoryUseCase",
+      {
+        useClass: GetTrainerSessionHistoryUseCase,
+      }
+    );
   }
 }

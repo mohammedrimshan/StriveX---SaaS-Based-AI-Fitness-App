@@ -60,4 +60,5 @@ export interface ISlotRepository extends IBaseRepository<ISlotEntity> {
     videoCallRoomName?: string;
     videoCallJwt?: string;
   } | null>;
+  findAvailableSlots(trainerId: string): Promise<ISlotEntity[]>;
 }

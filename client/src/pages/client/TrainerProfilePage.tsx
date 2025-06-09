@@ -1,12 +1,19 @@
 import { useFetchTrainerProfile } from "@/hooks/client/useFetchTrainerProfile";
-import { TrainerProfile } from "@/pages/client/TrainerProfile/TrainerProfile";
+import TrainerProfile from "./TrainerProfile/TrainerProfile";
 import { useParams } from "react-router-dom";
+import { RootState } from "@/store/store";
+import { useSelector } from "react-redux";
+
 
 const Index = () => {
   const { trainerId } = useParams<{ trainerId: string }>();
-  const { data: trainer, isLoading, error } = useFetchTrainerProfile(trainerId);
+    const client = useSelector((state: RootState) => state.client.client);
+  const clientId = client?.id; // Assume user has clientId
+
+  const { data: trainer, isLoading, error } = useFetchTrainerProfile(trainerId, clientId);
 
   console.log("Trainer ID:", trainerId);
+  console.log("Client ID:", clientId);
   console.log("Trainer Data:", trainer);
   console.log("Loading:", isLoading);
   console.log("Error:", error);

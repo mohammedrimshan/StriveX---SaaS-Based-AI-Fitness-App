@@ -1,5 +1,6 @@
-import { ITrainerEntity } from "@/entities/models/trainer.entity";
+
+import { TrainerProfileViewDto } from "@/shared/dto/rainer-profile-view.dto";
 
 export interface IGetTrainerProfileUseCase{
-    execute(trainerId:string):Promise<ITrainerEntity | null>
+    execute(trainerId: string, clientId?: string): Promise<TrainerProfileViewDto>;
 }

@@ -17,4 +17,6 @@ export interface ITrainerEntity extends IUserEntity {
   googleId?: string;
   stripeConnectId:string;
   clientCount?: number;
+  rating?: number;
+  reviewCount?: number;
 }

@@ -347,6 +347,9 @@ export class UserController implements IUserController {
   async getTrainerProfile(req: Request, res: Response): Promise<void> {
     try {
       const { trainerId } = req.params;
+      const { clientId } = req.query;
+
+      console.log(clientId,"client id");
 
       if (!trainerId) {
         throw new CustomError(
@@ -355,9 +358,12 @@ export class UserController implements IUserController {
         );
       }
 
-      const trainer = await this._getTrainerProfileUseCase.execute(trainerId);
+      const profile = await this._getTrainerProfileUseCase.execute(
+        trainerId,
+        clientId as string | undefined
+      );
 
-      if (!trainer) {
+      if (!profile) {
         throw new CustomError(
           ERROR_MESSAGES.TRAINER_NOT_FOUND,
           HTTP_STATUS.NOT_FOUND
@@ -366,14 +372,13 @@ export class UserController implements IUserController {
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
-        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-        trainer,
+        message: "Trainer profile retrieved successfully",
+        data: profile, 
       });
     } catch (error) {
       handleErrorResponse(res, error);
     }
   }
-
   /**
    * Saves trainer selection preferences (skills, goals, etc.)
    */

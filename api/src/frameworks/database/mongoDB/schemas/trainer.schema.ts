@@ -36,6 +36,8 @@ export const trainerSchema = new Schema<ITrainerModel>(
     stripeConnectId: { type: String },
     clientCount: { type: Number, default: 0 },
     isOnline: { type: Boolean, default: false },
+    rating: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 }
   },
   {
     timestamps: true,

@@ -21,6 +21,7 @@ import {
   notificationController,
   videoCallController,
   sessionHistoryController,
+  reviewController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -802,6 +803,37 @@ export class ClientRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         userController.getClientProfile(req, res);
+      }
+    );
+
+    
+    router.put(
+      "/client/submitreview",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        reviewController.submitReview(req, res);
+      }
+    );
+
+    router.get(
+      "/client/reviews/:trainerId",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        reviewController.getTrainerReviews(req, res);
+      }
+    );
+
+    router.put(
+      "/client/updatereview",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        reviewController.updateReview(req, res);
       }
     );
   }

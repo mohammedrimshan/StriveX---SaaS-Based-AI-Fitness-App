@@ -17,6 +17,8 @@ import {
   videoCallController,
   notificationController,
   sessionHistoryController,
+  reviewController,
+  trainerDashboardController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -361,15 +363,15 @@ export class TrainerRoutes extends BaseRoute {
       }
     );
 
-      router.get(
-        "/trainer/session-history",
-        verifyAuth,
-        authorizeRole(["trainer"]),
-        blockStatusMiddleware.checkStatus as RequestHandler,
-        (req: Request, res: Response) => {
-          sessionHistoryController.getSessionHistory(req, res);
-        }
-      );
+    router.get(
+      "/trainer/session-history",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        sessionHistoryController.getSessionHistory(req, res);
+      }
+    );
 
     router.get(
       "/trainer/wallet-history",
@@ -378,6 +380,86 @@ export class TrainerRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         trainerController.getWalletHistory(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/review/:trainerId",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        reviewController.getTrainerReviews(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/:trainerId/stats",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        trainerDashboardController.getDashboardStats(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/:trainerId/upcoming-sessions",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        trainerDashboardController.getUpcomingSessions(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/:trainerId/weekly-stats",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        trainerDashboardController.getWeeklySessionStats(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/:trainerId/feedback",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        trainerDashboardController.getClientFeedback(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/:trainerId/earnings",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        trainerDashboardController.getEarningsReport(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/:trainerId/client-progress",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        trainerDashboardController.getClientProgress(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/:trainerId/session-history",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        trainerDashboardController.getSessionHistory(req, res);
       }
     );
   }

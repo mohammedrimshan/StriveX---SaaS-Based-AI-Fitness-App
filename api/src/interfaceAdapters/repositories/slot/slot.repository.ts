@@ -646,4 +646,21 @@ export class SlotRepository
         }
       : null;
   }
+
+  async findAvailableSlots(trainerId: string): Promise<ISlotEntity[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const slots = await this.model
+      .find({
+        trainerId,
+        isBooked: false,
+        status: SlotStatus.AVAILABLE,
+        date: { $gte: today.toISOString().split("T")[0] },
+      })
+      .select("date startTime endTime _id")
+      .lean();
+
+    return slots.map(this.mapToEntity);
+  }
 }

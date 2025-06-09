@@ -48,6 +48,12 @@ import { IClientProgressHistoryRepository } from "@/entities/repositoryInterface
 import { ClientProgressHistoryRepository } from "@/interfaceAdapters/repositories/progress/client-progress-history.repository";
 import { ISessionHistoryRepository } from "@/entities/repositoryInterfaces/session/session-history-repository.interface";
 import { SessionHistoryRepository } from "@/interfaceAdapters/repositories/session/session-history.repository";
+import { IAdminDashboardRepository } from "@/entities/repositoryInterfaces/admin/admin-dashboard-repository.interface";
+import { AdminDashboardRepository } from "@/interfaceAdapters/repositories/admin/admin-dashboard.repository";
+import { IReviewRepository } from "@/entities/repositoryInterfaces/review/review-repository.interface";
+import { ReviewRepository } from "@/interfaceAdapters/repositories/review/review.repository";
+import { ITrainerDashboardRepository } from "@/entities/repositoryInterfaces/trainer/trainer-dashboard-repository.interface";
+import { TrainerDashboardRepository } from "@/interfaceAdapters/repositories/trainer/trainer-dashboard-repository";
 export class RepositoryRegistry {
   static registerRepositories(): void {
     container.register<IClientRepository>("IClientRepository", {
@@ -153,6 +159,19 @@ export class RepositoryRegistry {
 
     container.register<ISessionHistoryRepository>("ISessionHistoryRepository", {
       useClass: SessionHistoryRepository,
+    });
+
+    container.register<IAdminDashboardRepository>("IAdminDashboardRepository", {
+      useClass: AdminDashboardRepository,
+    });
+
+    container.register<IReviewRepository>("IReviewRepository", {
+      useClass: ReviewRepository,
+    });
+
+
+    container.register<ITrainerDashboardRepository>("ITrainerDashboardRepository", {
+      useClass: TrainerDashboardRepository,
     });
   }
 }

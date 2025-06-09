@@ -18,6 +18,7 @@ import {
   dietWorkoutController,
   notificationController,
   sessionHistoryController,
+  adminDashboardController,
 } from "../../di/resolver";
 
 export class AdminRoutes extends BaseRoute {
@@ -325,6 +326,66 @@ export class AdminRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         sessionHistoryController.getSessionHistory(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/stats",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        adminDashboardController.getDashboardStats(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/top-trainers",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        adminDashboardController.getTopPerformingTrainers(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/popular-workouts",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        adminDashboardController.getPopularWorkouts(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/user-and-session-data",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        adminDashboardController.getUserAndSessionData(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/revenue-report",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        adminDashboardController.exportRevenueReport(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/session-report",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        adminDashboardController.exportSessionReport(req, res);
       }
     );
   }

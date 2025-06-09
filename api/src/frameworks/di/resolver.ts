@@ -18,6 +18,9 @@ import { CommentController } from "@/interfaceAdapters/controllers/comment.contr
 import { NotificationController } from "@/interfaceAdapters/controllers/notification.controller";
 import { VideoCallController } from "@/interfaceAdapters/controllers/video.controller";
 import { SessionHistoryController } from "@/interfaceAdapters/controllers/session-history.controller";
+import { AdminDashboardController } from "@/interfaceAdapters/controllers/admin/admindashboard.controller";
+import { ReviewController } from "@/interfaceAdapters/controllers/review.controller";
+import { TrainerDashboardController } from "@/interfaceAdapters/controllers/trainer-dashboard.controller";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
 DependancyInjection.registerAll();
@@ -61,3 +64,9 @@ export const notificationController = container.resolve(NotificationController)
 export const videoCallController = container.resolve(VideoCallController)
 
 export const sessionHistoryController = container.resolve(SessionHistoryController);
+
+export const adminDashboardController = container.resolve(AdminDashboardController);
+
+export const reviewController = container.resolve(ReviewController);
+
+export const trainerDashboardController = container.resolve(TrainerDashboardController);

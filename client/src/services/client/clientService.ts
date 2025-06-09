@@ -7,7 +7,7 @@ import { CategoryResponse } from "../admin/adminService";
 import { IWorkoutPlan } from "@/types/Workout";
 import { IDietPlan } from "@/types/Diet";
 // import { PaginatedResult } from "@/types/Workout";
-import { TrainerProfile } from "@/types/trainer";
+import { Review, ReviewInput, TrainerProfileType, UpdateReviewInput } from "@/types/trainer";
 import { IWorkoutEntity } from "../../../../api/src/entities/models/workout.entity";
 import { IWorkoutProgressEntity } from "@/types/Progress";
 import { PaginatedTrainersResponse } from "@/types/Response";
@@ -259,11 +259,13 @@ export const getAllCategoriesForClients = async () => {
 };
 
 export const getTrainerProfile = async (
-  trainerId: string
-): Promise<TrainerProfile> => {
+  trainerId: string,
+  clientId: string
+): Promise<TrainerProfileType> => {
   try {
     const response = await clientAxiosInstance.get<any>(
-      `/client/trainers/${trainerId}`
+      `/client/trainers/${trainerId}`,
+       { params: { clientId } }
     );
     console.log("Raw Response Status:", response.status);
     console.log("Raw Response Data:", response.data);
@@ -275,7 +277,7 @@ export const getTrainerProfile = async (
       throw new Error("Trainer not found or invalid response structure");
     }
 
-    return trainerData as TrainerProfile;
+    return trainerData as TrainerProfileType;
   } catch (error) {
     console.error("getTrainerProfile Error:", error);
     throw error; // Ensure error propagates to useQuery
@@ -358,7 +360,7 @@ export const manualSelectTrainer = async (
 // Add to your clientService.ts
 export interface MatchedTrainersResponse {
   success: boolean;
-  data: TrainerProfile[];
+  data: TrainerProfileType[];
 }
 
 export const getMatchedTrainers =
@@ -683,5 +685,57 @@ export const getClientProfile = async (clientId: string): Promise<IClient> => {
     throw new Error(
       error.response?.data?.message || "Failed to fetch client profile"
     );
+  }
+};
+
+export const submitReview = async (review: ReviewInput): Promise<Review> => {
+  try {
+    const response = await clientAxiosInstance.put<{ success: boolean; data: Review }>(
+      `/client/submitreview`,
+      review
+    );
+    if (!response.data.success || !response.data.data) {
+      throw new Error("Failed to submit review");
+    }
+    return response.data.data;
+  } catch (error) {
+    console.error("submitReview Error:", error);
+    throw error;
+  }
+};
+
+export const fetchTrainerReviews = async (
+  trainerId: string,
+  skip: number = 0,
+  limit: number = 10
+): Promise<{ items: Review[]; total: number }> => {
+  try {
+    const response = await clientAxiosInstance.get<{ success: boolean; data: { items: Review[]; total: number } }>(
+      `/client/reviews/${trainerId}`,
+      { params: { skip, limit } }
+    );
+    if (!response.data.success || !response.data.data) {
+      throw new Error("Failed to fetch reviews");
+    }
+    return response.data.data;
+  } catch (error) {
+    console.error("fetchTrainerReviews Error:", error);
+    throw error;
+  }
+};
+
+export const updateReview = async (review: UpdateReviewInput & { clientId: string }): Promise<Review> => {
+  try {
+    const response = await clientAxiosInstance.put<{ success: boolean; data: Review }>(
+      `/client/updatereview`,
+      review
+    );
+    if (!response.data.success || !response.data.data) {
+      throw new Error("Failed to update review");
+    }
+    return response.data.data;
+  } catch (error) {
+    console.error("updateReview Error:", error);
+    throw error;
   }
 };

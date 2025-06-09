@@ -41,6 +41,7 @@ export const AdminAuth = () => {
 						userType="admin"
 						onSubmit={handleLoginSubmit}
 						isLoading={isPending}
+						handleGoogleAuth={() => {}}
 					/>
 				</motion.div>
 			</AnimatePresence>
