@@ -193,7 +193,9 @@ export class TrainerDashboardRepository
             clientName: {
               $concat: ["$client.firstName", " ", "$client.lastName"],
             },
+            
             clientId: "$client._id",
+            profileImage: "$client.profileImage",
           },
         },
         { $sort: { date: 1, startTime: 1 } },
@@ -210,106 +212,105 @@ export class TrainerDashboardRepository
       endTime: item.endTime,
       clientName: item.clientName,
       clientId: item.clientId.toString(),
+       profileImage: item.profileImage ?? null,
     }));
   }
 
-async getWeeklySessionStats(
-  trainerId: string,
-  year: number,
-  month: number
-): Promise<IWeeklySessionStats[]> {
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0);
-  const startDateString = startDate.toISOString().split("T")[0];
-  const endDateString = endDate.toISOString().split("T")[0];
+  async getWeeklySessionStats(
+    trainerId: string,
+    year: number,
+    month: number
+  ): Promise<IWeeklySessionStats[]> {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    const startDateString = startDate.toISOString().split("T")[0];
+    const endDateString = endDate.toISOString().split("T")[0];
 
-  const result = await this.sessionHistoryModel.aggregate([
-    {
-      $match: {
-        trainerId: new mongoose.Types.ObjectId(trainerId),
-        status: "booked",
-        date: { $gte: startDateString, $lte: endDateString },
-      },
-    },
-    {
-      $lookup: {
-        from: "workoutprogresses",
-        localField: "_id",
-        foreignField: "sessionId",
-        as: "progress",
-      },
-    },
-    {
-      $lookup: {
-        from: "categories",
-        localField: "progress.categoryId",
-        foreignField: "_id",
-        as: "category",
-      },
-    },
-    {
-      $group: {
-        _id: {
-          week: {
-            $week: {
-              $dateFromString: { dateString: "$date", format: "%Y-%m-%d" },
-            },
+    const result = await this.sessionHistoryModel
+      .aggregate([
+        {
+          $match: {
+            trainerId: new mongoose.Types.ObjectId(trainerId),
+            status: "booked",
+            date: { $gte: startDateString, $lte: endDateString },
           },
-          category: { $arrayElemAt: ["$category.title", 0] },
         },
-        totalSessions: { $sum: 1 },
-      },
-    },
-    {
-      $project: {
-        week: "$_id.week",
-        category: "$_id.category",
-        totalSessions: 1,
-        _id: 0,
-      },
-    },
-    { $sort: { week: 1 } },
-  ]).exec();
-
-  return result;
-}
-
-
-
-async getClientFeedback(
-  trainerId: string,
-  limit: number = 5
-): Promise<IClientFeedback[]> {
-  const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : 5;
-
-  const result = await this.reviewModel
-    .aggregate([
-      { $match: { trainerId: trainerId.toString() } },
-      {
-        $project: {
-          rating: 1,
-          comment: 1,
-          createdAt: 1,
-          clientName: 1,
-          clientProfileImage: 1,
+        {
+          $lookup: {
+            from: "workoutprogresses",
+            localField: "_id",
+            foreignField: "sessionId",
+            as: "progress",
+          },
         },
-      },
-      { $sort: { createdAt: -1 } },
-      { $limit: safeLimit },
-    ])
-    .exec();
+        {
+          $lookup: {
+            from: "categories",
+            localField: "progress.categoryId",
+            foreignField: "_id",
+            as: "category",
+          },
+        },
+        {
+          $group: {
+            _id: {
+              week: {
+                $week: {
+                  $dateFromString: { dateString: "$date", format: "%Y-%m-%d" },
+                },
+              },
+              category: { $arrayElemAt: ["$category.title", 0] },
+            },
+            totalSessions: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            week: "$_id.week",
+            category: "$_id.category",
+            totalSessions: 1,
+            _id: 0,
+          },
+        },
+        { $sort: { week: 1 } },
+      ])
+      .exec();
 
-  return result.map((item) => ({
-    id: item._id.toString(),
-    rating: item.rating,
-    comment: item.comment,
-    clientName: item.clientName,
-    clientProfileImage: item.clientProfileImage,
-    createdAt: item.createdAt,
-  }));
-}
+    return result;
+  }
 
+  async getClientFeedback(
+    trainerId: string,
+    limit: number = 5
+  ): Promise<IClientFeedback[]> {
+    const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : 5;
 
+    const result = await this.reviewModel
+      .aggregate([
+        { $match: { trainerId: trainerId.toString() } },
+        {
+          $project: {
+            rating: 1,
+            comment: 1,
+            createdAt: 1,
+            clientName: 1,
+            clientProfileImage: 1,
+          },
+        },
+        { $sort: { createdAt: -1 } },
+        { $limit: safeLimit },
+      ])
+      .exec();
+
+    return result.map((item) => ({
+      id: item._id.toString(),
+      rating: item.rating,
+      comment: item.comment,
+      clientName: item.clientName,
+      clientProfileImage: item.clientProfileImage,
+      createdAt: item.createdAt,
+    }));
+  }
 
   async getEarningsReport(
     trainerId: string,
@@ -378,6 +379,7 @@ async getClientFeedback(
                 $concat: ["$client.firstName", " ", "$client.lastName"],
               },
             },
+            profileImage: { $first: "$client.profileImage" },
             totalSessions: { $sum: 1 },
             completedSessions: { $sum: { $cond: ["$completed", 1, 0] } },
           },
@@ -386,69 +388,81 @@ async getClientFeedback(
           $project: {
             clientId: "$_id",
             clientName: 1,
+            profileImage: 1,
             consistency: { $divide: ["$completedSessions", "$totalSessions"] },
             _id: 0,
           },
         },
         { $sort: { consistency: -1 } },
-        { $limit: limit * 2 }, // Get both top and bottom performers
+        { $limit: limit * 2 }, 
       ])
       .exec();
 
     return [
       ...result.slice(0, limit).map((item) => ({ ...item, type: "most" })),
-      ...result.slice(-limit).map((item) => ({ ...item, type: "least" })),
+      ...result
+        .slice(-limit)
+        .filter(
+          (item) =>
+            !result
+              .slice(0, limit)
+              .some(
+                (topItem) =>
+                  topItem.clientId.toString() === item.clientId.toString()
+              )
+        )
+        .map((item) => ({ ...item, type: "least" })),
     ];
   }
 
   async getSessionHistory(
-  trainerId: string,
-  filters: { date?: string; clientId?: string; status?: string }
-): Promise<ISessionHistory[]> {
-  const match: any = {
-    trainerId: new mongoose.Types.ObjectId(trainerId),
-  };
-  if (filters.date) match.date = filters.date;
-  if (filters.clientId)
-    match.clientId = new mongoose.Types.ObjectId(filters.clientId);
-  if (filters.status) match.status = filters.status;
+    trainerId: string,
+    filters: { date?: string; clientId?: string; status?: string }
+  ): Promise<ISessionHistory[]> {
+    const match: any = {
+      trainerId: new mongoose.Types.ObjectId(trainerId),
+    };
+    if (filters.date) match.date = filters.date;
+    if (filters.clientId)
+      match.clientId = new mongoose.Types.ObjectId(filters.clientId);
+    if (filters.status) match.status = filters.status;
 
-  const result = await this.sessionHistoryModel
-    .aggregate([
-      { $match: match },
-      {
-        $lookup: {
-          from: "clients",
-          localField: "clientId",
-          foreignField: "_id",
-          as: "client",
-        },
-      },
-      { $unwind: { path: "$client", preserveNullAndEmptyArrays: true } },
-      {
-        $project: {
-          date: 1,
-          startTime: 1,
-          endTime: 1,
-          status: 1,
-          clientName: {
-            $concat: ["$client.firstName", " ", "$client.lastName"],
+    const result = await this.sessionHistoryModel
+      .aggregate([
+        { $match: match },
+        {
+          $lookup: {
+            from: "clients",
+            localField: "clientId",
+            foreignField: "_id",
+            as: "client",
           },
-          clientId: "$client._id",
         },
-      },
-      { $sort: { date: -1 } },
-    ])
-    .exec();
+        { $unwind: { path: "$client", preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            date: 1,
+            startTime: 1,
+            endTime: 1,
+            status: 1,
+            clientName: {
+              $concat: ["$client.firstName", " ", "$client.lastName"],
+            },
+            clientId: "$client._id",
+          },
+        },
+        { $sort: { date: -1 } },
+      ])
+      .exec();
 
-  return result.map((item) => ({
-    id: item._id.toString(),
-    date: item.date,
-    startTime: item.startTime,
-    endTime: item.endTime,
-    status: item.status,
-    clientName: item.clientName || "N/A",
-    clientId: item.clientId?.toString(),
-  }));
-}
+    return result.map((item) => ({
+      id: item._id.toString(),
+      date: item.date,
+      startTime: item.startTime,
+      endTime: item.endTime,
+      status: item.status,
+      clientName: item.clientName || "N/A",
+      clientId: item.clientId?.toString(),
+    }));
+  }
 }

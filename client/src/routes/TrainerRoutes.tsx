@@ -16,6 +16,8 @@ import VideoCallPage from "@/components/VideoCall/VideoCallPage";
 import Notifications from "@/components/Notification/Notifications";
 import TrainerWallet from "@/pages/trainer/Wallet/TrainerWallet";
 import SessionHistoryPage from "@/components/common/SessionHistoryPage";
+import DashboardTrainer from "@/pages/trainer/Dashboard";
+import FullReview from "@/pages/trainer/FullReview";
 export const TrainerRoutes = () => {
   return (
     <Routes>
@@ -142,6 +144,28 @@ export const TrainerRoutes = () => {
             />
           }
         />
+
+        <Route
+          path="/trainerdashboard"
+          element={
+            <TrainerAuthRoute
+              allowedRoles={["trainer"]}
+              element={<DashboardTrainer />}
+            />
+          }
+        />
+
+        <Route
+          path="/:trainerId/reviews"
+          element={
+            <TrainerAuthRoute
+              allowedRoles={["trainer"]}
+              element={<FullReview />}
+            />
+          }
+        />
+
+    
         {/* Add more admin routes here as needed */}
       </Route>
 

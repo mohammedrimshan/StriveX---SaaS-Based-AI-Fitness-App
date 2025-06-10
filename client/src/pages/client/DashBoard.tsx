@@ -9,6 +9,7 @@ import WorkoutProgress from "@/components/Dashboard/User/WorkoutProgress";
 import WaterIntakeChart from "@/components/Dashboard/User/WaterIntakeChart";
 import WeightHeightTrends from "@/components/Dashboard/User/WeightHeightTrends";
 import DailySummary from "@/components/Dashboard/User/DailySummary";
+import SubscriptionCountdown from "@/components/Dashboard/Trainer/SubScription";
 import { Loader2 } from "lucide-react";
 
 const UserDashBoard = () => {
@@ -69,7 +70,7 @@ console.log(data, "Fetched user progress metrics data");
     );
   }
 
-  const { bmi, weightHistory, heightHistory, waterIntakeLogs, totalWaterIntake, workoutProgress, videoProgress, workouts } = data.data;
+  const { bmi, weightHistory, heightHistory, waterIntakeLogs, totalWaterIntake, workoutProgress, videoProgress, workouts , subscriptionEndDate } = data.data;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6 lg:p-8 mt-12">
@@ -91,7 +92,7 @@ console.log(data, "Fetched user progress metrics data");
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* BMI Gauge */}
           <motion.div variants={itemVariants} className="lg:col-span-4">
-            <BMIGauge bmi={bmi} />
+            <BMIGauge bmi={bmi} subscriptionEndDate={subscriptionEndDate} />
           </motion.div>
 
           {/* Daily Summary */}
@@ -102,6 +103,7 @@ console.log(data, "Fetched user progress metrics data");
           {/* Water Intake */}
           <motion.div variants={itemVariants} className="lg:col-span-4">
             <WaterIntakeChart waterLogs={waterIntakeLogs} />
+           
           </motion.div>
 
           {/* Workout Progress */}

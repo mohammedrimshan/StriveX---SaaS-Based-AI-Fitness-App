@@ -30,5 +30,6 @@ export interface IWorkoutProgressRepository extends IBaseRepository<IWorkoutProg
       weightHistory: { weight: number; date: Date }[];
       heightHistory: { height: number; date: Date }[];
       waterIntakeLogs: { actual: number; target: number; date: Date }[];
+       subscriptionEndDate: Date;
     }>
 }

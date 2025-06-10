@@ -81,7 +81,9 @@ export class WorkoutProgressRepository
     totalWaterIntake: number;
     videoProgress: IWorkoutVideoProgressEntity[];
     workouts: IWorkoutEntity[];
+    subscriptionEndDate: Date;
   }> {
+    const now = new Date();
     const fullPipeline: PipelineStage[] = [
       {
         $match: {
@@ -93,6 +95,7 @@ export class WorkoutProgressRepository
           _id: 1,
           weight: 1,
           height: 1,
+          subscriptionEndDate: 1,
         },
       },
       {
@@ -182,24 +185,7 @@ export class WorkoutProgressRepository
         },
       },
       {
-        $project: {
-          workoutProgress: {
-            $map: {
-              input: "$workoutProgress",
-              as: "progress",
-              in: {
-                id: "$$progress._id",
-                userId: "$$progress.userId",
-                workoutId: "$$progress.workoutId",
-                date: "$$progress.date",
-                duration: "$$progress.duration",
-                caloriesBurned: "$$progress.caloriesBurned",
-                completed: "$$progress.completed",
-                createdAt: "$$progress.createdAt",
-                updatedAt: "$$progress.updatedAt",
-              },
-            },
-          },
+        $addFields: {
           bmi: {
             $cond: {
               if: {
@@ -240,36 +226,34 @@ export class WorkoutProgressRepository
           totalWaterIntake: {
             $sum: "$progressHistory.waterIntake",
           },
-          videoProgress: {
-            $map: {
-              input: "$videoProgress",
-              as: "vp",
-              in: {
-                id: "$$vp._id",
-                userId: "$$vp.userId",
-                workoutId: "$$vp.workoutId",
-                exerciseProgress: "$$vp.exerciseProgress",
-                completedExercises: "$$vp.completedExercises",
-                lastUpdated: "$$vp.lastUpdated",
-              },
-            },
-          },
-          workouts: {
-            $map: {
-              input: "$workouts",
-              as: "w",
-              in: {
-                id: "$$w._id",
-                title: "$$w.title",
-                exercises: "$$w.exercises",
-              },
+          remainingSubscriptionMs: {
+            $cond: {
+              if: { $gt: ["$subscriptionEndDate", now] },
+              then: { $subtract: ["$subscriptionEndDate", now] },
+              else: 0,
             },
           },
         },
       },
       {
         $project: {
-          workoutProgress: 1,
+          workoutProgress: {
+            $map: {
+              input: "$workoutProgress",
+              as: "progress",
+              in: {
+                id: "$$progress._id",
+                userId: "$$progress.userId",
+                workoutId: "$$progress.workoutId",
+                date: "$$progress.date",
+                duration: "$$progress.duration",
+                caloriesBurned: "$$progress.caloriesBurned",
+                completed: "$$progress.completed",
+                createdAt: "$$progress.createdAt",
+                updatedAt: "$$progress.updatedAt",
+              },
+            },
+          },
           bmi: 1,
           weightHistory: {
             $map: {
@@ -303,8 +287,33 @@ export class WorkoutProgressRepository
             },
           },
           totalWaterIntake: 1,
-          videoProgress: 1,
-          workouts: 1,
+          videoProgress: {
+            $map: {
+              input: "$videoProgress",
+              as: "vp",
+              in: {
+                id: "$$vp._id",
+                userId: "$$vp.userId",
+                workoutId: "$$vp.workoutId",
+                exerciseProgress: "$$vp.exerciseProgress",
+                completedExercises: "$$vp.completedExercises",
+                lastUpdated: "$$vp.lastUpdated",
+              },
+            },
+          },
+          workouts: {
+            $map: {
+              input: "$workouts",
+              as: "w",
+              in: {
+                id: "$$w._id",
+                title: "$$w.title",
+                exercises: "$$w.exercises",
+              },
+            },
+          },
+          subscriptionEndDate: 1,
+          remainingSubscriptionMs: 1,
         },
       },
     ];
@@ -339,6 +348,7 @@ export class WorkoutProgressRepository
       heightHistory,
       waterIntakeLogs,
       totalWaterIntake,
+      subscriptionEndDate: fullResult[0].subscriptionEndDate,
       videoProgress: videoProgress.map((item: any) => ({
         ...item,
         id: item.id.toString(),
@@ -349,6 +359,7 @@ export class WorkoutProgressRepository
         ...item,
         id: item.id.toString(),
       })),
+      
     };
   }
 

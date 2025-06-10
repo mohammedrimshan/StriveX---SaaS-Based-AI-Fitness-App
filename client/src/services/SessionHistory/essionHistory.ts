@@ -60,3 +60,4 @@ export const getSessionHistory = async (
     throw new Error(error.response?.data?.message || 'Failed to fetch session history');
   }
 };
+

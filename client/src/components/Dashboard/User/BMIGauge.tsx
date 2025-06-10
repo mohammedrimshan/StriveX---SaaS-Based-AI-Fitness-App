@@ -1,11 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import SubscriptionCountdown from '../Trainer/SubScription';
 
 interface BMIGaugeProps {
   bmi: number;
+  subscriptionEndDate: string;
 }
 
-const BMIGauge: React.FC<BMIGaugeProps> = ({ bmi }) => {
+const BMIGauge: React.FC<BMIGaugeProps> = ({ bmi,subscriptionEndDate }) => {
   // Handle null/undefined BMI values
   const isValidBMI = bmi !== null && bmi !== undefined && !isNaN(bmi);
   const safeBMI = isValidBMI ? bmi : 0;
@@ -143,6 +145,9 @@ const BMIGauge: React.FC<BMIGaugeProps> = ({ bmi }) => {
             </div>
           </motion.div>
         ))}
+      </div>
+        <div className="mt-auto">
+        <SubscriptionCountdown subscriptionEndDate={subscriptionEndDate} />
       </div>
     </div>
   );

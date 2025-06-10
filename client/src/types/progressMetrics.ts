@@ -15,6 +15,7 @@ export interface ProgressMetricsData {
   totalWaterIntake: number;
   videoProgress: VideoProgress[];
   workouts: Workout[];
+  subscriptionEndDate: string;
 }
 
 // Workout progress for a specific workout session

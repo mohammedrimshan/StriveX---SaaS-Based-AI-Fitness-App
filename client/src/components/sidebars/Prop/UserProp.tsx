@@ -80,7 +80,7 @@ const navItems = {
     {
       title: "Dashboard",
       icon: LayoutDashboard,
-      path: "/trainer/dashboard",
+      path: "/trainer/trainerdashboard",
     },
     {
       title: "Clients Requests",

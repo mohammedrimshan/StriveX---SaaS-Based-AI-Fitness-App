@@ -383,15 +383,6 @@ export class TrainerRoutes extends BaseRoute {
       }
     );
 
-    router.get(
-      "/trainer/review/:trainerId",
-      verifyAuth,
-      authorizeRole(["trainer"]),
-      blockStatusMiddleware.checkStatus as RequestHandler,
-      (req: Request, res: Response) => {
-        reviewController.getTrainerReviews(req, res);
-      }
-    );
 
     router.get(
       "/trainer/:trainerId/stats",
@@ -462,5 +453,16 @@ export class TrainerRoutes extends BaseRoute {
         trainerDashboardController.getSessionHistory(req, res);
       }
     );
+
+    router.get(
+          "/trainer/reviews/:trainerId",
+          verifyAuth,
+          authorizeRole(["trainer"]),
+          blockStatusMiddleware.checkStatus as RequestHandler,
+          (req: Request, res: Response) => {
+            reviewController.getTrainerReviews(req, res);
+          }
+        );
+    
   }
 }
