@@ -12,8 +12,8 @@ export interface User {
   weight?: number;
   gender?: string;
   status: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   isActive?: boolean;
   
 }

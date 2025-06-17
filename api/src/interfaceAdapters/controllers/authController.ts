@@ -304,6 +304,8 @@ export class AuthController implements IAuthController {
   async verifyOtp(req: Request, res: Response): Promise<void> {
     try {
       const { email, otp } = req.body;
+
+      console.log(email,otp ,"from verify otp");
       const validatedData = otpMailValidationSchema.parse({ email, otp });
       await this._verifyOtpUseCase.execute(validatedData);
 

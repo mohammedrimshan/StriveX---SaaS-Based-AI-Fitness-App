@@ -82,7 +82,7 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
       amount: amountToCharge,
       adminAmount: amountToCharge * 0.2,
       trainerAmount: amountToCharge * 0.8,
-      trainerId, // Include trainerId if available
+      trainerId, 
       stripeSessionId: sessionId,
       status: PaymentStatus.PENDING,
       createdAt: new Date(),

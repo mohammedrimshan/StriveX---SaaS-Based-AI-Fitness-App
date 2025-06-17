@@ -4,7 +4,7 @@ import { IGetUserProgressUseCase } from "@/entities/useCaseInterfaces/workout/ge
 import { IProgressEntity } from "@/entities/models/progress.entity";
 import { CustomError } from "@/entities/utils/custom.error";
 import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
-
+@injectable()
 export class GetUserProgressUseCase implements IGetUserProgressUseCase {
   constructor(
     @inject("IProgressRepository")
