@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import  { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Bell, Settings, Search, Menu } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 

@@ -4,19 +4,43 @@ import React, { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Lock, Key, Eye, EyeOff, ShieldCheck, CheckCircle2 } from "lucide-react";
+import {
+  Lock,
+  Key,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { useClientPasswordUpdateMutation } from "@/hooks/client/useClientPasswordChange";
 import { useToaster } from "@/hooks/ui/useToaster";
 const resetPasswordSchema = z
   .object({
-    currentPassword: z.string().min(6, "Current password must be at least 6 characters"),
-    newPassword: z.string().min(8, "New password must be at least 8 characters"),
+    currentPassword: z
+      .string()
+      .min(6, "Current password must be at least 6 characters"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters"),
     confirmPassword: z.string().min(8, "Please confirm your password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -33,7 +57,8 @@ const ResetPassword: React.FC = () => {
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const { successToast, errorToast } = useToaster();
-  const { mutate: updatePassword, isPending: isSubmitting } = useClientPasswordUpdateMutation();
+  const { mutate: updatePassword, isPending: isSubmitting } =
+    useClientPasswordUpdateMutation();
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -44,7 +69,10 @@ const ResetPassword: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: ResetPasswordFormValues, e?: React.BaseSyntheticEvent) => {
+  const onSubmit = (
+    data: ResetPasswordFormValues,
+    e?: React.BaseSyntheticEvent
+  ) => {
     e?.preventDefault();
     console.log("Form submitted with data:", data);
     updatePassword(
@@ -60,7 +88,10 @@ const ResetPassword: React.FC = () => {
         },
         onError: (error: any) => {
           console.log("Full error object:", error); // Debug full error structure
-          const errorMessage = error.response?.data?.message || error.message || "Failed to update password";
+          const errorMessage =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to update password";
           errorToast(errorMessage);
         },
       }
@@ -109,23 +140,32 @@ const ResetPassword: React.FC = () => {
           <Lock className="h-5 w-5 text-violet-600" />
           <span>Change Password</span>
         </CardTitle>
-        <CardDescription>Update your password to keep your account secure</CardDescription>
+        <CardDescription>
+          Update your password to keep your account secure
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Alert className="mb-6 bg-violet-50 border-violet-200 text-violet-800">
           <ShieldCheck className="h-4 w-4 text-violet-600" />
           <AlertDescription className="text-sm">
-            Your password should be at least 8 characters and include a mix of letters, numbers, and symbols for better security.
+            Your password should be at least 8 characters and include a mix of
+            letters, numbers, and symbols for better security.
           </AlertDescription>
         </Alert>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" method="POST">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-5"
+            method="POST"
+          >
             <FormField
               control={form.control}
               name="currentPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-violet-800">Current Password</FormLabel>
+                  <FormLabel className="text-violet-800">
+                    Current Password
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Key className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -140,9 +180,15 @@ const ResetPassword: React.FC = () => {
                         variant="ghost"
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-violet-600"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        onClick={() =>
+                          setShowCurrentPassword(!showCurrentPassword)
+                        }
                       >
-                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showCurrentPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </FormControl>
@@ -155,7 +201,9 @@ const ResetPassword: React.FC = () => {
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-violet-800">New Password</FormLabel>
+                  <FormLabel className="text-violet-800">
+                    New Password
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -172,7 +220,11 @@ const ResetPassword: React.FC = () => {
                         className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-violet-600"
                         onClick={() => setShowNewPassword(!showNewPassword)}
                       >
-                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showNewPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </FormControl>
@@ -194,31 +246,48 @@ const ResetPassword: React.FC = () => {
                       </div>
                       <Progress
                         value={passwordStrength}
-                        className="h-1.5"
-                        indicatorClassName={getStrengthColor(passwordStrength)}
+                        className={`h-1.5 ${getStrengthColor(
+                          passwordStrength
+                        )}`}
                       />
                       <div className="grid grid-cols-2 gap-2 mt-2">
                         <div className="flex items-center text-xs gap-1">
                           <CheckCircle2
-                            className={`h-3 w-3 ${/[A-Z]/.test(field.value) ? "text-green-500" : "text-muted-foreground"}`}
+                            className={`h-3 w-3 ${
+                              /[A-Z]/.test(field.value)
+                                ? "text-green-500"
+                                : "text-muted-foreground"
+                            }`}
                           />
                           <span>Uppercase</span>
                         </div>
                         <div className="flex items-center text-xs gap-1">
                           <CheckCircle2
-                            className={`h-3 w-3 ${/[a-z]/.test(field.value) ? "text-green-500" : "text-muted-foreground"}`}
+                            className={`h-3 w-3 ${
+                              /[a-z]/.test(field.value)
+                                ? "text-green-500"
+                                : "text-muted-foreground"
+                            }`}
                           />
                           <span>Lowercase</span>
                         </div>
                         <div className="flex items-center text-xs gap-1">
                           <CheckCircle2
-                            className={`h-3 w-3 ${/[0-9]/.test(field.value) ? "text-green-500" : "text-muted-foreground"}`}
+                            className={`h-3 w-3 ${
+                              /[0-9]/.test(field.value)
+                                ? "text-green-500"
+                                : "text-muted-foreground"
+                            }`}
                           />
                           <span>Numbers</span>
                         </div>
                         <div className="flex items-center text-xs gap-1">
                           <CheckCircle2
-                            className={`h-3 w-3 ${/[^A-Za-z0-9]/.test(field.value) ? "text-green-500" : "text-muted-foreground"}`}
+                            className={`h-3 w-3 ${
+                              /[^A-Za-z0-9]/.test(field.value)
+                                ? "text-green-500"
+                                : "text-muted-foreground"
+                            }`}
                           />
                           <span>Special Chars</span>
                         </div>
@@ -234,7 +303,9 @@ const ResetPassword: React.FC = () => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-violet-800">Confirm New Password</FormLabel>
+                  <FormLabel className="text-violet-800">
+                    Confirm New Password
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -249,9 +320,15 @@ const ResetPassword: React.FC = () => {
                         variant="ghost"
                         size="icon"
                         className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-violet-600"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </FormControl>
@@ -260,7 +337,11 @@ const ResetPassword: React.FC = () => {
               )}
             />
             <div className="pt-2 flex justify-end">
-              <Button type="submit" className="bg-violet-600 hover:bg-violet-700 gap-2" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="bg-violet-600 hover:bg-violet-700 gap-2"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (
                   <>
                     <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />

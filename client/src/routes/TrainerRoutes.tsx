@@ -2,7 +2,7 @@ import { TrainerAuth } from "@/pages/trainer/trainerAuth";
 import { TrainerLayout } from "@/layouts/TrainerLayout";
 import { TrainerAuthRoute } from "@/utils/protected/ProtectedRoute";
 import { NoTrainerAuthRoute } from "@/utils/protected/PublicRoute";
-import { Route, Routes, useParams } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import ForgotPassword from "@/components/auth/ForgotPassword";
 import ResetPassword from "@/components/auth/ResetPassword";
 import TrainerLanding from "@/components/landing/TrainerLanding";
@@ -18,6 +18,8 @@ import TrainerWallet from "@/pages/trainer/Wallet/TrainerWallet";
 import SessionHistoryPage from "@/components/common/SessionHistoryPage";
 import DashboardTrainer from "@/pages/trainer/Dashboard";
 import FullReview from "@/pages/trainer/FullReview";
+import NotFoundPage from "@/components/common/NotFoundPage";
+
 export const TrainerRoutes = () => {
   return (
     <Routes>
@@ -34,7 +36,7 @@ export const TrainerRoutes = () => {
         }
       >
         <Route
-          path="/trainerhome"
+          path="trainerhome"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -43,7 +45,7 @@ export const TrainerRoutes = () => {
           }
         />
         <Route
-          path="/profile"
+          path="profile"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -51,9 +53,8 @@ export const TrainerRoutes = () => {
             />
           }
         />
-        {/* <Route path="profileform" element={<TrainerPostRegistrationForm />} /> */}
         <Route
-          path="/clientrequest"
+          path="clientrequest"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -61,9 +62,8 @@ export const TrainerRoutes = () => {
             />
           }
         />
-
         <Route
-          path="/slotadd"
+          path="slotadd"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -72,7 +72,7 @@ export const TrainerRoutes = () => {
           }
         />
         <Route
-          path="/chat"
+          path="chat"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -80,9 +80,8 @@ export const TrainerRoutes = () => {
             />
           }
         />
-
         <Route
-          path="/clientlist"
+          path="clientlist"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -90,9 +89,8 @@ export const TrainerRoutes = () => {
             />
           }
         />
-
         <Route
-          path="/bookslots"
+          path="bookslots"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -100,24 +98,22 @@ export const TrainerRoutes = () => {
             />
           }
         />
-
         <Route
-          path="/video-call/:slotId"
+          path="video-call/:slotId"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
               element={
                 <VideoCallPage
                   userType="trainer"
-                  params={{ slotId: useParams().slotId ?? "" }}
+                  // params={{ slotId: useParams().slotId ?? "" }}
                 />
               }
             />
           }
         />
-
         <Route
-          path="/notifications"
+          path="notifications"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -126,7 +122,7 @@ export const TrainerRoutes = () => {
           }
         />
         <Route
-          path="/earnings"
+          path="earnings"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -134,9 +130,8 @@ export const TrainerRoutes = () => {
             />
           }
         />
-
         <Route
-          path="/session-history"
+          path="session-history"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -144,9 +139,8 @@ export const TrainerRoutes = () => {
             />
           }
         />
-
         <Route
-          path="/trainerdashboard"
+          path="trainerdashboard"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -154,9 +148,8 @@ export const TrainerRoutes = () => {
             />
           }
         />
-
         <Route
-          path="/:trainerId/reviews"
+          path=":trainerId/reviews"
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
@@ -164,13 +157,11 @@ export const TrainerRoutes = () => {
             />
           }
         />
-
-    
-        {/* Add more admin routes here as needed */}
+        {/* Catch-all route for unmatched trainer sub-routes */}
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
-
       <Route
-        path="/forgot-password"
+        path="forgot-password"
         element={
           <NoTrainerAuthRoute
             element={<ForgotPassword role="trainer" signInPath="/trainer" />}
@@ -178,7 +169,7 @@ export const TrainerRoutes = () => {
         }
       />
       <Route
-        path="/reset-password/:token"
+        path="reset-password/:token"
         element={
           <NoTrainerAuthRoute
             element={<ResetPassword role="trainer" signInPath="/trainer" />}

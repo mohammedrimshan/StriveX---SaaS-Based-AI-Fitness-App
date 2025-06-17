@@ -11,8 +11,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '@/components/ui/button';
 import { useDeletePost } from '@/hooks/community/useDeletePost';
 import { useReportPost } from '@/hooks/community/useReportPost';
-import { RoleType } from '../constant';
-
+export const ROLES = {
+  ADMIN: "admin",
+  USER: "client",
+  TRAINER: "trainer",
+} as const;
+export type RoleType = (typeof ROLES)[keyof typeof ROLES];
 interface PostDetailHeaderProps {
   post: IPostEntity;
 }

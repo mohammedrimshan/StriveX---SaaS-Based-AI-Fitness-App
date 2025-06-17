@@ -63,13 +63,13 @@ interface CategoryModalProps {
   onClose: () => void;
   onSave: (name: string, description: string, metValue: number) => void;
   editMode: boolean;
-  initialValues?: { name: string; description: string; metValue?: number };
+  initialValues?: { name: string; description: string; metValue: number };
 }
 
 interface ValidationErrors {
   name?: string;
   description?: string;
-  metValue?: string;
+  metValue: string;
 }
 
 const CategoryModal: React.FC<CategoryModalProps> = ({
@@ -82,15 +82,19 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
   const [name, setName] = useState("");
   const [metValue, setMetValue] = useState("");
   const [description, setDescription] = useState("");
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const [touched, setTouched] = useState({ name: false, description: false, metValue: false });
+  const [errors, setErrors] = useState<Partial<ValidationErrors>>({});
+  const [touched, setTouched] = useState({
+    name: false,
+    description: false,
+    metValue: false,
+  });
   const { errorToast } = useToaster();
 
   useEffect(() => {
     if (isOpen && editMode && initialValues) {
       setName(initialValues.name);
       setDescription(initialValues.description || "");
-      setMetValue(initialValues.metValue?.toString() || "");
+      setMetValue(initialValues.metValue.toString() || "");
       setErrors({});
       setTouched({ name: false, description: false, metValue: false });
     } else if (isOpen && !editMode) {
@@ -110,7 +114,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
       // Create a test object with just the field we're validating
       const testObj: any = {};
       testObj[field] = value;
-      
+
       // Validate just this field
       await yup.reach(categorySchema, field);
       setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -137,42 +141,51 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     // Set all fields as touched
     setTouched({ name: true, description: true, metValue: true });
-  
+
     try {
       // Convert metValue string to number for validation
       const metValueNumber = parseFloat(metValue);
-  
+
       // Log values for debugging
-      console.log("Form values:", { name, description, metValue, metValueNumber });
-  
+      console.log("Form values:", {
+        name,
+        description,
+        metValue,
+        metValueNumber,
+      });
+
       // Validate the form values against the schema
       await categorySchema.validate(
         { name, description, metValue: metValueNumber },
         { abortEarly: false }
       );
-  
+
       // If validation passes, call onSave with the correct parameters
-      console.log("Calling onSave with:", { name, description, metValue: metValueNumber });
+      console.log("Calling onSave with:", {
+        name,
+        description,
+        metValue: metValueNumber,
+      });
       onSave(name, description, metValueNumber);
     } catch (error) {
       if (error instanceof yup.ValidationError) {
         // Transform yup error into our error format
-        const validationErrors: ValidationErrors = {};
+        const validationErrors: Partial<ValidationErrors> = {};
         error.inner.forEach((err) => {
           if (err.path) {
             validationErrors[err.path as keyof ValidationErrors] = err.message;
           }
         });
         setErrors(validationErrors);
-  
+
         // Show toast for the first error
         if (error.inner.length > 0) {
           errorToast(error.inner[0].message);
         }
-  
+
         // Log validation errors for debugging
         console.log("Validation errors:", validationErrors);
       } else {

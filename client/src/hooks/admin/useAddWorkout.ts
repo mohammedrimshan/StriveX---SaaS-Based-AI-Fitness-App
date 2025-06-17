@@ -1,4 +1,4 @@
-// api\src\hooks\admin\useWorkouts.ts
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   addWorkout,
@@ -8,8 +8,6 @@ import {
   toggleWorkoutStatus,
   WorkoutType,
   WorkoutsPaginatedResponse,
-  getWorkoutById,
-  WorkoutResponse,
 } from "@/services/admin/adminService";
 
 interface UseWorkoutsProps {
@@ -39,8 +37,8 @@ export const useWorkouts = ({ page = 1, limit = 10, filter = {} }: UseWorkoutsPr
 
   // Update an existing workout
   const updateWorkoutMutation = useMutation({
-    mutationFn: ({ workoutId, workoutData, image }: { workoutId: string; workoutData: Partial<WorkoutType>; image?: string }) =>
-      updateWorkout(workoutId, workoutData, image),
+mutationFn: ({ workoutId, workoutData, image }: { workoutId: string; workoutData: Partial<WorkoutType>; image?: string }) =>
+  updateWorkout(workoutId, workoutData, { image }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workouts"] });
     },

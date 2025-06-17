@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getWorkoutById } from "@/services/admin/adminService";
-import { Exercise } from "@/types/Workouts";
+import { getWorkoutById, WorkoutExercise } from "@/services/admin/adminService";
 import ExerciseCard from "./ExerciseCard";
 import PaginationControls from "@/components/ui/pagination-controls";
 import { Button } from "@/components/ui/button";
@@ -24,20 +23,36 @@ import AnimatedButton from "@/components/Animation/AnimatedButton";
 import AnimatedTitle from "@/components/Animation/AnimatedTitle";
 import { motion } from "framer-motion";
 
-// Interface for the workout exercise to fix type issues
-interface WorkoutExercise {
-  id: string;
-  name: string;
-  description: string;
-  duration: number;
-  defaultRestDuration: number;
-  videoUrl: any;
-}
+// Utility function to convert seconds to time
+const secondsToTime = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
 
-// Extended Exercise interface for compatibility
-interface ExtendedExercise extends WorkoutExercise {
-  id: string;
-}
+  let result = '';
+  if (hours > 0) {
+    result += `${hours} hour${hours !== 1 ? 's' : ''}`;
+  }
+  if (minutes > 0) {
+    result += `${result ? ' ' : ''}${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  }
+  if (remainingSeconds > 0) {
+    result += `${result ? ' ' : ''}${remainingSeconds} second${remainingSeconds !== 1 ? 's' : ''}`;
+  }
+  return result || '0 minutes';
+};
+
+// Calculate total workout duration from exercises
+const calculateWorkoutDuration = (exercises: WorkoutExercise[]): number => {
+  let totalDuration = 0;
+  exercises.forEach((exercise, index) => {
+    totalDuration += exercise.duration;
+    if (index < exercises.length - 1) {
+      totalDuration += exercise.defaultRestDuration;
+    }
+  });
+  return totalDuration;
+};
 
 const WorkoutDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,7 +62,6 @@ const WorkoutDetailPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const { deleteExercise } = useWorkouts();
 
-  // Fetch workout data
   const { 
     data: workoutData, 
     isLoading,
@@ -59,9 +73,9 @@ const WorkoutDetailPage = () => {
   });
 
   const workout = workoutData?.data;
-  console.log(workout);
+  const displayDuration = workout?.exercises ? calculateWorkoutDuration(workout.exercises) : workout?.duration || 0;
+  console.log("Raw workout data:", workout, "Calculated duration:", displayDuration);
   
-  // Calculate exercise pagination
   useEffect(() => {
     if (workout?.exercises) {
       const ITEMS_PER_PAGE = 6;
@@ -69,19 +83,17 @@ const WorkoutDetailPage = () => {
     }
   }, [workout]);
 
- 
-  const getPaginatedExercises = (): ExtendedExercise[] => {
+  const getPaginatedExercises = (): WorkoutExercise[] => {
     if (!workout || !workout.exercises) return [];
     
     const ITEMS_PER_PAGE = 6;
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     
-  
     return workout.exercises.slice(startIndex, endIndex).map(exercise => ({
       ...exercise,
       id: exercise?._id || exercise.id,
-      videoUrl: exercise.videoUrl || "" 
+      videoUrl: exercise.videoUrl
     }));
   };
 
@@ -166,7 +178,7 @@ const WorkoutDetailPage = () => {
           <div className="flex-grow">
             <AnimatedTitle 
               title={workout.title} 
-              subtitle={`${workout.difficulty} workout - ${workout.duration} minutes`}
+              subtitle={`${workout.difficulty} workout - ${secondsToTime(displayDuration)}`}
             />
           </div>
           
@@ -177,31 +189,26 @@ const WorkoutDetailPage = () => {
           />
         </motion.div>
 
-        {/* Modified containers to be the same height */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
           className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8"
         >
-          {/* Main content column with image and overlay description */}
           <div className="lg:col-span-2">
             <motion.div 
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
-              className="rounded-lg overflow-hidden relative shadow-xl h-full" // Full height container
+              className="rounded-lg overflow-hidden relative shadow-xl h-full"
             >
-              {/* Image background */}
               <img
                 src={workout.imageUrl || "https://placehold.co/800x400/9089fc/ffffff?text=Workout+Image"}
                 alt={workout.title}
                 className="w-full h-full object-cover"
               />
               
-              {/* Gradient overlay for better text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
               
-              {/* Description overlay - positioned at the bottom */}
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -213,7 +220,6 @@ const WorkoutDetailPage = () => {
                 </div>
               </motion.div>
               
-              {/* Badges */}
               <div className="absolute top-3 right-3 flex flex-col gap-2 z-20">
                 {workout.isPremium && (
                   <Badge className="bg-yellow-500 hover:bg-yellow-600">
@@ -228,7 +234,6 @@ const WorkoutDetailPage = () => {
             </motion.div>
           </div>
 
-          {/* Workout details sidebar - now same height as image container */}
           <motion.div 
             whileHover={{ scale: 1.03 }}
             transition={{ type: "spring", stiffness: 300 }}
@@ -247,7 +252,7 @@ const WorkoutDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Duration</p>
-                  <p className="font-medium text-lg">{workout.duration} minutes</p>
+                  <p className="font-medium text-lg">{secondsToTime(displayDuration)}</p>
                 </div>
               </motion.div>
               
@@ -320,7 +325,6 @@ const WorkoutDetailPage = () => {
                   workoutId={id} 
                   onSuccess={() => {
                     setDialogOpen(false);
-                    // Refresh workout data
                     queryClient.invalidateQueries({ queryKey: ["workout", id] });
                   }} 
                 />
@@ -330,86 +334,85 @@ const WorkoutDetailPage = () => {
         </motion.div>
 
         {(!workout.exercises || workout.exercises.length === 0) ? (
-  <motion.div 
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.6 }}
-    className="text-center py-16 bg-gradient-to-br from-indigo-50 to-purple-50 backdrop-blur-sm rounded-lg shadow-inner border border-indigo-100"
-  >
-    <motion.div 
-      animate={{ 
-        y: [0, -10, 0],
-        rotate: [0, 5, -5, 0]
-      }}
-      transition={{ 
-        duration: 3,
-        repeat: Infinity,
-        repeatType: "reverse"
-      }}
-    >
-      <Dumbbell className="mx-auto h-16 w-16 text-indigo-300" />
-    </motion.div>
-    <h3 className="mt-6 text-xl font-semibold text-indigo-600">No exercises found</h3>
-    <p className="mt-2 text-gray-500 max-w-md mx-auto">
-      This workout doesn't have any exercises yet. Add your first exercise to get started!
-    </p>
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button className="mt-6 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg">
-          <Plus className="mr-2 h-4 w-4" />
-          Add First Exercise
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Add New Exercise</DialogTitle>
-        </DialogHeader>
-        {id && (
-          <AddExerciseForm 
-            workoutId={id} 
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ["workout", id] });
-            }} 
-          />
-        )}
-      </DialogContent>
-    </Dialog>
-  </motion.div>
-) : (
-  <>
-    {/* Grid layout for small cards */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-      {exercises.map((exercise, index) => (
-        <motion.div
-          key={exercise.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
-        >
-          <ExerciseCard
-            exercise={exercise}
-            workoutId={id || ""}
-            onDelete={() => handleDeleteExercise(exercise.id)}
-          />
-        </motion.div>
-      ))}
-    </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="text-center py-16 bg-gradient-to-br from-indigo-50 to-purple-50 backdrop-blur-sm rounded-lg shadow-inner border border-indigo-100"
+          >
+            <motion.div 
+              animate={{ 
+                y: [0, -10, 0],
+                rotate: [0, 5, -5, 0]
+              }}
+              transition={{ 
+                duration: 3,
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+            >
+              <Dumbbell className="mx-auto h-16 w-16 text-indigo-300" />
+            </motion.div>
+            <h3 className="mt-6 text-xl font-semibold text-indigo-600">No exercises found</h3>
+            <p className="mt-2 text-gray-500 max-w-md mx-auto">
+              This workout doesn't have any exercises yet. Add your first exercise to get started!
+            </p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="mt-6 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add First Exercise
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Exercise</DialogTitle>
+                </DialogHeader>
+                {id && (
+                  <AddExerciseForm 
+                    workoutId={id} 
+                    onSuccess={() => {
+                      queryClient.invalidateQueries({ queryKey: ["workout", id] });
+                    }} 
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
+          </motion.div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              {exercises.map((exercise, index) => (
+                <motion.div
+                  key={exercise.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <ExerciseCard
+                    exercise={exercise}
+                    workoutId={id || ""}
+                    onDelete={() => exercise.id && handleDeleteExercise(exercise.id)}
+                  />
+                </motion.div>
+              ))}
+            </div>
 
-    {totalPages > 1 && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-      >
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </motion.div>
-    )}
-  </>
-)}
+            {totalPages > 1 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.8 }}
+              >
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </motion.div>
+            )}
+          </>
+        )}
       </div>
     </AnimatedBackground>
   );

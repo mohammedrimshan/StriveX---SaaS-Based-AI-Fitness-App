@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card"
 import ProfileDetails from "./ProfileComponent/ProfileDetials"
 import ChangePassword from "./ProfileComponent/ChangePassword"
 export default function TrainerProfilePage() {
-  // In a real app, you would fetch this from your Redux store
   const trainer = useSelector((state: any) => state.trainer.trainer)
   console.log("Trainer detials",trainer)
   const [mounted, setMounted] = useState(false)

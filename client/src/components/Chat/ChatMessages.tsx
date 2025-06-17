@@ -5,29 +5,16 @@ import { useChatHistory, useChatParticipants } from "@/hooks/chat/useChatQueries
 import { useSocket } from "@/context/socketContext"
 import { ChatMessage } from "./chatMessage"
 import { TypingIndicator } from "./typing-indicator"
-import type { IMessage } from "@/types/Chat"
+import type { IMessage, ChatHistoryResponse, ChatParticipantsResponse, IChatParticipant, Participant } from "@/types/Chat"
 import type { UserRole } from "@/types/UserRole"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSelector } from "react-redux"
 import type { RootState } from "@/store/store"
 import { ArrowDown } from 'lucide-react'
 
-interface Participant {
-  userId?: string
-  id: string
-  name?: string
-  firstName?: string
-  lastName?: string
-  avatar?: string
-  status?: "online" | "offline"
-  isOnline?: boolean
-  email?: string
-  role?: UserRole
-}
-
 interface ChatMessagesProps {
   participantId: string
-  participant?: Participant
+  participant: Participant
   role: UserRole
   currentUserId: string
   onReply: (messageId: string) => void
@@ -43,13 +30,23 @@ export const ChatMessages = React.memo(
       data: chatHistoryData,
       isLoading: isLoadingHistory,
       error: historyError,
-    } = useChatHistory(role, participantId)
+      refetch,
+    } = useChatHistory(role, participantId) as {
+      data: ChatHistoryResponse | undefined;
+      isLoading: boolean;
+      error: Error | null;
+      refetch: () => void;
+    };
 
     const {
       data: participantsData,
       isLoading: isLoadingParticipants,
       error: participantsError,
-    } = useChatParticipants(role)
+    } = useChatParticipants(role) as {
+      data: ChatParticipantsResponse | undefined;
+      isLoading: boolean;
+      error: Error | null;
+    };
 
     const { messages: socketMessages, typingUsers, clearMessages, isConnected } = useSocket()
     const [localMessages, setLocalMessages] = useState<IMessage[]>([])
@@ -64,13 +61,12 @@ export const ChatMessages = React.memo(
     }))
     const currentUser = client || trainer
 
-    const participant =
-      propParticipant ||
-      (participantsData?.success && participantsData.participants
+    const participant: IChatParticipant | undefined =
+      participantsData?.success && participantsData.participants
         ? participantsData.participants.find(
-            (p) => String(p.userId) === String(participantId) || String(p.id) === String(participantId),
+            (p: IChatParticipant) => String(p.userId) === String(participantId) || String(p.id) === String(participantId),
           )
-        : undefined)
+        : propParticipant as IChatParticipant;
 
     useEffect(() => {
       if (previousParticipantIdRef.current && previousParticipantIdRef.current !== participantId) {
@@ -134,15 +130,19 @@ export const ChatMessages = React.memo(
           ...msg,
           _fromSocket: true,
           receiverId: msg.receiverId || currentUserId,
-        }))
+          createdAt: msg.createdAt || msg.timestamp || new Date().toISOString(),
+          updatedAt: msg.updatedAt || new Date().toISOString(),
+          deleted: msg.deleted || false,
+          reactions: msg.reactions || [],
+        } as IMessage))
 
         const allMessages = [...prevMessages, ...markedMessages]
         const uniqueMessages = allMessages.reduce((acc, current) => {
           const idExists = acc.some(
             (item) =>
               String(item.id) === String(current.id) ||
-              String(item.tempId) === String(current.id) ||
-              String(item.id) === String(current.tempId),
+              (current.tempId && String(item.tempId) === String(current.tempId)) ||
+              (current.tempId && String(item.id) === String(current.tempId)),
           )
           if (!idExists) {
             acc.push(current)
@@ -264,18 +264,18 @@ export const ChatMessages = React.memo(
         }
       }
 
-      let sender = participantsData?.participants?.find((p) => String(p.userId) === String(senderId))
+      let sender = participantsData?.participants?.find((p: IChatParticipant) => String(p.userId) === String(senderId))
 
       if (
         !sender &&
         propParticipant &&
         (String(propParticipant.userId) === String(senderId) || String(propParticipant.id) === String(senderId))
       ) {
-        sender = propParticipant
+        sender = propParticipant as IChatParticipant
       }
 
       if (!sender) {
-        sender = participantsData?.participants?.find((p) => String(p.id) === String(senderId))
+        sender = participantsData?.participants?.find((p: IChatParticipant) => String(p.id) === String(senderId))
       }
 
       if (!sender) {
@@ -290,8 +290,8 @@ export const ChatMessages = React.memo(
         }
       }
 
-      const firstName = sender.firstName || sender.name?.split(" ")[0] || "Unknown"
-      const lastName = sender.lastName || sender.name?.split(" ").slice(1).join(" ") || ""
+      const firstName = sender.firstName || (sender.name ? sender.name.split(" ")[0] : "Unknown")
+      const lastName = sender.lastName || (sender.name ? sender.name.split(" ").slice(1).join(" ") : "")
 
       return {
         id: senderId,
@@ -310,7 +310,7 @@ export const ChatMessages = React.memo(
       if (
         propParticipant &&
         !participants.some(
-          (p) => String(p.userId) === String(propParticipant.userId) || String(p.id) === String(propParticipant.id),
+          (p: IChatParticipant) => String(p.userId) === String(propParticipant.userId) || String(p.id) === String(propParticipant.id),
         )
       ) {
         const firstName = propParticipant.firstName || propParticipant.name?.split(" ")[0] || "Unknown"
@@ -329,7 +329,7 @@ export const ChatMessages = React.memo(
             status: propParticipant.status || (propParticipant.isOnline ? "online" : "offline"),
             isOnline: propParticipant.isOnline || propParticipant.status === "online",
             email: propParticipant.email || "",
-            role: role,
+            role: propParticipant.role || role,
           },
         ]
       }
@@ -354,11 +354,11 @@ export const ChatMessages = React.memo(
       if (isConnected) return
 
       const interval = setInterval(() => {
-        // Trigger refetch using useChatHistory's refetch function
+        refetch()
       }, 5000)
 
       return () => clearInterval(interval)
-    }, [isConnected])
+    }, [isConnected, refetch])
 
     if (historyError || participantsError) {
       return (
@@ -461,7 +461,7 @@ export const ChatMessages = React.memo(
                     showAvatar={shouldShowAvatar(message, index)}
                     onReply={() => onReply(String(message.id))}
                     localMessages={localMessages}
-                    participants={allParticipants.map((p) => ({
+                    participants={allParticipants.map((p: IChatParticipant) => ({
                       id: String(p.id),
                       userId: String(p.userId),
                       name: p.name,
@@ -527,4 +527,3 @@ export const ChatMessages = React.memo(
     )
   },
 )
-

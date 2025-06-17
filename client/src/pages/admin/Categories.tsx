@@ -81,33 +81,36 @@ export default function Categories() {
   );
 
   const handleToggleStatus = useCallback(
-    (categoryId: string, currentStatus: boolean) => {
-      if (isPending) return;
-      console.log("Toggling status:", { categoryId, newStatus: !currentStatus });
-      categoryMutation(
-        {
-          id: categoryId,
-          status: !currentStatus,
-          action: "toggle" as const,
-          page: currentPage,
-          limit: ITEMS_PER_PAGE,
-          search: debouncedSearch,
+  (categoryId: string, currentStatus: boolean) => {
+    if (isPending) return;
+    const category = categories.find((cat) => cat._id === categoryId); // Find the category
+    if (!category) return; // Optional: Handle case where category is not found
+    console.log("Toggling status:", { categoryId, newStatus: !currentStatus });
+    categoryMutation(
+      {
+        id: categoryId,
+        status: !currentStatus,
+        action: "toggle" as const,
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        search: debouncedSearch,
+        metValue: category.metValue, 
+      },
+      {
+        onSuccess: () => {
+          successToast(`Category ${currentStatus ? "deactivated" : "activated"} successfully`);
         },
-        {
-          onSuccess: () => {
-            successToast(`Category ${currentStatus ? "deactivated" : "activated"} successfully`);
-          },
-          onError: (error: any) => {
-            const errorMessage =
-              error.response?.data?.message ||
-              `Failed to ${currentStatus ? "deactivate" : "activate"} category`;
-            errorToast(errorMessage);
-          },
-        }
-      );
-    },
-    [categoryMutation, isPending, successToast, errorToast, currentPage, debouncedSearch]
-  );
+        onError: (error: any) => {
+          const errorMessage =
+            error.response?.data?.message ||
+            `Failed to ${currentStatus ? "deactivate" : "activate"} category`;
+          errorToast(errorMessage);
+        },
+      }
+    );
+  },
+  [categoryMutation, isPending, successToast, errorToast, currentPage, debouncedSearch, categories] // Add categories to dependencies
+);
 
   const handleOpenAddModal = () => {
     setEditMode(false);

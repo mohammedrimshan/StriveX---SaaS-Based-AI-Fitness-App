@@ -1,4 +1,4 @@
-// client/src/hooks/admin/useAllCategory.ts
+
 import { IAxiosResponse } from "@/types/Response";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -11,7 +11,7 @@ interface FetchCategoryParams {
 export interface CategoryType {
   _id: string;
   title: string;
-  metValue?: number;
+  metValue: number;
   description?: string;
   status: boolean;
   categoryId?: string;
@@ -45,7 +45,7 @@ export const useAllCategoryAdminQuery = (
 };
 
 export const useAllCategoryMutation = (
-  addEditFunc: (data: { id?: string; name: string; metValue?: number; description?: string }) => Promise<IAxiosResponse>,
+  addEditFunc: (data: { id?: string; name: string; metValue: number; description?: string }) => Promise<IAxiosResponse>,
   toggleStatusFunc: (categoryId: string, status: boolean) => Promise<IAxiosResponse>
 ) => {
   const queryClient = useQueryClient();
@@ -55,7 +55,7 @@ export const useAllCategoryMutation = (
     {
       id?: string;
       name?: string;
-      metValue?: number;
+      metValue: number;
       description?: string;
       status?: boolean;
       action?: "add" | "edit" | "toggle";
@@ -77,7 +77,7 @@ export const useAllCategoryMutation = (
         });
       }
     },
-    onSuccess: (response, variables) => {
+    onSuccess: (_, variables) => {
       console.log("Mutation success:", variables.action);
       if (variables.action === "toggle") {
         queryClient.setQueryData<CategoryResponse>(

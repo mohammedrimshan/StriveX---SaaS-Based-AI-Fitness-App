@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Trophy, Flame, Clock, Target, CheckCircle, Calendar, TrendingUp, Sparkles, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { useNavigate } from "react-router-dom"
 
 interface Exercise {
   name: string
@@ -81,6 +82,8 @@ export default function WorkoutCompletionModal({
   completedAt,
 }: WorkoutCompletionModalProps) {
   const [showConfetti, setShowConfetti] = useState(true)
+
+const navigate = useNavigate()
 
   const getDifficultyColor = (level: string) => {
     switch (level.toLowerCase()) {
@@ -278,8 +281,7 @@ export default function WorkoutCompletionModal({
                   <Button
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 rounded-xl shadow-lg"
                     onClick={() => {
-                      // Handle view progress action
-                      console.log("View Progress clicked")
+                      navigate(`/progress`);
                     }}
                   >
                     <TrendingUp className="w-4 h-4 mr-2" />
@@ -290,8 +292,7 @@ export default function WorkoutCompletionModal({
                     variant="outline"
                     className="w-full border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-3 rounded-xl"
                     onClick={() => {
-                      // Handle explore more workouts action
-                      console.log("Explore More Workouts clicked")
+                   navigate(`/workouts`);
                     }}
                   >
                     Explore More Workouts

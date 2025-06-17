@@ -56,7 +56,6 @@ const StarRating = ({ rating, size = "w-4 h-4" }: { rating: number; size?: strin
   );
 };
 
-// ReviewCard component (reduced size)
 const ReviewCard = ({ review, index, isLatest = false }: { review: Review; index: number; isLatest?: boolean }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isLongComment = review.comment && review.comment.length > 150;

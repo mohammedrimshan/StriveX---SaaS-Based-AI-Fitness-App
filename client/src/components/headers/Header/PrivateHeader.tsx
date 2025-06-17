@@ -65,6 +65,9 @@ export function PrivateHeader({
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Only add keyboard listener for user type
+    if (userType !== "user") return;
+
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -73,56 +76,28 @@ export function PrivateHeader({
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [userType]);
 
-  // Dynamic search items based on user type
+  // Search items only for users
   const getSearchItems = () => {
-    switch (userType) {
-      case "admin":
-        return [
-          {
-            category: "Admin Management",
-            items: [
-              { id: 1, name: "User Management", type: "admin", tag: "System" },
-              { id: 2, name: "Facility Settings", type: "admin", tag: "Configuration" },
-              { id: 3, name: "Billing & Subscriptions", type: "admin", tag: "Finance" },
-            ],
-          },
-        ];
-      case "trainer":
-        return [
-          {
-            category: "Training Resources",
-            items: [
-              { id: 1, name: "Client Schedules", type: "trainer", tag: "Planning" },
-              { id: 2, name: "Workout Templates", type: "trainer", tag: "Resources" },
-              { id: 3, name: "Performance Tracking", type: "trainer", tag: "Analytics" },
-            ],
-          },
-        ];
-      case "user":
-        return [
-          {
-            category: "Workouts",
-            items: [
-              { id: 1, name: "Full Body HIIT", type: "workout", difficulty: "Intermediate" },
-              { id: 2, name: "Upper Body Strength", type: "workout", difficulty: "Advanced" },
-              { id: 3, name: "Core Foundations", type: "workout", difficulty: "Beginner" },
-            ],
-          },
-          {
-            category: "Nutrition",
-            items: [
-              { id: 4, name: "Protein Meal Plan", type: "nutrition", calories: "1800 cal" },
-              { id: 5, name: "Keto Diet Guide", type: "nutrition", calories: "2000 cal" },
-              { id: 6, name: "Vegetarian Recipes", type: "nutrition", calories: "1600 cal" },
-            ],
-          },
-        ];
-      default:
-        console.warn(`Unknown userType: ${userType}`);
-        return [];
-    }
+    return [
+      {
+        category: "Workouts",
+        items: [
+          { id: 1, name: "Full Body HIIT", type: "workout", difficulty: "Intermediate" },
+          { id: 2, name: "Upper Body Strength", type: "workout", difficulty: "Advanced" },
+          { id: 3, name: "Core Foundations", type: "workout", difficulty: "Beginner" },
+        ],
+      },
+      {
+        category: "Nutrition",
+        items: [
+          { id: 4, name: "Protein Meal Plan", type: "nutrition", calories: "1800 cal" },
+          { id: 5, name: "Keto Diet Guide", type: "nutrition", calories: "2000 cal" },
+          { id: 6, name: "Vegetarian Recipes", type: "nutrition", calories: "1600 cal" },
+        ],
+      },
+    ];
   };
 
   const searchItems = getSearchItems();
@@ -194,90 +169,81 @@ export function PrivateHeader({
           </span>
         </div>
 
-        {/* Search - Different design for mobile vs desktop */}
-        <div className="flex-1 max-w-xs sm:max-w-md lg:max-w-2xl mx-auto">
-          {/* Mobile Search - Icon only */}
-          <div className="block sm:hidden">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setOpen(true)}
-                    className="h-8 w-8 shrink-0"
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Search</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+        {/* Search - Only show for user type */}
+        {userType === "user" && (
+          <div className="flex-1 max-w-xs sm:max-w-md lg:max-w-2xl mx-auto">
+            {/* Mobile Search - Icon only */}
+            <div className="block sm:hidden">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setOpen(true)}
+                      className="h-8 w-8 shrink-0"
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Search</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
 
-          {/* Desktop Search - Full search bar */}
-          <div className="hidden sm:block">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={() => setOpen(true)}
-                    className="w-full justify-between text-muted-foreground h-10 text-sm"
-                  >
-                    <div className="flex items-center min-w-0">
-                      <Search className="mr-2 h-4 w-4 shrink-0" />
-                      <span className="truncate">
-                        {userType === "admin"
-                          ? "Search users, settings..."
-                          : userType === "trainer"
-                          ? "Search clients, workouts..."
-                          : "Search workouts or nutrition plans..."}
-                      </span>
-                    </div>
-                    <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground shrink-0">
-                      <span className="text-xs">⌘</span>K
-                    </kbd>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Press ⌘K to search</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {/* Desktop Search - Full search bar */}
+            <div className="hidden sm:block">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      onClick={() => setOpen(true)}
+                      className="w-full justify-between text-muted-foreground h-10 text-sm"
+                    >
+                      <div className="flex items-center min-w-0">
+                        <Search className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="truncate">
+                          Search workouts or nutrition plans...
+                        </span>
+                      </div>
+                      <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground shrink-0">
+                        <span className="text-xs">⌘</span>K
+                      </kbd>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Press ⌘K to search</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <CommandDialog open={open} onOpenChange={setOpen}>
+              <Command className="rounded-lg border shadow-md">
+                <CommandInput placeholder="Type to search..." />
+                <CommandList>
+                  <CommandEmpty>No results found.</CommandEmpty>
+                  {searchItems.map((group) => (
+                    <CommandGroup key={group.category} heading={group.category}>
+                      {group.items.map((item) => (
+                        <CommandItem
+                          key={item.id}
+                          onSelect={() => {
+                            setOpen(false);
+                          }}
+                        >
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  ))}
+                </CommandList>
+              </Command>
+            </CommandDialog>
           </div>
-          <CommandDialog open={open} onOpenChange={setOpen}>
-            <Command className="rounded-lg border shadow-md">
-              <CommandInput placeholder="Type to search..." />
-              <CommandList>
-                <CommandEmpty>No results found.</CommandEmpty>
-                {searchItems.map((group) => (
-                  <CommandGroup key={group.category} heading={group.category}>
-                    {group.items.map((item) => (
-                      <CommandItem
-                        key={item.id}
-                        onSelect={() => {
-                          setOpen(false);
-                        }}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <span className="truncate mr-2">{item.name}</span>
-                          {item.type === "workout" ? (
-                            <Badge variant="secondary" className="bg-primary/20 text-primary shrink-0 text-xs">
-                              {item.difficulty}
-                            </Badge>
-                          ) : item.type === "nutrition" ? (
-                            <Badge variant="outline" className="shrink-0 text-xs">{item.calories}</Badge>
-                          ) : (
-                            <Badge variant="outline" className="shrink-0 text-xs">{item.tag}</Badge>
-                          )}
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                ))}
-              </CommandList>
-            </Command>
-          </CommandDialog>
-        </div>
+        )}
+
+        {/* Spacer for admin/trainer when no search */}
+        {(userType === "admin" || userType === "trainer") && (
+          <div className="flex-1" />
+        )}
 
         {/* Right Section */}
         <div className="ml-2 sm:ml-4 lg:ml-8 flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
@@ -361,7 +327,7 @@ export function PrivateHeader({
                           <Bell className="mr-2 h-4 w-4" />
                           <span>Notifications</span>
                           {unreadCount > 0 && (
-                            <Badge variant="destructive" className="ml-auto h-5 text-xs">
+                            <Badge className="ml-auto h-5 text-xs">
                               {unreadCount > 99 ? '99+' : unreadCount}
                             </Badge>
                           )}

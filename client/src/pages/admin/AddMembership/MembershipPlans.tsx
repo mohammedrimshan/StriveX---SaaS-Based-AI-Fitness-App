@@ -13,7 +13,7 @@ import { Toaster } from "react-hot-toast";
 
 // Main component that will be wrapped with the provider
 const MembershipPlanManagement: React.FC = () => {
-  const { plans, loading, refreshPlans } = useMembershipPlans();
+  const { plans, loading } = useMembershipPlans();
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<IMembershipPlanEntity | null>(null);
@@ -64,14 +64,6 @@ const MembershipPlanManagement: React.FC = () => {
           />
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          {/* <Button 
-            variant="outline" 
-            onClick={() => refreshPlans()}
-            className="transition-all duration-200 hover:bg-secondary"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button> */}
           <Button 
             onClick={handleAddNew}
             className="bg-gradient-to-r from-primary to-purple-700 hover:opacity-90 transition-all duration-200"

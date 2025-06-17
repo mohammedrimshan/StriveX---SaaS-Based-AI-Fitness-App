@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { reportComment } from '@/services/client/clientService';
-import { IComment } from '@/services/client/clientService';
+import { IComment } from '@/types/Post';
 
 export const useReportComment = () => {
   const queryClient = useQueryClient();
@@ -14,7 +14,7 @@ export const useReportComment = () => {
           comment.id === id ? updatedComment : comment
         ) || [],
       }));
-      queryClient.invalidateQueries(['comments']);
+      queryClient.invalidateQueries({ queryKey: ['comments'] });
     },
     onError: (error) => {
       console.error('Report comment error:', error.message);

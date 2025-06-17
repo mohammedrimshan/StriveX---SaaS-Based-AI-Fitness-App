@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { createComment } from '@/services/client/clientService';
-import { IComment } from '@/services/client/clientService';
+import { IComment } from '@/types/Post';
 import { useSocket } from '@/context/socketContext';
 
 export const useCreateComment = () => {

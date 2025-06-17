@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Clock, Dumbbell, BarChart } from "lucide-react";
 
 interface WorkoutCardProps {
-  id?: string; // Changed from required 'string' to optional 'string | undefined'
+  id?: string; 
   title: string;
   description: string;
   duration: number;

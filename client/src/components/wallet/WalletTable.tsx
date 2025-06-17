@@ -9,7 +9,6 @@ import {
   Percent, 
   Clock,
   Star,
-  CheckCircle
 } from 'lucide-react';
 
 interface WalletTableProps {

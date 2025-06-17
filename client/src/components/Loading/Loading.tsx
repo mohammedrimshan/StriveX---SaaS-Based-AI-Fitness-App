@@ -43,7 +43,7 @@ export default function LoadingPage() {
 
   const letterVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: (i) => ({
+    visible: (i:any) => ({
       y: 0,
       opacity: 1,
       transition: {

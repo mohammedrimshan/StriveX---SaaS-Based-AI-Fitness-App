@@ -14,7 +14,8 @@ interface ExerciseItemProps {
   onClick: () => void;
 }
 
-const ExerciseItem: React.FC<ExerciseItemProps> = ({
+// ExerciseItem.tsx
+const ExerciseItem: React.FC<ExerciseItemProps> = React.memo(({
   name,
   description,
   duration,
@@ -38,7 +39,7 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({
         backgroundColor: isActive ? "rgba(139, 92, 246, 0.2)" : "rgba(139, 92, 246, 0.05)",
         borderWidth: "1px",
         borderColor: isActive ? "var(--violet)" : isCompleted ? "#4ade80" : "rgba(139, 92, 246, 0.1)",
-        transition: "all 0.3s ease",
+        transition: "background-color 0.3s ease, border-color 0.3s ease",
         cursor: "pointer",
       }}
     >
@@ -77,6 +78,6 @@ const ExerciseItem: React.FC<ExerciseItemProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default ExerciseItem;

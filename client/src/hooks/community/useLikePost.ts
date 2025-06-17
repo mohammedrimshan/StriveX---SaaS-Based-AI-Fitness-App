@@ -9,17 +9,28 @@ interface LikePostArgs {
   userId: string;
 }
 
+interface PreviousPostsContext {
+  previousPosts?: { items: IPost[] };
+  previousPost?: IPost;
+}
+
 export const useLikePost = () => {
   const queryClient = useQueryClient();
   const { socket, isConnected } = useSocket();
 
-  const mutation = useMutation<IPost, Error, LikePostArgs>({
+  const mutation = useMutation<IPost, Error, LikePostArgs, PreviousPostsContext>({
     mutationFn: ({ id, role }) => likePost(id, role),
+
     onMutate: async ({ id, userId }) => {
       console.log("[DEBUG] Initiating optimistic update for likePost:", { id, userId });
-      await queryClient.cancelQueries(['posts']);
-      const previousPosts = queryClient.getQueryData(['posts']);
-      queryClient.setQueryData(['posts'], (old: any) => {
+
+      await queryClient.cancelQueries({ queryKey: ["posts"] });
+      await queryClient.cancelQueries({ queryKey: ["post", id] });
+
+      const previousPosts = queryClient.getQueryData<{ items: IPost[] }>(["posts"]);
+      const previousPost = queryClient.getQueryData<IPost>(["post", id]);
+
+      queryClient.setQueryData(["posts"], (old: any) => {
         if (!old) return old;
         const updated = {
           ...old,
@@ -38,7 +49,8 @@ export const useLikePost = () => {
         console.log("[DEBUG] Optimistic posts update:", updated.items.find((p: IPost) => p.id === id));
         return updated;
       });
-      queryClient.setQueryData(['post', id], (old: IPost | undefined) => {
+
+      queryClient.setQueryData(["post", id], (old: IPost | undefined) => {
         if (!old) return old;
         const updated = {
           ...old,
@@ -50,11 +62,14 @@ export const useLikePost = () => {
         console.log("[DEBUG] Optimistic single post update:", updated);
         return updated;
       });
-      return { previousPosts };
+
+      return { previousPosts, previousPost };
     },
+
     onSuccess: (updatedPost, { id, userId, role }) => {
       console.log("[DEBUG] Like post success:", { id, userId, updatedPost });
-      queryClient.setQueryData(['posts'], (old: any) => {
+
+      queryClient.setQueryData(["posts"], (old: any) => {
         if (!old) return old;
         const updated = {
           ...old,
@@ -67,25 +82,52 @@ export const useLikePost = () => {
         console.log("[DEBUG] Updated posts cache on success:", updated.items.find((p: IPost) => p.id === id));
         return updated;
       });
-      queryClient.setQueryData(['post', id], {
+
+      queryClient.setQueryData(["post", id], {
         ...updatedPost,
         hasLiked: updatedPost.likes.includes(userId),
       });
+
       if (socket && isConnected) {
-        console.log("[DEBUG] Emitting likePost:", { postId: id, userId, role });
-        socket.emit("likePost", { postId: id, userId, role }, (ack: any) => {
-          console.log("[DEBUG] likePost acknowledgment:", ack);
+        console.log("[DEBUG] Emitting likePost:", { postId: id, userId, role, likes: updatedPost.likes });
+        socket.emit("likePost", { postId: id, userId, role, likes: updatedPost.likes }, (ack: any) => {
+          if (ack?.error) {
+            console.error("[DEBUG] likePost acknowledgment error:", ack.error);
+            queryClient.invalidateQueries({ queryKey: ["posts"] });
+            queryClient.invalidateQueries({ queryKey: ["post", id] });
+          } else {
+            console.log("[DEBUG] likePost acknowledgment:", ack);
+          }
         });
       } else {
-        console.warn("[DEBUG] Socket not connected, invalidating posts query as fallback");
-        queryClient.invalidateQueries(['posts']);
+        console.warn("[DEBUG] Socket not connected, invalidating queries as fallback", { id });
+        queryClient.invalidateQueries({ queryKey: ["posts"] });
+        queryClient.invalidateQueries({ queryKey: ["post", id] });
       }
     },
+
     onError: (error, { id }, context) => {
-      console.error("[DEBUG] Like post error:", error.message);
-      queryClient.setQueryData(['posts'], context?.previousPosts);
-      queryClient.invalidateQueries(['post', id]);
-      console.log("[DEBUG] Reverted to previous posts state and invalidated post query:", { id });
+      console.error("[DEBUG] Like post error:", {
+        message: error.message,
+        stack: error.stack,
+      });
+
+      if (context?.previousPosts) {
+        queryClient.setQueryData(["posts"], context.previousPosts);
+      }
+      if (context?.previousPost) {
+        queryClient.setQueryData(["post", id], context.previousPost);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["post", id] });
+    },
+
+    retry: (failureCount, error) => {
+      if (error.message.includes("Post not found")) {
+        return false;
+      }
+      return failureCount < 2;
     },
   });
 

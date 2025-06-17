@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { updateWorkoutProgress } from "@/services/progress/workoutProgressService";
-import { UpdateWorkoutProgressData } from "@/types/Progress";
+import { UpdateWorkoutProgressData } from "@/services/progress/workoutProgressService";
 
 export const useUpdateWorkoutProgress = () => {
   return useMutation({

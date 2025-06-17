@@ -1,5 +1,4 @@
-// src/components/trainers/TrainersList.tsx
-import React from 'react';
+
 import { ITrainer } from '@/types/User';
 import TrainerCard from './TrainerCard';
 import { motion } from 'framer-motion';

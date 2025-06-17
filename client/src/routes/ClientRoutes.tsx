@@ -1,4 +1,4 @@
-import { Route, Routes, useParams } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { ClientAuth } from "@/pages/client/clientAuth";
 import { ClientLayout } from "@/layouts/ClientLayout";
 import { AuthRoute } from "@/utils/protected/ProtectedRoute";
@@ -21,12 +21,13 @@ import { MatchedTrainersPage } from "@/pages/client/MatchedTrainersList";
 import ManualTrainersListing from "@/pages/client/ManualTrainer";
 import BookingPage from "@/pages/client/BookingPage";
 import { ChatLayout } from "@/components/Chat/ChatLayout";
-import Community from "@/components/Community/index.tsx";
 import WorkoutProgressDashboard from "@/pages/client/WorkoutProgressChart";
 import VideoCallPage from "@/components/VideoCall/VideoCallPage";
 import Notifications from "@/components/Notification/Notifications";
 import UserDashBoard from "@/pages/client/DashBoard";
 import SessionHistoryPage from "@/components/common/SessionHistoryPage";
+import NotFoundPage from "@/components/common/NotFoundPage";
+import CommunityForum from "@/pages/client/Community";
 export const ClientRoutes = () => {
   return (
     <Routes>
@@ -37,7 +38,6 @@ export const ClientRoutes = () => {
           path="/login"
           element={<NoAuthRoute element={<ClientAuth />} />}
         />
-
         {/* Protected routes */}
         <Route
           path="/home"
@@ -57,7 +57,6 @@ export const ClientRoutes = () => {
             <AuthRoute allowedRoles={["client"]} element={<PlanGenerator />} />
           }
         />
-
         <Route
           path="/alltrainers"
           element={
@@ -68,28 +67,24 @@ export const ClientRoutes = () => {
           path="/trainerprofile/:trainerId"
           element={<AuthRoute allowedRoles={["client"]} element={<Index />} />}
         />
-
         <Route
           path="/workouts"
           element={
             <AuthRoute allowedRoles={["client"]} element={<UserWorkout />} />
           }
         />
-
         <Route
           path="/workout/:id"
           element={
             <AuthRoute allowedRoles={["client"]} element={<WorkoutDetails />} />
           }
         />
-
         <Route
           path="/premium"
           element={
             <AuthRoute allowedRoles={["client"]} element={<PremiumLanding />} />
           }
         />
-
         <Route
           path="/checkout/success"
           element={
@@ -99,7 +94,6 @@ export const ClientRoutes = () => {
             />
           }
         />
-
         <Route
           path="/checkout/cancel"
           element={
@@ -109,7 +103,6 @@ export const ClientRoutes = () => {
             />
           }
         />
-
         <Route
           path="/trainer-selection-prompt"
           element={
@@ -119,7 +112,6 @@ export const ClientRoutes = () => {
             />
           }
         />
-
         <Route
           path="/trainer-preferences"
           element={
@@ -153,21 +145,18 @@ export const ClientRoutes = () => {
             <AuthRoute allowedRoles={["client"]} element={<BookingPage />} />
           }
         />
-
         <Route
           path="/chat"
           element={
             <AuthRoute allowedRoles={["client"]} element={<ChatLayout />} />
           }
         />
-
         <Route
           path="/community"
           element={
-            <AuthRoute allowedRoles={["client"]} element={<Community />} />
+            <AuthRoute allowedRoles={["client"]} element={<CommunityForum />} />
           }
         />
-
         <Route
           path="/progress"
           element={
@@ -177,14 +166,12 @@ export const ClientRoutes = () => {
             />
           }
         />
-
         <Route
           path="/notifications"
           element={
             <AuthRoute allowedRoles={["client"]} element={<Notifications />} />
           }
         />
-
         <Route
           path="/video-call/:slotId"
           element={
@@ -193,20 +180,18 @@ export const ClientRoutes = () => {
               element={
                 <VideoCallPage
                   userType="client"
-                  params={{ slotId: useParams().slotId ?? "" }}
+                  // params={{ slotId: useParams().slotId ?? "" }}
                 />
               }
             />
           }
         />
-
-         <Route
+        <Route
           path="/dashboard"
           element={
             <AuthRoute allowedRoles={["client"]} element={<UserDashBoard />} />
           }
         />
-
         <Route
           path="/session-history"
           element={
@@ -216,8 +201,8 @@ export const ClientRoutes = () => {
             />
           }
         />
-
-        {/* Add morHae protected routes as needed */}
+        {/* Catch-all route for unmatched client sub-routes */}
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
       <Route
         path="/forgot-password"

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router-dom";

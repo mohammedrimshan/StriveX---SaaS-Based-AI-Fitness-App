@@ -376,7 +376,7 @@ const handlePageChange = (newPage: number): void => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleAccept(client.id);
+                                    handleAccept(client.id as string);
                                   }}
                                   className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-2 sm:px-3 py-1 rounded-md text-xs flex items-center"
                                   disabled={isMutating}
@@ -548,7 +548,7 @@ const handlePageChange = (newPage: number): void => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleAccept(client.id);
+                              handleAccept(client.id as string);
                             }}
                             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 py-1 rounded-md text-xs flex items-center justify-center"
                             disabled={isMutating}

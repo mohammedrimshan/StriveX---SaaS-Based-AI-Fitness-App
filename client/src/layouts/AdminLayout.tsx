@@ -12,7 +12,6 @@ import { adminLogout } from "@/store/slices/admin.slice";
 
 export const AdminLayout = () => {
 	const [isSideBarVisible, setIsSideBarVisible] = useState(false);
-	const [notifications] = useState(2);
 	const { successToast, errorToast } = useToaster();
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
@@ -40,7 +39,6 @@ export const AdminLayout = () => {
 				userType="admin"
 				userName={user?.firstName}
 				onLogout={handleLogout}
-				notifications={notifications}
 				onSidebarToggle={() => setIsSideBarVisible(!isSideBarVisible)}
 			/>
 

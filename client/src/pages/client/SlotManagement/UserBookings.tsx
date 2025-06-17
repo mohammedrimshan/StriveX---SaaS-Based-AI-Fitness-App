@@ -49,7 +49,6 @@ export function UserBookings({
   bookings,
   onBookingCancelled,
 }: UserBookingsProps) {
-  const navigate = useNavigate();
   const { successToast, errorToast } = useToaster();
   const { mutate: cancelBooking, isPending: isCancelling } = useCancelBooking();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -221,7 +220,6 @@ function SessionCard({
   booking,
   isCancelling,
   onCancel,
-  onJoin,
   isPast = false,
 }: SessionCardProps) {
   const navigate = useNavigate();

@@ -3,24 +3,25 @@ import { IAuthResponse } from "@/types/Response";
 import { IClient } from "@/types/User";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/client/useClientPasswordChange";
-import { CategoryResponse } from "../admin/adminService";
+import { CategoryResponse } from "@/hooks/admin/useAllCategory";
 import { IWorkoutPlan } from "@/types/Workout";
 import { IDietPlan } from "@/types/Diet";
 // import { PaginatedResult } from "@/types/Workout";
-import { Review, ReviewInput, TrainerProfileType, UpdateReviewInput } from "@/types/trainer";
+import { Review, ReviewInput, TrainerProfile, TrainerProfileType, UpdateReviewInput } from "@/types/trainer";
 import { IWorkoutEntity } from "../../../../api/src/entities/models/workout.entity";
-import { IWorkoutProgressEntity } from "@/types/Progress";
+import { IWorkoutProgressEntity } from "../progress/workoutProgressService";
 import { PaginatedTrainersResponse } from "@/types/Response";
 import { PaginatedResponse } from "@/types/Response";
-import { Workout } from "@/types/Workouts";
+import { Exercise, WorkoutDetailsPro } from "@/types/Workouts";
 import { MembershipPlansPaginatedResponse } from "@/types/membership";
-import { UserRole } from "@/types/UserRole";
 import {
   SlotsResponse,
   BookSlotData,
   CancelSlotData,
   UserBookingsResponse,
 } from "@/types/Slot";
+import { IComment,IPost } from "@/types/Post";
+import { CategoryType } from "@/hooks/admin/useAllCategory";
 
 export interface IReport {
   userId: string;
@@ -28,47 +29,6 @@ export interface IReport {
   reportedAt: string;
 }
 
-export interface IPost {
-  id?: string;
-  authorId: string;
-  role: UserRole;
-  textContent: string;
-  mediaUrl?: string;
-  category: string;
-  hasLiked:boolean;
-  likes: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  isDeleted: boolean;
-  reports: IReport[];
-  commentsCount?: number;
-  author?: {
-    _id: string; 
-    firstName: string;
-    lastName: string;
-    email: string;
-    profileImage?: string;
-  } | null;
-}
-export interface IComment {
-  id: string;
-  postId: string;
-  authorId: string;
-  textContent: string;
-  likes: string[];
-  createdAt: string;
-  updatedAt: string;
-  isDeleted: boolean;
-  reports: IReport[];
-}
-
-// export interface PaginatedPostsResponse {
-//   success: boolean;
-//   posts: IPost[];
-//   totalPosts: number;
-//   currentSkip: number;
-//   limit: number;
-// }
 
 export interface CreateCheckoutSessionData {
   trainerId: string;
@@ -208,26 +168,34 @@ export const getAllWorkouts = async (
   page: number = 1,
   limit: number = 10,
   filter: object = {}
-): Promise<PaginatedResponse<Workout>> => {
+): Promise<PaginatedResponse<WorkoutDetailsPro>> => {
   const response = await clientAxiosInstance.get<
-    IAxiosResponse<PaginatedResponse<Workout>>
+    IAxiosResponse<PaginatedResponse<WorkoutDetailsPro>>
   >(`/client/workouts`, {
     params: { page, limit, filter: JSON.stringify(filter) },
   });
   const rawData = response.data.data;
 
-  // Map _id to id for workouts and exercises
-  const mappedData: PaginatedResponse<Workout> = {
+  const mappedData: PaginatedResponse<WorkoutDetailsPro> = {
     ...rawData,
     data: rawData.data.map((workout: any) => ({
       ...workout,
       id: workout._id?.toString() || workout.id,
       _id: workout._id?.toString(),
+      category: {
+        _id: workout.category?._id || workout.category,
+        title: workout.category?.name || workout.category || "Unknown",
+        metValue: workout.category?.metValue || 5,
+        status: workout.category?.status ?? true,
+      } as CategoryType,
       exercises: workout.exercises.map((exercise: any) => ({
         ...exercise,
         id: exercise._id?.toString() || exercise.id,
         _id: exercise._id?.toString(),
-      })),
+        videoUrl: exercise.videoUrl || "",
+        duration: exercise.duration || 0,
+        defaultRestDuration: exercise.defaultRestDuration || 0,
+      })) as Exercise[],
     })),
   };
 
@@ -360,16 +328,13 @@ export const manualSelectTrainer = async (
 // Add to your clientService.ts
 export interface MatchedTrainersResponse {
   success: boolean;
-  data: TrainerProfileType[];
+  data: TrainerProfile[];
 }
 
-export const getMatchedTrainers =
-  async (): Promise<MatchedTrainersResponse> => {
-    const response = await clientAxiosInstance.get<MatchedTrainersResponse>(
-      "/client/matched-trainers"
-    );
-    return response.data;
-  };
+export const getMatchedTrainers = async (): Promise<MatchedTrainersResponse> => {
+  const response = await clientAxiosInstance.get<MatchedTrainersResponse>("/client/matched-trainers");
+  return response.data;
+};
 
 export interface SelectTrainerResponse {
   selectedTrainerId: string;
@@ -507,11 +472,25 @@ export const getPost = async (id: string): Promise<IPost> => {
     const response = await clientAxiosInstance.get<IAxiosResponse<IPost>>(
       `/client/community/posts/${id}`
     );
-    console.log('Post fetched:', response.data);
+    console.log('[DEBUG] Post fetched:', {
+      success: response.data.success,
+      data: response.data.data,
+      message: response.data.message,
+      status: response.status,
+    });
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.message || 'Post not found');
+    }
     return response.data.data;
   } catch (error: any) {
-    console.error('Get post error:', error.response?.data);
-    throw new Error(error.response?.data?.message || 'Failed to fetch post');
+    console.error('[DEBUG] Get post error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      name: error.name,
+      code: error.code,
+    });
+    throw new Error(error.response?.data?.message || error.message || 'Failed to fetch post');
   }
 };
 
@@ -532,15 +511,29 @@ export const likePost = async (id: string, role: string): Promise<IPost> => {
   try {
     const response = await clientAxiosInstance.patch<IAxiosResponse<IPost>>(
       `/client/community/posts/${id}/like`,
-      { role } // Send role in request body
+      { role }
     );
-    console.log('Post liked:', response.data);
+    console.log('[DEBUG] Like post raw response:', {
+      status: response.status,
+      data: response.data,
+    });
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.message || 'Invalid response structure');
+    }
+    console.log('[DEBUG] Like post response:', response.data);
     return response.data.data;
   } catch (error: any) {
-    console.error('Like post error:', error.response?.data);
-    throw new Error(error.response?.data?.message || 'Failed to like post');
+    console.error('[DEBUG] Like post error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      name: error.name,
+      code: error.code,
+    });
+    throw new Error(error.response?.data?.message || error.message || 'Failed to like post');
   }
 };
+
 
 export const reportPost = async (
   id: string,

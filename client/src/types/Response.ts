@@ -1,5 +1,5 @@
 import { UserRole } from "./UserRole";
-import { User as UserType } from "@/types/User";
+import { IClient, User as UserType } from "@/types/User";
 import { ITrainer } from "@/types/User";
 import { CredentialResponse } from "@react-oauth/google";
 export interface IAxiosResponse<T = any> {
@@ -8,6 +8,14 @@ export interface IAxiosResponse<T = any> {
    message: string;
    data: T;
  }
+
+ export interface AxiosWrapped<T> {
+  success: boolean;
+  message: string;
+  profile?: IClient;
+  data: T;
+}
+
 
 export interface IAuthResponse extends IAxiosResponse {
    user: {

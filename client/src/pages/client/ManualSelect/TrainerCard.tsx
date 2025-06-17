@@ -1,13 +1,13 @@
 import { TrainerProfile } from "@/types/trainer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent,CardFooter } from "@/components/ui/card";
-import { UserIcon,Loader2  } from "lucide-react";
+import { Card, CardFooter } from "@/components/ui/card";
+import { UserIcon, Loader2 } from "lucide-react";
 
 interface TrainerCardProps {
   trainer: TrainerProfile;
   onSelect: (trainer: TrainerProfile) => void;
   onViewProfile: (trainerId: string) => void;
-  isSelecting?: boolean; 
+  isSelecting?: boolean;
 }
 
 const TrainerCard = ({ trainer, onSelect, onViewProfile, isSelecting }: TrainerCardProps) => {
@@ -32,7 +32,7 @@ const TrainerCard = ({ trainer, onSelect, onViewProfile, isSelecting }: TrainerC
           {trainer.experience} years experience • {trainer.gender}
         </p>
         <div className="flex flex-wrap justify-center gap-1 mb-4">
-          {trainer.skills.slice(0, 3).map((skill) => (
+          {trainer.skills?.slice(0, 3).map((skill) => (
             <span
               key={skill}
               className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs"
@@ -40,7 +40,7 @@ const TrainerCard = ({ trainer, onSelect, onViewProfile, isSelecting }: TrainerC
               {skill}
             </span>
           ))}
-          {trainer.skills.length > 3 && (
+          {trainer.skills && trainer.skills.length > 3 && (
             <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
               +{trainer.skills.length - 3} more
             </span>
@@ -52,14 +52,14 @@ const TrainerCard = ({ trainer, onSelect, onViewProfile, isSelecting }: TrainerC
           onClick={() => onViewProfile(trainer.id)}
           className="flex-1 bg-white border border-purple-500 text-purple-600 hover:bg-purple-50"
           variant="outline"
-          disabled={isSelecting} // Disable during mutation
+          disabled={isSelecting} 
         >
           View Profile
         </Button>
         <Button
           onClick={() => onSelect(trainer)}
           className="flex-1 bg-purple-600 hover:bg-purple-700"
-          disabled={isSelecting} // Disable during mutation
+          disabled={isSelecting}
         >
           {isSelecting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Select"}
         </Button>

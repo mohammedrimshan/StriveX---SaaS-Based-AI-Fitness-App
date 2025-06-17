@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { likeComment } from '@/services/client/clientService';
-import { IComment } from '@/services/client/clientService';
-
+import { IComment } from '@/types/Post';
 export const useLikeComment = () => {
   const queryClient = useQueryClient();
 
@@ -14,7 +13,7 @@ export const useLikeComment = () => {
           comment.id === id ? updatedComment : comment
         ) || [],
       }));
-      queryClient.invalidateQueries(['comments']);
+      queryClient.invalidateQueries({ queryKey: ['comments'] });
     },
     onError: (error) => {
       console.error('Like comment error:', error.message);

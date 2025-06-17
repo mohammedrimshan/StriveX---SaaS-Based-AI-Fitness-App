@@ -5,7 +5,8 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { io, Socket } from "socket.io-client";
+import io from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { WorkoutType, WORKOUT_TYPES } from "../../../api/src/shared/constants";
 import { IPost, UserRole } from "@/types/Post";
 import { INotification } from "../types/notification";
@@ -20,6 +21,8 @@ interface IPostAuthor {
 }
 
 interface IMessage {
+  createdAt: string;
+  updatedAt: string;
   id: string;
   tempId?: string;
   senderId: string;
@@ -95,7 +98,6 @@ export const SocketProvider = ({
   children,
   userId,
   role,
-  currentUser,
 }: SocketProviderProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -303,6 +305,8 @@ export const SocketProvider = ({
         _fromSocket: true,
         deleted: message.deleted || false,
         readAt: message.readAt,
+        createdAt: "",
+        updatedAt: ""
       };
 
       setMessages((prev) => {
@@ -429,8 +433,14 @@ export const SocketProvider = ({
       return {
         id: post.id || post.postId || `post-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         authorId: post.authorId || (author?._id ?? ""),
-        author,
+        author: author
+    ? {
+        ...author,
+        id: author._id, // ✅ Add this to match IPostAuthor
+      }
+    : null,
         textContent: post.textContent || "",
+        content: post.textContent || "",
         mediaUrl: post.mediaUrl,
         category,
         likes: post.likes || [],
@@ -471,40 +481,41 @@ export const SocketProvider = ({
         timestamp: new Date().toISOString(),
       });
       setPosts((prev) => {
-        prev.map((post) =>
-          String(post.id) === String(postId) ? { ...post, isDeleted: true } : post
+        return prev.map((post) => String(post.id) === String(postId) ? { ...post, isDeleted: true } : post
         );
       });
     });
 
     newSocket.on("postLiked", ({ postId, userId: likerId, likes, hasLiked }: { postId: string; userId: string; likes: string[]; hasLiked: boolean }) => {
-      console.log("[DEBUG] Client: Post liked event received", {
-        postId,
-        likerId,
-        likes,
-        hasLiked,
-        timestamp: new Date().toISOString(),
-      });
-      if (!postId || !Array.isArray(likes)) {
-        console.error("[DEBUG] Client: Invalid postLiked event data", {
-          postId,
-          likes,
-          hasLiked,
-          timestamp: new Date().toISOString(),
-        });
-        return;
-      }
-      setPosts((prev) => {
-        const updatedPosts = prev.map((post) =>
-          String(post.id) === String(postId) ? { ...post, likes, hasLiked } : post
-        );
-        console.log("[DEBUG] Client: Updated socket posts", {
-          updatedPost: updatedPosts.find((p) => p.id === postId),
-          timestamp: new Date().toISOString(),
-        });
-        return updatedPosts;
-      });
+  console.log("[DEBUG] Client: Post liked event received", {
+    postId,
+    likerId,
+    likes,
+    hasLiked,
+    timestamp: new Date().toISOString(),
+  });
+  if (!postId || !Array.isArray(likes)) {
+    console.error("[DEBUG] Client: Invalid postLiked event data", {
+      postId,
+      likes,
+      hasLiked,
+      timestamp: new Date().toISOString(),
     });
+    return;
+  }
+  setPosts((prev) => {
+    const updatedPosts = prev.map((post) =>
+      String(post.id) === String(postId)
+        ? { ...post, likes, hasLiked: likes.includes(userId) }
+        : post
+    );
+    console.log("[DEBUG] Client: Updated socket posts", {
+      updatedPost: updatedPosts.find((p) => p.id === postId),
+      timestamp: new Date().toISOString(),
+    });
+    return updatedPosts;
+  });
+});
 
     newSocket.on("receiveCommunityMessage", (message: ICommunityMessage & { tempId?: string }) => {
       console.log("[DEBUG] Client: Received community message", {
@@ -587,6 +598,8 @@ export const SocketProvider = ({
         replyToId: data.replyToId,
         reactions: [],
         deleted: false,
+        createdAt: "",
+        updatedAt: ""
       };
       console.log("[DEBUG] Client: Sending message", {
         tempMessage,

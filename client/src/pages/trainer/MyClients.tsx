@@ -8,7 +8,6 @@ import { useTrainerClients } from '@/hooks/trainer/useGetAllTrainers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMediaQuery } from 'react-responsive';
 import { Search, Users, Grid3X3, List, ArrowLeft, ArrowRight, Dumbbell, Activity, Flame, StretchVerticalIcon as Stretch, Scale } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';

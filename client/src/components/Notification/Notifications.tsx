@@ -1,12 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import{ useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Info, AlertTriangle, XCircle, CheckCircle, Search, ChevronDown, Filter } from 'lucide-react';
 import { useNotifications } from '@/context/NotificationContext';
 import { INotification } from '@/types/notification';
 
-// Notification type definition
-type NotificationType = 'INFO' | 'WARNING' | 'ERROR' | 'SUCCESS';
 
 // NotificationCard Component
 const NotificationCard = ({ notification, onMarkAsRead }: { notification: INotification; onMarkAsRead: (id: string) => void }) => {
@@ -132,7 +130,7 @@ const FilterDropdown = ({ value, onChange }: { value: string; onChange: (value: 
 };
 
 const Notifications = () => {
-  const { notifications, unreadCount, fetchNotifications, markAsRead } = useNotifications();
+  const { notifications, fetchNotifications, markAsRead } = useNotifications();
   console.log('Notifications component rendered with notifications:', notifications);
   const [filter, setFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');

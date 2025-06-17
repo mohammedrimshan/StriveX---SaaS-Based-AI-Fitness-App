@@ -34,8 +34,6 @@ const ITEMS_PER_PAGE = 10; // Match backend limit
 
 const TransactionTable = ({
   transactions,
-  searchQuery,
-  statusFilter,
   currentPage,
   setCurrentPage,
   totalPages,

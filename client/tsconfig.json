@@ -5,10 +5,13 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
+    "strict": true,
+    "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["next", "next/types/global","@types/socket.io-client"]
+    "types": ["next", "@types/socket.io-client"],
+    "skipLibCheck": true
   }
 }

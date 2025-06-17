@@ -13,34 +13,40 @@ interface GetPostsParams {
   limit?: number;
 }
 
-export const useGetPosts = ({ 
-  category, 
-  sortBy = 'latest', 
-  skip = 0, 
-  limit = 10 
+interface PostLikedPayload {
+  postId: string;
+  userId: string;
+  likes: string[];
+}
+
+export const useGetPosts = ({
+  category,
+  sortBy = 'latest',
+  skip = 0,
+  limit = 10,
 }: GetPostsParams) => {
   const queryClient = useQueryClient();
   const { socket, isConnected, posts: socketPosts } = useSocket();
   const currentUser = useSelector(selectCurrentUser);
-  const userId = currentUser?.id;
+  const userId = currentUser?.id ?? '';
 
   const query = useQuery<PaginatedPostsResponse, Error>({
     queryKey: ['posts', { category, sortBy, skip, limit }],
     queryFn: () => getPosts(category, sortBy, skip, limit),
-    keepPreviousData: true,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   // Sync socket posts to React Query cache
   useEffect(() => {
     if (socketPosts.length > 0 && query.data) {
-      const newSocketPosts = socketPosts.filter(socketPost => 
-        !query.data.items.some(queryPost => queryPost.id === socketPost.id)
+      const newSocketPosts = socketPosts.filter(
+        (socketPost) =>
+          !query.data!.items.some((queryPost) => queryPost.id === socketPost.id)
       );
 
       if (newSocketPosts.length > 0) {
-        const relevantPosts = category 
-          ? newSocketPosts.filter(post => post.category === category)
+        const relevantPosts = category
+          ? newSocketPosts.filter((post) => post.category === category)
           : newSocketPosts;
 
         if (relevantPosts.length > 0) {
@@ -50,7 +56,10 @@ export const useGetPosts = ({
               if (!old) return old;
               return {
                 ...old,
-                items: [...relevantPosts, ...old.items],
+                items: [...relevantPosts, ...old.items].map((post) => ({
+                  ...post,
+                  hasLiked: userId ? post.likes.includes(userId) : false,
+                })),
                 total: old.total + relevantPosts.length,
               };
             }
@@ -58,24 +67,25 @@ export const useGetPosts = ({
         }
       }
     }
-  }, [socketPosts, query.data, queryClient, category, sortBy, skip, limit]);
+  }, [socketPosts, query.data, queryClient, category, sortBy, skip, limit, userId]);
 
   // Socket event listeners
   useEffect(() => {
     if (!socket || !isConnected) {
-      console.warn('Socket not connected, skipping listeners');
       return;
     }
 
-    const onNewPost = (post: IPost) => {
+    const onNewPost = () => {
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['posts', { category, sortBy, skip, limit }] });
+        queryClient.invalidateQueries({
+          queryKey: ['posts', { category, sortBy, skip, limit }],
+        });
       }, 300);
     };
 
     const onPostDeleted = ({ postId }: { postId: string }) => {
-      queryClient.setQueriesData<PaginatedPostsResponse>(
-        { queryKey: ['posts'] },
+      queryClient.setQueryData<PaginatedPostsResponse>(
+        ['posts', { category, sortBy, skip, limit }],
         (old) => {
           if (!old) return old;
           return {
@@ -87,31 +97,35 @@ export const useGetPosts = ({
       );
     };
 
-    // ✅ Updated and Correct `postLiked` Listener
-    // useGetPosts.ts
-const onPostLiked = ({ postId, userId: likedUserId, likes }) => {
-  console.log('[DEBUG] Received postLiked event:', { postId, likedUserId, likes, currentUserId: userId });
-  queryClient.setQueriesData<PaginatedPostsResponse>(
-    { queryKey: ['posts'] },
-    (old) => {
-      if (!old) return { items: [], total: 0 };
-      const newData = {
-        ...old,
-        items: old.items.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                likes: likes || [],
-                hasLiked: userId ? likes.includes(userId) : false,
-              }
-            : post
-        ),
-      };
-      console.log('[DEBUG] Updated posts cache:', newData.items.find((p) => p.id === postId));
-      return newData;
-    }
-  );
-};
+    const onPostLiked = ({ postId, userId, likes }: PostLikedPayload) => {
+      queryClient.setQueryData<PaginatedPostsResponse>(
+        ['posts', { category, sortBy, skip, limit }],
+        (old) => {
+          if (!old) return { items: [], total: 0, currentSkip: 0, limit: 0 };
+          return {
+            ...old,
+            items: old.items.map((post) =>
+              post.id === postId
+                ? {
+                    ...post,
+                    likes: likes || [],
+                    hasLiked: userId ? likes.includes(userId) : false,
+                  }
+                : post
+            ),
+          };
+        }
+      );
+      // Also update single post cache
+      queryClient.setQueryData(['post', postId], (old: IPost | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          likes: likes || [],
+          hasLiked: userId ? likes.includes(userId) : false,
+        };
+      });
+    };
 
     socket.on('newPost', onNewPost);
     socket.on('postDeleted', onPostDeleted);
@@ -124,11 +138,11 @@ const onPostLiked = ({ postId, userId: likedUserId, likes }) => {
     };
   }, [socket, isConnected, queryClient, category, sortBy, skip, limit, userId]);
 
-  const allPosts = query.data?.items || [];
+  const posts: IPost[] = query.data?.items ?? [];
 
   return {
-    posts: allPosts,
-    total: query.data?.total || 0,
+    posts,
+    total: query.data?.total ?? 0,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     error: query.error,

@@ -4,12 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import './ForgotPassword.css';
 import { ArrowLeft, Mail, Sparkles, SendHorizontal } from "lucide-react";
 import { useForgotPasswordMutation } from "@/hooks/auth/useForgotPassword";
 import { useToaster } from "@/hooks/ui/useToaster";
 import { emailSchema } from "@/utils/validations/email.validator";
 import { Header } from "../headers/Header/PublicHeader";
-// Import shadcn components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,25 +21,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-// Import placeholder image
 import sideImageSrc from "@/assets/common/forgot.jpg";
 import Lottie from "lottie-react";
 import emailSentAnimation from "@/assets/emailSent.json";
 import { ForgotPasswordProps } from "@/types/Response";
 
 const ForgotPassword = ({ role, signInPath }: ForgotPasswordProps) => {
+  
   const [showModal, setShowModal] = useState(false);
   const [animationStep, setAnimationStep] = useState(0);
   const [showFloatingElements, setShowFloatingElements] = useState(true);
   const navigate = useNavigate();
-  const formRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const {
     mutate: forgotPassReq,
     isPending,
-    isError,
-    isSuccess,
   } = useForgotPasswordMutation();
   const { successToast, errorToast } = useToaster();
 
@@ -334,7 +331,7 @@ const ForgotPassword = ({ role, signInPath }: ForgotPasswordProps) => {
                 className="pt-4"
               >
                 <Button
-                  onClick={() => formRef.current.requestSubmit()}
+                  onClick={() => formRef.current!.requestSubmit()}
                   disabled={isPending}
                   className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 shadow-md shadow-violet-200/50 hover:shadow-lg hover:shadow-violet-300/50 transition-all py-6 font-medium"
                 >
@@ -632,21 +629,6 @@ const ForgotPassword = ({ role, signInPath }: ForgotPasswordProps) => {
           </Dialog>
         )}
       </AnimatePresence>
-
-      {/* Add keyframes for gradient animation */}
-      <style jsx global>{`
-        @keyframes gradientShift {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-      `}</style>
     </div>
   );
 };

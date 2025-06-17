@@ -46,8 +46,5 @@ export const useFetchAllTrainers = ({
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,   
     placeholderData: (previousData) => previousData, 
-    onError: (error: any) => {
-      console.error("Query error:", error);
-    },
   });
 };

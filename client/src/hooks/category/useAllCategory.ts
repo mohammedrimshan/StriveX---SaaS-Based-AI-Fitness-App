@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { CategoryResponse } from "@/services/admin/adminService";
+import { CategoryResponse } from "../admin/useAllCategory";
 
 
 export const useAllCategoryQuery = (

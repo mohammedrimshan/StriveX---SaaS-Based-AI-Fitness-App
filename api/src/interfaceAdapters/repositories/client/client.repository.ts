@@ -3,7 +3,7 @@ import { IClientRepository } from "@/entities/repositoryInterfaces/client/client
 import { ClientModel } from "@/frameworks/database/mongoDB/models/client.model";
 import { IClientEntity } from "@/entities/models/client.entity";
 import { BaseRepository } from "../base.repository";
-import { TrainerSelectionStatus } from "@/shared/constants";
+import { PaymentStatus, TrainerSelectionStatus } from "@/shared/constants";
 import { PipelineStage } from "mongoose";
 import { isValidObjectId } from "mongoose";
 
@@ -251,5 +251,186 @@ export class ClientRepository
     const { items, total } = result[0] || { items: [], total: 0 };
     const transformedItems = items.map((item: any) => this.mapToEntity(item));
     return { items: transformedItems, total };
+  }
+
+  async findUserSubscriptions(
+    page: number,
+    limit: number,
+    search?: string,
+    status?: "all" | "active" | "expired"
+  ): Promise<{
+    items: {
+      clientId: string;
+      clientName: string;
+      profileImage?: string;
+      subscriptionStartDate?: Date;
+      subscriptionEndDate?: Date;
+      isExpired: boolean;
+      daysUntilExpiration: number;
+      membershipPlanId?: string;
+      planName?: string;
+      amount?: number;
+      status: string;
+    }[];
+    total: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    const match: any = { isPremium: true };
+
+    if (search) {
+      match["$or"] = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: match },
+      {
+        $lookup: {
+          from: "payments",
+          let: { clientId: "$clientId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$clientId", "$$clientId"] },
+                status: PaymentStatus.COMPLETED,
+              },
+            },
+            { $sort: { createdAt: -1 } },
+            { $limit: 1 },
+          ],
+          as: "latestPayment",
+        },
+      },
+      {
+        $unwind: {
+          path: "$latestPayment",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "membershipplans",
+          let: { planId: { $toObjectId: "$membershipPlanId" } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$planId"] },
+              },
+            },
+          ],
+          as: "plan",
+        },
+      },
+      {
+        $unwind: {
+          path: "$plan",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          clientId: 1,
+          clientName: {
+            $concat: [
+              { $ifNull: ["$firstName", ""] },
+              " ",
+              { $ifNull: ["$lastName", ""] },
+            ],
+          },
+          profileImage: 1,
+          subscriptionStartDate: 1,
+          subscriptionEndDate: 1,
+          isExpired: {
+            $cond: {
+              if: {
+                $or: [
+                  { $eq: ["$subscriptionEndDate", null] },
+                  { $lt: [{ $toDate: "$subscriptionEndDate" }, new Date()] },
+                ],
+              },
+              then: true,
+              else: false,
+            },
+          },
+          daysUntilExpiration: {
+            $cond: {
+              if: { $eq: ["$subscriptionEndDate", null] },
+              then: 0,
+              else: {
+                $divide: [
+                  {
+                    $subtract: [
+                      { $toDate: "$subscriptionEndDate" },
+                      new Date(),
+                    ],
+                  },
+                  1000 * 60 * 60 * 24,
+                ],
+              },
+            },
+          },
+          membershipPlanId: 1,
+          planName: { $ifNull: ["$plan.name", "Unknown Plan"] },
+          amount: "$latestPayment.price",
+          status: "$latestPayment.status",
+        },
+      },
+    ];
+
+    if (status && status !== "all") {
+      pipeline.push({
+        $match: {
+          isExpired: status === "expired",
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $facet: {
+          items: [
+            { $sort: { subscriptionStartDate: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+          total: [{ $count: "count" }],
+        },
+      },
+      {
+        $project: {
+          items: 1,
+          total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
+        },
+      }
+    );
+
+    try {
+      const result = await this.model.aggregate(pipeline).exec();
+      const { items, total } = result[0] || { items: [], total: 0 };
+
+      return {
+        items: items.map((item: any) => ({
+          clientId: item.clientId,
+          clientName: item.clientName.trim() || "Unknown Client",
+          profileImage: item.profileImage,
+          subscriptionStartDate: item.subscriptionStartDate,
+          subscriptionEndDate: item.subscriptionEndDate,
+          isExpired: item.isExpired,
+          daysUntilExpiration: Math.round(item.daysUntilExpiration) || 0,
+          membershipPlanId: item.membershipPlanId,
+          planName: item.planName,
+          amount: item.amount,
+          status: item.status || PaymentStatus.COMPLETED,
+        })),
+        total,
+      };
+    } catch (error) {
+      console.error("Error fetching user subscriptions:", error);
+      throw error;
+    }
   }
 }

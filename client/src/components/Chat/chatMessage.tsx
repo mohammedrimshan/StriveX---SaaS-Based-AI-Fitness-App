@@ -3,182 +3,143 @@
 import React, { useEffect, useRef, useState, useCallback } from "react"
 import { Check, CheckCheck, Reply, Trash2, SmilePlus, Download } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import type { IMessage } from "@/types/Chat"
+import type { ChatMessageProps } from "@/types/Chat"
 import { useSocket } from "@/context/socketContext"
 import { useDeleteMessage } from "@/hooks/chat/useChatQueries"
 import type { UserRole } from "@/types/UserRole"
 import { motion, AnimatePresence } from "framer-motion"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-interface ExtendedMessage extends IMessage {
-  receiverId?: string
-  receiverName?: string
-  senderName?: string
-  replyToId?: string
-}
-
-interface Participant {
-  id: string
-  userId?: string
-  name?: string
-  firstName?: string
-  lastName?: string
-  avatar?: string
-  status?: "online" | "offline"
-}
-
-interface ChatMessageProps {
-  message: ExtendedMessage
-  sender: {
-    id: string
-    firstName: string
-    lastName: string
-    email: string
-    role: "client" | "trainer" | "admin"
-    isOnline: boolean
-    avatar: string
-  }
-  isCurrentUser: boolean
-  onReply: () => void
-  localMessages: ExtendedMessage[]
-  participants: Participant[]
-}
 
 export const ChatMessage = React.memo(
   ({ message, sender, isCurrentUser, onReply, localMessages, participants }: ChatMessageProps) => {
-    const [showActions, setShowActions] = useState(false)
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-    const { addReaction, removeReaction } = useSocket()
-    const { mutate: deleteMessage } = useDeleteMessage("client" as UserRole)
-    const { deleteMessage: socketDeleteMessage } = useSocket();
-    const participantId = isCurrentUser ? String(message.receiverId) : String(message.senderId)
-    const [currentUserReactions, setCurrentUserReactions] = useState<{
-      [emoji: string]: boolean
-    }>({})
-    const actionRef = useRef<HTMLDivElement>(null)
+    const [showActions, setShowActions] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const { addReaction, removeReaction, deleteMessage: socketDeleteMessage } = useSocket();
+    const { mutate: deleteMessage } = useDeleteMessage("client" as UserRole);
+    const participantId = isCurrentUser ? String(message.receiverId) : String(message.senderId);
+    const [currentUserReactions, setCurrentUserReactions] = useState<{ [emoji: string]: boolean }>({});
+    const actionRef = useRef<HTMLDivElement>(null);
 
     const replyToMessage = message.replyToId
       ? localMessages.find((msg) => String(msg.id) === String(message.replyToId))
-      : undefined
+      : undefined;
 
     const replyToSender = replyToMessage
       ? participants.find(
           (p) =>
             String(p.userId) === String(replyToMessage.senderId) || String(p.id) === String(replyToMessage.senderId),
         )
-      : undefined
+      : undefined;
 
     const getReplyToSenderName = () => {
-      if (!replyToMessage) return "Unknown User"
+      if (!replyToMessage) return "Unknown User";
 
       if (replyToSender) {
-        const firstName = replyToSender.firstName || replyToSender.name?.split(" ")[0] || ""
-        const lastName = replyToSender.lastName || replyToSender.name?.split(" ").slice(1).join(" ") || ""
-        return `${firstName} ${lastName}`.trim() || "Unknown User"
+        const firstName = replyToSender.firstName || replyToSender.name?.split(" ")[0] || "";
+        const lastName = replyToSender.lastName || replyToSender.name?.split(" ").slice(1).join(" ") || "";
+        return `${firstName} ${lastName}`.trim() || "Unknown User";
       }
 
       if (replyToMessage.senderName) {
-        return replyToMessage.senderName
+        return replyToMessage.senderName;
       }
 
-      return "You"
-    }
+      return "You";
+    };
 
     const formattedTime =
-      new Date(message.createdAt || message?.timestamp).getHours().toString().padStart(2, "0") +
+      new Date(message.createdAt || message.timestamp || 0).getHours().toString().padStart(2, "0") +
       ":" +
-      new Date(message.createdAt || message?.timestamp).getMinutes().toString().padStart(2, "0")
+      new Date(message.createdAt || message.timestamp || 0).getMinutes().toString().padStart(2, "0");
 
-    const emojis = ["❤️", "👍", "😂", "😮", "😢", "🙏"]
+    const emojis = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
-    // Memoize the reaction handler to prevent unnecessary re-renders
-    const handleReactionClick = useCallback((emoji: string) => {
-      const hasReacted = currentUserReactions[emoji]
-      console.log('Reaction clicked:', {
-        messageId: message.id,
-        emoji,
-        hasReacted,
-        participantId,
-        action: hasReacted ? 'remove' : 'add',
-      })
-      
-      // Update local state optimistically for immediate feedback
-      setCurrentUserReactions(prev => ({
-        ...prev,
-        [emoji]: !hasReacted
-      }))
-      
-      if (hasReacted) {
-        removeReaction(String(message.id), emoji, participantId)
-      } else {
-        addReaction(String(message.id), emoji, participantId)
-      }
-      setShowEmojiPicker(false)
-    }, [message.id, currentUserReactions, participantId, addReaction, removeReaction])
+    const handleReactionClick = useCallback(
+      (emoji: string) => {
+        const hasReacted = currentUserReactions[emoji];
+        console.log('Reaction clicked:', {
+          messageId: message.id,
+          emoji,
+          hasReacted,
+          participantId,
+          action: hasReacted ? 'remove' : 'add',
+        });
+        
+        setCurrentUserReactions((prev) => ({
+          ...prev,
+          [emoji]: !hasReacted,
+        }));
+        
+        if (hasReacted) {
+          removeReaction(String(message.id), emoji, participantId);
+        } else {
+          addReaction(String(message.id), emoji, participantId);
+        }
+        setShowEmojiPicker(false);
+      },
+      [message.id, currentUserReactions, participantId, addReaction, removeReaction],
+    );
 
-    // Update reactions whenever the message reactions change
     useEffect(() => {
       if (!message.reactions) {
-        setCurrentUserReactions({})
-        return
+        setCurrentUserReactions({});
+        return;
       }
       
-      const userReactions: { [emoji: string]: boolean } = {}
-      const currentUserId = isCurrentUser ? String(message.senderId) : String(participantId)
+      const userReactions: { [emoji: string]: boolean } = {};
+      const currentUserId = isCurrentUser ? String(message.senderId) : String(participantId);
       
       message.reactions.forEach((reaction) => {
-        const users = Array.isArray(reaction.users) ? reaction.users : [reaction.users].filter(Boolean)
-        userReactions[reaction.emoji] = users.includes(currentUserId)
-      })
+        userReactions[reaction.emoji] = reaction.users.includes(currentUserId);
+      });
       
       console.log('Updated currentUserReactions:', {
         messageId: message.id,
         userId: currentUserId,
         reactions: userReactions,
         rawReactions: message.reactions,
-      })
+      });
       
-      setCurrentUserReactions(userReactions)
-    }, [message.reactions, isCurrentUser, message.senderId, participantId, message.id])
+      setCurrentUserReactions(userReactions);
+    }, [message.reactions, isCurrentUser, message.senderId, participantId, message.id]);
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (actionRef.current && !actionRef.current.contains(event.target as Node)) {
-          setShowEmojiPicker(false)
+          setShowEmojiPicker(false);
         }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleDelete = () => {
+      console.log("Deleting message:", { messageId: message.id, participantId });
+      if (message.id.startsWith("temp-")) {
+        socketDeleteMessage(String(message.id), participantId);
+      } else {
+        deleteMessage({ messageId: String(message.id), participantId });
       }
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => document.removeEventListener("mousedown", handleClickOutside)
-    }, [])
+    };
 
-
-const handleDelete = () => {
-  console.log("Deleting message:", { messageId: message.id, participantId });
-  if (message.id.startsWith("temp-")) {
-    socketDeleteMessage(String(message.id), participantId);
-  } else {
-    deleteMessage({ messageId: String(message.id), participantId });
-  }
-};
-    // Function to check if a URL is a PDF
     const isPdfUrl = (url: string) => {
       return (
         url?.toLowerCase().endsWith(".pdf") ||
         (url?.toLowerCase().includes("cloudinary") && url?.toLowerCase().includes(".pdf"))
-      )
-    }
+      );
+    };
 
-    // Function to get filename from URL
     const getFilenameFromUrl = (url: string) => {
       try {
-        const urlObj = new URL(url)
-        const pathname = urlObj.pathname
-        const filename = pathname.split("/").pop() || "document.pdf"
-        return filename
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname;
+        const filename = pathname.split("/").pop() || "document.pdf";
+        return filename;
       } catch (e) {
-        return "document.pdf"
+        return "document.pdf";
       }
-    }
+    };
 
     return (
       <motion.div
@@ -189,7 +150,6 @@ const handleDelete = () => {
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
-        {/* Always show avatar for non-current user */}
         {!isCurrentUser && (
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -451,32 +411,28 @@ const handleDelete = () => {
               transition={{ duration: 0.2 }}
               className={cn("flex flex-wrap gap-1 mt-0.5", isCurrentUser ? "justify-end" : "justify-start")}
             >
-              {message.reactions.map((reaction, index) => {
-                const users = Array.isArray(reaction.users) ? reaction.users : [reaction.users].filter(Boolean)
-                return (
-                  <motion.div
-                    key={`${reaction.emoji}-${index}`}
-                    whileHover={{ scale: 1.05 }}
-                    className={cn(
-                      "bg-white shadow-sm rounded-full px-1.5 py-0.5 text-xs flex items-center gap-1 hover:shadow transition-all duration-200 border border-slate-100",
-                      currentUserReactions[reaction.emoji] && "bg-emerald-50 border-emerald-100",
-                    )}
-                    onClick={() => handleReactionClick(reaction.emoji)}
-                    style={{ cursor: "pointer" }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && handleReactionClick(reaction.emoji)}
-                  >
-                    <span>{reaction.emoji}</span>
-                    <span className="text-slate-500 text-[10px] font-medium">{users.length}</span>
-                  </motion.div>
-                )
-              })}
+              {message.reactions.map((reaction, index) => (
+                <motion.div
+                  key={`${reaction.emoji}-${index}`}
+                  whileHover={{ scale: 1.05 }}
+                  className={cn(
+                    "bg-white shadow-sm rounded-full px-1.5 py-0.5 text-xs flex items-center gap-1 hover:shadow transition-all duration-200 border border-slate-100",
+                    currentUserReactions[reaction.emoji] && "bg-emerald-50 border-emerald-100",
+                  )}
+                  onClick={() => handleReactionClick(reaction.emoji)}
+                  style={{ cursor: "pointer" }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && handleReactionClick(reaction.emoji)}
+                >
+                  <span>{reaction.emoji}</span>
+                  <span className="text-slate-500 text-[10px] font-medium">{reaction.users.length}</span>
+                </motion.div>
+              ))}
             </motion.div>
           )}
         </div>
 
-        {/* Always show avatar for current user */}
         {isCurrentUser && (
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -492,10 +448,9 @@ const handleDelete = () => {
           </motion.div>
         )}
       </motion.div>
-    )
+    );
   },
   (prevProps, nextProps) => {
-    // Improved comparison function for better re-rendering optimization
     const prevReactions = JSON.stringify(prevProps.message.reactions || []);
     const nextReactions = JSON.stringify(nextProps.message.reactions || []);
     
@@ -507,6 +462,6 @@ const handleDelete = () => {
       prevProps.message.status === nextProps.message.status &&
       prevProps.isCurrentUser === nextProps.isCurrentUser &&
       String(prevProps.sender.id) === String(nextProps.sender.id)
-    )
+    );
   },
-)
+);

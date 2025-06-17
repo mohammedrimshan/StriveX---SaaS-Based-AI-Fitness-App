@@ -16,7 +16,6 @@ export const SlotCard: React.FC<SlotCardProps> = ({
   endTime,
   isBooked,
   isAvailable,
-  clientId,
   clientName,
 }) => {
   // Format time for display (HH:MM AM/PM)

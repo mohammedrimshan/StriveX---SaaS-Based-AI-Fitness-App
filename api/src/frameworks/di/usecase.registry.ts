@@ -270,6 +270,8 @@ import { IGetClientProgressUseCase } from "@/entities/useCaseInterfaces/trainer/
 import { GetClientProgressUseCase } from "@/useCases/trainer/Dashboard/get-client-progress.usecase";
 import { IGetTrainerSessionHistoryUseCase } from "@/entities/useCaseInterfaces/trainer/Dashboard/get-session-history.usecase.interface";
 import { GetTrainerSessionHistoryUseCase } from "@/useCases/trainer/Dashboard/get-session-history.usecase";
+import { IGetUserSubscriptionsUseCase } from "@/entities/useCaseInterfaces/admin/get-usersubscriptions-useCase.interface";
+import { GetUserSubscriptionsUseCase } from "@/useCases/admin/get-user-subscriptions.usecase";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
 
@@ -1009,6 +1011,13 @@ export class UseCaseRegistry {
       "IGetTrainerSessionHistoryUseCase",
       {
         useClass: GetTrainerSessionHistoryUseCase,
+      }
+    );
+
+    container.register<IGetUserSubscriptionsUseCase>(
+      "IGetUserSubscriptionsUseCase",
+      {
+        useClass: GetUserSubscriptionsUseCase,
       }
     );
   }

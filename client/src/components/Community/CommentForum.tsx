@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast"
 interface CommentFormProps {
   postId: string
   onSubmit: (postId: string, comment: string) => void
+   disabled?: boolean
 }
 
 const CommentForm: React.FC<CommentFormProps> = ({ postId, onSubmit }) => {

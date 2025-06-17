@@ -2,25 +2,26 @@
 import React from "react";
 import { CheckCircle, Circle } from "lucide-react";
 import { motion } from "framer-motion";
-import { Workout } from "@/types/Workouts";
+import {  WorkoutDetailsPro } from "@/types/Workouts";
 
 interface ProgressTrackerProps {
   totalExercises: number;
   completedExercises: number;
   currentExerciseIndex: number;
   exerciseProgress: { exerciseId: string; videoProgress: number; status: string }[];
-  workout: Workout;
+  workout: WorkoutDetailsPro; // Change to WorkoutDetailsPro
 }
 
-const isValidObjectId = (id: string): boolean => /^[0-9a-fA-F]{24}$/.test(id);
-
-const ProgressTracker: React.FC<ProgressTrackerProps> = ({
+// ProgressTracker.tsx
+const ProgressTracker: React.FC<ProgressTrackerProps> = React.memo(({
   totalExercises,
   completedExercises,
   currentExerciseIndex,
   exerciseProgress,
   workout,
 }) => {
+  const isValidObjectId = (id: string): boolean => /^[0-9a-fA-F]{24}$/.test(id);
+
   const overallProgress =
     exerciseProgress.length > 0
       ? Math.round(
@@ -91,6 +92,6 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
       </div>
     </motion.div>
   );
-};
+});
 
 export default ProgressTracker;

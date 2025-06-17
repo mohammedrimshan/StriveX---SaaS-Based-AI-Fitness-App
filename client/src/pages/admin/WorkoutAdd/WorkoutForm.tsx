@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Dumbbell } from "lucide-react";
-import { Workout, Exercise, Category } from "@/types/Workouts";
+import { Workout, Exercise } from "@/types/Workouts";
 import { useWorkouts } from "@/hooks/admin/useAddWorkout";
 import { useToaster } from "@/hooks/ui/useToaster";
 import { getAllCategories } from "@/services/admin/adminService";
@@ -12,6 +12,7 @@ import ExerciseList from "./ExerciseList";
 import ReviewStep from "./ReviewStep";
 import StepNavigation from "./StepNavigation";
 import ImageCropDialog from "./ImageCropDialog";
+import { CategoryType } from "@/hooks/admin/useAllCategory";
 
 const emptyExercise: Exercise = {
   id: "",
@@ -19,7 +20,7 @@ const emptyExercise: Exercise = {
   description: "",
   duration: 0,
   defaultRestDuration: 30,
-  videoUrl: "", 
+  videoUrl: "",
 };
 
 const containerVariants = {
@@ -33,7 +34,7 @@ const containerVariants = {
 const WorkoutForm: React.FC = () => {
   const { successToast, errorToast } = useToaster();
   const [activeStep, setActiveStep] = useState(0);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryType[]>([]);
   const { addWorkout, isAdding } = useWorkouts();
   const formRef = useRef<HTMLFormElement>(null);
   const [isVideoUploading, setIsVideoUploading] = useState(false);
@@ -52,7 +53,9 @@ const WorkoutForm: React.FC = () => {
   const [currentExercise, setCurrentExercise] = useState<Exercise>({
     ...emptyExercise,
   });
-  const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null);
+  const [editingExerciseIndex, setEditingExerciseIndex] = useState<
+    number | null
+  >(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
@@ -81,20 +84,21 @@ const WorkoutForm: React.FC = () => {
       0
     );
     const restTime =
-      workout.exercises.reduce((sum, ex) => sum + ex.defaultRestDuration, 0) / 60;
+      workout.exercises.reduce((sum, ex) => sum + ex.defaultRestDuration, 0) /
+      60;
     return Math.max(1, Math.round(exercisesTime + restTime));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submission triggered");
-    
+
     // Only allow submission on the last step
     if (activeStep !== 2) {
       console.log("Prevented submission: not on last step");
       return;
     }
-    
+
     const updatedDuration = calculateTotalDuration();
     setWorkout((prev) => ({ ...prev, duration: updatedDuration }));
 
@@ -225,11 +229,11 @@ const WorkoutForm: React.FC = () => {
               onVideoUpload={async (file) => {
                 // Set uploading flag
                 setIsVideoUploading(true);
-                
+
                 // Always set local preview immediately for user feedback
                 const previewUrl = URL.createObjectURL(file);
                 setVideoPreviewUrl(previewUrl);
-                
+
                 try {
                   // Upload to cloudinary - wait for completion
                   const cloudinaryUrl = await uploadToCloudinary(
@@ -237,11 +241,11 @@ const WorkoutForm: React.FC = () => {
                     "exercises/videos",
                     "video"
                   );
-                  
+
                   console.log("Video uploaded successfully:", cloudinaryUrl);
-                  
+
                   // Update the current exercise with the URL
-                  setCurrentExercise(prev => {
+                  setCurrentExercise((prev) => {
                     const updated = { ...prev, videoUrl: cloudinaryUrl };
                     console.log("Updated exercise with video:", updated);
                     return updated;
@@ -265,7 +269,7 @@ const WorkoutForm: React.FC = () => {
                   errorToast("Please wait for video upload to complete.");
                   return;
                 }
-                
+
                 if (
                   !currentExercise.name ||
                   !currentExercise.description ||
@@ -276,40 +280,46 @@ const WorkoutForm: React.FC = () => {
                   );
                   return;
                 }
-                
+
                 // Create a complete exercise object with all necessary fields
                 const exerciseToAdd: Exercise = {
                   ...currentExercise,
                   id: currentExercise.id || crypto.randomUUID(),
                   videoUrl: currentExercise.videoUrl || "", // Ensure it's a string
                 };
-                
+
                 console.log("Adding exercise:", exerciseToAdd);
-                
+
                 if (editingExerciseIndex !== null) {
                   const updatedExercises = [...workout.exercises];
                   updatedExercises[editingExerciseIndex] = exerciseToAdd;
-                  setWorkout(prev => {
+                  setWorkout((prev) => {
                     const updated = { ...prev, exercises: updatedExercises };
-                    console.log("Updated exercises list (edit):", updated.exercises);
+                    console.log(
+                      "Updated exercises list (edit):",
+                      updated.exercises
+                    );
                     return updated;
                   });
                   setEditingExerciseIndex(null);
                 } else {
-                  setWorkout(prev => {
-                    const updated = { 
-                      ...prev, 
-                      exercises: [...prev.exercises, exerciseToAdd]
+                  setWorkout((prev) => {
+                    const updated = {
+                      ...prev,
+                      exercises: [...prev.exercises, exerciseToAdd],
                     };
-                    console.log("Updated exercises list (add):", updated.exercises);
+                    console.log(
+                      "Updated exercises list (add):",
+                      updated.exercises
+                    );
                     return updated;
                   });
                 }
-                
+
                 // Reset form and update duration
                 setCurrentExercise({ ...emptyExercise });
                 setVideoPreviewUrl(null);
-                
+
                 // Calculate new duration based on updated exercises
                 const updatedDuration = calculateTotalDuration();
                 setWorkout((prev) => ({ ...prev, duration: updatedDuration }));
@@ -321,27 +331,35 @@ const WorkoutForm: React.FC = () => {
                 exercises={workout.exercises}
                 onEdit={(index) => {
                   // Deep copy to avoid reference issues
-                  const exerciseToEdit = JSON.parse(JSON.stringify(workout.exercises[index]));
+                  const exerciseToEdit = JSON.parse(
+                    JSON.stringify(workout.exercises[index])
+                  );
                   console.log("Editing exercise:", exerciseToEdit);
-                  
+
                   // Set all properties explicitly
                   setCurrentExercise({
                     id: exerciseToEdit.id || "",
                     name: exerciseToEdit.name || "",
                     description: exerciseToEdit.description || "",
                     duration: exerciseToEdit.duration || 0,
-                    defaultRestDuration: exerciseToEdit.defaultRestDuration || 30,
+                    defaultRestDuration:
+                      exerciseToEdit.defaultRestDuration || 30,
                     videoUrl: exerciseToEdit.videoUrl || "",
                   });
-                  
+
                   setVideoPreviewUrl(exerciseToEdit.videoUrl || null);
                   setEditingExerciseIndex(index);
                 }}
                 onRemove={(index) => {
-                  const updatedExercises = workout.exercises.filter((_, i) => i !== index);
+                  const updatedExercises = workout.exercises.filter(
+                    (_, i) => i !== index
+                  );
                   setWorkout({ ...workout, exercises: updatedExercises });
                   const updatedDuration = calculateTotalDuration();
-                  setWorkout((prev) => ({ ...prev, duration: updatedDuration }));
+                  setWorkout((prev) => ({
+                    ...prev,
+                    duration: updatedDuration,
+                  }));
                 }}
               />
             )}
@@ -353,7 +371,9 @@ const WorkoutForm: React.FC = () => {
             workout={workout}
             categories={categories}
             croppedImageUrl={croppedImageUrl}
-            onStatusChange={(status) => setWorkout((prev) => ({ ...prev, status }))}
+            onStatusChange={(status) =>
+              setWorkout((prev) => ({ ...prev, status }))
+            }
           />
         );
       default:
@@ -363,7 +383,7 @@ const WorkoutForm: React.FC = () => {
 
   return (
     // Use onSubmit only for intentional submissions from the final step
-    <form 
+    <form
       ref={formRef}
       onSubmit={(e) => {
         e.preventDefault(); // Always prevent default form submission
@@ -372,7 +392,7 @@ const WorkoutForm: React.FC = () => {
         } else {
           console.log("Form submission prevented - not on final step");
         }
-      }} 
+      }}
       className="max-w-3xl mx-auto"
     >
       <motion.div
@@ -396,17 +416,23 @@ const WorkoutForm: React.FC = () => {
       <div className="mb-8">
         <div className="flex justify-between mb-2">
           <span
-            className={`text-sm font-medium ${activeStep === 0 ? "text-purple-600 font-semibold" : ""}`}
+            className={`text-sm font-medium ${
+              activeStep === 0 ? "text-purple-600 font-semibold" : ""
+            }`}
           >
             Basic Info
           </span>
           <span
-            className={`text-sm font-medium ${activeStep === 1 ? "text-purple-600 font-semibold" : ""}`}
+            className={`text-sm font-medium ${
+              activeStep === 1 ? "text-purple-600 font-semibold" : ""
+            }`}
           >
             Exercises
           </span>
           <span
-            className={`text-sm font-medium ${activeStep === 2 ? "text-purple-600 font-semibold" : ""}`}
+            className={`text-sm font-medium ${
+              activeStep === 2 ? "text-purple-600 font-semibold" : ""
+            }`}
           >
             Review
           </span>
@@ -453,6 +479,9 @@ const WorkoutForm: React.FC = () => {
             console.error("Image upload error:", error);
           }
         }}
+        dialogTitle="Crop Workout Image"
+        aspectRatio={16 / 9}
+        maxWidth={600}
       />
     </form>
   );

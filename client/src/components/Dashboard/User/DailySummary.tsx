@@ -19,13 +19,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  const todayWorkouts = workoutProgress.filter(workout => {
-    const workoutDate = new Date(workout.date);
-    const today = new Date();
-    return workoutDate.toDateString() === today.toDateString();
-  });
-
-  const totalCalories = workoutProgress.reduce((sum, workout) => sum + (workout.caloriesBurned || 0), 0);
+ const totalCalories = workoutProgress.reduce((sum, workout) => sum + (workout.caloriesBurned || 0), 0);
   const completedWorkouts = workoutProgress.filter(workout => workout.completed).length;
 
   const stats = [

@@ -12,7 +12,7 @@ export const useDeleteComment = () => {
         items: old?.items?.filter((comment: any) => comment.id !== id) || [],
         total: (old?.total || 0) - 1,
       }));
-      queryClient.invalidateQueries(['comments']);
+      queryClient.invalidateQueries({ queryKey: ["comments"] })
     },
     onError: (error) => {
       console.error('Delete comment error:', error.message);

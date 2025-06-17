@@ -3,7 +3,6 @@ export const parseISO = (dateString: string): Date => {
 };
 
 export const format = (date: Date, formatStr: string): string => {
-  const options: Intl.DateTimeFormatOptions = {};
   
   if (formatStr === 'dd MMM yyyy, hh:mm a') {
     return date.toLocaleString('en-GB', {

@@ -1,3 +1,4 @@
+import { CategoryType } from "@/hooks/admin/useAllCategory";
 
 export interface Exercise {
   _id?: string; 
@@ -25,9 +26,18 @@ export interface Workout {
   updatedAt?: Date;
 }
 
-export interface Category {
-  _id: string;
+export interface WorkoutDetailsPro {
+  _id?: string;
+  id?: string;
   title: string;
   description: string;
+  category: CategoryType;
+  duration: number;
+  difficulty: "Beginner" | "Intermediate" | "Advanced";
+  imageUrl?: string;
+  exercises: Exercise[];
+  isPremium: boolean;
   status: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

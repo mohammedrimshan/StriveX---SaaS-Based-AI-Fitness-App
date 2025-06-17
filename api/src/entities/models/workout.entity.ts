@@ -1,6 +1,3 @@
-
-import { Types } from "mongoose";
-
 export interface IExerciseEntity {
   _id?: string; 
   name: string;

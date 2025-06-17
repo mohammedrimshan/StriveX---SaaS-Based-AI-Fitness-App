@@ -11,7 +11,7 @@ interface UsePaginationReturn {
   resetPage: () => void;
 }
 
-export const usePagination = (data: WalletRecord[], totalItems: number, totalPages: number, itemsPerPage: number): UsePaginationReturn => {
+export const usePagination = (data: WalletRecord[], totalItems: number, totalPages: number, ): UsePaginationReturn => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Use server-provided data directly

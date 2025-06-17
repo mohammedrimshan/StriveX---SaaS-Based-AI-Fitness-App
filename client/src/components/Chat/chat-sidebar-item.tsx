@@ -15,12 +15,9 @@ interface ChatSidebarItemProps {
   onClick: () => void
 }
 
-export function ChatSidebarItem({ chat, currentUserId, isActive, onClick }: ChatSidebarItemProps) {
+export function ChatSidebarItem({ chat, isActive, onClick }: ChatSidebarItemProps) {
   const participant = chat.participant
   const latestMessage = chat.lastMessage
-
-  // Debug log
-  console.log("ChatSidebarItem:", { chat, currentUserId, isActive })
 
   const truncateText = (text: string, maxLength = 30) => {
     if (!text) return ""

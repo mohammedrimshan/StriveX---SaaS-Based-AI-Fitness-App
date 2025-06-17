@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Award, Briefcase, GraduationCap, MessageCircle, Star } from 'lucide-react'
+import { Award, GraduationCap, MessageCircle, Star } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
@@ -28,8 +28,6 @@ export default function TrainerCard({ trainer }: TrainerCardProps) {
 
   // Calculate rating stars
   const rating = trainer.rating || 4.5
-  const fullStars = Math.floor(rating)
-  const hasHalfStar = rating % 1 >= 0.5
 
   // Handle navigation to trainer profile
   const handleViewProfile = () => {

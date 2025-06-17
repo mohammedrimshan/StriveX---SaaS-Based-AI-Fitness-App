@@ -388,5 +388,15 @@ export class AdminRoutes extends BaseRoute {
         adminDashboardController.exportSessionReport(req, res);
       }
     );
+
+    router.get(
+      "/admin/user-subscriptions",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        adminController.getUserSubscriptions(req, res);
+      }
+    );
   }
 }

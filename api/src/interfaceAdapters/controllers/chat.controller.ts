@@ -11,9 +11,9 @@ import { CustomError } from "@/entities/utils/custom.error";
 import { ERROR_MESSAGES, HTTP_STATUS, ROLES } from "@/shared/constants";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { SocketService } from "@/interfaceAdapters/services/socket.service";
-
+import { IChatController } from "@/entities/controllerInterfaces/chat.controller.interface";
 @injectable()
-export class ChatController {
+export class ChatController implements IChatController {
   constructor(
     @inject("IGetChatHistoryUseCase")
     private _getChatHistoryUseCase: IGetChatHistoryUseCase,

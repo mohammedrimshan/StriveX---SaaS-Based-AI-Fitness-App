@@ -6,7 +6,7 @@ export const useSubmitReview = () => {
   const queryClient = useQueryClient();
   return useMutation<Review, Error, ReviewInput>({
     mutationFn: submitReview,
-    onSuccess: (data, variables) => {
+    onSuccess: ( variables) => {
       queryClient.invalidateQueries({ queryKey: ["trainerProfile", variables.trainerId] });
       queryClient.invalidateQueries({ queryKey: ["trainerReviews", variables.trainerId] });
     },
@@ -47,7 +47,7 @@ export const useUpdateReview = () => {
   const queryClient = useQueryClient();
   return useMutation<Review, Error, UpdateReviewInput>({
     mutationFn: updateReview,
-    onSuccess: (data, variables) => {
+    onSuccess: ( variables) => {
       queryClient.invalidateQueries({ queryKey: ["trainerProfile", variables.trainerId] });
       queryClient.invalidateQueries({ queryKey: ["trainerReviews", variables.trainerId] });
     },

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { createPost } from '@/services/client/clientService';
 import { useSocket } from '@/context/socketContext';
 import { UserRole } from '@/types/UserRole';
-import { IPost } from '@/services/client/clientService'; 
+import { IPost } from '@/types/Post';
 
 interface CreatePostData {
   textContent: string;

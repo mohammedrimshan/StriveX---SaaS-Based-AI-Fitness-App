@@ -1,63 +1,61 @@
-"use client"
-
-import React from "react"
-import { useSelector } from "react-redux"
-import { toast } from "react-hot-toast"
-import type { IPost } from "@/services/client/clientService"
-import { Drawer, DrawerContent } from "@/components/ui/drawer"
-import CommentList from "./CommentList"
-import CommentForm from "./CommentForum"
-import { selectCurrentUser } from "@/store/userSelectors"
-import { useGetPost } from "@/hooks/community/useGetPost"
-import { useLikePost } from "@/hooks/community/useLikePost"
-import { useCreateComment } from "@/hooks/community/useCreateComment"
-import { useGetComments } from "@/hooks/community/useGetComments"
-import { X, Heart, MessageCircle, Send, Bookmark } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { formatDistanceToNow } from "date-fns"
-import { Button } from "@/components/ui/button"
+import React from "react";
+import { useSelector } from "react-redux";
+import { toast } from "react-hot-toast";
+import { IPost, IComment } from "@/types/Post";
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import CommentList from "./CommentList";
+import CommentForm from "./CommentForum";
+import { selectCurrentUser } from "@/store/userSelectors";
+import { useGetPost } from "@/hooks/community/useGetPost";
+import { useLikePost } from "@/hooks/community/useLikePost";
+import { useCreateComment } from "@/hooks/community/useCreateComment";
+import { useGetComments } from "@/hooks/community/useGetComments";
+import { X, Heart, MessageCircle, Send, Bookmark } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface PostDetailDrawerProps {
-  post: IPost | null
-  isOpen: boolean
-  onClose: () => void
+  post: IPost | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onLike: (postId: string) => Promise<void>;
+  isLiking: boolean;
 }
 
-const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClose }) => {
-  const currentUser = useSelector(selectCurrentUser)
-  const [isSaved, setIsSaved] = React.useState(false)
-  const { post: fetchedPost, isLoading: postLoading, error: postError } = useGetPost(post?.id || "")
-  const { comments, total, isLoading: commentsLoading, error: commentsError } = useGetComments(post?.id || "")
-  const { likePost, isLiking } = useLikePost()
-  const { createComment, isCreating: isCreatingComment } = useCreateComment()
+const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClose, onLike, isLiking }) => {
+  const currentUser = useSelector(selectCurrentUser);
+  const [isSaved, setIsSaved] = React.useState(false);
+  const { post: fetchedPost, isLoading: postLoading, error: postError } = useGetPost(post?.id || "");
+  const { likePost, isPending } = useLikePost();
+  const { createComment, isCreating: isCreatingComment } = useCreateComment();
+  const { comments: rawComments, isLoading: commentsLoading, error: commentsError } = useGetComments(post?.id || "");
 
-  // Properly handle the displayPost to avoid undefined errors
-  // Always prioritize the post prop, and only use fetchedPost as a supplement if available
+  const comments: IComment[] = rawComments.map((comment) => ({
+    ...comment,
+    createdAt: new Date(comment.createdAt),
+    updatedAt: new Date(comment.updatedAt),
+    role: comment.author?.role || "client",
+  }));
+
   const displayPost = React.useMemo(() => {
-    // Always start with the post prop as the base
     if (!post) return null;
-    
-    // If we have a fetchedPost, merge it with the original post
-    // but only take non-null/undefined values from fetchedPost
     if (fetchedPost) {
       return {
         ...post,
         ...Object.fromEntries(
           Object.entries(fetchedPost).filter(([_, value]) => value !== null && value !== undefined)
-        )
+        ),
       };
     }
-    
-    // If no fetchedPost available, just use the original post
     return post;
   }, [post, fetchedPost]);
 
-  console.log('[DEBUG] displayPost:', displayPost)
-
   const handleLike = () => {
     if (!currentUser?.role || !currentUser?.id) {
-      toast.error("Please log in to like posts")
-      return
+      toast.error("Please log in to like posts");
+      return;
     }
     if (displayPost?.id) {
       likePost(
@@ -66,14 +64,15 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
           onSuccess: () => toast.success(displayPost.hasLiked ? "Post unliked" : "Post liked"),
           onError: (err) => toast.error(err.message || "Failed to like post"),
         }
-      )
+      );
+      onLike(displayPost.id);
     }
-  }
+  };
 
   const handleAddComment = (postId: string, textContent: string) => {
     if (!currentUser?.role) {
-      toast.error("Please log in to comment")
-      return
+      toast.error("Please log in to comment");
+      return;
     }
     createComment(
       { postId, textContent, role: currentUser.role },
@@ -81,17 +80,20 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
         onSuccess: () => toast.success("Comment added"),
         onError: (err) => toast.error(err.message || "Failed to add comment"),
       }
-    )
-  }
+    );
+  };
 
   if (!isOpen || !post?.id) {
-    return null
+    return null;
   }
 
   if (!displayPost) {
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
         <DrawerContent className="max-h-[90vh] p-0 rounded-t-xl">
+          <VisuallyHidden asChild>
+            <DrawerTitle>Post Not Found</DrawerTitle>
+          </VisuallyHidden>
           <div className="flex items-center justify-between p-4 border-b">
             <Button variant="ghost" size="icon" onClick={onClose} className="text-black">
               <X className="h-6 w-6" />
@@ -105,54 +107,55 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
           </div>
         </DrawerContent>
       </Drawer>
-    )
+    );
   }
 
-  const hasMedia = !!displayPost.mediaUrl
-  const hasLiked = displayPost.hasLiked || (currentUser?.id && displayPost.likes?.includes(currentUser.id)) || false
+  const hasMedia = !!displayPost.mediaUrl;
+  const hasLiked = displayPost.hasLiked || (currentUser?.id && displayPost.likes?.includes(currentUser.id)) || false;
 
   const getInitials = (name?: string) => {
-    if (!name) return "U"
-    const nameParts = name.split(" ")
+    if (!name) return "U";
+    const nameParts = name.split(" ");
     if (nameParts.length >= 2) {
-      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
     }
-    return name[0].toUpperCase()
-  }
+    return name[0].toUpperCase();
+  };
 
   const formatTimeAgo = (dateStr: string | Date | undefined): string => {
-    if (!dateStr) return "Some time ago"
+    if (!dateStr) return "Some time ago";
     try {
-      const date = new Date(dateStr)
+      const date = new Date(dateStr);
       if (isNaN(date.getTime())) {
-        return "Some time ago"
+        return "Some time ago";
       }
-      return formatDistanceToNow(date, { addSuffix: true })
+      return formatDistanceToNow(date, { addSuffix: true });
     } catch (error) {
-      console.error("[DEBUG] Invalid date format:", dateStr, error)
-      return "Some time ago"
+      console.error("[DEBUG] Invalid date format:", dateStr, error);
+      return "Some time ago";
     }
-  }
+  };
 
   const authorName =
     displayPost.author?.firstName && displayPost.author?.lastName
       ? `${displayPost.author.firstName} ${displayPost.author.lastName}`.trim()
-      : "Anonymous"
+      : "Anonymous";
 
-  // Only show error toasts if we're not showing fallback data
-  // This prevents error messages when the API fails but we have prop data
   if (postError && !displayPost) {
-    console.error('[DEBUG] Post error:', postError)
-    toast.error(postError.message || "Failed to load post details")
+    console.error("[DEBUG] Post error:", postError);
+    toast.error(postError.message || "Failed to load post details");
   }
   if (commentsError) {
-    console.error('[DEBUG] Comments error:', commentsError)
-    toast.error(commentsError.message || "Failed to load comments")
+    console.error("[DEBUG] Comments error:", commentsError);
+    toast.error(commentsError.message || "Failed to load comments");
   }
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="max-h-[90vh] p-0 rounded-t-xl">
+        <VisuallyHidden asChild>
+          <DrawerTitle>Post Details</DrawerTitle>
+        </VisuallyHidden>
         <div className="flex items-center justify-between p-4 border-b">
           <Button variant="ghost" size="icon" onClick={onClose} className="text-black">
             <X className="h-6 w-6" />
@@ -160,7 +163,6 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
           <h2 className="text-lg font-semibold">Post</h2>
           <div className="w-6"></div>
         </div>
-
         {postLoading && !displayPost ? (
           <div className="flex flex-col items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0095F6]"></div>
@@ -177,7 +179,6 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
                 />
               </div>
             )}
-
             <div className={`flex flex-col ${hasMedia ? "md:w-1/2" : "w-full"} max-h-full`}>
               <div className="flex items-center p-4 border-b">
                 <Avatar className="h-8 w-8 mr-3 border border-gray-200">
@@ -196,7 +197,7 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
                 <div>
                   <div className="flex items-center">
                     <h3 className="font-semibold text-sm">{authorName}</h3>
-                    {(displayPost.role === "trainer") && (
+                    {displayPost.role === "trainer" && (
                       <svg
                         className="w-3 h-3 ml-1 text-[#0095F6] fill-current"
                         viewBox="0 0 24 24"
@@ -209,14 +210,12 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
                   <p className="text-xs text-gray-500">{displayPost.category}</p>
                 </div>
               </div>
-
               <div className="p-4 border-b">
                 <p className="text-sm">{displayPost.textContent}</p>
               </div>
-
               <div className="flex justify-between p-4 border-b">
                 <div className="flex space-x-4">
-                  <button onClick={handleLike} className="text-black focus:outline-none" disabled={isLiking}>
+                  <button onClick={handleLike} className="text-black focus:outline-none" disabled={isPending || isLiking}>
                     <Heart
                       className={`h-6 w-6 ${hasLiked ? "fill-red-500 text-red-500" : "fill-none"}`}
                       strokeWidth={hasLiked ? 0 : 2}
@@ -233,12 +232,10 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
                   <Bookmark className={`h-6 w-6 ${isSaved ? "fill-black" : "fill-none"}`} />
                 </button>
               </div>
-
               <div className="px-4 pt-2">
                 <p className="text-sm font-semibold">{displayPost.likes?.length || 0} likes</p>
                 <p className="text-xs text-gray-400 uppercase mt-1">{formatTimeAgo(displayPost.createdAt)}</p>
               </div>
-
               <div className="flex-1 overflow-y-auto">
                 {commentsLoading ? (
                   <div className="flex flex-col items-center justify-center h-32 text-gray-500">
@@ -251,11 +248,10 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
                   </div>
                 ) : (
                   <div className="py-2">
-                    <CommentList comments={comments || []} />
+                    <CommentList comments={comments} />
                   </div>
                 )}
               </div>
-
               <div className="p-4 border-t sticky bottom-0 bg-white mt-auto">
                 <CommentForm
                   postId={displayPost.id || ""}
@@ -268,7 +264,7 @@ const PostDetailDrawer: React.FC<PostDetailDrawerProps> = ({ post, isOpen, onClo
         )}
       </DrawerContent>
     </Drawer>
-  )
-}
+  );
+};
 
-export default PostDetailDrawer
+export default PostDetailDrawer;

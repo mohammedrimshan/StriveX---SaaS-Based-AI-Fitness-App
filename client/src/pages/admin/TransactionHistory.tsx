@@ -7,7 +7,7 @@ import TransactionHeader from "./TransactionHistory/TransactionHeader"
 import { useTransactionHistory } from "@/hooks/admin/useTransactionHistory"
 
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AnimatedBackground from "@/components/Animation/AnimatedBackgorund"
 import AnimatedTitle from "@/components/Animation/AnimatedTitle"
 import { Button } from "@/components/ui/button"

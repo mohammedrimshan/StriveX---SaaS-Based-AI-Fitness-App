@@ -11,15 +11,16 @@ const SubscriptionCountdown: React.FC<SubscriptionCountdownProps> = ({ subscript
     const end = new Date(subscriptionEndDate).getTime();
     const difference = end - now;
 
-    if (difference <= 0) {
-      return null; // expired
+    // Return zeros if date is invalid or in the past
+    if (!subscriptionEndDate || isNaN(end) || difference <= 0) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
     }
 
     return {
-      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-      minutes: Math.floor((difference / (1000 * 60)) % 60),
-      seconds: Math.floor((difference / 1000) % 60),
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)) || 0,
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24) || 0,
+      minutes: Math.floor((difference / (1000 * 60)) % 60) || 0,
+      seconds: Math.floor((difference / 1000) % 60) || 0,
     };
   };
 
@@ -33,19 +34,6 @@ const SubscriptionCountdown: React.FC<SubscriptionCountdownProps> = ({ subscript
 
     return () => clearInterval(timer);
   }, [subscriptionEndDate]);
-
-  if (!timeLeft) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-red-100 text-red-800 p-4 rounded-lg text-center font-medium"
-      >
-        Subscription expired
-      </motion.div>
-    );
-  }
 
   return (
     <motion.div

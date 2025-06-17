@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils"
 
 const HowItWork = () => {
   const [isVisible, setIsVisible] = useState(false)
-  const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
 
   useEffect(() => {
@@ -87,11 +86,11 @@ const HowItWork = () => {
     return dates
   }
 
-  const formatDate = (date) => {
+  const formatDate = (date:any) => {
     return new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(date)
   }
 
-  const isToday = (date) => {
+  const isToday = (date:any) => {
     const today = new Date()
     return (
       date.getDate() === today.getDate() &&
@@ -100,7 +99,7 @@ const HowItWork = () => {
     )
   }
 
-  const isSelected = (date) => {
+  const isSelected = (date:any) => {
     return (
       date.getDate() === selectedDate.getDate() &&
       date.getMonth() === selectedDate.getMonth() &&

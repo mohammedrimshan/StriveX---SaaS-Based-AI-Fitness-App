@@ -1,144 +1,213 @@
-"use client"
+"use client";
 
-import type React from "react"
+import { useState, useRef, useEffect } from "react";
+import { Send, ImageIcon, Video, File, Smile, X, MessageSquareHeart, Paperclip } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useSocket } from "@/context/socketContext";
+import { useChatHistory, useChatParticipants } from "@/hooks/chat/useChatQueries";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
+import { Textarea } from "@/components/ui/textarea";
+import type { UserRole } from "@/types/UserRole";
+import type { ChatHistoryResponse, ChatParticipantsResponse, IMessage, IChatParticipant } from "@/types/Chat";
+import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { useState, useRef, useEffect } from "react"
-import { Send, ImageIcon, Video, File, Smile, X, MessageSquareHeart, Paperclip } from 'lucide-react'
-import { cn } from "@/lib/utils"
-import { useSocket } from "@/context/socketContext"
-import { useChatHistory, useChatParticipants } from "@/hooks/chat/useChatQueries"
-import data from "@emoji-mart/data"
-import Picker from "@emoji-mart/react"
-import { Textarea } from "@/components/ui/textarea"
-import type { UserRole } from "@/types/UserRole"
-import toast from "react-hot-toast"
-import { motion, AnimatePresence } from "framer-motion"
+const uploadToCloudinary = async (
+  file: File,
+  folder: string,
+  resourceType: "image" | "video" | "raw" | "auto"
+): Promise<string> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "edusphere");
+  formData.append("folder", folder);
+
+  try {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "strivex";
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+    if (!response.ok) throw new Error("Upload failed");
+    const data = await response.json();
+    return data.secure_url;
+  } catch (error: any) {
+    throw error;
+  }
+};
 
 interface ChatInputProps {
-  participantId: string
-  role: UserRole
-  currentUserId: string
-  replyToMessageId: string | null
-  onCancelReply: () => void
+  participantId: string;
+  role: UserRole;
+  currentUserId: string;
+  replyToMessageId: string | null;
+  onCancelReply: () => void;
 }
 
 export function ChatInput({ participantId, role, currentUserId, replyToMessageId, onCancelReply }: ChatInputProps) {
-  const [text, setText] = useState("")
-  const [uploading, setUploading] = useState(false)
+  const [text, setText] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<{
-    type: "image" | "video" | "file"
-    url: string
-    name?: string
-    size?: number
-  } | null>(null)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+    type: "image" | "video" | "file";
+    url: string;
+    name?: string;
+    size?: number;
+  } | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const emojiPickerRef = useRef<HTMLDivElement>(null)
-  const { sendMessage, startTyping, stopTyping } = useSocket()
-  const { data: chatHistoryData } = useChatHistory(role, participantId)
-  const { data: participantsData } = useChatParticipants(role)
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const { sendMessage, startTyping, stopTyping } = useSocket();
+  const { data: chatHistoryData, isLoading: historyLoading, error: historyError } = useChatHistory(
+    role,
+    participantId,
+  ) as {
+    data: ChatHistoryResponse | undefined;
+    isLoading: boolean;
+    error: Error | null;
+  };
+  const { data: participantsData, isLoading: participantsLoading, error: participantsError } = useChatParticipants(
+    role,
+  ) as {
+    data: ChatParticipantsResponse | undefined;
+    isLoading: boolean;
+    error: Error | null;
+  };
 
-  const replyMessage = replyToMessageId ? chatHistoryData?.messages.find((m: any) => m.id === replyToMessageId) : null
-  const replyToSender = replyMessage
-    ? participantsData?.participants.find((p: any) => p.userId === replyMessage.senderId)
-    : null
-
+  // Focus textarea when replying
   useEffect(() => {
     if (replyToMessageId && textareaRef.current) {
-      textareaRef.current.focus()
+      textareaRef.current.focus();
     }
-  }, [replyToMessageId])
+  }, [replyToMessageId]);
 
   // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
-        setShowEmojiPicker(false)
+        setShowEmojiPicker(false);
       }
-    }
+    };
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const replyMessage = replyToMessageId
+    ? chatHistoryData?.messages?.find((m: IMessage) => m.id === replyToMessageId)
+    : null;
+  const replyToSender = replyMessage
+    ? participantsData?.participants?.find((p: IChatParticipant) => p.userId === replyMessage.senderId)
+    : null;
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    setUploading(true)
+    setUploading(true);
     try {
-      // Simulate upload - replace with actual upload logic
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      let resourceType: "image" | "video" | "raw" | "auto";
+      let mediaType: "image" | "video" | "audio" | "file";
 
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const type = file.type.startsWith("image/") ? "image" : file.type.startsWith("video/") ? "video" : "file"
-
-        setPreviewMedia({
-          type,
-          url: e.target?.result as string,
-          name: file.name,
-          size: file.size,
-        })
+      if (file.type.startsWith("image/")) {
+        resourceType = "image";
+        mediaType = "image";
+      } else if (file.type.startsWith("video/")) {
+        resourceType = "video";
+        mediaType = "video";
+      } else if (file.type === "application/pdf") {
+        resourceType = "raw";
+        mediaType = "file";
+      } else {
+        throw new Error("Unsupported file type");
       }
-      reader.readAsDataURL(file)
+
+      const url = await uploadToCloudinary(file, "chat_uploads", resourceType);
+
+      setPreviewMedia({
+        type: mediaType,
+        url,
+        name: file.name,
+        size: file.size,
+      });
     } catch (error) {
-      toast.error("Failed to upload file")
+      toast.error("Failed to upload file");
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const handleSendMessage = () => {
-    if ((!text && !previewMedia) || uploading) return
+    if (!text.trim() && !previewMedia) return;
 
     const messageData = {
       senderId: currentUserId,
       receiverId: participantId,
-      text: text || undefined,
+      text: text.trim() || undefined,
       media: previewMedia
         ? {
             type: previewMedia.type,
-            base64: previewMedia.url,
+            url: previewMedia.url,
             name: previewMedia.name,
           }
         : undefined,
       replyToId: replyToMessageId || undefined,
-    }
+    };
 
-    sendMessage(messageData)
-    setText("")
-    setPreviewMedia(null)
-    stopTyping(`${currentUserId}_${participantId}`, currentUserId)
-    onCancelReply()
-  }
+    sendMessage(messageData);
+    setText("");
+    setPreviewMedia(null);
+    stopTyping(`${currentUserId}_${participantId}`, currentUserId);
+    onCancelReply();
+  };
+
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
+      e.preventDefault();
+      handleSendMessage();
     }
-  }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value
-    setText(value)
-    const chatId = `${currentUserId}_${participantId}`
-    if (value.length > 0) {
-      startTyping(chatId, currentUserId)
+    const value = e.target.value;
+    setText(value);
+    const chatId = `${currentUserId}_${participantId}`;
+    if (value.trim().length > 0) {
+      startTyping(chatId, currentUserId);
     } else {
-      stopTyping(chatId, currentUserId)
+      stopTyping(chatId, currentUserId);
     }
+  };
+
+  const handleEmojiSelect = (emoji: { native: string }) => {
+    setText((prev) => prev + emoji.native);
+    setShowEmojiPicker(false);
+    if (textareaRef.current) textareaRef.current.focus();
+  };
+
+  // Render loading or error states after all hooks
+  if (historyLoading || participantsLoading) {
+    return (
+      <div className="p-5 border-t bg-white/90 backdrop-blur-sm sticky bottom-0 rounded-b-2xl text-center">
+        Loading...
+      </div>
+    );
   }
 
-  const handleEmojiSelect = (emoji: any) => {
-    setText((prev) => prev + emoji.native)
-    setShowEmojiPicker(false)
-    if (textareaRef.current) textareaRef.current.focus()
+  if (historyError || participantsError) {
+    return (
+      <div className="p-5 border-t bg-white/90 backdrop-blur-sm sticky bottom-0 rounded-b-2xl text-center text-red-600">
+        Error loading chat data
+      </div>
+    );
   }
 
   return (
@@ -156,7 +225,7 @@ export function ChatInput({ participantId, role, currentUserId, replyToMessageId
               <div className="text-indigo-700 font-medium text-sm flex items-center gap-1">
                 <MessageSquareHeart size={16} />
                 <span>
-                  Replying to {`${replyToSender?.firstName || ""} ${replyToSender?.lastName || ""} Your Message`}
+                  Replying to {`${replyToSender?.firstName || "Unknown"} ${replyToSender?.lastName || ""}`.trim()}
                 </span>
               </div>
               <div className="text-sm truncate text-gray-600">{replyMessage.text}</div>
@@ -291,7 +360,7 @@ export function ChatInput({ participantId, role, currentUserId, replyToMessageId
             ref={fileInputRef}
             onChange={handleFileUpload}
             className="hidden"
-            accept="image/*,video/*,application/*"
+            accept="image/*,video/*,audio/*,application/pdf"
           />
         </div>
 
@@ -312,10 +381,10 @@ export function ChatInput({ participantId, role, currentUserId, replyToMessageId
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleSendMessage}
-          disabled={(!text && !previewMedia) || uploading}
+          disabled={(!text.trim() && !previewMedia) || uploading}
           className={cn(
             "p-3 rounded-full flex items-center justify-center shadow-md",
-            (!text && !previewMedia) || uploading
+            (!text.trim() && !previewMedia) || uploading
               ? "bg-gray-200 text-gray-400"
               : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700",
           )}
@@ -328,5 +397,5 @@ export function ChatInput({ participantId, role, currentUserId, replyToMessageId
         </motion.button>
       </div>
     </div>
-  )
+  );
 }

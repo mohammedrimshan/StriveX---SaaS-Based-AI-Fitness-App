@@ -30,6 +30,7 @@ export const NotificationProvider: React.FC<{
   userId: string | null;
   role: string | null;
 }> = ({ children, userId, role }) => {
+  console.log(role,"noti role")
   const { socket, isConnected } = useSocket();
   const [notifications, setNotifications] = useState<INotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -146,7 +147,7 @@ export const NotificationProvider: React.FC<{
       const notification: INotification = {
         ...tempNotification,
         id: tempId,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date,
         isTemporary: true,
       };
       console.log("[DEBUG] Client: Adding temporary notification", {

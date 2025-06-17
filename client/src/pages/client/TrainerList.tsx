@@ -8,7 +8,7 @@ import AnimatedBackground from '@/components/Animation/AnimatedBackgorund';
 import AnimatedTitle from '@/components/Animation/AnimatedTitle';
 
 const TrainersPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState(''); // Kept for future use
+  const [searchTerm, _] = useState(''); // Kept for future use
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 6;
 

@@ -197,7 +197,7 @@ const CallToAction = () => {
 
               <CardContent className="p-0">
                 <div className="divide-y divide-gray-100">
-                  {events.map((event, index) => (
+                  {events.map((event, _) => (
                     <div key={event.id} className="p-4 hover:bg-gray-50 transition-colors">
                       <h4 className="font-medium mb-1">{event.title}</h4>
                       <div className="flex items-center text-sm text-gray-500 mb-2">

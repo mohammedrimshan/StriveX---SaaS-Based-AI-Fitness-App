@@ -1,5 +1,15 @@
 import React, { useEffect } from "react";
-import { CheckCircle2, Dumbbell, Hourglass, PlusCircle, TimerIcon, Trash2, Upload, AlertCircle, Loader2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Dumbbell,
+  Hourglass,
+  PlusCircle,
+  TimerIcon,
+  Trash2,
+  Upload,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Exercise } from "@/types/Workouts";
 import { useFormValidation } from "@/hooks/ui/useFormValidation";
-import { exerciseSchema } from "@/utils/validations/workout.validator"; 
+import { exerciseSchema } from "@/utils/validations/workout.validator";
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
@@ -42,14 +52,14 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
   onValidationChange,
   isVideoUploading = false,
 }) => {
-  // Use our validation hook with the exercise schema
+  const isEditMode = !!currentExercise;
+
   const { errors, validateField, validateForm, isValid } = useFormValidation(
-    exerciseSchema.omit(['videoFile']), // Omit videoFile since we handle it differently
+    exerciseSchema(isEditMode).omit(["videoFile"]),
     currentExercise,
-    false // don't validate on every change
+    false
   );
 
-  // Update the parent component with validation status
   useEffect(() => {
     if (onValidationChange) {
       onValidationChange(isValid);
@@ -65,7 +75,7 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
       ...currentExercise,
       [name]: updatedValue,
     };
-    
+
     onExerciseChange(updatedExercise);
     await validateField(name, updatedValue);
   };
@@ -87,9 +97,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
     if (isVideoUploading) {
       return;
     }
-    
+
     const isValidForm = await validateForm();
-    
+
     if (isValidForm) {
       onAddExercise();
     }
@@ -116,7 +126,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                 onChange={handleExerciseChange}
                 placeholder="Enter exercise name"
                 className={`bg-white/80 ${
-                  errors.name ? "border-red-300 focus-visible:ring-red-500" : "border-purple-100 focus-visible:ring-purple-500"
+                  errors.name
+                    ? "border-red-300 focus-visible:ring-red-500"
+                    : "border-purple-100 focus-visible:ring-purple-500"
                 }`}
               />
               {errors.name && (
@@ -135,7 +147,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                 onChange={handleExerciseChange}
                 placeholder="Describe how to perform this exercise"
                 className={`min-h-20 bg-white/80 ${
-                  errors.description ? "border-red-300 focus-visible:ring-red-500" : "border-purple-100 focus-visible:ring-purple-500"
+                  errors.description
+                    ? "border-red-300 focus-visible:ring-red-500"
+                    : "border-purple-100 focus-visible:ring-purple-500"
                 }`}
               />
               {errors.description && (
@@ -159,7 +173,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                     onChange={handleExerciseChange}
                     placeholder="Duration"
                     className={`bg-white/80 ${
-                      errors.duration ? "border-red-300 focus-visible:ring-red-500" : "border-purple-100 focus-visible:ring-purple-500"
+                      errors.duration
+                        ? "border-red-300 focus-visible:ring-red-500"
+                        : "border-purple-100 focus-visible:ring-purple-500"
                     }`}
                   />
                 </div>
@@ -171,7 +187,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                 )}
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="defaultRestDuration">Rest Duration (seconds) *</Label>
+                <Label htmlFor="defaultRestDuration">
+                  Rest Duration (seconds) *
+                </Label>
                 <div className="flex items-center">
                   <Hourglass className="mr-2 h-4 w-4 text-indigo-500" />
                   <Input
@@ -183,7 +201,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                     onChange={handleExerciseChange}
                     placeholder="Rest time"
                     className={`bg-white/80 ${
-                      errors.defaultRestDuration ? "border-red-300 focus-visible:ring-red-500" : "border-purple-100 focus-visible:ring-purple-500"
+                      errors.defaultRestDuration
+                        ? "border-red-300 focus-visible:ring-red-500"
+                        : "border-purple-100 focus-visible:ring-purple-500"
                     }`}
                   />
                 </div>
@@ -201,7 +221,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => document.getElementById("video-upload")?.click()}
+                  onClick={() =>
+                    document.getElementById("video-upload")?.click()
+                  }
                   className="bg-white/80 border-purple-100 hover:bg-purple-50 hover:text-purple-700"
                   disabled={isVideoUploading}
                 >

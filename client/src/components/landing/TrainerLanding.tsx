@@ -1,5 +1,4 @@
-
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import Hero from "./TrainerLandingPages/Hero";
 import Benefits from "./TrainerLandingPages/Benefits";
@@ -7,11 +6,12 @@ import CallToAction from "./TrainerLandingPages/CallToAction";
 import HowItWorks from "./TrainerLandingPages/HowItWorks";
 import Testimonials from "./TrainerLandingPages/Testimonial";
 import TrainerStats from "./TrainerLandingPages/TrainerStats";
+
 const TrainerLanding = () => {
   useEffect(() => {
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
+      anchor.addEventListener('click', function (this: HTMLAnchorElement, e: Event) {
         e.preventDefault();
         
         const targetId = this.getAttribute('href')?.substring(1);
@@ -21,7 +21,7 @@ const TrainerLanding = () => {
         if (!targetElement) return;
         
         window.scrollTo({
-          top: targetElement.offsetTop - 80, // Offset for fixed header
+          top: targetElement.offsetTop - 80, 
           behavior: 'smooth'
         });
       });
@@ -29,7 +29,7 @@ const TrainerLanding = () => {
     
     return () => {
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.removeEventListener('click', function () {});
+        anchor.removeEventListener('click', function (this: HTMLAnchorElement) {});
       });
     };
   }, []);
@@ -41,7 +41,6 @@ const TrainerLanding = () => {
         <TrainerStats />
         <Benefits />
         <HowItWorks />
-     
         <Testimonials />
         <CallToAction />
       </main>

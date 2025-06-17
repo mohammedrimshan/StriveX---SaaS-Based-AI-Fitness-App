@@ -36,23 +36,9 @@ import {
   updateTrainerApprovalStatus,
 } from "@/services/admin/adminService";
 import { debounce } from "lodash";
+import { ITrainer } from "@/types/User";
 
-// Define trainer interface (you might already have this in your types)
-interface ITrainer {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber?: string;
-  dateOfBirth: string;
-  gender: string;
-  experience: string;
-  skills: string[];
-  approvalStatus: "pending" | "approved" | "rejected";
-  profileImage?: string;
-  rejectionReason?: string;
-  status: boolean;
-}
+
 
 export default function TrainerVerification() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,7 +93,6 @@ export default function TrainerVerification() {
   const handleStatusUpdate = async (
     trainer: ITrainer,
     status: "approved" | "rejected",
-    reason?: string
   ) => {
     try {
       if (status === "rejected") {
@@ -330,7 +315,7 @@ export default function TrainerVerification() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {trainer.skills.map((skill) => (
+                            {trainer?.skills?.map((skill) => (
                               <Badge key={skill} variant="outline">
                                 {skill}
                               </Badge>
@@ -383,7 +368,7 @@ export default function TrainerVerification() {
         <RejectionModal
           isOpen={isRejectModalOpen}
           onClose={() => setIsRejectModalOpen(false)}
-          onSubmit={(reason, category) => handleRejectSubmit(reason)} // Ignore category
+          onSubmit={(reason, _) => handleRejectSubmit(reason)} // Ignore category
           trainerName={
             selectedTrainer
               ? `${selectedTrainer.firstName} ${selectedTrainer.lastName}`

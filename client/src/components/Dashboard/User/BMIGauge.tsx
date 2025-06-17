@@ -72,7 +72,7 @@ const BMIGauge: React.FC<BMIGaugeProps> = ({ bmi,subscriptionEndDate }) => {
         <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden">
           {/* Background segments */}
           <div className="absolute inset-0 flex">
-            {bmiRanges.map((range, index) => (
+            {bmiRanges.map((range) => (
               <div
                 key={range.label}
                 className="h-full opacity-30"

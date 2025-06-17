@@ -1,5 +1,5 @@
 import  { useState } from 'react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, addDays } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, isSameMonth, isSameDay, isToday, addDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -30,8 +30,7 @@ export function CalendarModal({
 
   // Get all days in current month view
   const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
   
   // Start calendar from Sunday of the week containing the first day of month
   const startDate = addDays(monthStart, -monthStart.getDay());
@@ -132,8 +131,9 @@ export function CalendarModal({
                 {calendarDays.map((date, i) => {
                   const isCurrentMonth = isSameMonth(date, currentMonth);
                   const isSelected = selectedDate ? isSameDay(date, selectedDate) : false;
-                  const isPast = date < new Date().setHours(0, 0, 0, 0);
-                  
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const isPast = date < today;
                   return (
                     <button
                       key={i}

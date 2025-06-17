@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef } from "react"
@@ -10,35 +11,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Star, ChevronLeft, ChevronRight, User } from "lucide-react"
-import type { TrainerProfile } from "@/types/trainer"
+import { TrainerProfile } from "@/types/trainer"
+import { MatchedTrainersResponse } from "@/services/client/clientService"
 import AnimatedBackground from "@/components/Animation/AnimatedBackgorund"
 import AnimatedTitle from "@/components/Animation/AnimatedTitle"
 import { motion } from "framer-motion"
-
-// Define API response type
-interface ApiResponse {
-  success: boolean;
-  data: ApiTrainer[];
-}
-
-// Define API trainer type
-interface ApiTrainer {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  profileImage?: string;
-  gender: string;
-  experience: number;
-  specialization?: string[];
-  certifications?: string[];
-  qualifications?: string[];
-  skills?: string[];
-  height?: number;
-  weight?: number;
-  approvedByAdmin: boolean;
-}
 
 // Helper to format camelCase values to display format
 const formatValueForDisplay = (value: string): string => {
@@ -46,8 +23,8 @@ const formatValueForDisplay = (value: string): string => {
 }
 
 // Transform API data to UI format
-const transformTrainerData = (apiTrainer: ApiTrainer): TrainerProfile => {
-  console.log(apiTrainer,'apiTrainer');
+const transformTrainerData = (apiTrainer: TrainerProfile): TrainerProfile => {
+  console.log(apiTrainer, 'apiTrainer');
   return {
     id: apiTrainer.id,
     firstName: apiTrainer.firstName,
@@ -58,8 +35,8 @@ const transformTrainerData = (apiTrainer: ApiTrainer): TrainerProfile => {
     bio: `Experienced trainer with ${apiTrainer.experience} years of professional training.`,
     location: "Local Area",
     experience: apiTrainer.experience,
-    rating: 4.5,
-    clientCount: apiTrainer.clientCount,
+    rating: apiTrainer.rating || 4.5, // Use API rating if available
+    clientCount: apiTrainer.clientCount || 0,
     sessionCount: 50,
     specialization: apiTrainer.specialization || [],
     certifications: apiTrainer.certifications || [],
@@ -76,12 +53,14 @@ const transformTrainerData = (apiTrainer: ApiTrainer): TrainerProfile => {
 export function MatchedTrainersPage() {
   const navigate = useNavigate()
   const { successToast, errorToast } = useToaster()
-  const { data: apiResponse, isLoading, isError } = useMatchedTrainers<ApiResponse>()
+  const { data: apiResponse, isLoading, isError } = useMatchedTrainers()
   const { mutate: selectTrainer, isPending } = useSelectTrainer()
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
-  const trainers =
-    apiResponse?.success && Array.isArray(apiResponse.data) ? apiResponse.data.map(transformTrainerData) : []
+  const trainers = (apiResponse as MatchedTrainersResponse | undefined)?.success &&
+    Array.isArray((apiResponse as MatchedTrainersResponse | undefined)?.data)
+    ? (apiResponse as MatchedTrainersResponse).data.map(transformTrainerData)
+    : []
 
   const [selectedTrainerId, setSelectedTrainerId] = useState<string | null>(null)
 
@@ -121,7 +100,6 @@ export function MatchedTrainersPage() {
   }
 
   const getMatchPercentage = (trainerId: string) => {
-    // Simulate different match percentages for different trainers
     const hash = trainerId.split("").reduce((acc, char) => {
       return acc + char.charCodeAt(0)
     }, 0)
@@ -193,7 +171,6 @@ export function MatchedTrainersPage() {
         ) : (
           <>
             <div className="relative max-w-full mx-auto mb-8">
-              {/* Scroll buttons */}
               <Button
                 variant="outline"
                 size="icon"
@@ -212,7 +189,6 @@ export function MatchedTrainersPage() {
                 <ChevronRight className="h-5 w-5" />
               </Button>
 
-              {/* Horizontal scrollable container */}
               <div
                 ref={scrollContainerRef}
                 className="flex justify-center overflow-x-auto pb-4 gap-6 scroll-smooth hide-scrollbar snap-x"
@@ -297,7 +273,6 @@ export function MatchedTrainersPage() {
                             </div>
                           )}
                         </div>
-
                       </CardContent>
                     </Card>
                   </motion.div>

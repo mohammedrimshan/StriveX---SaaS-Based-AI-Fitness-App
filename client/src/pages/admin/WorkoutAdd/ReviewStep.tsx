@@ -4,7 +4,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { Workout, Category } from "@/types/Workouts";
+import { Workout } from "@/types/Workouts";
+import { CategoryType } from "@/hooks/admin/useAllCategory";
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
@@ -17,7 +18,7 @@ const itemVariants = {
 
 interface ReviewStepProps {
   workout: Workout;
-  categories: Category[];
+  categories: CategoryType[];
   croppedImageUrl: string | null;
   onStatusChange: (status: boolean) => void;
 }

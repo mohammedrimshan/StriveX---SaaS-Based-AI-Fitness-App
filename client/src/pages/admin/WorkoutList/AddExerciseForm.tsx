@@ -11,7 +11,7 @@ import axios from "axios";
 import { Exercise } from "@/types/Workouts";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { exerciseSchema } from "@/utils/validations/workout.validator";
 interface AddExerciseFormProps {
@@ -20,6 +20,14 @@ interface AddExerciseFormProps {
   initialData?: Exercise;
   onSuccess?: () => void;
 }
+interface FormValues {
+  name: string;
+  description: string;
+  duration: number;
+  defaultRestDuration: number;
+  videoFile?: File | null;
+}
+
 
 const AddExerciseForm = ({ workoutId, exerciseId, initialData, onSuccess }: AddExerciseFormProps) => {
   const navigate = useNavigate();
@@ -31,7 +39,7 @@ const AddExerciseForm = ({ workoutId, exerciseId, initialData, onSuccess }: AddE
   const [isUploading, setIsUploading] = useState(false);
   const [existingVideoUrl, setExistingVideoUrl] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+const schema = exerciseSchema(isEditMode); 
   // Initialize react-hook-form with Yup resolver
   const {
     control,
@@ -40,7 +48,7 @@ const AddExerciseForm = ({ workoutId, exerciseId, initialData, onSuccess }: AddE
     reset,
     setValue,
   } = useForm({
-    resolver: yupResolver(exerciseSchema),
+    resolver: yupResolver(schema), 
     defaultValues: {
       name: "",
       description: "",
@@ -123,90 +131,65 @@ const AddExerciseForm = ({ workoutId, exerciseId, initialData, onSuccess }: AddE
     }
   };
 
-  const onSubmit = async (data: {
-    name: string;
-    description: string;
-    duration: number;
-    defaultRestDuration: number;
-    videoFile: File | null;
-  }) => {
-    try {
-      let videoUrl = existingVideoUrl || "";
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+  try {
+    let videoUrl = existingVideoUrl || "";
 
-      if (data.videoFile) {
-        toast.loading("Uploading video to Cloudinary...", { id: "video-upload" });
-        try {
-          videoUrl = await uploadToCloudinary(data.videoFile);
-          toast.success("Video uploaded successfully", { id: "video-upload" });
-        } catch (error) {
-          toast.error("Failed to upload video", { id: "video-upload" });
-          return;
-        }
+    if (data.videoFile) {
+      toast.loading("Uploading video to Cloudinary...", { id: "video-upload" });
+      try {
+        videoUrl = await uploadToCloudinary(data.videoFile);
+        toast.success("Video uploaded successfully", { id: "video-upload" });
+      } catch (error) {
+        toast.error("Failed to upload video", { id: "video-upload" });
+        return;
       }
-
-      const exerciseData = {
-        _id: exerciseId || "",
-        name: data.name,
-        description: data.description,
-        duration: data.duration,
-        defaultRestDuration: data.defaultRestDuration,
-        videoUrl: videoUrl || undefined,
-      };
-
-      if (isEditMode && exerciseId) {
-        await updateExercise({
-          workoutId,
-          exerciseId,
-          exerciseData,
-        });
-
-        queryClient.setQueryData(["workout", workoutId], (oldData: any) => {
-          if (!oldData?.data?.exercises) return oldData;
-
-          const updatedExercises = oldData.data.exercises.map((ex: Exercise) =>
-            ex._id === exerciseId ? { ...ex, ...exerciseData } : ex
-          );
-
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              exercises: updatedExercises,
-            },
-          };
-        });
-
-        toast.success("Exercise updated successfully");
-      } else {
-        await addExercise({
-          workoutId,
-          exerciseData,
-        });
-        toast.success("Exercise added successfully");
-      }
-
-      if (!isEditMode) {
-        reset({
-          name: "",
-          description: "",
-          duration: 60,
-          defaultRestDuration: 30,
-          videoFile: null,
-        });
-        setVideoPreview(null);
-        setExistingVideoUrl(undefined);
-      } else {
-        navigate(`/admin/workouts/${workoutId}`);
-      }
-
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error("Failed to save exercise:", error);
-      toast.error(`Failed to ${isEditMode ? "update" : "add"} exercise. Please try again.`);
     }
-  };
+
+    const exerciseData = {
+      _id: exerciseId || "",
+      name: data.name,
+      description: data.description,
+      duration: data.duration,
+      defaultRestDuration: data.defaultRestDuration,
+      videoUrl,
+    };
+
+    if (isEditMode && exerciseId) {
+      await updateExercise({ workoutId, exerciseId, exerciseData });
+      queryClient.setQueryData(["workout", workoutId], (oldData: any) => {
+        if (!oldData?.data?.exercises) return oldData;
+        const updatedExercises = oldData.data.exercises.map((ex: Exercise) =>
+          ex._id === exerciseId ? { ...ex, ...exerciseData } : ex
+        );
+        return { ...oldData, data: { ...oldData.data, exercises: updatedExercises } };
+      });
+      toast.success("Exercise updated successfully");
+    } else {
+      await addExercise({ workoutId, exerciseData });
+      toast.success("Exercise added successfully");
+    }
+
+    if (!isEditMode) {
+      reset({
+        name: "",
+        description: "",
+        duration: 60,
+        defaultRestDuration: 30,
+        videoFile: null,
+      });
+      setVideoPreview(null);
+      setExistingVideoUrl(undefined);
+    } else {
+      navigate(`/admin/workouts/${workoutId}`);
+    }
+
+    onSuccess?.();
+  } catch (error) {
+    console.error("Failed to save exercise:", error);
+    toast.error(`Failed to ${isEditMode ? "update" : "add"} exercise. Please try again.`);
+  }
+};
 
   return (
     <motion.div

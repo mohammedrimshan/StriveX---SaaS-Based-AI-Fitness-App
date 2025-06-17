@@ -12,7 +12,6 @@ import { RootState } from "@/store/store";
 
 export const TrainerLayout = () => {
     const [isSideBarVisible, setIsSideBarVisible] = useState(false);
-    const [notifications] = useState(2);
     const { successToast, errorToast } = useToaster();
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -43,7 +42,6 @@ export const TrainerLayout = () => {
                     userName={user?.firstName}
                     onLogout={handleLogout}
                     userAvatar={user?.profileImage}
-                    notifications={notifications}
                     userType="trainer"
                     onSidebarToggle={() => setIsSideBarVisible(!isSideBarVisible)}
                 />

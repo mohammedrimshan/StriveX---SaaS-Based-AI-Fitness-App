@@ -14,6 +14,7 @@ import {
  Tags,
  MessageSquare, 
  Globe,
+ History,
  
 } from "lucide-react";
 import { FaCalendarCheck } from "react-icons/fa";
@@ -41,6 +42,11 @@ const navItems = {
       path: "/alltrainers",
     },
     {
+      title: "Trainer Selection",
+      icon: UserCheck,
+      path: "/trainer-selection-prompt",
+    },
+    {
       title: "Progress Tracker",
       icon: Activity,
       path: "/progress",
@@ -64,6 +70,11 @@ const navItems = {
       title: "Subscription",
       icon: CreditCard,
       path: "/premium",
+    },
+    {
+      title: "Session History",
+      icon: History,
+      path: "/session-history",
     },
     {
       title: "Support",
@@ -116,6 +127,11 @@ const navItems = {
       title: "Earnings",
       icon: CreditCard,
       path: "/trainer/earnings",
+    },
+     {
+      title: "Session History",
+      icon: History,
+      path: "/trainer/session-history",
     },
     {
       title: "Settings",
@@ -173,6 +189,11 @@ const navItems = {
       title: "Transactions", 
       icon: CreditCard,
       path: "/admin/transaction",
+    },
+    {
+      title: "Session History",
+      icon: History,
+      path: "/admin/session-history",
     },
     {
       title: "Settings",

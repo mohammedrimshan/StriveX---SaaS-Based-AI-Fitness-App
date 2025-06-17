@@ -1,53 +1,65 @@
-"use client"
+"use client";
 
-import { Menu, Phone, Video, MoreHorizontal, X } from 'lucide-react'
-import { useChatParticipants } from "@/hooks/chat/useChatQueries"
-import { useSocket } from "@/context/socketContext"
-import { UserAvatar } from "./user-avatar"
-import type { UserRole } from "@/types/UserRole"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { motion } from "framer-motion"
+import { Menu, Phone, Video, MoreHorizontal, X } from "lucide-react";
+import { useChatParticipants } from "@/hooks/chat/useChatQueries";
+import { useSocket } from "@/context/socketContext";
+import { UserAvatar } from "./user-avatar";
+import type { UserRole } from "@/types/UserRole";
+import type { ChatParticipantsResponse, IChatParticipant } from "@/types/Chat";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { motion } from "framer-motion";
 
 interface ChatHeaderProps {
-  participantId: string
-  role: UserRole
-  onToggleSidebar?: () => void
-  showSidebar?: boolean
+  participantId: string;
+  role: UserRole;
+  onToggleSidebar?: () => void;
+  showSidebar?: boolean;
 }
 
 export function ChatHeader({ participantId, role, onToggleSidebar, showSidebar }: ChatHeaderProps) {
-  const { data: participantsData } = useChatParticipants(role)
-  const { userStatus } = useSocket()
-  const participant = participantsData?.participants.find((p) => p.id === participantId)
+  const { data: participantsData, isLoading, error } = useChatParticipants(role);
+  const { userStatus } = useSocket();
 
-  if (!participant) return null
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading participant data</div>;
+
+  const participant = (participantsData as ChatParticipantsResponse)?.participants?.find(
+    (p: IChatParticipant) => p.userId === participantId
+  );
+
+  if (!participant) return null;
 
   // Merge participant with real-time userStatus
-  const enrichedParticipant = {
+  const enrichedParticipant: IChatParticipant = {
     ...participant,
-    isOnline: userStatus.get(participantId)?.status === "online" || participant.status === "online",
+    isOnline: userStatus.get(participantId)?.status === "online" || participant.isOnline,
     lastSeen: userStatus.get(participantId)?.lastSeen || participant.lastSeen,
-  }
+  };
 
   const formatLastSeen = (lastSeen?: string) => {
-    if (!lastSeen) return "recently"
+    if (!lastSeen) return "recently";
 
-    const lastSeenDate = new Date(lastSeen)
-    const now = new Date()
-    const diffMs = now.getTime() - lastSeenDate.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
+    const lastSeenDate = new Date(lastSeen);
+    const now = new Date();
+    const diffMs = now.getTime() - lastSeenDate.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return "just now"
-    if (diffMins < 60) return `${diffMins} min ago`
+    if (diffMins < 1) return "just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
 
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
 
-    const diffDays = Math.floor(diffHours / 24)
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 
-    return lastSeenDate.toLocaleDateString()
-  }
+    return lastSeenDate.toLocaleDateString();
+  };
 
   return (
     <motion.div
@@ -68,9 +80,9 @@ export function ChatHeader({ participantId, role, onToggleSidebar, showSidebar }
         </motion.button>
         <UserAvatar
           user={{
-            id: enrichedParticipant.id,
-            firstName: enrichedParticipant.name.split(" ")[0],
-            lastName: enrichedParticipant.name.split(" ")[1] || "",
+            id: enrichedParticipant.userId,
+            firstName: enrichedParticipant.firstName,
+            lastName: enrichedParticipant.lastName,
             avatar: enrichedParticipant.avatar || "",
             isOnline: enrichedParticipant.isOnline,
             lastSeen: enrichedParticipant.lastSeen,
@@ -79,7 +91,7 @@ export function ChatHeader({ participantId, role, onToggleSidebar, showSidebar }
           className="ring-2 ring-emerald-100 ring-offset-2"
         />
         <div>
-          <h3 className="font-semibold text-slate-800">{enrichedParticipant.name}</h3>
+          <h3 className="font-semibold text-slate-800">{`${enrichedParticipant.firstName} ${enrichedParticipant.lastName}`}</h3>
           <p className="text-xs text-slate-500 flex items-center gap-1">
             <motion.span
               animate={
@@ -137,5 +149,5 @@ export function ChatHeader({ participantId, role, onToggleSidebar, showSidebar }
         </DropdownMenu>
       </div>
     </motion.div>
-  )
+  );
 }

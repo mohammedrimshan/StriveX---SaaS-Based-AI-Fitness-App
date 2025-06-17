@@ -9,6 +9,8 @@ interface SearchControlsProps {
   onSearchChange: (value: string) => void;
   onExportCSV: () => void;
   onExportPDF: () => void;
+   totalResults: number
+    isLoading: boolean
 }
 
 const SearchControls: React.FC<SearchControlsProps> = ({

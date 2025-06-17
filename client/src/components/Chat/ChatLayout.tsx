@@ -1,82 +1,93 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { useSelector } from "react-redux"
-import type { RootState } from "@/store/store"
-import { useRecentChats } from "@/hooks/chat/useChatQueries"
-import { ChatHeader } from "./ChatHeader"
-import { ChatSidebar } from "./chat-sidebar"
-import { ChatMessages } from "./ChatMessages"
-import { ChatInput } from "./ChatInput"
-import type { UserRole } from "@/types/UserRole"
-import { SocketProvider } from "@/context/socketContext"
-import { motion, AnimatePresence } from "framer-motion"
-
-// Define Participant interface for type safety
-interface Participant {
-  userId: string
-  firstName?: string
-  lastName?: string
-  name?: string
-  avatar?: string
-  status?: "online" | "offline"
-}
+import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import { useRecentChats } from "@/hooks/chat/useChatQueries";
+import { ChatHeader } from "./ChatHeader";
+import { ChatSidebar } from "./chat-sidebar";
+import { ChatMessages } from "./ChatMessages";
+import { ChatInput } from "./ChatInput";
+import type { UserRole } from "@/types/UserRole";
+import { SocketProvider } from "@/context/socketContext";
+import { motion, AnimatePresence } from "framer-motion";
+import {  IChat, RecentChatsResponse, Participant } from "@/types/Chat";
 
 export function ChatLayout() {
-  const isMobile = useIsMobile()
-  const [showSidebar, setShowSidebar] = useState(!isMobile)
-  const [activeChatParticipantId, setActiveChatParticipantId] = useState<string | null>(null)
-  const [activeParticipant, setActiveParticipant] = useState<Participant | null>(null)
-  const [replyTo, setReplyTo] = useState<string | null>(null)
+  const isMobile = useIsMobile();
+  const [showSidebar, setShowSidebar] = useState(!isMobile);
+  const [activeChatParticipantId, setActiveChatParticipantId] = useState<string | null>(null);
+  const [activeParticipant, setActiveParticipant] = useState<Participant | null>(null);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
 
   const { client, trainer } = useSelector((state: RootState) => ({
     client: state.client.client,
     trainer: state.trainer.trainer,
-  }))
-  const user = client || trainer
-  const role = client ? "client" : trainer ? "trainer" : null
+  }));
 
-  const { data: recentChatsData, isLoading } = useRecentChats(role as UserRole)
+  const user = client || trainer;
+  const role = client ? "client" : trainer ? "trainer" : null;
 
-  // Select first chat and set participant details
+  const { data: recentChatsData, isLoading } = useRecentChats(role as UserRole);
+  const typedRecentChatsData = recentChatsData as RecentChatsResponse | undefined;
+
   useEffect(() => {
-    if (!activeChatParticipantId && recentChatsData?.chats?.length) {
-      const firstChat = recentChatsData.chats[0]
-      // Check if firstChat has participant property before accessing userId
-      const participantId = firstChat?.participant?.userId || firstChat?.participant?.id
-
-      if (participantId) {
-        setActiveChatParticipantId(participantId)
-        setActiveParticipant(firstChat.participant)
+    if (!activeChatParticipantId && typedRecentChatsData?.chats?.length) {
+      const firstChat = typedRecentChatsData.chats[0];
+      const participantId = firstChat?.participant?.userId;
+      if (participantId && firstChat?.participant) {
+        setActiveChatParticipantId(participantId);
+        setActiveParticipant({
+          id: firstChat.participant.id,
+          userId: firstChat.participant.userId,
+          firstName: firstChat.participant.firstName,
+          lastName: firstChat.participant.lastName,
+          avatar: firstChat.participant.avatar,
+          email: firstChat.participant.email,
+          status: firstChat.participant.isOnline ? "online" : "offline",
+          isOnline: firstChat.participant.isOnline,
+          role: firstChat.participant.role,
+        });
       }
     }
-  }, [recentChatsData, activeChatParticipantId])
+  }, [typedRecentChatsData, activeChatParticipantId]);
 
-  // Update active participant when activeChatParticipantId changes
   useEffect(() => {
-    if (activeChatParticipantId && recentChatsData?.chats) {
-      const selectedChat = recentChatsData.chats.find(
-        (chat: any) =>
-          chat.participant &&
-          (chat.participant.userId === activeChatParticipantId || chat.participant.id === activeChatParticipantId),
-      )
-      setActiveParticipant(selectedChat?.participant || null)
+    if (activeChatParticipantId && typedRecentChatsData?.chats) {
+      const selectedChat = typedRecentChatsData.chats.find(
+        (chat: IChat) => chat.participant?.userId === activeChatParticipantId,
+      );
+      if (selectedChat?.participant) {
+        setActiveParticipant({
+          id: selectedChat.participant.id,
+          userId: selectedChat.participant.userId,
+          firstName: selectedChat.participant.firstName,
+          lastName: selectedChat.participant.lastName,
+          avatar: selectedChat.participant.avatar,
+          email: selectedChat.participant.email,
+          status: selectedChat.participant.isOnline ? "online" : "offline",
+          isOnline: selectedChat.participant.isOnline,
+          role: selectedChat.participant.role,
+        });
+      } else {
+        setActiveParticipant(null);
+      }
     }
-  }, [activeChatParticipantId, recentChatsData])
+  }, [activeChatParticipantId, typedRecentChatsData]);
 
   // Handle sidebar toggle
   useEffect(() => {
-    setShowSidebar(!isMobile)
-  }, [isMobile])
+    setShowSidebar(!isMobile);
+  }, [isMobile]);
 
   const toggleSidebar = () => {
-    setShowSidebar(!showSidebar)
-  }
+    setShowSidebar(!showSidebar);
+  };
 
   const handleReply = (messageId: string) => {
-    setReplyTo(messageId)
-  }
+    setReplyTo(messageId);
+  };
 
   if (!user || !role) {
     return (
@@ -87,7 +98,7 @@ export function ChatLayout() {
           <p className="text-slate-600">Please log in to start messaging</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (role === "client" && client && (!client.isPremium || client.selectStatus !== "accepted")) {
@@ -102,7 +113,7 @@ export function ChatLayout() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (isLoading) {
@@ -113,15 +124,17 @@ export function ChatLayout() {
           <p className="text-slate-600 font-medium">Loading your conversations...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <SocketProvider userId={user.id} role={role}>
-      {/* Fixed position container that accounts for top navbar (mt-16) */}
+    <SocketProvider
+      userId={user.id}
+      role={role}
+      currentUser={user ? { id: user.id, role: role || '' } : null}
+    >
       <div className="fixed inset-0 pt-16 bg-slate-50">
         <div className="flex h-full w-full overflow-hidden">
-          {/* Sidebar */}
           <AnimatePresence>
             {showSidebar && (
               <motion.div
@@ -143,7 +156,6 @@ export function ChatLayout() {
             )}
           </AnimatePresence>
 
-          {/* Main Chat Area */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {activeChatParticipantId ? (
               <>
@@ -156,7 +168,16 @@ export function ChatLayout() {
                 <div className="flex-1 overflow-hidden flex flex-col">
                   <ChatMessages
                     participantId={activeChatParticipantId}
-                    participant={activeParticipant || undefined}
+                    participant={activeParticipant || {
+                      id: activeChatParticipantId,
+                      userId: activeChatParticipantId,
+                      firstName: "Unknown",
+                      lastName: "User",
+                      email: "",
+                      role: role as UserRole,
+                      isOnline: false,
+                      avatar: `https://ui-avatars.com/api/?name=Unknown+User&background=10b981&color=fff`,
+                    }}
                     role={role as UserRole}
                     currentUserId={user.id}
                     onReply={handleReply}
@@ -203,5 +224,5 @@ export function ChatLayout() {
         </div>
       </div>
     </SocketProvider>
-  )
+  );
 }

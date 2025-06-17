@@ -1,5 +1,3 @@
-// src/components/Dashboard/User/DashBoard.tsx
-import React from "react";
 import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
@@ -9,14 +7,11 @@ import WorkoutProgress from "@/components/Dashboard/User/WorkoutProgress";
 import WaterIntakeChart from "@/components/Dashboard/User/WaterIntakeChart";
 import WeightHeightTrends from "@/components/Dashboard/User/WeightHeightTrends";
 import DailySummary from "@/components/Dashboard/User/DailySummary";
-import SubscriptionCountdown from "@/components/Dashboard/Trainer/SubScription";
 import { Loader2 } from "lucide-react";
 
 const UserDashBoard = () => {
-  // Get userId from Redux
   const userId = useSelector((state: RootState) => state.client.client?.id || "");
 console.log(userId, "User ID from Redux state");
-  // Fetch progress metrics
   const { data, isLoading, isError, error } = useUserProgressMetrics(userId);
 console.log(data, "Fetched user progress metrics data");
   const containerVariants = {
@@ -39,7 +34,6 @@ console.log(data, "Fetched user progress metrics data");
     },
   };
 
-  // Handle loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex justify-center items-center">
@@ -48,7 +42,6 @@ console.log(data, "Fetched user progress metrics data");
     );
   }
 
-  // Handle error state
   if (isError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6 lg:p-8">
@@ -59,7 +52,6 @@ console.log(data, "Fetched user progress metrics data");
     );
   }
 
-  // Handle no data or invalid response
   if (!data || data.status !== "success") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6 lg:p-8">

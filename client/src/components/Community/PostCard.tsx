@@ -1,112 +1,123 @@
-"use client"
+"use client";
 
-import React, { useState, useRef, useEffect } from "react"
-import { useSelector } from "react-redux"
-import { toast } from "react-hot-toast"
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Copy, Facebook, Twitter, Link, Share2 } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { motion, AnimatePresence } from "framer-motion"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { selectCurrentUser } from "@/store/userSelectors"
-import { useLikePost } from "@/hooks/community/useLikePost"
-import { useDeletePost } from "@/hooks/community/useDeletePost"
-import { useReportPost } from "@/hooks/community/useReportPost"
-import { useGetComments } from "@/hooks/community/useGetComments" // Import the useGetComments hook
-import { useSocket } from "@/context/socketContext";
-// Updated interface to match the actual data structure
-interface Author {
-  id: string
-  name?: string
-  firstName?: string
-  lastName?: string
-  avatarUrl?: string
-  profileImage?: string
-  isTrainer?: boolean
-}
-
-interface IPost {
-  id: string
-  authorId: string
-  author?: Author
-  textContent: string
-  content: string
-  category: string
-  createdAt: string
-  likes: string[]
-  commentCount: number // This will be ignored in favor of useGetComments
-  imageUrl?: string
-  videoUrl?: string
-  mediaUrl?: string
-  role?: string
-  isDeleted?: boolean
-  hasLiked?: boolean
-}
+import React, { useState, useRef, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { toast } from "react-hot-toast";
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Copy, Facebook, Twitter, Share2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { selectCurrentUser } from "@/store/userSelectors";
+import { useLikePost } from "@/hooks/community/useLikePost";
+import { useDeletePost } from "@/hooks/community/useDeletePost";
+import { useReportPost } from "@/hooks/community/useReportPost";
+import { useGetComments } from "@/hooks/community/useGetComments";
+import { useQueryClient } from "@tanstack/react-query";
+import { IPost } from "@/types/Post";
 
 interface PostCardProps {
-  post: IPost
-  onComment: (postId: string) => void
+  post: IPost;
+  onComment: (postId: string) => void;
+  onLike: () => void;
+  currentUserId: string;
+  isLiking?: boolean;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, onComment }) => {
-  console.log(post, "pc")
-  const currentUser = useSelector(selectCurrentUser)
-    const { socket, isConnected } = useSocket();
-  const [isSaved, setIsSaved] = useState(false)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [showShareMenu, setShowShareMenu] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-  const [likeScale, setLikeScale] = useState(1)
-  const { likePost, isLiking } = useLikePost()
-  const { deletePost, isDeleting } = useDeletePost()
-  const { reportPost, isReporting } = useReportPost()
-  
-  // Use the useGetComments hook to fetch comment data
-  const { total: commentCount, isLoading: isCommentsLoading, error: commentsError } = useGetComments(post.id, 1, 10)
+const PostCard: React.FC<PostCardProps> = ({ post, onComment, onLike }) => {
+  const currentUser = useSelector(selectCurrentUser);
+  // const { socket, isConnected } = useSocket();
+  const queryClient = useQueryClient();
+  const [isSaved, setIsSaved] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [likeScale, setLikeScale] = useState(1);
+  const [optimisticPost, setOptimisticPost] = useState<IPost>(post);
+  const { likePost, isPending } = useLikePost();
+  const { deletePost } = useDeletePost();
+  const { reportPost } = useReportPost();
+  const { total: commentCount, isLoading: isCommentsLoading, error: commentsError } = useGetComments(post.id, 1, 10);
 
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const shareMenuRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setOptimisticPost(post);
+  }, [post]);
 
   const getInitials = (name?: string) => {
-    if (!name) return "U"
-
-    const nameParts = name.split(" ")
+    if (!name) return "U";
+    const nameParts = name.split(" ");
     if (nameParts.length >= 2) {
-      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
     }
-
-    return name[0].toUpperCase()
-  }
+    return name[0].toUpperCase();
+  };
 
   const formatTimeAgo = (date: Date | string) => {
-    return formatDistanceToNow(new Date(date), { addSuffix: true })
-  }
+    return formatDistanceToNow(new Date(date), { addSuffix: true });
+  };
 
-const handleLike = (e: React.MouseEvent) => {
-  e.stopPropagation();
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentUser?.role || !currentUser?.id) {
+      toast.error("Please log in to like posts");
+      return;
+    }
 
-  if (!currentUser?.role || !currentUser?.id) {
-    toast.error("Please log in to like posts");
-    return;
-  }
-
-  if (socket && isConnected) {
-    // ✅ join post room and wait for confirmation
-    socket.emit("joinPost", post.id, () => {
-      console.log(`[DEBUG] Confirmed join for room: post:${post.id}`);
-      likePost({ id: post.id, role: currentUser.role, userId: currentUser.id });
+    // Optimistic update
+    const wasLiked = optimisticPost.hasLiked || optimisticPost.likes.includes(currentUser.id);
+    setLikeScale(1.5);
+    setTimeout(() => setLikeScale(1), 300);
+    setOptimisticPost({
+      ...optimisticPost,
+      likes: wasLiked
+        ? optimisticPost.likes.filter((id) => id !== currentUser.id)
+        : [...optimisticPost.likes, currentUser.id],
+      hasLiked: !wasLiked,
     });
-  } else {
-    likePost({ id: post.id, role: currentUser.role, userId: currentUser.id });
-  }
 
-  setLikeScale(1.5);
-  setTimeout(() => setLikeScale(1), 300);
-};
-
+    try {
+      await likePost(
+        { id: post.id, role: currentUser.role, userId: currentUser.id },
+        {
+          onSuccess: (data) => {
+            toast.success(wasLiked ? "Post unliked" : "Post liked");
+            onLike();
+            // Update query cache with server data
+            queryClient.setQueryData(
+              ["posts"],
+              (old: { items: IPost[]; total: number } | undefined) => {
+                if (!old) return old;
+                return {
+                  ...old,
+                  items: old.items.map((p) =>
+                    p.id === post.id ? { ...p, likes: data.likes, hasLiked: data.hasLiked } : p
+                  ),
+                };
+              }
+            );
+           queryClient.invalidateQueries({ queryKey: ["posts"] });
+          },
+          onError: (err) => {
+            console.error("[DEBUG] Like mutation error:", err);
+            toast.error(err.message || "Failed to like post");
+            setOptimisticPost(post); // Revert on error
+            setLikeScale(1);
+          },
+        }
+      );
+    } catch (error) {
+      console.error("[DEBUG] Like catch error:", error);
+      toast.error("Failed to like post");
+      setOptimisticPost(post);
+      setLikeScale(1);
+    }
+  };
 
   const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setShowDropdown(false)
+    e.stopPropagation();
+    setShowDropdown(false);
     if (currentUser?.role) {
       deletePost(
         { id: post.id, role: currentUser.role },
@@ -114,13 +125,13 @@ const handleLike = (e: React.MouseEvent) => {
           onSuccess: () => toast.success("Post deleted successfully"),
           onError: (err) => toast.error(err.message || "Failed to delete post"),
         }
-      )
+      );
     }
-  }
+  };
 
   const handleReport = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setShowDropdown(false)
+    e.stopPropagation();
+    setShowDropdown(false);
     if (currentUser?.role) {
       reportPost(
         {
@@ -132,103 +143,102 @@ const handleLike = (e: React.MouseEvent) => {
           onSuccess: () => toast.success("Post reported successfully"),
           onError: (err) => toast.error(err.message || "Failed to report post"),
         }
-      )
+      );
     }
-  }
+  };
 
   const toggleDropdown = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setShowDropdown(!showDropdown)
-    if (showShareMenu) setShowShareMenu(false)
-  }
+    e.stopPropagation();
+    setShowDropdown(!showDropdown);
+    if (showShareMenu) setShowShareMenu(false);
+  };
 
   const toggleShareMenu = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setShowShareMenu(!showShareMenu)
-    if (showDropdown) setShowDropdown(false)
-  }
+    e.stopPropagation();
+    setShowShareMenu(!showShareMenu);
+    if (showDropdown) setShowDropdown(false);
+  };
 
   const closeDropdown = (e: React.MouseEvent) => {
     if (showDropdown) {
-      e.stopPropagation()
-      setShowDropdown(false)
+      e.stopPropagation();
+      setShowDropdown(false);
     }
-  }
+  };
 
   const handleShare = (platform: string) => (e: React.MouseEvent) => {
-    e.stopPropagation()
-    
-    const postUrl = `${window.location.origin}/posts/${post.id}`
-    
+    e.stopPropagation();
+    const postUrl = `${window.location.origin}/posts/${post.id}`;
     switch (platform) {
-      case 'copy':
-        navigator.clipboard.writeText(postUrl)
+      case "copy":
+        navigator.clipboard
+          .writeText(postUrl)
           .then(() => toast.success("Link copied to clipboard"))
-          .catch(() => toast.error("Failed to copy link"))
-        break
-      case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank')
-        break
-      case 'twitter':
-        const text = `Check out this post: ${(post.textContent || post.content).substring(0, 100)}...`
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`, '_blank')
-        break
-      case 'direct':
+          .catch(() => toast.error("Failed to copy link"));
+        break;
+      case "facebook":
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`,
+          "_blank"
+        );
+        break;
+      case "twitter":
+        const text = `Check out this post: ${(post.textContent || post.content).substring(0, 100)}...`;
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`,
+          "_blank"
+        );
+        break;
+      case "direct":
         if (navigator.share) {
-          navigator.share({
-            title: 'Check out this post',
-            text: post.textContent || post.content,
-            url: postUrl
-          })
-          .catch((error) => console.log('Error sharing', error))
+          navigator
+            .share({
+              title: "Check out this post",
+              text: post.textContent || post.content,
+              url: postUrl,
+            })
+            .catch((error) => console.log("Error sharing", error));
         } else {
-          toast.error("Native sharing not supported on this browser")
+          toast.error("Native sharing not supported on this browser");
         }
-        break
+        break;
       default:
-        break
+        break;
     }
-    
-    setShowShareMenu(false)
-  }
+    setShowShareMenu(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false)
+        setShowDropdown(false);
       }
       if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
-        setShowShareMenu(false)
+        setShowShareMenu(false);
       }
-    }
-    
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [])
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
-  const isAuthor = post.authorId === currentUser?.id
-  const hasLiked = post.hasLiked || post.likes.includes(currentUser?.id || "")
-  const isTrainer = post.author?.isTrainer || post.role === "trainer"
-
-  const postImage = post.mediaUrl || post.imageUrl
-
+  const isAuthor = post.authorId === currentUser?.id;
+  const hasLiked = optimisticPost.hasLiked || optimisticPost.likes.includes(currentUser?.id || "");
+  const isTrainer = post.author?.isTrainer || post.role === "trainer";
+  const postImage = post.mediaUrl || post.imageUrl;
   const authorName =
     post.author?.name ||
     (post.author?.firstName && post.author?.lastName
       ? `${post.author.firstName} ${post.author.lastName}`.trim()
-      : "Anonymous")
+      : "Anonymous");
 
-  // Handle comments error (optional)
   useEffect(() => {
     if (commentsError) {
-      console.error("Error fetching comments:", commentsError)
-      // Optionally show a toast or fallback to post.commentCount
-      // toast.error("Failed to load comments count")
+      console.error("Error fetching comments:", commentsError);
     }
-  }, [commentsError])
+  }, [commentsError]);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -237,9 +247,8 @@ const handleLike = (e: React.MouseEvent) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Post header */}
       <div className="flex justify-between items-center p-3">
-        <motion.div 
+        <motion.div
           className="flex items-center space-x-2"
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -252,7 +261,7 @@ const handleLike = (e: React.MouseEvent) => {
                 className="object-cover"
               />
             ) : (
-              <AvatarFallback className="bg-gradient-to-r from-blue-400 to-purple-500 text-white text-xs font-medium">
+              <AvatarFallback style={{ background: "rgb(59, 130, 246)" }} className="text-white text-xs font-medium">
                 {post.author ? getInitials(post.author.name) : "U"}
               </AvatarFallback>
             )}
@@ -264,7 +273,8 @@ const handleLike = (e: React.MouseEvent) => {
                 <motion.svg
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.5 }}
-                  className="w-4 h-4 ml-1 text-[#0095F6] fill-current"
+                  className="w-4 h-4 ml-1"
+                  style={{ fill: "rgb(0, 149, 246)" }}
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
@@ -275,8 +285,6 @@ const handleLike = (e: React.MouseEvent) => {
             <p className="text-xs text-gray-500">{post.category}</p>
           </div>
         </motion.div>
-        
-        {/* Fixed dropdown menu */}
         <div className="relative" ref={dropdownRef} onClick={(e) => e.stopPropagation()}>
           <motion.button
             whileHover={{ rotate: 90 }}
@@ -286,7 +294,6 @@ const handleLike = (e: React.MouseEvent) => {
           >
             <MoreHorizontal className="h-5 w-5 text-gray-700" />
           </motion.button>
-          
           <AnimatePresence>
             {showDropdown && (
               <motion.div
@@ -296,7 +303,7 @@ const handleLike = (e: React.MouseEvent) => {
                 transition={{ duration: 0.2 }}
                 className="absolute right-0 top-10 w-48 rounded-xl shadow-lg bg-white border border-gray-100 py-1 z-50"
               >
-                <div 
+                <div
                   className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                   onClick={handleReport}
                 >
@@ -304,13 +311,13 @@ const handleLike = (e: React.MouseEvent) => {
                 </div>
                 {isAuthor && (
                   <>
-                    <div 
+                    <div
                       className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
                       onClick={closeDropdown}
                     >
                       Edit Post
                     </div>
-                    <div 
+                    <div
                       className="text-sm py-2 px-3 cursor-pointer text-red-500 hover:bg-red-50 transition-colors"
                       onClick={handleDelete}
                     >
@@ -318,9 +325,9 @@ const handleLike = (e: React.MouseEvent) => {
                     </div>
                   </>
                 )}
-                <div 
+                <div
                   className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={handleShare('copy')}
+                  onClick={handleShare("copy")}
                 >
                   Copy Link
                 </div>
@@ -329,8 +336,6 @@ const handleLike = (e: React.MouseEvent) => {
           </AnimatePresence>
         </div>
       </div>
-
-      {/* Post image with hover effect */}
       {postImage && (
         <div className="relative aspect-square bg-black overflow-hidden">
           <motion.img
@@ -339,14 +344,12 @@ const handleLike = (e: React.MouseEvent) => {
             className="w-full h-full object-contain"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
-            animate={{ 
-              filter: isHovered ? "brightness(1.1)" : "brightness(1)" 
+            animate={{
+              filter: isHovered ? "brightness(1.1)" : "brightness(1)",
             }}
           />
         </div>
       )}
-
-      {/* Post actions */}
       <div className="p-4">
         <div className="flex justify-between">
           <div className="flex space-x-4">
@@ -356,41 +359,36 @@ const handleLike = (e: React.MouseEvent) => {
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
               onClick={handleLike}
               className="text-black focus:outline-none"
-              disabled={isLiking}
+              disabled={isPending}
               aria-label={hasLiked ? "Unlike" : "Like"}
             >
               <Heart
-                className={`h-6 w-6 ${hasLiked ? "fill-red-500 text-red-500" : "fill-none"} transition-colors duration-300`}
+                className={`h-6 w-6 ${hasLiked ? "fill-[rgb(239,68,68)] text-[rgb(239,68,68)]" : "fill-none"} transition-colors duration-300`}
                 strokeWidth={hasLiked ? 0 : 2}
               />
             </motion.button>
-
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={(e) => {
-                e.stopPropagation()
-                onComment(post.id)
+                e.stopPropagation();
+                onComment(post.id);
               }}
               className="text-black focus:outline-none"
               aria-label="Comment"
             >
               <MessageCircle className="h-6 w-6 fill-none" />
             </motion.button>
-
-            {/* Share button with dropdown */}
             <div className="relative" ref={shareMenuRef}>
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.1, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={toggleShareMenu} 
-                className="text-black focus:outline-none" 
+                onClick={toggleShareMenu}
+                className="text-black focus:outline-none"
                 aria-label="Share"
               >
                 <Send className="h-6 w-6 fill-none" />
               </motion.button>
-              
-              {/* Share options menu */}
               <AnimatePresence>
                 {showShareMenu && (
                   <motion.div
@@ -401,31 +399,31 @@ const handleLike = (e: React.MouseEvent) => {
                     className="absolute left-0 bottom-10 w-48 rounded-xl shadow-lg bg-white border border-gray-100 py-1 z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div 
+                    <div
                       className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2"
-                      onClick={handleShare('copy')}
+                      onClick={handleShare("copy")}
                     >
                       <Copy className="h-4 w-4" />
                       Copy Link
                     </div>
-                    <div 
+                    <div
                       className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2"
-                      onClick={handleShare('facebook')}
+                      onClick={handleShare("facebook")}
                     >
-                      <Facebook className="h-4 w-4 text-blue-600" />
+                      <Facebook className="h-4 w-4" style={{ color: "rgb(59,89,152)" }} />
                       Share to Facebook
                     </div>
-                    <div 
+                    <div
                       className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2"
-                      onClick={handleShare('twitter')}
+                      onClick={handleShare("twitter")}
                     >
-                      <Twitter className="h-4 w-4 text-blue-400" />
+                      <Twitter className="h-4 w-4" style={{ color: "rgb(29,161,242)" }} />
                       Share to Twitter
                     </div>
                     {typeof navigator.share === "function" && (
-                      <div 
+                      <div
                         className="text-sm py-2 px-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-2"
-                        onClick={handleShare('direct')}
+                        onClick={handleShare("direct")}
                       >
                         <Share2 className="h-4 w-4" />
                         Share...
@@ -436,39 +434,34 @@ const handleLike = (e: React.MouseEvent) => {
               </AnimatePresence>
             </div>
           </div>
-
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={(e) => {
-              e.stopPropagation()
-              setIsSaved(!isSaved)
+              e.stopPropagation();
+              setIsSaved(!isSaved);
             }}
             className="text-black focus:outline-none"
             aria-label={isSaved ? "Unsave" : "Save"}
           >
-            <Bookmark 
-              className={`h-6 w-6 ${isSaved ? "fill-black" : "fill-none"} transition-all duration-300`} 
+            <Bookmark
+              className={`h-6 w-6 ${isSaved ? "fill-black" : "fill-none"} transition-all duration-300`}
             />
           </motion.button>
         </div>
-
-        {/* Likes count with animated number */}
-        {post.likes.length > 0 && (
-          <motion.div 
+        {optimisticPost.likes.length > 0 && (
+          <motion.div
             className="mt-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
             <p className="text-sm font-semibold">
-              {post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}
+              {optimisticPost.likes.length} {optimisticPost.likes.length === 1 ? "like" : "likes"}
             </p>
           </motion.div>
         )}
-
-        {/* Caption */}
-        <motion.div 
+        <motion.div
           className="mt-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -476,30 +469,26 @@ const handleLike = (e: React.MouseEvent) => {
         >
           <p className="text-sm">
             <span className="font-semibold">{authorName}</span>{" "}
-            {post.textContent || post.content}
+            {optimisticPost.textContent || optimisticPost.content}
           </p>
         </motion.div>
-
-        {/* Comments preview with highlight effect */}
         {commentCount > 0 && (
           <motion.button
-            whileHover={{ color: "#3B82F6" }}
+            whileHover={{ color: "rgb(59,130,246)" }}
             className="text-sm text-gray-500 mt-2"
             onClick={(e) => {
-              e.stopPropagation()
-              onComment(post.id)
+              e.stopPropagation();
+              onComment(post.id);
             }}
             disabled={isCommentsLoading}
           >
             {isCommentsLoading ? "Loading comments..." : `View all ${commentCount} comments`}
           </motion.button>
         )}
-
-        {/* Timestamp */}
-        <p className="text-xs uppercase text-gray-400 mt-2">{formatTimeAgo(post.createdAt)}</p>
+        <p className="text-xs uppercase text-gray-400 mt-2">{formatTimeAgo(optimisticPost.createdAt)}</p>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default PostCard
+export default PostCard;

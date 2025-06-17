@@ -1,6 +1,6 @@
 import { trainerAxiosInstance } from "@/api/trainer.axios";
 import { IClient, ITrainer } from "@/types/User";
-import { CategoryResponse } from "../admin/adminService";
+import { CategoryResponse } from "@/hooks/admin/useAllCategory";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/trainer/useTrainerPasswordChange";
 import { SlotsResponse, CreateSlotData } from "@/types/Slot";
@@ -15,6 +15,14 @@ import {
   ISessionHistory,
 } from "@/types/TrainerDashboard";
 import { Review } from "@/types/trainer";
+
+
+interface GetTrainerSlotsParams {
+  trainerId: string;
+  date?: string;
+  page?: number;
+  limit?: number;
+}
 
 export interface TrainerClient {
   id: string;
@@ -211,17 +219,17 @@ export const getTrainerOwnSlots = async (): Promise<SlotsResponse> => {
   }
 };
 
-export const getTrainerBookedAndCancelledSlots = async (
-  trainerId: string,
-  date?: string,
-  page: number = 1,
-  limit: number = 20
-): Promise<SlotsResponse> => {
+export const getTrainerBookedAndCancelledSlots = async ({
+  trainerId,
+  date,
+  page,
+  limit,
+}: GetTrainerSlotsParams): Promise<SlotsResponse> => {
   try {
     const response = await trainerAxiosInstance.get<SlotsResponse>(
       "/trainer/slotbooks",
       {
-        params: { trainerId },
+        params: { trainerId, date, page, limit },
       }
     );
     console.log("Trainer's booked and cancelled slots:", response.data);

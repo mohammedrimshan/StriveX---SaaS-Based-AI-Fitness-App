@@ -16,12 +16,13 @@ import MembershipPlans from "@/pages/admin/AddMembership/MembershipPlans";
 import WorkoutFormPage from "@/pages/admin/WorkoutList/WorkoutFormPage";
 import TransactionHistory from "@/pages/admin/TransactionHistory";
 import SessionHistoryPage from "@/components/common/SessionHistoryPage";
+import NotFoundPage from "@/components/common/NotFoundPage";
+import SubscriptionDashboard from "@/pages/admin/SubscriptionDashboard";
 export const AdminRoutes = () => {
   return (
     <Routes>
       {/* Admin login route outside of protected layout */}
       <Route index element={<NoAdminAuthRoute element={<AdminAuth />} />} />
-
       {/* All protected admin routes inside the layout */}
       <Route
         path="/"
@@ -42,22 +43,19 @@ export const AdminRoutes = () => {
         <Route path="category" element={<Categories />} />
         <Route path="workout" element={<AdminWorkoutsPage />} />
         <Route path="membership" element={<MembershipPlans />} />
-        {/* Add more admin routes here as needed */}
-
-        <Route path="/workouts" element={<WorkoutsListPage />} />
-        <Route path="/workouts/:id" element={<WorkoutDetailPage />} />
-        {/* Exercises */}
-        {/* <Route path="/workouts/:workoutId/exercises/new" element={<ExerciseFormPage />} /> */}
-        {/* <Route path="/workouts/:workoutId/exercises/edit/:exerciseId" element={<ExerciseFormPage />} /> */}
-        <Route path="/workouts/new" element={<WorkoutFormPage />} />
-        <Route path="/workouts/edit/:id" element={<WorkoutFormPage />} />
-        <Route path="/transaction" element={<TransactionHistory />} />
+        <Route path="workouts" element={<WorkoutsListPage />} />
+        <Route path="workouts/:id" element={<WorkoutDetailPage />} />
+        <Route path="workouts/new" element={<WorkoutFormPage />} />
+        <Route path="workouts/edit/:id" element={<WorkoutFormPage />} />
+        <Route path="transaction" element={<TransactionHistory />} />
         <Route
-          path="/session-history"
+          path="session-history"
           element={<SessionHistoryPage />}
         />
+        <Route path="subscriptions" element={<SubscriptionDashboard />} />
+        {/* Catch-all route for unmatched admin sub-routes */}
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
-      {/*//? Forgot and reset pages */}
       <Route
         path="/forgot-password"
         element={

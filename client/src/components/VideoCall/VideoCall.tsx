@@ -385,16 +385,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
           maxUsers: 2,
           layout: "Auto",
           showLayoutButton: false,
-          theme: {
-            primaryColor: "#4f46e5",
-            backgroundColor: "#f8fafc",
-            textColor: "#1e293b",
-            buttonColor: "#4f46e5",
-            buttonTextColor: "#ffffff",
-            iconColor: "#4f46e5",
-            hoverColor: "#6366f1",
-            activeColor: "#4338ca",
-          } as any,
           onJoinRoom: () => {
             logWithTimestamp("Successfully joined room:", videoCallDetails.roomName)
             socketRef.current?.emit("joinVideoCall", { slotId, userId, role })
@@ -402,7 +392,8 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
           onLeaveRoom: () => logWithTimestamp("Left room:", videoCallDetails.roomName),
           onUserJoin: (users) => logWithTimestamp("Users joined:", users),
           onUserLeave: (users) => logWithTimestamp("Users left:", users),
-          onError: (error) => {
+          // @ts-ignore
+          onError: (error:any) => {
             console.error("Zego SDK Error:", error)
             setError(`Zego SDK Error: ${error.message || "Unknown error"}`)
             logWithTimestamp("Zego SDK Error:", error)

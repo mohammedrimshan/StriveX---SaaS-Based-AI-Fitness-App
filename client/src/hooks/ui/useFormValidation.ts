@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import * as Yup from 'yup';
 
@@ -14,7 +13,6 @@ export function useFormValidation<T extends Record<string, any>>(
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isValid, setIsValid] = useState(false);
 
-  // Validate all fields
   const validateForm = async (): Promise<boolean> => {
     try {
       await schema.validate(data, { abortEarly: false });
@@ -40,7 +38,7 @@ export function useFormValidation<T extends Record<string, any>>(
   const validateField = async (fieldName: string, value: any): Promise<boolean> => {
     try {
       // Get the specific field schema
-      const fieldSchema = Yup.reach(schema, fieldName);
+      const fieldSchema = Yup.reach(schema, fieldName) as Yup.Schema;
       await fieldSchema.validate(value);
       
       setErrors((prev) => {
@@ -60,7 +58,6 @@ export function useFormValidation<T extends Record<string, any>>(
     }
   };
 
-  // Effect to revalidate when data changes if validateOnChange is true
   useEffect(() => {
     if (validateOnChange) {
       validateForm();

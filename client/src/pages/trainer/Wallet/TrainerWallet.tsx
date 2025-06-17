@@ -40,7 +40,7 @@ const TrainerWallet: React.FC = () => {
     totalPages: paginationTotalPages,
     totalItems,
     resetPage,
-  } = usePagination(filteredData, total, totalPages, limit);
+  } = usePagination(filteredData, total, totalPages);
 
   useEffect(() => {
     setMounted(true);

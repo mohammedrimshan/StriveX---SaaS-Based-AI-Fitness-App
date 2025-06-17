@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useDispatch } from "react-redux";
 import {
   User,
   Mail,
@@ -87,7 +86,6 @@ const trainerProfileSchema = Yup.object({
 });
 
 export default function ProfileDetails({ trainer }: TrainerProps) {
-  const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [newSkill, setNewSkill] = useState("");
   const [newQualification, setNewQualification] = useState("");
@@ -661,7 +659,7 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                           <SelectItem value="loading" disabled>
                             Loading categories...
                           </SelectItem>
-                        ) : categoriesData?.categories?.length > 0 ? (
+                        ) : categoriesData!.categories?.length > 0 ? (
                           categoriesData?.categories.map((category) => (
                             <SelectItem key={category.categoryId} value={category.title}>
                               <div className="flex items-center gap-2">

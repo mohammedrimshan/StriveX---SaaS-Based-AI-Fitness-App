@@ -43,7 +43,7 @@ export class DietWorkoutController implements IDietWorkoutController {
     @inject("IGetWorkoutsByCategoryUseCase") private _getWorkoutsByCategoryUseCase: IGetWorkoutsByCategoryUseCase,
     @inject("IGetWorkoutsUseCase") private _getWorkoutsUseCase: IGetWorkoutsUseCase,
     @inject("IRecordProgressUseCase") private _recordProgressUseCase: IRecordProgressUseCase,
-    // @inject("IGetUserProgressUseCase") private _getUserProgressUseCase: IGetUserProgressUseCase,
+    @inject("IGetUserProgressUseCase") private _getUserProgressUseCase: IGetUserProgressUseCase,
     @inject("IAddExerciseUseCase") private _addExerciseUseCase: IAddExerciseUseCase,
     @inject("IUpdateExerciseUseCase") private _updateExerciseUseCase: IUpdateExerciseUseCase,
     @inject("IDeleteExerciseUseCase") private _deleteExerciseUseCase: IDeleteExerciseUseCase
@@ -254,7 +254,6 @@ export class DietWorkoutController implements IDietWorkoutController {
       const pageNumber = parseInt(page as string, 10);
       const limitNumber = parseInt(limit as string, 10);
   
-      // Ensure filter is an object, even for invalid inputs
       let filterObj: Record<string, any> = {};
       if (typeof filter === "string") {
         try {
@@ -302,25 +301,25 @@ export class DietWorkoutController implements IDietWorkoutController {
     }
   }
 
-  // async getUserProgress(req: Request, res: Response): Promise<void> {
-  //   try {
-  //     const { userId } = req.params;
+  async getUserProgress(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params;
 
-  //     if (!userId) {
-  //       throw new CustomError("ID not provided", HTTP_STATUS.BAD_REQUEST);
-  //     }
+      if (!userId) {
+        throw new CustomError("ID not provided", HTTP_STATUS.BAD_REQUEST);
+      }
 
-  //     const progress = await this._getUserProgressUseCase.execute(userId);
+      const progress = await this._getUserProgressUseCase.execute(userId);
 
-  //     res.status(HTTP_STATUS.OK).json({
-  //       success: true,
-  //       message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-  //       data: progress,
-  //     });
-  //   } catch (error) {
-  //     handleErrorResponse(res, error);
-  //   }
-  // }
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        data: progress,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
 
   async generateDiet(req: Request, res: Response): Promise<void> {
     try {

@@ -1,17 +1,40 @@
 "use client";
 
-import { useState } from "react"; 
+import { useState } from "react";
 import { Search, Filter, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import AnimatedBackground from "@/components/Animation/AnimatedBackgorund";
 import WorkoutCard from "./Workouts/WorkoutCard";
 import AnimatedTitle from "@/components/Animation/AnimatedTitle";
 import { useAllWorkouts } from "@/hooks/client/useAllWorkouts";
+import { WorkoutDetailsPro } from "@/types/Workouts";
 
-const categories = ["All", "Cardio", "Strength", "Yoga", "HIIT", "Recovery"];
+export const WORKOUT_TYPES = [
+  "Yoga",
+  "Cardio",
+  "WeightTraining",
+  "Meditation",
+  "Calisthenics",
+  "Pilates",
+  "General",
+] as const;
+
+type WorkoutCategoryTitle = typeof WORKOUT_TYPES[number]; 
+type FilterCategory = WorkoutCategoryTitle | "All";
+
+const categories: FilterCategory[] = [
+  "All",
+  "Yoga",
+  "Cardio",
+  "WeightTraining",
+  "Meditation",
+  "Calisthenics",
+  "Pilates",
+  "General",
+];
 
 const UserWorkout = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState<FilterCategory>("All");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch workouts using the useAllWorkouts hook
@@ -26,14 +49,15 @@ const UserWorkout = () => {
     return <div>Error fetching workouts. Please try again later.</div>;
   }
 
-  const workouts = data.data;
+  // Type workouts explicitly
+  const workouts: WorkoutDetailsPro[] = data.data;
 
   // Filter workouts based on search query and category
   const filteredWorkouts = workouts.filter((workout) => {
     const matchesSearch =
       workout.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workout.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === "All" || workout.category === activeCategory;
+    const matchesCategory = activeCategory === "All" || workout.category.title === activeCategory;
     return matchesSearch && matchesCategory;
   });
 

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { getComments, PaginatedCommentsResponse, IComment } from '@/services/client/clientService';
+import { getComments, PaginatedCommentsResponse} from '@/services/client/clientService';
+import { IComment } from '@/types/Post';
 import { useSocket } from '@/context/socketContext';
 import { FrontendComment } from '@/services/socketService';
 
@@ -23,7 +24,6 @@ export const useGetComments = (postId: string, page: number = 1, limit: number =
     queryFn: () => getComments(postId, page, limit),
     // enabled: !!postId && mongoose.Types.ObjectId.isValid(postId),
     enabled: !!postId && /^[a-f\d]{24}$/i.test(postId),
-    keepPreviousData: true,
   });
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export const useGetComments = (postId: string, page: number = 1, limit: number =
       });
 
       // Handle comment liked
-      socket.on('commentLiked', ({ commentId, userId, likes }: { commentId: string; userId: string; likes: string[] }) => {
+      socket.on('commentLiked', ({ commentId, likes }: { commentId: string; userId: string; likes: string[] }) => {
         queryClient.setQueryData(['comments', postId, page, limit], (old: PaginatedCommentsResponse | undefined) => {
           if (!old) return old;
           return {

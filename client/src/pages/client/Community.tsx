@@ -1,8 +1,16 @@
-import CommunityForum from "@/components/Community/CommunityForum"
-export default function Community() {
+import Community from "@/components/Community/index.tsx";
+import { RootState } from "@/store/store";
+import { useSelector } from "react-redux";
+
+export default function CommunityForum() {
+  const userId = useSelector((state: RootState) => state.client.client?.id) || '';
+
+  if(!userId){
+    <h1>Need user Id</h1>
+  }
   return (
     <div>
-      <CommunityForum />
+      <Community userId={userId}/>
     </div>
   )
 }

@@ -9,14 +9,15 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { X, SendHorizonal, Smile, Camera } from "lucide-react"
 import { selectCurrentUser } from "@/store/userSelectors"
 import { motion, AnimatePresence } from "framer-motion"
-import { WORKOUT_TYPES } from "@/types/Consts"
+import { WORKOUT_TYPES, WorkoutType } from "@/types/Consts"
 import { useSocket } from "@/context/socketContext"
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
-
 interface CreatePostFormProps {
-  onSubmit?: () => void;
+  onSubmit: (post: { textContent: string; category: WorkoutType; mediaUrl?: string }) => void | Promise<void>;
+  isLoading?: boolean;
 }
+
 
 const CreatePostForm: React.FC<CreatePostFormProps> = () => {
   const { socket } = useSocket()
@@ -138,13 +139,18 @@ const CreatePostForm: React.FC<CreatePostFormProps> = () => {
         media = { type: "image", url: mediaUrl, name: mediaFile.name }
       }
 
-      socket.emit("createPost", {
-        senderId: currentUser.id,
-        textContent: textContent.trim(),
-        media,
-        category: userCategory,
-        role: currentUser.role,
-      })
+      if (socket) {
+        socket.emit("createPost", {
+          senderId: currentUser.id,
+          textContent: textContent.trim(),
+          media,
+          category: userCategory,
+          role: currentUser.role,
+        })
+      } else {
+        toast.error("Socket connection not available. Please try again later.")
+        return
+      }
 
       toast.success("Post created successfully!")
       setTextContent("")

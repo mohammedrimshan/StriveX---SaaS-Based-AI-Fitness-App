@@ -87,10 +87,6 @@ const SessionHistory: React.FC<SessionHistoryProps> = ({ role }) => {
   const total = data?.data.total || 0;
   const totalPages = Math.ceil(total / limit);
 
-  // Pagination handlers
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
 
   // Export handlers - now with filtered data
   const handleExportCSV = useCallback(() => {

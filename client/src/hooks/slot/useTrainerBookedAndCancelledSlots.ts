@@ -9,7 +9,6 @@ interface UseTrainerBookedAndCancelledSlotsProps {
   page?: number;
   limit?: number;
 }
-
 export const useTrainerBookedAndCancelledSlots = ({
   trainerId,
   date,
@@ -18,13 +17,11 @@ export const useTrainerBookedAndCancelledSlots = ({
 }: UseTrainerBookedAndCancelledSlotsProps) => {
   return useQuery<SlotsResponse, Error>({
     queryKey: ["trainerBookedAndCancelledSlots", trainerId, date || "all", page, limit],
-    queryFn: () => getTrainerBookedAndCancelledSlots(trainerId, date, page, limit),
+    queryFn: () =>
+      getTrainerBookedAndCancelledSlots({ trainerId, date, page, limit }),
     enabled: !!trainerId && (!date || !isNaN(new Date(date).getTime())),
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    gcTime: 10 * 60 * 1000, // or cacheTime if using React Query <v5
     retry: 1,
-    onError: (error: any) => {
-      console.error("Error fetching trainer slots:", error.message);
-    },
   });
 };

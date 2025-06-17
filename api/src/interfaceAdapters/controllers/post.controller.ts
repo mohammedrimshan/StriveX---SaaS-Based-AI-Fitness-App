@@ -19,7 +19,6 @@ import {
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { CustomError } from "@/entities/utils/custom.error";
 import mongoose from "mongoose";
-import { IPostEntity } from "@/entities/models/post.entity";
 
 @injectable()
 export class PostController implements IPostController {

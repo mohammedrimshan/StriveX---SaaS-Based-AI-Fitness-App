@@ -10,7 +10,7 @@ export const useCreateSlot = () => {
   const queryClient = useQueryClient();
   return useMutation<SlotsResponse, Error, CreateSlotData>({
     mutationFn: createSlot,
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate trainer's own slots query
       queryClient.invalidateQueries({ queryKey: ['trainerOwnSlots'] });
     },

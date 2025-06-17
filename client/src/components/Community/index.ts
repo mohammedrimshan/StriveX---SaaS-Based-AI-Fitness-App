@@ -1,4 +1,4 @@
-import { RoleType } from "./constant";
+import { RoleType } from "./PostDetials/PostDetialHeader";
 
 export interface IReport {
   userId: string;
@@ -13,7 +13,7 @@ export interface IAuthor {
   email: string;
   profileImage?: string;
   role?: RoleType;
-  category?: string; // Added category field for user profiles
+  category?: string; 
 }
 
 export interface IPostEntity {
@@ -47,7 +47,6 @@ export interface ICommentEntity {
 }
 
 export interface IClientEntity {
-  // This is just a placeholder based on your imports
   id?: string;
   name?: string;
 }

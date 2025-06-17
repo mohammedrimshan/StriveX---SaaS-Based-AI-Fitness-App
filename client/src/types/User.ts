@@ -15,6 +15,7 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   isActive?: boolean;
+  
 }
 
 export interface ILoginData {
@@ -108,6 +109,25 @@ export interface Category {
   description: string;
   isListed: boolean;
   createdAt: Date;
+}
+
+
+export interface UserFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  confirmPassword: string;
+  dateOfBirth: string;
+  experience: string;
+  gender: string;
+  skills: string[];
+  status: string;
+}
+export interface IUser extends UserFormData {
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type UserDTO = IAdmin | IClient | ITrainer;

@@ -3,8 +3,8 @@
 import React, { useRef, useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 // Import fitness-related icons from react-icons
-import { IoFitness, IoWater, IoHeartHalf, IoStopwatch } from "react-icons/io5"
-import { GiWeightLiftingUp, GiRunningShoe, GiMuscleUp, GiHeartBeats } from "react-icons/gi"
+import { IoFitness, IoWater, IoStopwatch } from "react-icons/io5"
+import { GiWeightLiftingUp, GiMuscleUp } from "react-icons/gi"
 import { FaRunning, FaAppleAlt, FaHeartbeat, FaDumbbell } from "react-icons/fa"
 import { MdSportsHandball, MdSportsGymnastics } from "react-icons/md"
 

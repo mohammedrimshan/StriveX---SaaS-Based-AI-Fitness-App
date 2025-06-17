@@ -8,9 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Workout } from "@/types/Workouts";
-import { Category } from "@/types/Workouts";
+
 import { useFormValidation } from "@/hooks/ui/useFormValidation";
 import * as Yup from "yup";
+import { CategoryType } from "@/hooks/admin/useAllCategory";
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
@@ -44,7 +45,7 @@ const basicInfoSchema = Yup.object().shape({
 
 interface BasicInfoFormProps {
   workout: Workout;
-  categories: Category[];
+  categories: CategoryType[];
   croppedImageUrl: string | null;
   onChange: (workout: Workout) => void;
   onImageUpload: (image: string) => void;

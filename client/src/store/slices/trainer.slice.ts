@@ -1,6 +1,25 @@
+import { UserRole } from "@/types/UserRole";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import { ITrainer } from "@/types/User";
 
+export interface ITrainer {
+   id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profileImage?: string;
+  specialization?: string[]
+  phoneNumber: string;
+  role?: UserRole;
+  dateOfBirth?: string;
+  height?: number;
+  weight?: number;
+  gender?: string;
+  status?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  isActive?: boolean;
+  
+}
 
 const initialState: { trainer: ITrainer | null } = {
   trainer: null,

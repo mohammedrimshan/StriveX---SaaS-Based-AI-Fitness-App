@@ -2,7 +2,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Play, Pause, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { useUpdateWorkoutVideoProgress } from "@/hooks/progress/useUpdateWorkoutVideoProgress";
-import { useCreateWorkoutProgress } from "@/hooks/progress/useCreateWorkoutProgress";
 interface VideoPlayerProps {
   videoUrl?: string | string[];
   exerciseName: string;
@@ -28,7 +27,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   completedExercises,
   onComplete,
   onNext,
-  workout,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -36,7 +34,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isCompleted, setIsCompleted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { mutate: updateVideoProgress } = useUpdateWorkoutVideoProgress();
-const { mutate: createWorkoutProgress } = useCreateWorkoutProgress();
   const selectedVideoUrl = Array.isArray(videoUrl) ? videoUrl[0] : videoUrl;
 
   useEffect(() => {

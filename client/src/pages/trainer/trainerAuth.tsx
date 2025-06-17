@@ -88,6 +88,7 @@ export const TrainerAuth = () => {
                             onSubmit={handleLoginSubmit}
                             setRegister={() => setIsLogin(false)}
                             isLoading={isLoginLoading}
+                            handleGoogleAuth={() => {}}
                         />
                     </motion.div>
                 ) : (
@@ -103,6 +104,7 @@ export const TrainerAuth = () => {
                             onSubmit={handleSignUpSubmit}
                             setLogin={() => setIsLogin(true)}
                             isLoading={isRegisterLoading}
+                            handleGoogleAuth={() => {}}
                         />
                     </motion.div>
                 )}
