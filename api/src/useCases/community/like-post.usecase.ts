@@ -68,7 +68,7 @@ export class LikePostUseCase implements ILikePostUseCase {
           'INFO'
         );
       } catch (error) {
-        // Silently catch notification errors to avoid blocking the like operation
+        console.error('Error sending notification:', error);
       }
     }
 

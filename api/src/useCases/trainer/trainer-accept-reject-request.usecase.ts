@@ -4,6 +4,7 @@ import { IClientRepository } from "@/entities/repositoryInterfaces/client/client
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { IEmailService } from "@/entities/services/email-service.interface";
 import { IPaymentRepository } from "@/entities/repositoryInterfaces/Stripe/payment-repository.interface";
+import { ISlotRepository } from "@/entities/repositoryInterfaces/slot/slot-repository.interface";
 import { IClientEntity } from "@/entities/models/client.entity";
 import { CustomError } from "@/entities/utils/custom.error";
 import {
@@ -15,6 +16,7 @@ import {
   TRAINER_REJECTION_MAIL_CONTENT,
   PaymentStatus,
 } from "@/shared/constants";
+import { NotificationService } from "@/interfaceAdapters/services/notification.service";
 
 @injectable()
 export class TrainerAcceptRejectRequestUseCase
@@ -25,7 +27,9 @@ export class TrainerAcceptRejectRequestUseCase
     @inject("ITrainerRepository")
     private _trainerRepository: ITrainerRepository,
     @inject("IEmailService") private _emailService: IEmailService,
-    @inject("IPaymentRepository") private _paymentRepository: IPaymentRepository
+    @inject("IPaymentRepository") private _paymentRepository: IPaymentRepository,
+    @inject("ISlotRepository") private _slotRepository: ISlotRepository,
+    @inject('NotificationService') private _notificationService: NotificationService
   ) {}
 
   async execute(
@@ -129,6 +133,33 @@ export class TrainerAcceptRejectRequestUseCase
           emailContent
         );
       } catch (error: any) {}
+
+      if (client.isPremium) {
+        const backupTrainer = await this._trainerRepository.findBackupTrainerForClient(clientId,trainerId)
+        if (backupTrainer) {
+          // Update all future slots for this client
+          const slots = await this._slotRepository.findBookedSlotsByClientId(clientId);
+          for (const slot of slots) {
+            await this._slotRepository.update(slot.id!, { backupTrainerId: backupTrainer.id });
+          }
+
+          // Notify client and backup trainer
+          const clientName = `${client.firstName} ${client.lastName}`;
+          const backupTrainerName = `${backupTrainer.firstName} ${backupTrainer.lastName}`;
+          await this._notificationService.sendToUser(
+            clientId,
+            "Backup Trainer Assigned",
+            `A backup trainer, ${backupTrainerName}, has been assigned to your sessions.`,
+            "INFO"
+          );
+          await this._notificationService.sendToUser(
+            backupTrainer.id!,
+            "Assigned as Backup Trainer",
+            `You have been assigned as a backup trainer for ${clientName}.`,
+            "INFO"
+          );
+        }
+      }
 
       return updatedClient;
     }

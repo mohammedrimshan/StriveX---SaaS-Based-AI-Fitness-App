@@ -27,24 +27,22 @@ async sendToUser(userId: string, title: string, message: string, type: INotifica
   };
 
   const savedNotification = await this.notificationRepository.create(notification);
-  this.socketService.emitNotification(userId, {
-    ...savedNotification,
-    id: (savedNotification._id ?? '').toString(),
-  });
+  this.socketService.emitNotification(userId, savedNotification);
+
 
   try {
     await this.fcmService.sendPushNotification(
       userId,
       title,
       message,
-      (savedNotification._id ?? '').toString(), 
+      (savedNotification.id ?? '').toString(), 
       type
     );
   } catch (error) {
     console.error(`Failed to send push notification to user ${userId}:`, error);
   }
 
-  return { ...savedNotification, id: (savedNotification._id ?? '').toString() };
+  return { ...savedNotification, id: (savedNotification.id ?? '').toString() };
 }
 
   async markAsRead(notificationId: string): Promise<void> {

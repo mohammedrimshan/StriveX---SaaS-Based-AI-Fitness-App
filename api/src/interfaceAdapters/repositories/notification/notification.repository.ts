@@ -1,4 +1,3 @@
-
 import { injectable } from "tsyringe";
 import { INotificationRepository } from "@/entities/repositoryInterfaces/notification/notification-repository.interface";
 import { INotificationEntity } from "@/entities/models/notification.entity";
@@ -27,6 +26,7 @@ export class NotificationRepository
       );
       const createdNotification = await this.model.create(notification);
       const result = this.mapToEntity(createdNotification.toObject());
+
       console.log(
         `[${new Date().toISOString()}] Created notification: ${JSON.stringify(
           result
@@ -54,6 +54,7 @@ export class NotificationRepository
         .skip((page - 1) * limit)
         .limit(limit)
         .lean();
+
       return notifications.map((doc) => this.mapToEntity(doc));
     } catch (error) {
       throw new CustomError(

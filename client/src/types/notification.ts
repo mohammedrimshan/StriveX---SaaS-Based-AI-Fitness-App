@@ -1,6 +1,6 @@
 // src/types/notification.ts
 export interface INotification {
-  id?: string;
+  id: string;
   userId: string;
   title: string;
   message: string;

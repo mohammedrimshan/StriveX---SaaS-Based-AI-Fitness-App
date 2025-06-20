@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { Toaster, toast } from "react-hot-toast";
 import { INotification } from "../types/notification";
 import { initializeFCM } from "./fcmService";
 import {
@@ -13,7 +14,7 @@ import {
 } from "../services/notification/notificationService";
 import { UserRole } from "../types/UserRole";
 import { useSocket } from "./socketContext";
-
+import { NotificationToast } from "@/components/Notification/NotificationToast";
 interface NotificationContextType {
   notifications: INotification[];
   unreadCount: number;
@@ -30,12 +31,38 @@ export const NotificationProvider: React.FC<{
   userId: string | null;
   role: string | null;
 }> = ({ children, userId, role }) => {
-  console.log(role,"noti role")
+  console.log(role, "noti role");
   const { socket, isConnected } = useSocket();
   const [notifications, setNotifications] = useState<INotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [lastConnected, setLastConnected] = useState<string>(new Date().toISOString());
+
+ const showToast = useCallback(
+  (notification: INotification) => {
+    toast(
+      <NotificationToast
+        notification={notification}
+        onMarkAsRead={markAsRead}
+      />,
+      {
+        id: notification.id,
+        duration: 5000,
+        position: "top-right",
+        style: {
+          background: "transparent", 
+          border: "none", 
+          boxShadow: "none", 
+          padding: "0px",
+          borderRadius: "0px",
+          margin: "0px", 
+        },
+        className: "cursor-pointer",
+      }
+    );
+  },
+  []
+);
 
   const fetchNotifications = useCallback(
     async (page: number, limit: number) => {
@@ -147,7 +174,7 @@ export const NotificationProvider: React.FC<{
       const notification: INotification = {
         ...tempNotification,
         id: tempId,
-        createdAt: new Date,
+        createdAt: new Date(),
         isTemporary: true,
       };
       console.log("[DEBUG] Client: Adding temporary notification", {
@@ -165,10 +192,11 @@ export const NotificationProvider: React.FC<{
           });
           return newCount;
         });
+        showToast(notification);
       }
       return tempId;
     },
-    []
+    [showToast]
   );
 
   useEffect(() => {
@@ -225,6 +253,7 @@ export const NotificationProvider: React.FC<{
           });
           return newCount;
         });
+        showToast(notification);
       }
       if (socket && isConnected) {
         socket.emit("updateNotifications", { notifications: [notification] });
@@ -281,17 +310,18 @@ export const NotificationProvider: React.FC<{
             });
             return newCount;
           });
+          showToast(notification);
         }
       });
 
       socket.on("missedNotifications", (missedNotifications: INotification[]) => {
         console.log("[DEBUG] Client: Received missed notifications", {
           count: missedNotifications.length,
-          notifications: missedNotifications.map((n) => ({ id: n.id, createdAt: n.createdAt })),
+          notifications: missedNotifications.map((n) => ({ id: n.id, title: n.title })),
           timestamp: new Date().toISOString(),
         });
         setNotifications((prev) => {
-          const newNotifications = missedNotifications.filter((notif) => !prev.some((n) => n.id === notif.id));
+          const newNotifications = missedNotifications.filter((n) => !prev.some((existing) => existing.id === n.id));
           const updated = [...newNotifications, ...prev].sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
@@ -302,8 +332,9 @@ export const NotificationProvider: React.FC<{
           });
           return updated;
         });
+        const newUnreadNotifications = missedNotifications.filter((n) => !n.isRead);
         setUnreadCount((prev) => {
-          const newUnread = missedNotifications.filter((n) => !n.isRead).length;
+          const newUnread = newUnreadNotifications.length;
           const newCount = prev + newUnread;
           console.log("[DEBUG] Client: Updating unread count for missed notifications", {
             newUnread,
@@ -312,6 +343,7 @@ export const NotificationProvider: React.FC<{
           });
           return newCount;
         });
+        newUnreadNotifications.forEach((notification) => showToast(notification));
       });
 
       socket.on("reconnect", (attempt: number) => {
@@ -347,7 +379,7 @@ export const NotificationProvider: React.FC<{
         timestamp: new Date().toISOString(),
       });
     };
-  }, [userId, role, socket, isConnected, fetchNotifications]);
+  }, [userId, role, socket, isConnected, fetchNotifications, showToast]);
 
   useEffect(() => {
     console.log("[DEBUG] Client: Notifications state updated", {
@@ -369,6 +401,7 @@ export const NotificationProvider: React.FC<{
         addTemporaryNotification,
       }}
     >
+      <Toaster />
       {children}
     </NotificationContext.Provider>
   );
