@@ -4,29 +4,39 @@ import { IClientRepository } from "@/entities/repositoryInterfaces/client/client
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
+import { IAdminRepository } from "@/entities/repositoryInterfaces/admin/admin-repository.interface";
 
 @injectable()
 export class UpdateFCMTokenUseCase implements IUpdateFCMTokenUseCase {
   constructor(
     @inject("IClientRepository") private _clientRepository: IClientRepository,
-    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
+    @inject("IAdminRepository") private _adminRepository: IAdminRepository
   ) {}
   async execute(userId: string, fcmToken: string): Promise<void> {
-    if (!userId || !fcmToken) {
-      throw new CustomError("Missing required fields", HTTP_STATUS.BAD_REQUEST);
-    }
-    const client = await this._clientRepository.findById(userId);
-    if (client) {
-      await this._clientRepository.update(userId, { fcmToken });
-      return;
-    }
-
-    const trainer = await this._trainerRepository.findById(userId);
-    if (trainer) {
-      await this._trainerRepository.update(userId, { fcmToken });
-      return;
-    }
-
-    throw new CustomError("User not found", HTTP_STATUS.NOT_FOUND);
+  if (!userId || !fcmToken) {
+    throw new CustomError("Missing required fields", HTTP_STATUS.BAD_REQUEST);
   }
+
+  const client = await this._clientRepository.findById(userId);
+  if (client) {
+    await this._clientRepository.update(userId, { fcmToken });
+    return;
+  }
+
+  const trainer = await this._trainerRepository.findById(userId);
+  if (trainer) {
+    await this._trainerRepository.update(userId, { fcmToken });
+    return;
+  }
+
+  const admin = await this._adminRepository.findById(userId);
+  if (admin) {
+    await this._adminRepository.update(userId, { fcmToken });
+    return;
+  }
+
+  throw new CustomError("User not found", HTTP_STATUS.NOT_FOUND);
+}
+
 }

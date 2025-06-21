@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { Model } from "mongoose";
+import { Model, QueryOptions } from "mongoose";
 import { IBaseRepository } from "@/entities/repositoryInterfaces/base-repository.interface";
 
 @injectable()
@@ -37,7 +37,13 @@ export class BaseRepository<T> implements IBaseRepository<T> {
     limit: number
   ): Promise<{ items: T[] | []; total: number }> {
     const [items, total] = await Promise.all([
-      this.model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      this.model
+        .find(filter)
+        .select('-password')  
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
       this.model.countDocuments(filter),
     ]);
     const transformedItems = items.map((item) => this.mapToEntity(item));
@@ -50,11 +56,20 @@ export class BaseRepository<T> implements IBaseRepository<T> {
   }
 
   protected async findOneAndUpdateAndMap(
-    filter: any,
-    updates: Partial<T>
-  ): Promise<T | null> {
-    const doc = await this.model.findOneAndUpdate(filter, { $set: updates }, { new: true }).lean();
-    return doc ? this.mapToEntity(doc) : null;
+  filter: any,
+  update: any, 
+  options: QueryOptions = { new: true }
+): Promise<T | null> {
+  const doc = await this.model
+    .findOneAndUpdate(filter, update, options) 
+    .lean();
+
+  return doc ? this.mapToEntity(doc) : null;
+}
+
+
+  async count(filter: object): Promise<number> {
+    return this.model.countDocuments(filter);
   }
 
   protected mapToEntity(doc: any): T {

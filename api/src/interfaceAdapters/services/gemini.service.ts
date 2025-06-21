@@ -262,17 +262,17 @@ export class GeminiService {
     }
 
     private createWorkoutPrompt(client: IClientEntity): string {
-        const workoutCategory = client.workoutCategory?.toLowerCase() || "general";
-        const isSpecificCategory = ["yoga", "meditation", "crossfit", "calisthenics", "pilates"].includes(workoutCategory);
+        const preferredWorkout = client.preferredWorkout?.toLowerCase() || "general";
+        const isSpecificCategory = ["yoga", "meditation", "crossfit", "calisthenics", "pilates"].includes(preferredWorkout);
         
-        const equipmentInstruction = workoutCategory === "yoga" 
+        const equipmentInstruction = preferredWorkout === "yoga" 
             ? "Exercises must not require any equipment except a yoga mat. Focus on bodyweight yoga poses and flows suitable for the client's experience level."
-            : workoutCategory === "meditation"
+            : preferredWorkout === "meditation"
             ? "Exercises must not require any equipment. Focus on mindfulness and breathing techniques."
             : `Exercises may use available equipment: ${client.equipmentAvailable?.join(', ') || 'Basic'}.`;
         
         const categoryInstruction = isSpecificCategory
-            ? `Generate a comprehensive 7-day ${workoutCategory} plan. All days must focus exclusively on ${workoutCategory}, with progressive difficulty and variety suitable for ${workoutCategory}. ${equipmentInstruction}`
+            ? `Generate a comprehensive 7-day ${preferredWorkout} plan. All days must focus exclusively on ${preferredWorkout}, with progressive difficulty and variety suitable for ${preferredWorkout}. ${equipmentInstruction}`
             : `Generate a balanced 7-day workout plan with varied focus areas based on general fitness principles. ${equipmentInstruction}`;
 
         const prompt = JSON.stringify({
@@ -297,12 +297,12 @@ export class GeminiService {
                     }]
                 },
                 additionalRequirements: isSpecificCategory ? {
-                    consistency: `All days must be ${workoutCategory} focused`,
+                    consistency: `All days must be ${preferredWorkout} focused`,
                     progression: "Include progressive difficulty through the week",
-                    variety: `Include different styles/variations of ${workoutCategory}`,
-                    equipment: workoutCategory === "yoga" 
+                    variety: `Include different styles/variations of ${preferredWorkout}`,
+                    equipment: preferredWorkout === "yoga" 
                         ? "No equipment except a yoga mat; focus on yoga poses and flows"
-                        : workoutCategory === "meditation" 
+                        : preferredWorkout === "meditation" 
                         ? "No equipment; focus on mindfulness techniques"
                         : `Use available equipment: ${client.equipmentAvailable?.join(', ') || 'Basic'}`
                 } : {
@@ -315,18 +315,17 @@ export class GeminiService {
                 weight: `${client.weight} kg`,
                 fitnessGoal: client.fitnessGoal,
                 experienceLevel: client.experienceLevel,
-                workoutCategory: workoutCategory,
-                preferredWorkout: client.preferredWorkout || 'Not specified',
+                preferredWorkout: preferredWorkout,
                 activityLevel: client.activityLevel,
                 healthConditions: client.healthConditions?.join(', ') || 'None',
-                availableEquipment: workoutCategory === "yoga" ? ["yoga mat"] : (client.equipmentAvailable?.join(', ') || 'Basic')
+                availableEquipment: preferredWorkout === "yoga" ? ["yoga mat"] : (client.equipmentAvailable?.join(', ') || 'Basic')
             },
             examples: {
                 validResponse: {
                     weeklyPlan: [{
                         day: "Monday",
-                        focus: workoutCategory === "yoga" ? "Yoga Basics" : (isSpecificCategory ? `${workoutCategory} Basics` : "Full Body Strength"),
-                        exercises: workoutCategory === "yoga" 
+                        focus: preferredWorkout === "yoga" ? "Yoga Basics" : (isSpecificCategory ? `${preferredWorkout} Basics` : "Full Body Strength"),
+                        exercises: preferredWorkout === "yoga" 
                             ? [{
                                 name: "Downward Dog",
                                 sets: 3,
@@ -334,14 +333,14 @@ export class GeminiService {
                                 restTime: "15 seconds",
                                 notes: "Focus on breath and alignment; use yoga mat"
                             }] 
-                            : this.getCategoryExerciseExample(workoutCategory),
-                        warmup: workoutCategory === "yoga" 
+                            : this.getCategoryExerciseExample(preferredWorkout),
+                        warmup: preferredWorkout === "yoga" 
                             ? "5 min gentle yoga stretches"
-                            : (isSpecificCategory ? `5 min gentle ${workoutCategory}-specific preparation` : "10 min dynamic stretching"),
-                        cooldown: workoutCategory === "yoga" 
+                            : (isSpecificCategory ? `5 min gentle ${preferredWorkout}-specific preparation` : "10 min dynamic stretching"),
+                        cooldown: preferredWorkout === "yoga" 
                             ? "5 min Savasana relaxation"
-                            : (isSpecificCategory ? `5 min ${workoutCategory}-specific relaxation` : "5 min static stretching"),
-                        duration: workoutCategory === "yoga" ? "45 minutes" : (isSpecificCategory ? "45 minutes" : "60 minutes"),
+                            : (isSpecificCategory ? `5 min ${preferredWorkout}-specific relaxation` : "5 min static stretching"),
+                        duration: preferredWorkout === "yoga" ? "45 minutes" : (isSpecificCategory ? "45 minutes" : "60 minutes"),
                         intensity: "Moderate"
                     }]
                 }
@@ -484,7 +483,7 @@ export class GeminiService {
     }
 
     private formatWorkoutPlan(client: IClientEntity, planData: any): IWorkoutPlan {
-        const category = client.workoutCategory || "General";
+        const category = client.preferredWorkout || "General";
         const weeklyPlan = planData.weeklyPlan.map((day: any) => ({
             ...day,
             exercises: day.exercises.map((exercise: any) => ({
@@ -725,8 +724,8 @@ export class GeminiService {
                                 return null;
                             }
                         }
-                    } else if (key.startsWith('workout:') && client?.workoutCategory) {
-                        const category = client.workoutCategory.toLowerCase();
+                    } else if (key.startsWith('workout:') && client?.preferredWorkout) {
+                        const category = client.preferredWorkout.toLowerCase();
                         if (category === 'yoga') {
                             for (let i = 0; i < parsed.weeklyPlan.length; i++) {
                                 const day = parsed.weeklyPlan[i];

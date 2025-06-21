@@ -1,13 +1,17 @@
-
 import { injectable } from "tsyringe";
 import { ITrainerEntity } from "@/entities/models/trainer.entity";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { TrainerModel } from "@/frameworks/database/mongoDB/models/trainer.model";
 import { TrainerApprovalStatus } from "@/shared/constants";
 import { BaseRepository } from "../base.repository";
-
+import { IClientEntity } from "@/entities/models/client.entity";
+import {  UpdateQuery } from "mongoose";
+import { Types } from "mongoose";
 @injectable()
-export class TrainerRepository extends BaseRepository<ITrainerEntity> implements ITrainerRepository {
+export class TrainerRepository
+  extends BaseRepository<ITrainerEntity>
+  implements ITrainerRepository
+{
   constructor() {
     super(TrainerModel);
   }
@@ -24,7 +28,9 @@ export class TrainerRepository extends BaseRepository<ITrainerEntity> implements
   }
 
   async findById(id: string): Promise<ITrainerEntity | null> {
-    const trainer = await this.model.findOne({ $or: [{ _id: id }, { clientId: id }] }).lean();
+    const trainer = await this.model
+      .findOne({ $or: [{ _id: id }, { clientId: id }] })
+      .lean();
     if (!trainer) return null;
     return this.mapToEntity(trainer);
   }
@@ -35,10 +41,17 @@ export class TrainerRepository extends BaseRepository<ITrainerEntity> implements
     limit: number
   ): Promise<{ items: ITrainerEntity[] | []; total: number }> {
     const [trainers, total] = await Promise.all([
-      this.model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      this.model
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
       this.model.countDocuments(filter),
     ]);
-    const transformedTrainers = trainers.map((trainer) => this.mapToEntity(trainer));
+    const transformedTrainers = trainers.map((trainer) =>
+      this.mapToEntity(trainer)
+    );
     return { items: transformedTrainers, total };
   }
 
@@ -71,8 +84,10 @@ export class TrainerRepository extends BaseRepository<ITrainerEntity> implements
     approvedByAdmin?: boolean
   ): Promise<ITrainerEntity | null> {
     const updateData: Partial<ITrainerEntity> = { approvalStatus: status };
-    if (rejectionReason !== undefined) updateData.rejectionReason = rejectionReason;
-    if (approvedByAdmin !== undefined) updateData.approvedByAdmin = approvedByAdmin;
+    if (rejectionReason !== undefined)
+      updateData.rejectionReason = rejectionReason;
+    if (approvedByAdmin !== undefined)
+      updateData.approvedByAdmin = approvedByAdmin;
 
     const trainer = await this.model
       .findByIdAndUpdate(id, { $set: updateData }, { new: true })
@@ -84,4 +99,83 @@ export class TrainerRepository extends BaseRepository<ITrainerEntity> implements
   async findByIdAndUpdatePassword(id: any, password: string): Promise<void> {
     await this.model.findByIdAndUpdate(id, { password });
   }
+
+  async findBackupTrainerForClient(
+    excludedTrainerId: string,
+    specialization: string
+  ): Promise<ITrainerEntity | null> {
+    return TrainerModel.findOne({
+      _id: { $ne: excludedTrainerId },
+      approvalStatus: TrainerApprovalStatus.APPROVED,
+      isOnline: true,
+      specialization: { $in: [specialization] },
+    }).lean();
+  }
+
+  async addBackupClient(
+  trainerId: string,
+  clientId: string
+): Promise<ITrainerEntity | null> {
+  return this.findOneAndUpdateAndMap(
+    { _id: trainerId },
+    { $addToSet: { backupClientIds: clientId } } as UpdateQuery<ITrainerEntity>
+  );
+}
+
+ async removeBackupClient(
+  trainerId: string,
+  clientId: string
+): Promise<ITrainerEntity | null> {
+  return this.findOneAndUpdateAndMap(
+    { _id: trainerId },
+    { $pull: { backupClientIds: clientId } } as UpdateQuery<ITrainerEntity>
+  );
+}
+
+  async updateOptOutBackupRole(
+  trainerId: string,
+  optOut: boolean
+): Promise<ITrainerEntity | null> {
+  return this.findOneAndUpdateAndMap(
+    { _id: trainerId },
+    { optOutBackupRole: optOut }
+  );
+}
+
+
+async findAvailableBackupTrainers(
+  clientPreferences: Partial<IClientEntity>,
+  excludedTrainerIds: Types.ObjectId[]
+): Promise<ITrainerEntity[]> {
+  const filter = {
+    approvalStatus: TrainerApprovalStatus.APPROVED,
+    status: "active",
+    optOutBackupRole: false,
+    _id: { $nin: excludedTrainerIds },
+    specialization: { $in: [clientPreferences.preferredWorkout] },
+    $expr: {
+      $lt: [
+        { $size: { $ifNull: ["$backupClientIds", []] } },
+        "$maxBackupClients"
+      ]
+    }
+  };
+
+  const trainers = await this.model.find(filter).lean();
+  console.log("Excluded trainer IDs:", excludedTrainerIds);
+  console.log("Returning trainer IDs:", trainers.map(t => t._id));
+
+  return trainers.map((trainer) => this.mapToEntity(trainer));
+}
+
+async findTrainerWithBackupClients(trainerId: string): Promise<any | null> {
+  return this.model
+    .findById(trainerId)
+    .populate({
+      path: 'backupClientIds',
+      select: 'firstName lastName profileImage clientId'
+    })
+    .lean();
+}
+
 }

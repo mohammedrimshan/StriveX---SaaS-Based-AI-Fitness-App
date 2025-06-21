@@ -6,6 +6,7 @@ import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trai
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
 import { INotificationEntity } from "@/entities/models/notification.entity";
+import { IAdminRepository } from "@/entities/repositoryInterfaces/admin/admin-repository.interface";
 
 interface IFCMTokenHolder {
   fcmToken?: string;
@@ -15,7 +16,8 @@ interface IFCMTokenHolder {
 export class FCMService implements IFCMService {
   constructor(
     @inject("IClientRepository") private clientModel: IClientRepository,
-    @inject("ITrainerRepository") private trainerModel: ITrainerRepository
+    @inject("ITrainerRepository") private trainerModel: ITrainerRepository,
+    @inject("IAdminRepository") private adminModel: IAdminRepository
   ) {}
 
   async sendPushNotification(
@@ -32,12 +34,19 @@ export class FCMService implements IFCMService {
       if (!user) {
         user = await this.trainerModel.findById(userId);
       }
+
+      if (!user) {
+        user = await this.adminModel.findById(userId);
+      }
+
       if (!user?.fcmToken) {
         console.warn(`[DEBUG] No FCM token for user ${userId}`);
         return;
       }
 
-       console.log(`[DEBUG] Found FCM token for user ${userId}: ${user.fcmToken}`);
+      console.log(
+        `[DEBUG] Found FCM token for user ${userId}: ${user.fcmToken}`
+      );
       // Send FCM message
       const fcmMessage: Message = {
         token: user.fcmToken,

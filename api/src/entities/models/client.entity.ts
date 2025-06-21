@@ -1,8 +1,16 @@
 import { IUserEntity } from "./user.entity";
-import { ExperienceLevel, FitnessGoal, ActivityLevel, Skill, TrainerSelectionStatus, WorkoutType } from "@/shared/constants";
+import {
+  ExperienceLevel,
+  FitnessGoal,
+  ActivityLevel,
+  Skill,
+  TrainerSelectionStatus,
+  WorkoutType,
+  BackupInvitationStatus,
+} from "@/shared/constants";
 
 export interface IClientEntity extends IUserEntity {
-  fcmToken?: string;
+  
   googleId?: string;
   fitnessGoal?: FitnessGoal;
   experienceLevel?: ExperienceLevel;
@@ -20,11 +28,20 @@ export interface IClientEntity extends IUserEntity {
   subscriptionStartDate?: Date;
   subscriptionEndDate?: Date;
   membershipPlanId?: string;
-  sleepFrom?: string; 
+  sleepFrom?: string;
   wakeUpAt?: string;
-  skillsToGain: Skill[]; 
-  selectionMode?: "auto" | "manual"; 
+  skillsToGain: Skill[];
+  selectionMode?: "auto" | "manual";
   matchedTrainers?: string[];
   selectedTrainerId?: string;
   selectStatus: TrainerSelectionStatus;
+  backupTrainerId?: string | null;
+  backupTrainerStatus?: BackupInvitationStatus | null;
+  backupTrainer?: {
+  id: string;
+  firstName: string;
+  lastName: string;
+  profileImage?: string;
+  specialization?: string[];
+} | null;
 }

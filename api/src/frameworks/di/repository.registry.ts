@@ -54,6 +54,17 @@ import { IReviewRepository } from "@/entities/repositoryInterfaces/review/review
 import { ReviewRepository } from "@/interfaceAdapters/repositories/review/review.repository";
 import { ITrainerDashboardRepository } from "@/entities/repositoryInterfaces/trainer/trainer-dashboard-repository.interface";
 import { TrainerDashboardRepository } from "@/interfaceAdapters/repositories/trainer/trainer-dashboard-repository";
+import { ITrainerEarningsRepository } from "@/entities/repositoryInterfaces/trainer/trainer-earnings.repository.interface";
+import { TrainerEarningsRepository } from "@/interfaceAdapters/repositories/trainer/trainer-earnings.repository";
+import { IClientWalletRepository } from "@/entities/repositoryInterfaces/wallet/client-wallet.repository.interface";
+import { ClientWalletRepository } from "@/interfaceAdapters/repositories/wallet/client-wallet.repository";
+import { IWalletTransactionRepository } from "@/entities/repositoryInterfaces/wallet/wallet-transaction.repository.interface";
+import { WalletTransactionRepository } from "@/interfaceAdapters/repositories/wallet/wallet-transaction.repository";
+import { IBackupTrainerInvitationRepository } from "@/entities/repositoryInterfaces/backuptrainerinvitation/backuptrainerinvitation.repository.interface";
+import { BackupTrainerInvitationRepository } from "@/interfaceAdapters/repositories/backuptrainerinvitation/backuptrainerinvitation.repository";
+import { ITrainerChangeRequestRepository } from "@/entities/repositoryInterfaces/backuptrainerinvitation/trainerchangerequest.repository.interface";
+import { TrainerChangeRequestRepository } from "@/interfaceAdapters/repositories/backuptrainerinvitation/trainerchangerequest.repository";
+
 export class RepositoryRegistry {
   static registerRepositories(): void {
     container.register<IClientRepository>("IClientRepository", {
@@ -173,5 +184,32 @@ export class RepositoryRegistry {
     container.register<ITrainerDashboardRepository>("ITrainerDashboardRepository", {
       useClass: TrainerDashboardRepository,
     });
+
+    container.register<ITrainerEarningsRepository>("ITrainerEarningsRepository", {
+      useClass: TrainerEarningsRepository,
+    });
+
+    container.register<IClientWalletRepository>("IClientWalletRepository", {
+      useClass: ClientWalletRepository,
+    });
+
+    container.register<IWalletTransactionRepository>("IWalletTransactionRepository", {
+      useClass: WalletTransactionRepository,
+    });
+
+
+    container.register<IBackupTrainerInvitationRepository>(
+      "IBackupTrainerInvitationRepository",
+      {
+        useClass: BackupTrainerInvitationRepository,
+      }
+    );
+
+    container.register<ITrainerChangeRequestRepository>(
+      "ITrainerChangeRequestRepository",
+      {
+        useClass: TrainerChangeRequestRepository,
+      }
+    );
   }
 }

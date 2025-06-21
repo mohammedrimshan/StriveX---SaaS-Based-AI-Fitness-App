@@ -19,6 +19,7 @@ import {
   sessionHistoryController,
   reviewController,
   trainerDashboardController,
+  backupTrainerController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -463,6 +464,37 @@ export class TrainerRoutes extends BaseRoute {
             reviewController.getTrainerReviews(req, res);
           }
         );
+
+
+    router.post(
+      "/trainer/backup-trainer/invitation",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.acceptRejectBackupInvitation(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/backup-trainer/invitation",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.getTrainerBackupInvitations(req, res);
+      }
+    );
+
+    router.get(
+      "/trainer/backup-trainer/clients",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.getTrainerBackupClients(req, res);
+      }
+    );
     
   }
 }

@@ -1,6 +1,6 @@
 import { clientAxiosInstance } from "@/api/client.axios";
 import { IAuthResponse } from "@/types/Response";
-import { IClient } from "@/types/User";
+import { ClientTrainersResponse, IClient } from "@/types/User";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/client/useClientPasswordChange";
 import { CategoryResponse } from "@/hooks/admin/useAllCategory";
@@ -731,4 +731,15 @@ export const updateReview = async (review: UpdateReviewInput & { clientId: strin
     console.error("updateReview Error:", error);
     throw error;
   }
+};
+
+
+export const getClientTrainersInfo = async (): Promise<ClientTrainersResponse> => {
+  const response = await clientAxiosInstance.get<{ 
+    success: boolean; 
+    message: string; 
+    data: ClientTrainersResponse; 
+  }>("/client/trainers-info");
+
+  return response.data.data;
 };

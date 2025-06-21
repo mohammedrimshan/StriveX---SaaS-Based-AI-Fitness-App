@@ -28,6 +28,7 @@ import UserDashBoard from "@/pages/client/DashBoard";
 import SessionHistoryPage from "@/components/common/SessionHistoryPage";
 import NotFoundPage from "@/components/common/NotFoundPage";
 import CommunityForum from "@/pages/client/Community";
+import TrainerManagement from "@/pages/client/TrainerManagement";
 export const ClientRoutes = () => {
   return (
     <Routes>
@@ -198,6 +199,15 @@ export const ClientRoutes = () => {
             <AuthRoute
               allowedRoles={["client"]}
               element={<SessionHistoryPage />}
+            />
+          }
+        />
+        <Route
+          path="/trainermanagement"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<TrainerManagement />}
             />
           }
         />

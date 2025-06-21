@@ -34,13 +34,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -53,9 +46,11 @@ import * as Yup from "yup";
 import { useAllCategoryQuery } from "@/hooks/category/useAllCategory";
 import { getAllCategoriesForTrainer } from "@/services/trainer/trainerService";
 import ProfileImageUploader from "@/components/common/ImageCropper/ProfileImageUploader";
+import { Checkbox } from "@mui/material";
+import { CategoryType } from "@/hooks/admin/useAllCategory";
 
 interface TrainerProps {
-  trainer: ITrainer & { clientId?: string } | null;
+  trainer: (ITrainer & { clientId?: string }) | null;
 }
 
 const trainerProfileSchema = Yup.object({
@@ -92,10 +87,9 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
   const { successToast, errorToast } = useToaster();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { data: categoriesData, isLoading: isCategoriesLoading } = useAllCategoryQuery(
-    getAllCategoriesForTrainer
-  );
-
+  const { data: categoriesData, isLoading: isCategoriesLoading } =
+    useAllCategoryQuery(getAllCategoriesForTrainer);
+  console.log(categoriesData);
   const { mutate: updateProfile, isPending } = useUpdateTrainerProfile();
 
   const [formData, setFormData] = useState<ITrainer & { clientId?: string }>(
@@ -125,17 +119,17 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
 
   const getCategoryIcon = (categoryName: string) => {
     switch (categoryName.toLowerCase()) {
-      case 'strength training':
+      case "strength training":
         return <Dumbbell className="h-4 w-4 text-cyan-600" />;
-      case 'cardio':
+      case "cardio":
         return <Heart className="h-4 w-4 text-red-600" />;
-      case 'yoga':
+      case "yoga":
         return <Sparkles className="h-4 w-4 text-purple-600" />;
-      case 'nutrition':
+      case "nutrition":
         return <Flame className="h-4 w-4 text-orange-600" />;
-      case 'crossfit':
+      case "crossfit":
         return <Zap className="h-4 w-4 text-yellow-600" />;
-      case 'pilates':
+      case "pilates":
         return <Clock className="h-4 w-4 text-blue-600" />;
       default:
         return <Target className="h-4 w-4 text-cyan-600" />;
@@ -214,7 +208,10 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
     if (newQualification.trim()) {
       setFormData((prev) => ({
         ...prev,
-        qualifications: [...(prev.qualifications || []), newQualification.trim()],
+        qualifications: [
+          ...(prev.qualifications || []),
+          newQualification.trim(),
+        ],
       }));
       setNewQualification("");
     }
@@ -229,24 +226,35 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
     }));
   };
 
-  const handleSpecializationChange = (value: string) => {
-    const newSpecialization = [value];
+  const handleSpecializationChange = (
+    categoryTitle: string,
+    checked: boolean
+  ) => {
+    let newSpecializations = [...(formData.specialization || [])];
+    if (checked) {
+      newSpecializations.push(categoryTitle);
+    } else {
+      newSpecializations = newSpecializations.filter(
+        (spec) => spec !== categoryTitle
+      );
+    }
     setFormData((prev) => ({
       ...prev,
-      specialization: newSpecialization,
+      specialization: newSpecializations,
     }));
-    validateField("specialization", newSpecialization);
+    validateField("specialization", newSpecializations);
   };
 
   const handleCertFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-      const filePromises = filesArray.map((file) =>
-        new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        })
+      const filePromises = filesArray.map(
+        (file) =>
+          new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          })
       );
       Promise.all(filePromises).then((base64Files) => {
         setFormData((prev) => ({
@@ -297,7 +305,9 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
 
   const getInitials = () => {
     if (!trainer) return "TR";
-    return `${trainer.firstName?.[0] || ""}${trainer.lastName?.[0] || ""}`.toUpperCase();
+    return `${trainer.firstName?.[0] || ""}${
+      trainer.lastName?.[0] || ""
+    }`.toUpperCase();
   };
 
   const handleImageCropComplete = (croppedImageUrl: string | null) => {
@@ -319,14 +329,31 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="smoky-bg"></div>
         </div>
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }}>
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
           <User className="h-16 w-16 text-violet-400" />
         </motion.div>
-        <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.3 }} className="text-center text-lg text-white">
+        <motion.p
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="text-center text-lg text-white"
+        >
           No trainer profile available. Please add your information.
         </motion.p>
-        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.3 }}>
-          <Button onClick={() => setIsEditing(true)} className="bg-violet-600 text-white hover:bg-violet-700" size="lg">
+        <motion.div
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+        >
+          <Button
+            onClick={() => setIsEditing(true)}
+            className="bg-violet-600 text-white hover:bg-violet-700"
+            size="lg"
+          >
             <Plus className="mr-2 h-4 w-4" /> Create Profile
           </Button>
         </motion.div>
@@ -351,7 +378,11 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
               <div className="absolute inset-0 -z-10 overflow-hidden">
                 <div className="smoky-bg"></div>
               </div>
-              <motion.h2 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-2xl font-bold text-white">
+              <motion.h2
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-2xl font-bold text-white"
+              >
                 Edit Profile
               </motion.h2>
               <Button
@@ -367,9 +398,7 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
 
             <div className="flex flex-col items-center space-y-6 rounded-lg border border-border bg-card p-6 shadow-sm md:flex-row md:items-start md:space-x-8 md:space-y-0">
               <div className="flex flex-col items-center space-y-4">
-              
                 <div className="w-full">
-      
                   <ProfileImageUploader
                     initialImage={formData.profileImage}
                     onCropComplete={handleImageCropComplete}
@@ -380,7 +409,10 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
               <div className="w-full space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName" className="flex items-center gap-2 text-sm font-medium text-blue-600">
+                    <Label
+                      htmlFor="firstName"
+                      className="flex items-center gap-2 text-sm font-medium text-blue-600"
+                    >
                       <User className="h-4 w-4" /> First Name
                     </Label>
                     <div className="relative">
@@ -393,14 +425,23 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                         value={formData.firstName || ""}
                         onChange={handleChange}
                         required
-                        className={`pl-10 focus-visible:ring-blue-500 ${errors.firstName ? 'border-red-500' : ''}`}
+                        className={`pl-10 focus-visible:ring-blue-500 ${
+                          errors.firstName ? "border-red-500" : ""
+                        }`}
                         disabled={isPending}
                       />
                     </div>
-                    {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>}
+                    {errors.firstName && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.firstName}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName" className="flex items-center gap-2 text-sm font-medium text-blue-600">
+                    <Label
+                      htmlFor="lastName"
+                      className="flex items-center gap-2 text-sm font-medium text-blue-600"
+                    >
                       <User className="h-4 w-4" /> Last Name
                     </Label>
                     <div className="relative">
@@ -413,17 +454,26 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                         value={formData.lastName || ""}
                         onChange={handleChange}
                         required
-                        className={`pl-10 focus-visible:ring-blue-500 ${errors.lastName ? 'border-red-500' : ''}`}
+                        className={`pl-10 focus-visible:ring-blue-500 ${
+                          errors.lastName ? "border-red-500" : ""
+                        }`}
                         disabled={isPending}
                       />
                     </div>
-                    {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>}
+                    {errors.lastName && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.lastName}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium text-green-600">
+                    <Label
+                      htmlFor="email"
+                      className="flex items-center gap-2 text-sm font-medium text-green-600"
+                    >
                       <Mail className="h-4 w-4" /> Email
                     </Label>
                     <div className="relative">
@@ -437,14 +487,23 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                         value={formData.email || ""}
                         onChange={handleChange}
                         readOnly
-                        className={`bg-muted pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                        className={`bg-muted pl-10 ${
+                          errors.email ? "border-red-500" : ""
+                        }`}
                         disabled={isPending}
                       />
                     </div>
-                    {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+                    {errors.email && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phoneNumber" className="flex items-center gap-2 text-sm font-medium text-green-600">
+                    <Label
+                      htmlFor="phoneNumber"
+                      className="flex items-center gap-2 text-sm font-medium text-green-600"
+                    >
                       <Phone className="h-4 w-4" /> Phone Number
                     </Label>
                     <div className="relative">
@@ -456,11 +515,17 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                         name="phoneNumber"
                         value={formData.phoneNumber || ""}
                         onChange={handleChange}
-                        className={`pl-10 focus-visible:ring-green-500 ${errors.phoneNumber ? 'border-red-500' : ''}`}
+                        className={`pl-10 focus-visible:ring-green-500 ${
+                          errors.phoneNumber ? "border-red-500" : ""
+                        }`}
                         disabled={isPending}
                       />
                     </div>
-                    {errors.phoneNumber && <p className="text-xs text-red-500 mt-1">{errors.phoneNumber}</p>}
+                    {errors.phoneNumber && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {errors.phoneNumber}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -472,7 +537,10 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
               </h3>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="experience" className="flex items-center gap-2 text-sm font-medium text-red-600">
+                  <Label
+                    htmlFor="experience"
+                    className="flex items-center gap-2 text-sm font-medium text-red-600"
+                  >
                     <Briefcase className="h-4 w-4" /> Experience (years)
                   </Label>
                   <div className="relative">
@@ -485,14 +553,23 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                       type="number"
                       value={formData.experience || ""}
                       onChange={handleChange}
-                      className={`pl-10 focus-visible:ring-red-500 ${errors.experience ? 'border-red-500' : ''}`}
+                      className={`pl-10 focus-visible:ring-red-500 ${
+                        errors.experience ? "border-red-500" : ""
+                      }`}
                       disabled={isPending}
                     />
                   </div>
-                  {errors.experience && <p className="text-xs text-red-500 mt-1">{errors.experience}</p>}
+                  {errors.experience && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.experience}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="height" className="flex items-center gap-2 text-sm font-medium text-orange-600">
+                  <Label
+                    htmlFor="height"
+                    className="flex items-center gap-2 text-sm font-medium text-orange-600"
+                  >
                     <Ruler className="h-4 w-4" /> Height (cm)
                   </Label>
                   <div className="relative">
@@ -505,14 +582,21 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                       type="number"
                       value={formData.height || ""}
                       onChange={handleChange}
-                      className={`pl-10 focus-visible:ring-orange-500 ${errors.height ? 'border-red-500' : ''}`}
+                      className={`pl-10 focus-visible:ring-orange-500 ${
+                        errors.height ? "border-red-500" : ""
+                      }`}
                       disabled={isPending}
                     />
                   </div>
-                  {errors.height && <p className="text-xs text-red-500 mt-1">{errors.height}</p>}
+                  {errors.height && (
+                    <p className="text-xs text-red-500 mt-1">{errors.height}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="weight" className="flex items-center gap-2 text-sm font-medium text-amber-600">
+                  <Label
+                    htmlFor="weight"
+                    className="flex items-center gap-2 text-sm font-medium text-amber-600"
+                  >
                     <Weight className="h-4 w-4" /> Weight (kg)
                   </Label>
                   <div className="relative">
@@ -525,11 +609,15 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                       type="number"
                       value={formData.weight || ""}
                       onChange={handleChange}
-                      className={`pl-10 focus-visible:ring-amber-500 ${errors.weight ? 'border-red-500' : ''}`}
+                      className={`pl-10 focus-visible:ring-amber-500 ${
+                        errors.weight ? "border-red-500" : ""
+                      }`}
                       disabled={isPending}
                     />
                   </div>
-                  {errors.weight && <p className="text-xs text-red-500 mt-1">{errors.weight}</p>}
+                  {errors.weight && (
+                    <p className="text-xs text-red-500 mt-1">{errors.weight}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -646,38 +734,55 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-500 z-10">
                       <Target className="h-4 w-4" />
                     </span>
-                    <Select
-                      value={formData.specialization?.[0] || ""}
-                      onValueChange={handleSpecializationChange}
-                      disabled={isPending || isCategoriesLoading}
-                    >
-                      <SelectTrigger className={`pl-10 focus:ring-cyan-500 ${errors.specialization ? 'border-red-500' : ''}`}>
-                        <SelectValue placeholder="Select specialization" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {isCategoriesLoading ? (
-                          <SelectItem value="loading" disabled>
-                            Loading categories...
-                          </SelectItem>
-                        ) : categoriesData!.categories?.length > 0 ? (
-                          categoriesData?.categories.map((category) => (
-                            <SelectItem key={category.categoryId} value={category.title}>
-                              <div className="flex items-center gap-2">
+                    <div className="grid grid-cols-1 gap-3">
+                      {isCategoriesLoading ? (
+                        <p className="text-sm text-muted-foreground">
+                          Loading categories...
+                        </p>
+                      ) : categoriesData?.categories?.length ? (
+                        categoriesData.categories.map(
+                          (category: CategoryType) => (
+                            <div
+                              key={category.categoryId}
+                              className="flex items-center gap-3"
+                            >
+                              <Checkbox
+                                id={category.categoryId}
+                                checked={
+                                  formData.specialization?.includes(
+                                    category.title
+                                  ) || false
+                                }
+                                onChange={(e) =>
+                                  handleSpecializationChange(
+                                    category.title,
+                                    e.target.checked
+                                  )
+                                }
+                                disabled={isPending}
+                                className="h-5 w-5 border-cyan-300 text-cyan-600 focus:ring-cyan-500"
+                              />
+                              <Label
+                                htmlFor={category.categoryId}
+                                className="flex items-center gap-2 text-sm font-medium text-cyan-800"
+                              >
                                 {getCategoryIcon(category.title)}
                                 {category.title}
-                              </div>
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="no-categories" disabled>
-                            No categories available
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                              </Label>
+                            </div>
+                          )
+                        )
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No categories available
+                        </p>
+                      )}
+                    </div>
                   </div>
                   {errors.specialization && (
-                    <p className="text-xs text-red-500">{errors.specialization}</p>
+                    <p className="text-xs text-red-500">
+                      {errors.specialization}
+                    </p>
                   )}
                 </div>
               </div>
@@ -688,9 +793,14 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                 </h3>
                 <div className="flex flex-col space-y-4">
                   <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-amber-200 bg-amber-50 p-4">
-                    <Label htmlFor="certifications" className="flex cursor-pointer flex-col items-center gap-2">
+                    <Label
+                      htmlFor="certifications"
+                      className="flex cursor-pointer flex-col items-center gap-2"
+                    >
                       <Upload className="h-8 w-8 text-amber-600" />
-                      <span className="text-sm text-amber-700">Upload PDF certificates</span>
+                      <span className="text-sm text-amber-700">
+                        Upload PDF certificates
+                      </span>
                       <Input
                         id="certifications"
                         type="file"
@@ -716,7 +826,8 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                               : cert}
                           </span>
                         </div>
-                        {(cert.startsWith("data:") || cert.startsWith("http")) && (
+                        {(cert.startsWith("data:") ||
+                          cert.startsWith("http")) && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -735,12 +846,17 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
             </div>
 
             <div className="flex justify-end space-x-4">
-              <Button type="button" variant="outline" onClick={() => setIsEditing(false)} disabled={isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+                disabled={isPending}
+              >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                className="gap-2 bg-violet-600 hover:bg-violet-700" 
+              <Button
+                type="submit"
+                className="gap-2 bg-violet-600 hover:bg-violet-700"
                 disabled={isPending || Object.keys(errors).length > 0}
               >
                 {isPending ? (
@@ -763,10 +879,17 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
             className="space-y-8"
           >
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-              <motion.h2 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-2xl font-bold text-violet-700">
+              <motion.h2
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-2xl font-bold text-violet-700"
+              >
                 Trainer Profile
               </motion.h2>
-              <Button onClick={() => setIsEditing(true)} className="gap-2 bg-violet-600 hover:bg-violet-700">
+              <Button
+                onClick={() => setIsEditing(true)}
+                className="gap-2 bg-violet-600 hover:bg-violet-700"
+              >
                 <Edit3 className="h-4 w-4" /> Edit Profile
               </Button>
             </div>
@@ -779,12 +902,20 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                 <motion.div
                   initial={{ y: -100 }}
                   animate={{ y: 0 }}
-                  transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.2 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15,
+                    delay: 0.2,
+                  }}
                   className="absolute -bottom-16 left-6 flex items-end md:left-8"
                 >
                   <Avatar className="h-32 w-32 border-4 border-background shadow-md">
                     <AvatarImage src={trainer?.profileImage} />
-                    <AvatarFallback className="bg-[#f3e8ff] text-3xl" style={{ color: "#4B0082" }}>
+                    <AvatarFallback
+                      className="bg-[#f3e8ff] text-3xl"
+                      style={{ color: "#4B0082" }}
+                    >
                       {getInitials()}
                     </AvatarFallback>
                   </Avatar>
@@ -809,11 +940,23 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                       style={{ color: "#004D40" }}
                     >
                       Fitness Trainer
-                      {trainer?.specialization?.[0] && (
-                        <Badge variant="outline" style={{ borderColor: "#3E2723", color: "#3E2723" }} className="ml-2">
-                          {trainer.specialization[0]}
-                        </Badge>
-                      )}
+                      {trainer?.specialization &&
+                        trainer.specialization.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {trainer.specialization.map((spec, index) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                style={{
+                                  borderColor: "#3E2723",
+                                  color: "#3E2723",
+                                }}
+                              >
+                                {spec}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                     </motion.p>
                   </div>
                   <motion.div
@@ -825,9 +968,14 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm" style={{ color: "#1B2631" }}>
+                          <div
+                            className="flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm"
+                            style={{ color: "#1B2631" }}
+                          >
                             <Mail className="h-4 w-4" />
-                            <span className="hidden md:inline">{trainer?.email}</span>
+                            <span className="hidden md:inline">
+                              {trainer?.email}
+                            </span>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -839,9 +987,14 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm" style={{ color: "#1B2631" }}>
+                            <div
+                              className="flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm"
+                              style={{ color: "#1B2631" }}
+                            >
                               <Phone className="h-4 w-4" />
-                              <span className="hidden md:inline">{trainer.phoneNumber}</span>
+                              <span className="hidden md:inline">
+                                {trainer.phoneNumber}
+                              </span>
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -851,7 +1004,10 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                       </TooltipProvider>
                     )}
                     {trainer?.experience !== undefined && (
-                      <div className="flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm" style={{ color: "#1B2631" }}>
+                      <div
+                        className="flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm"
+                        style={{ color: "#1B2631" }}
+                      >
                         <Briefcase className="h-4 w-4" />
                         <span>{trainer.experience} years</span>
                       </div>
@@ -862,11 +1018,17 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="col-span-1">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="col-span-1"
+              >
                 <Card className="h-full border-border shadow-sm transition-all hover:shadow-md">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center text-lg font-medium text-blue-600">
-                      <User className="mr-2 h-5 w-5 text-blue-500" /> Personal Information
+                      <User className="mr-2 h-5 w-5 text-blue-500" /> Personal
+                      Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -877,8 +1039,12 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                             <Calendar className="h-5 w-5 text-teal-600" />
                           </div>
                           <div>
-                            <span className="text-xs text-muted-foreground">Date of Birth</span>
-                            <p className="font-medium text-teal-700">{trainer.dateOfBirth}</p>
+                            <span className="text-xs text-muted-foreground">
+                              Date of Birth
+                            </span>
+                            <p className="font-medium text-teal-700">
+                              {trainer.dateOfBirth}
+                            </p>
                           </div>
                         </div>
                       )}
@@ -888,8 +1054,12 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                             <User className="h-5 w-5 text-indigo-600" />
                           </div>
                           <div>
-                            <span className="text-xs text-muted-foreground">Gender</span>
-                            <p className="font-medium text-indigo-700">{trainer.gender}</p>
+                            <span className="text-xs text-muted-foreground">
+                              Gender
+                            </span>
+                            <p className="font-medium text-indigo-700">
+                              {trainer.gender}
+                            </p>
                           </div>
                         </div>
                       )}
@@ -899,8 +1069,12 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                             <Ruler className="h-5 w-5 text-orange-600" />
                           </div>
                           <div>
-                            <span className="text-xs text-muted-foreground">Height</span>
-                            <p className="font-medium text-orange-700">{trainer.height} cm</p>
+                            <span className="text-xs text-muted-foreground">
+                              Height
+                            </span>
+                            <p className="font-medium text-orange-700">
+                              {trainer.height} cm
+                            </p>
                           </div>
                         </div>
                       )}
@@ -910,8 +1084,12 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                             <Weight className="h-5 w-5 text-amber-600" />
                           </div>
                           <div>
-                            <span className="text-xs text-muted-foreground">Weight</span>
-                            <p className="font-medium text-amber-700">{trainer.weight} kg</p>
+                            <span className="text-xs text-muted-foreground">
+                              Weight
+                            </span>
+                            <p className="font-medium text-amber-700">
+                              {trainer.weight} kg
+                            </p>
                           </div>
                         </div>
                       )}
@@ -920,11 +1098,17 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                 </Card>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="col-span-1">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="col-span-1"
+              >
                 <Card className="h-full border-border shadow-sm transition-all hover:shadow-md">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center text-lg font-medium text-purple-600">
-                      <Dumbbell className="mr-2 h-5 w-5 text-purple-500" /> Professional Skills
+                      <Dumbbell className="mr-2 h-5 w-5 text-purple-500" />{" "}
+                      Professional Skills
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -937,24 +1121,35 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                           transition={{ delay: 0.1 * index }}
                           whileHover={{ scale: 1.05 }}
                         >
-                          <Badge variant="secondary" className="bg-purple-100 px-2.5 py-1 text-purple-800">
+                          <Badge
+                            variant="secondary"
+                            className="bg-purple-100 px-2.5 py-1 text-purple-800"
+                          >
                             {skill}
                           </Badge>
                         </motion.div>
                       ))}
                       {(!trainer?.skills || trainer.skills.length === 0) && (
-                        <p className="text-sm text-muted-foreground">No skills added yet</p>
+                        <p className="text-sm text-muted-foreground">
+                          No skills added yet
+                        </p>
                       )}
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="col-span-1">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="col-span-1"
+              >
                 <Card className="h-full border-border shadow-sm transition-all hover:shadow-md">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center text-lg font-medium text-pink-600">
-                      <GraduationCap className="mr-2 h-5 w-5 text-pink-500" /> Qualifications
+                      <GraduationCap className="mr-2 h-5 w-5 text-pink-500" />{" "}
+                      Qualifications
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -971,8 +1166,11 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                           {qualification}
                         </motion.li>
                       ))}
-                      {(!trainer?.qualifications || trainer.qualifications.length === 0) && (
-                        <p className="text-sm text-muted-foreground">No qualifications added yet</p>
+                      {(!trainer?.qualifications ||
+                        trainer.qualifications.length === 0) && (
+                        <p className="text-sm text-muted-foreground">
+                          No qualifications added yet
+                        </p>
                       )}
                     </ul>
                   </CardContent>
@@ -988,7 +1186,8 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                 <Card className="border-border shadow-sm transition-all hover:shadow-md">
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center text-lg font-medium text-amber-600">
-                      <BadgeCheck className="mr-2 h-5 w-5 text-amber-500" /> Certifications
+                      <BadgeCheck className="mr-2 h-5 w-5 text-amber-500" />{" "}
+                      Certifications
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -1007,14 +1206,16 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                             </div>
                             <div>
                               <p className="font-medium text-amber-800">
-                                {cert.startsWith("data:") || cert.startsWith("http") 
-                                  ? `Certificate ${index + 1}` 
+                                {cert.startsWith("data:") ||
+                                cert.startsWith("http")
+                                  ? `Certificate ${index + 1}`
                                   : cert}
                               </p>
                               <p className="text-xs text-amber-600">Verified</p>
                             </div>
                           </div>
-                          {(cert.startsWith("data:") || cert.startsWith("http")) && (
+                          {(cert.startsWith("data:") ||
+                            cert.startsWith("http")) && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -1026,8 +1227,11 @@ export default function ProfileDetails({ trainer }: TrainerProps) {
                           )}
                         </motion.div>
                       ))}
-                      {(!trainer?.certifications || trainer.certifications.length === 0) && (
-                        <p className="text-sm text-muted-foreground">No certifications added yet</p>
+                      {(!trainer?.certifications ||
+                        trainer.certifications.length === 0) && (
+                        <p className="text-sm text-muted-foreground">
+                          No certifications added yet
+                        </p>
                       )}
                     </div>
                   </CardContent>

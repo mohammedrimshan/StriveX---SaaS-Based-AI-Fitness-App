@@ -11,6 +11,7 @@ import { IAutoMatchTrainerUseCase } from "@/entities/useCaseInterfaces/users/aut
 import { IManualSelectTrainerUseCase } from "@/entities/useCaseInterfaces/users/manual-trainer-select-usecase.interface";
 import { IGetMatchedTrainersUseCase } from "@/entities/useCaseInterfaces/users/get-match-trainer.usecase.interface";
 import { IGetClientProfileUseCase } from "@/entities/useCaseInterfaces/users/get-client-profile.usecase.interface";
+import { IGetClientTrainersInfoUseCase } from "@/entities/useCaseInterfaces/users/get-client-trainers-info.usecase.interface";
 import { CustomError } from "@/entities/utils/custom.error";
 import {
   ERROR_MESSAGES,
@@ -48,7 +49,9 @@ export class UserController implements IUserController {
     @inject("ISelectTrainerFromMatchedListUseCase")
     private selectTrainerFromMatchedListUseCase: ISelectTrainerFromMatchedListUseCase,
     @inject("IGetClientProfileUseCase")
-    private getClientProfileUseCase: IGetClientProfileUseCase
+    private getClientProfileUseCase: IGetClientProfileUseCase,
+    @inject("IGetClientTrainersInfoUseCase")
+    private getClientTrainersInfoUseCase: IGetClientTrainersInfoUseCase
   ) {}
 
   // Get all users with pagination, search and filtering by user type
@@ -246,61 +249,6 @@ export class UserController implements IUserController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/v1/pvt/_cl/client/trainers:
-   *   get:
-   *     summary: Get all trainers with pagination and search
-   *     tags: [Client]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: query
-   *         name: page
-   *         schema:
-   *           type: string
-   *           default: "1"
-   *         description: Page number for pagination
-   *       - in: query
-   *         name: limit
-   *         schema:
-   *           type: string
-   *           default: "5"
-   *         description: Number of trainers per page
-   *       - in: query
-   *         name: search
-   *         schema:
-   *           type: string
-   *           default: ""
-   *         description: Search term for filtering trainers
-   *     responses:
-   *       200:
-   *         description: List of trainers
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 success:
-   *                   type: boolean
-   *                 message:
-   *                   type: string
-   *                 trainers:
-   *                   type: array
-   *                   items:
-   *                     $ref: '#/components/schemas/Trainer'
-   *                 totalPages:
-   *                   type: number
-   *                 currentPage:
-   *                   type: number
-   *                 totalTrainers:
-   *                   type: number
-   *       400:
-   *         description: Invalid pagination parameters
-   *       401:
-   *         description: Unauthorized
-   */
-  // Get all trainers with pagination and search
   async getAllTrainers(req: Request, res: Response): Promise<void> {
     try {
       const { page = "1", limit = "5", search = "" } = req.query;
@@ -553,4 +501,26 @@ export class UserController implements IUserController {
       handleErrorResponse(res, error);
     }
   }
+
+
+  async getClientTrainerInfo(req: Request, res: Response): Promise<void> {
+  try {
+    const clientId = (req as CustomRequest).user.id;
+
+    if (!clientId) {
+      throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+    }
+
+    const result = await this.getClientTrainersInfoUseCase.execute(clientId);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+      data: result,
+    });
+  } catch (error) {
+    handleErrorResponse(res, error);
+  }
+}
+
 }

@@ -14,6 +14,7 @@ export interface IUserEntity {
   weight?: number;
   status?: string;
   isOnline: boolean;
+  fcmToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }

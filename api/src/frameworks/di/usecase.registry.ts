@@ -272,9 +272,41 @@ import { IGetTrainerSessionHistoryUseCase } from "@/entities/useCaseInterfaces/t
 import { GetTrainerSessionHistoryUseCase } from "@/useCases/trainer/Dashboard/get-session-history.usecase";
 import { IGetUserSubscriptionsUseCase } from "@/entities/useCaseInterfaces/admin/get-usersubscriptions-useCase.interface";
 import { GetUserSubscriptionsUseCase } from "@/useCases/admin/get-user-subscriptions.usecase";
+import { ITrainerSlotCancellationUseCase } from "@/entities/useCaseInterfaces/slot/trainer-slot-cancellation-usecase.interface";
+import { TrainerSlotCancellationUseCase } from "@/useCases/slot/trainer-cancelation-usecase";
+import { IReassignTrainerUseCase } from "@/entities/useCaseInterfaces/slot/reassign-trainer-usecase.interface";
+import { ReassignTrainerUseCase } from "@/useCases/slot/reassign-trainer.usecase";
+import { IAcceptRejectBackupInvitationUseCase } from "@/entities/useCaseInterfaces/backtrainer/accept-reject-backup-invitation.usecase.interface";
+import { AcceptRejectBackupInvitationUseCase } from "@/useCases/backuptrainer/accept-reject-backup-invitation.usecase";
+import { AssignBackupTrainerUseCase } from "@/useCases/backuptrainer/assign-backup-trainer.usecase";
+import { IAssignBackupTrainerUseCase } from "@/entities/useCaseInterfaces/backtrainer/assign-backup-trainer.usecase.interface";
+import { IGetAllChangeRequestsUseCase } from "@/entities/useCaseInterfaces/backtrainer/get-all-change-requests-usecase.interface";
+import { GetAllChangeRequestsUseCase } from "@/useCases/backuptrainer/get-all-change-requests.usecase";
+import { IGetClientChangeRequestsUseCase } from "@/entities/useCaseInterfaces/backtrainer/get-client-change-requests-usecase.interface";
+import { GetClientChangeRequestsUseCase } from "@/useCases/backuptrainer/get-client-change-requests.usecase";
+import { IGetPendingChangeRequestsUseCase } from "@/entities/useCaseInterfaces/backtrainer/get-pending-change-requests-usecase.interface";
+import { GetPendingChangeRequestsUseCase } from "@/useCases/backuptrainer/get-pending-change-requests.usecase";
+import { IGetClientBackupInvitationsUseCase } from "@/entities/useCaseInterfaces/backtrainer/get-client-backup-invitations-usecase.interface";
+import { GetClientBackupInvitationsUseCase } from "@/useCases/backuptrainer/get-client-backup-invitations.usecase";
+import { IGetClientBackupTrainerUseCase } from "@/entities/useCaseInterfaces/backtrainer/get-client-backup-trainer-usecase.interface";
+import { GetClientBackupTrainerUseCase } from "@/useCases/backuptrainer/get-client-backup-trainer.usecase";
+import { IGetTrainerBackupInvitationsUseCase } from "@/entities/useCaseInterfaces/backtrainer/get-trainer-backup-invitations-usecase.interface";
+import { IGetTrainerBackupClientsUseCase } from "@/entities/useCaseInterfaces/backtrainer/get-trainer-backup-clients-usecase.interface";
+import { GetTrainerBackupClientsUseCase } from "@/useCases/backuptrainer/get-trainer-backup-clients.usecase";
+import { GetTrainerBackupInvitationsUseCase } from "@/useCases/backuptrainer/get-trainer-backup-invitations.usecase";
+import { IGetClientsBackupOverviewUseCase } from "@/entities/useCaseInterfaces/backtrainer/get-clients-backup-overview-usecase.interface";
+import { GetClientsBackupOverviewUseCase } from "@/useCases/backuptrainer/get-clients-backup-overview.usecase";
+import { HandleExpiredInvitationsUseCase } from "@/useCases/backuptrainer/handle-expired-invitations.usecase";
+import { IHandleExpiredInvitationsUseCase } from "@/entities/useCaseInterfaces/backtrainer/handle-expired-invitations.usecaseinterface";
+import { IRequestBackupTrainerChangeUseCase } from "@/entities/useCaseInterfaces/backtrainer/request-backup-trainer-change.usecase.interface";
+import { RequestBackupTrainerChangeUseCase } from "@/useCases/backuptrainer/request-backup-trainer-change.usecase";
+import { IResolveBackupTrainerChangeRequestUseCase } from "@/entities/useCaseInterfaces/backtrainer/resolve-backup-trainer-change-request.usecase";
+import { ResolveBackupTrainerChangeRequestUseCase } from "@/useCases/backuptrainer/resolve-backup-trainer-change-request.usecase.interface";
+import { IGetClientTrainersInfoUseCase } from "@/entities/useCaseInterfaces/users/get-client-trainers-info.usecase.interface";
+import { GetClientTrainersInfoUseCase } from "@/useCases/user/get-client-trainers-info.usecase";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
-
+import { DailyUnusedSessionProcessor } from "../queue/bull/daily-unused-session.processor";
 export class UseCaseRegistry {
   static registerUseCases(): void {
     //* ====== Register Bcrypts ====== *//
@@ -350,6 +382,13 @@ export class UseCaseRegistry {
       "SubscriptionExpiryProcessor",
       {
         useClass: SubscriptionExpiryProcessor,
+      }
+    );
+
+    container.register<DailyUnusedSessionProcessor>(
+      "DailyUnusedSessionProcessor",
+      {
+        useClass: DailyUnusedSessionProcessor,
       }
     );
 
@@ -1020,5 +1059,78 @@ export class UseCaseRegistry {
         useClass: GetUserSubscriptionsUseCase,
       }
     );
+
+    container.register<ITrainerSlotCancellationUseCase>(
+      "ITrainerSlotCancellationUseCase",
+      {
+        useClass: TrainerSlotCancellationUseCase,
+      }
+    );
+
+    container.register<IReassignTrainerUseCase>("IReassignTrainerUseCase", {
+      useClass: ReassignTrainerUseCase,
+    });
+
+    container.register<IAcceptRejectBackupInvitationUseCase>(
+      "IAcceptRejectBackupInvitationUseCase",
+      {
+        useClass: AcceptRejectBackupInvitationUseCase,
+      }
+    )
+
+    container.register<IAssignBackupTrainerUseCase>(
+      "IAssignBackupTrainerUseCase",
+      {
+        useClass: AssignBackupTrainerUseCase,
+      }
+    )
+
+    container.register<IGetClientBackupTrainerUseCase>("IGetClientBackupTrainerUseCase", {
+      useClass: GetClientBackupTrainerUseCase,
+    });
+
+    container.register<IGetClientBackupInvitationsUseCase>("IGetClientBackupInvitationsUseCase", {
+      useClass: GetClientBackupInvitationsUseCase,
+    });
+
+    container.register<IGetPendingChangeRequestsUseCase>("IGetPendingChangeRequestsUseCase", {
+      useClass: GetPendingChangeRequestsUseCase,
+    });
+
+    container.register<IGetAllChangeRequestsUseCase>("IGetAllChangeRequestsUseCase", {
+      useClass: GetAllChangeRequestsUseCase,
+    });
+
+    container.register<IGetClientChangeRequestsUseCase>("IGetClientChangeRequestsUseCase", {
+      useClass: GetClientChangeRequestsUseCase,
+    });
+
+    container.register<IGetTrainerBackupInvitationsUseCase>("IGetTrainerBackupInvitationsUseCase", {
+      useClass: GetTrainerBackupInvitationsUseCase,
+    });
+
+    container.register<IGetTrainerBackupClientsUseCase>("IGetTrainerBackupClientsUseCase", {
+      useClass: GetTrainerBackupClientsUseCase,
+    });
+
+    container.register<IGetClientsBackupOverviewUseCase>("IGetClientsBackupOverviewUseCase", {
+      useClass: GetClientsBackupOverviewUseCase,
+    });
+
+    container.register<IHandleExpiredInvitationsUseCase>("IHandleExpiredInvitationsUseCase", {
+      useClass: HandleExpiredInvitationsUseCase,
+    });
+
+    container.register<IRequestBackupTrainerChangeUseCase>("IRequestBackupTrainerChangeUseCase", {
+      useClass: RequestBackupTrainerChangeUseCase,
+    });
+
+    container.register<IResolveBackupTrainerChangeRequestUseCase>("IResolveBackupTrainerChangeRequestUseCase", {
+      useClass: ResolveBackupTrainerChangeRequestUseCase,
+    });
+
+     container.register<IGetClientTrainersInfoUseCase>("IGetClientTrainersInfoUseCase", {
+      useClass: GetClientTrainersInfoUseCase,
+    });
   }
 }

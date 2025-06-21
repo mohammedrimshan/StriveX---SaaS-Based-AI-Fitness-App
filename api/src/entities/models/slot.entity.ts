@@ -3,6 +3,8 @@ import { Types } from "mongoose";
 export interface ISlotEntity {
   id?: string;
   trainerId: Types.ObjectId | string;
+  backupTrainerId?: Types.ObjectId | string;
+  previousTrainerId?: (Types.ObjectId | string)[];
   trainerName: string;
   clientName?: string;
   clientId?: string;

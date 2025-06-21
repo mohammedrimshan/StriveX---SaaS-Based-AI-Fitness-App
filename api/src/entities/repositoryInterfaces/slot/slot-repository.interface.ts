@@ -25,7 +25,7 @@ export interface ISlotRepository extends IBaseRepository<ISlotEntity> {
     clientId: string,
     slotId: string
   ): Promise<ISlotEntity | null>;
-  findAnyBookedSlotByClientId(clientId: string): Promise<ISlotEntity | null>;
+  findBookedSlotByClientIdAndDate(clientId: string, date: string): Promise<ISlotEntity | null>;
   getSlotsWithStatus(
     trainerId: string,
     startTime?: Date,

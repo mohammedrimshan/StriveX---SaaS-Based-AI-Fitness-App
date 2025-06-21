@@ -147,7 +147,7 @@ const BMIGauge: React.FC<BMIGaugeProps> = ({ bmi,subscriptionEndDate }) => {
         ))}
       </div>
         <div className="mt-auto">
-        <SubscriptionCountdown subscriptionEndDate={subscriptionEndDate} />
+        <SubscriptionCountdown subscriptionEndDate={subscriptionEndDate} embedded={true} />
       </div>
     </div>
   );

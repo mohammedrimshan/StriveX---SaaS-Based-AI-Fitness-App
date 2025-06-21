@@ -7,10 +7,8 @@ import ForgotPassword from "@/components/auth/ForgotPassword";
 import ResetPassword from "@/components/auth/ResetPassword";
 import TrainerLanding from "@/components/landing/TrainerLanding";
 import TrainerProfilePage from "@/pages/trainer/ProfileManagement";
-import ClientRequestTable from "@/pages/trainer/ClientRequestManagement";
 import TrainerSlotPage from "@/pages/Slot/CreateSlot";
 import { ChatLayout } from "@/components/Chat/ChatLayout";
-import MyClients from "@/pages/trainer/MyClients";
 import Bookslots from "@/pages/trainer/SlotBook";
 import VideoCallPage from "@/components/VideoCall/VideoCallPage";
 import Notifications from "@/components/Notification/Notifications";
@@ -19,6 +17,8 @@ import SessionHistoryPage from "@/components/common/SessionHistoryPage";
 import DashboardTrainer from "@/pages/trainer/Dashboard";
 import FullReview from "@/pages/trainer/FullReview";
 import NotFoundPage from "@/components/common/NotFoundPage";
+import TrainerClientTabs from "@/pages/trainer/ClientManagement";
+import ClientTabs from "@/pages/trainer/ClientTabs";
 
 export const TrainerRoutes = () => {
   return (
@@ -58,7 +58,7 @@ export const TrainerRoutes = () => {
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
-              element={<ClientRequestTable />}
+              element={<TrainerClientTabs />}
             />
           }
         />
@@ -85,7 +85,7 @@ export const TrainerRoutes = () => {
           element={
             <TrainerAuthRoute
               allowedRoles={["trainer"]}
-              element={<MyClients />}
+              element={<ClientTabs />}
             />
           }
         />

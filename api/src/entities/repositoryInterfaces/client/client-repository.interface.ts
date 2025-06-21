@@ -1,5 +1,7 @@
+import { BackupInvitationStatus } from "@/shared/constants";
 import { IClientEntity } from "../../models/client.entity";
 import { IBaseRepository } from "../base-repository.interface";
+import { ClientSession } from "mongoose";
 export interface IClientRepository extends IBaseRepository<IClientEntity> {
   findByEmail(email: string): Promise<IClientEntity | null>;
   findById(id: any): Promise<IClientEntity | null>;
@@ -19,7 +21,8 @@ export interface IClientRepository extends IBaseRepository<IClientEntity> {
   ): Promise<IClientEntity>;
   updateByClientId(
     clientId: string,
-    updates: Partial<IClientEntity>
+    updates: Partial<IClientEntity>,
+    session?: ClientSession
   ): Promise<IClientEntity | null>;
   findTrainerRequests(
     trainerId: string,
@@ -51,7 +54,10 @@ findUserSubscriptions(
       planName?: string;
       amount?: number;
       status: string;
+      remainingBalance?: number;
     }[];
     total: number;
   }>;
+  updateBackupTrainer(clientId: string, backupTrainerId: string, status: BackupInvitationStatus): Promise<IClientEntity | null>;
+  clearBackupTrainer(clientId: string): Promise<IClientEntity | null> 
 }

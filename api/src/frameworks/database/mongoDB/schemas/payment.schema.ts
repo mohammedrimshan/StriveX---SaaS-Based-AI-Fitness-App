@@ -17,6 +17,7 @@ export const paymentSchema = new Schema<IPaymentEntity>(
       enum: Object.values(PaymentStatus),
       default: PaymentStatus.PENDING,
     },
+    remainingBalance: { type: Number, required: false, default: 0 },
   },
   { timestamps: true }
 );

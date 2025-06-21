@@ -11,6 +11,7 @@ export interface IPaymentEntity {
   trainerAmount?: number;
   adminAmount: number;
   status: PaymentStatus;
+  remainingBalance?: number;
   createdAt: Date;
   updatedAt?: Date;
 }

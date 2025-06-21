@@ -17,7 +17,7 @@ import {
   getBadgeColorForFitnessGoal,
   getExperienceLevelColor
 } from "@/types/UserList";
-import { Mail, Phone, Scale, Dumbbell, Activity, StretchVerticalIcon as Stretch, Flame } from 'lucide-react';
+import { Mail, Phone, Scale, Dumbbell, Activity, StretchVerticalIcon as Stretch, Flame, User } from 'lucide-react';
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +49,24 @@ const ClientList: React.FC<ClientListProps> = ({ clients }) => {
       case 'maintenance': return <Flame className="w-4 h-4" />;
       default: return <Dumbbell className="w-4 h-4" />;
     }
+  };
+
+  const UserAvatar: React.FC<{ client: IClient }> = ({ client }) => {
+    if (client.profileImage) {
+      return (
+        <img
+          src={client.profileImage}
+          alt={`${client.firstName} ${client.lastName}`}
+          className="rounded-full h-10 w-10 object-cover border-2 border-purple-200 dark:border-purple-900"
+        />
+      );
+    }
+
+    return (
+      <div className="rounded-full h-10 w-10 bg-gradient-to-br from-purple-400 to-purple-600 dark:from-purple-500 dark:to-purple-700 border-2 border-purple-200 dark:border-purple-900 flex items-center justify-center">
+        <User className="h-5 w-5 text-white" />
+      </div>
+    );
   };
 
   return (
@@ -88,13 +106,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients }) => {
                     whileHover={{ scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <img
-                      src={
-                        client.profileImage || "https://via.placeholder.com/40"
-                      }
-                      alt={`${client.firstName} ${client.lastName}`}
-                      className="rounded-full h-10 w-10 object-cover border-2 border-purple-200 dark:border-purple-900"
-                    />
+                    <UserAvatar client={client} />
                   </motion.div>
                 </TableCell>
                 <TableCell className="font-medium">
@@ -129,7 +141,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients }) => {
                 </TableCell>
                 <TableCell>
                   <span className="text-gray-600 dark:text-gray-300">
-                    {format(new Date(client.createdAt), "MMM dd, yyyy")}
+                  {format(new Date(client.createdAt || new Date()), "MMM dd, yyyy")}
                   </span>
                 </TableCell>
               </motion.tr>

@@ -1,3 +1,4 @@
+// UserWorkout.tsx
 "use client";
 
 import { useState } from "react";
@@ -8,6 +9,10 @@ import WorkoutCard from "./Workouts/WorkoutCard";
 import AnimatedTitle from "@/components/Animation/AnimatedTitle";
 import { useAllWorkouts } from "@/hooks/client/useAllWorkouts";
 import { WorkoutDetailsPro } from "@/types/Workouts";
+import { PremiumModal } from "@/components/modals/PremiumModal";
+import { useClientProfile } from "@/hooks/client/useClientProfile";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export const WORKOUT_TYPES = [
   "Yoga",
@@ -19,7 +24,7 @@ export const WORKOUT_TYPES = [
   "General",
 ] as const;
 
-type WorkoutCategoryTitle = typeof WORKOUT_TYPES[number]; 
+type WorkoutCategoryTitle = typeof WORKOUT_TYPES[number];
 type FilterCategory = WorkoutCategoryTitle | "All";
 
 const categories: FilterCategory[] = [
@@ -36,17 +41,22 @@ const categories: FilterCategory[] = [
 const UserWorkout = () => {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false); // Modal state
+
+  // Get client ID from Redux
+  const client = useSelector((state: RootState) => state.client.client);
+  const { data: clientProfile, isLoading: isProfileLoading, isError: isProfileError } = useClientProfile(client?.id || null);
 
   // Fetch workouts using the useAllWorkouts hook
   const { data, isLoading, isError } = useAllWorkouts(1, 10, {});
 
   // Handle loading and error states
-  if (isLoading) {
-    return <div>Loading workouts...</div>;
+  if (isLoading || isProfileLoading) {
+    return <div>Loading...</div>;
   }
 
-  if (isError || !data?.data) {
-    return <div>Error fetching workouts. Please try again later.</div>;
+  if (isError || !data?.data || isProfileError) {
+    return <div>Error fetching data. Please try again later.</div>;
   }
 
   // Type workouts explicitly
@@ -60,6 +70,11 @@ const UserWorkout = () => {
     const matchesCategory = activeCategory === "All" || workout.category.title === activeCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Function to open the premium modal
+  const handlePremiumAccessAttempt = () => {
+    setIsPremiumModalOpen(true);
+  };
 
   return (
     <AnimatedBackground>
@@ -120,7 +135,12 @@ const UserWorkout = () => {
           </div>
 
           <div className="aspect-[16/7] md:aspect-[21/9] rounded-2xl overflow-hidden">
-            <WorkoutCard {...workouts[0]} />
+            <WorkoutCard
+              {...workouts[0]}
+              isPremium={workouts[0].isPremium}
+              isUserPremium={clientProfile?.isPremium || false}
+              onPremiumAccessAttempt={handlePremiumAccessAttempt}
+            />
           </div>
         </div>
 
@@ -130,15 +150,23 @@ const UserWorkout = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredWorkouts.map((workout, index) => (
               <div
-                key={workout.id || index} // Fallback to index if id is undefined
+                key={workout.id || index}
                 style={{ animationDelay: `${0.2 + index * 0.1}s` }}
                 className="animate-scale-in"
               >
-                <WorkoutCard {...workout} />
+                <WorkoutCard
+                  {...workout}
+                  isPremium={workout.isPremium}
+                  isUserPremium={clientProfile?.isPremium || false}
+                  onPremiumAccessAttempt={handlePremiumAccessAttempt}
+                />
               </div>
             ))}
           </div>
         </div>
+
+        {/* Premium Modal */}
+        <PremiumModal isOpen={isPremiumModalOpen} onClose={() => setIsPremiumModalOpen(false)} />
       </div>
     </AnimatedBackground>
   );

@@ -4,13 +4,15 @@ import { Link } from "react-router-dom";
 import { Clock, Dumbbell, BarChart } from "lucide-react";
 
 interface WorkoutCardProps {
-  id?: string; 
+  id?: string;
   title: string;
   description: string;
   duration: number;
   difficulty: "Beginner" | "Intermediate" | "Advanced";
   imageUrl?: string;
   isPremium?: boolean;
+  isUserPremium?: boolean;
+  onPremiumAccessAttempt?: () => void; 
   isInRouterContext?: boolean;
 }
 
@@ -22,8 +24,17 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
   difficulty,
   imageUrl,
   isPremium = false,
+  isUserPremium = false,
+  onPremiumAccessAttempt,
   isInRouterContext = true,
 }) => {
+  const handleClick = (e: React.MouseEvent) => {
+    if (isPremium && !isUserPremium) {
+      e.preventDefault(); // Prevent navigation
+      onPremiumAccessAttempt?.(); // Trigger modal
+    }
+  };
+
   const CardContent = () => (
     <div
       className="workout-card h-[300px] animate-fade-in"
@@ -73,12 +84,12 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
     </div>
   );
 
-  return isInRouterContext && id ? ( // Only render Link if id is defined
-    <Link to={`/workout/${id}`} className="block no-underline">
+  return isInRouterContext && id ? (
+    <Link to={`/workout/${id}`} className="block no-underline" onClick={handleClick}>
       <CardContent />
     </Link>
   ) : (
-    <div className="block no-underline">
+    <div className="block no-underline" onClick={handleClick}>
       <CardContent />
     </div>
   );

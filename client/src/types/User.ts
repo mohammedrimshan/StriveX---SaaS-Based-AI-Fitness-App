@@ -130,4 +130,24 @@ export interface IUser extends UserFormData {
   updatedAt: Date;
 }
 
+
+
+
+export interface TrainerInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  specialization: string[];
+  profileImage: string;
+  phoneNumber: string;
+  email: string;
+  experience: number;
+  gender: string;
+}
+
+export interface ClientTrainersResponse {
+  selectedTrainer: TrainerInfo | null;
+  backupTrainer: TrainerInfo | null;
+}
+
 export type UserDTO = IAdmin | IClient | ITrainer;

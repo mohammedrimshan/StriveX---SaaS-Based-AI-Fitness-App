@@ -19,12 +19,17 @@ import { motion } from "framer-motion"
 import { UserBookings } from "./SlotManagement/UserBookings"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import AnimatedBackground from "@/components/Animation/AnimatedBackgorund"
+import { useSelector } from "react-redux"
+import type { RootState } from "@/store/store"
+import { useClientProfile } from "@/hooks/client/useClientProfile"
+import { useNavigate } from "react-router-dom"
 
 interface BookingPageProps {
   trainerId?: string
 }
 
 export default function BookingPage({ trainerId }: BookingPageProps) {
+  const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [filter, setFilter] = useState<SlotFilter>({
@@ -37,6 +42,14 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
   // Initialize toast
   const { successToast, errorToast } = useToaster()
 
+  // Get client data from Redux store
+  const { client } = useSelector((state: RootState) => ({
+    client: state.client.client,
+  }))
+
+  // Get client profile to check premium status
+  const { data: clientProfile, isLoading: profileLoading, error: profileError } = useClientProfile(client?.id || null)
+
   // Get trainer slots
   const { data: slotsData, isLoading: slotsLoading, isError: slotsError, refetch: refetchSlots } = useTrainerSlots()
 
@@ -47,35 +60,6 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
     isError: bookingsError,
     refetch: refetchBookings,
   } = useUserBookings()
-
-  console.log(userBookingsData, "DATA")
-
-  // Debug log to check the slots data
-  useEffect(() => {
-    if (slotsData) {
-      console.log("Slots data received:", slotsData)
-    }
-    if (userBookingsData) {
-      console.log("User bookings received:", userBookingsData)
-    }
-  }, [slotsData, userBookingsData])
-
-  // Extract trainer name from slots data when available
-  useEffect(() => {
-    if (slotsData?.slots && slotsData.slots.length > 0) {
-      console.log("Looking for trainerId:", trainerId)
-      console.log("Available slots:", slotsData.slots)
-
-      // Get the first slot that has a trainerName, regardless of trainerId
-      const anyTrainerSlot = slotsData.slots.find((slot) => slot.trainerName)
-      if (anyTrainerSlot && anyTrainerSlot.trainerName) {
-        console.log("Found trainer name:", anyTrainerSlot.trainerName)
-        setTrainerName(anyTrainerSlot.trainerName)
-      } else {
-        console.log("No trainer name found in any slot")
-      }
-    }
-  }, [slotsData, trainerId])
 
   // Book a slot
   const {
@@ -141,13 +125,23 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
       setSelectedSlot(null)
       refetchSlots()
       refetchBookings()
-      setActiveTab("bookings") // Switch to bookings tab after successful booking
+      setActiveTab("bookings")
     }
 
     if (bookingError && bookingErrorData) {
       errorToast(bookingErrorData?.message || "Something went wrong")
     }
   }, [bookingSuccess, bookingError, bookingErrorData, refetchSlots, refetchBookings, successToast, errorToast])
+
+  // Extract trainer name from slots data when available
+  useEffect(() => {
+    if (slotsData?.slots && slotsData.slots.length > 0) {
+      const anyTrainerSlot = slotsData.slots.find((slot) => slot.trainerName)
+      if (anyTrainerSlot && anyTrainerSlot.trainerName) {
+        setTrainerName(anyTrainerSlot.trainerName)
+      }
+    }
+  }, [slotsData, trainerId])
 
   // Handle slot selection
   const handleSelectSlot = (slotId: string) => {
@@ -157,12 +151,60 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
   // Handle booking confirmation
   const handleBooking = () => {
     if (!selectedSlot) return
-
     bookSlot({ slotId: selectedSlot })
   }
 
   const todayStart = startOfDay(new Date())
 
+  // Handle profile errors or no user
+  if (profileError || !client) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+          <div className="text-5xl mb-4">👋</div>
+          <h2 className="text-2xl font-semibold text-slate-800 mb-2">Welcome</h2>
+          <p className="text-slate-600">{profileError?.message || "Please log in to access bookings"}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Check if user is premium and has accepted status
+  if (profileLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-t-violet-500 border-violet-200 rounded-full animate-spin mb-4"></div>
+          <p className="text-slate-600 font-medium">Checking your account...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (clientProfile && (!clientProfile.isPremium || clientProfile.selectStatus !== "accepted")) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-slate-50/50 backdrop-blur-sm z-50">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="text-center p-8 bg-white rounded-xl shadow-2xl max-w-md border border-violet-100"
+        >
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-2xl font-semibold text-slate-800 mb-2">Premium Feature</h2>
+          <p className="text-slate-600 mb-6">
+            Please select a trainer and upgrade to premium to access booking features
+          </p>
+          <Button
+            onClick={() => navigate('/premium')} 
+            className="px-6 py-3 bg-gradient-to-r from-[#6d28d9] to-[#a21caf] hover:from-[#5b21b6] hover:to-[#86198f] text-white rounded-lg transition-all transform hover:scale-105"
+          >
+            Upgrade to Premium
+          </Button>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <AnimatedBackground>
@@ -173,7 +215,6 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-          
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -186,8 +227,6 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                   <CalendarIcon className="h-5 w-5 mr-2 text-violet-600" />
                   Select Date
                 </h2>
-
-                {/* Integrated Filter Dropdown */}
                 <div className="relative z-10">
                   <TooltipProvider>
                     <Tooltip>
@@ -270,7 +309,6 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
             </div>
           </motion.div>
 
-          {/* Right column - Slots */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}

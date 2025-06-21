@@ -8,5 +8,10 @@ export const NotificationSchema = new Schema<INotificationModel>({
   message: { type: String, required: true },
   type: { type: String, enum: ['INFO', 'WARNING', 'ERROR', 'SUCCESS'], required: true },
   isRead: { type: Boolean, default: false },
+  actionLink: { type: String, required: false }, 
+  relatedEntityId: { type: String, required: false }, 
   createdAt: { type: Date, default: Date.now },
 });
+
+
+NotificationSchema.index({ relatedEntityId: 1 });

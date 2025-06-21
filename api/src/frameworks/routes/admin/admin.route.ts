@@ -19,6 +19,7 @@ import {
   notificationController,
   sessionHistoryController,
   adminDashboardController,
+  backupTrainerController,
 } from "../../di/resolver";
 
 export class AdminRoutes extends BaseRoute {
@@ -398,5 +399,36 @@ export class AdminRoutes extends BaseRoute {
         adminController.getUserSubscriptions(req, res);
       }
     );
+
+    router.post(
+      "/admin/backup-trainer/resolve-request",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.resolveChangeRequest(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/backup-trainer/change-requests",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.getAllChangeRequests(req, res);
+      }
+    );
+
+    router.get(
+      "/admin/backup-trainer/clients-overview",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.getClientsBackupOverview(req, res);
+      }
+    );
+
   }
 }

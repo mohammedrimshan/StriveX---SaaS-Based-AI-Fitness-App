@@ -4,7 +4,8 @@ import { IPaymentEntity } from "@/entities/models/payment.entity";
 import { PaymentModel } from "@/frameworks/database/mongoDB/models/payment.model";
 import { BaseRepository } from "../base.repository";
 import { FilterQuery, PipelineStage } from "mongoose";
-import { PaymentStatus } from "@/shared/constants";
+import { CustomError } from "@/entities/utils/custom.error";
+import { HTTP_STATUS } from "@/shared/constants";
 
 @injectable()
 export class PaymentRepository
@@ -110,7 +111,7 @@ export class PaymentRepository
         console.error(
           `Payment not found for stripePaymentId: ${stripePaymentId}`
         );
-        throw new Error("Payment not found");
+        throw new CustomError("Payment not found", HTTP_STATUS.NOT_FOUND);
       }
 
       return this.mapToEntity(payment);
@@ -123,136 +124,126 @@ export class PaymentRepository
     }
   }
 
-async findTrainerPaymentHistory(
-  trainerId: string,
-  skip: number,
-  limit: number,
-  status?: string
-): Promise<{ items: IPaymentEntity[]; total: number }> {
-  const match: any = { trainerId };
-  if (status) {
-    match.status = status;
-  }
-
-  const pipeline: PipelineStage[] = [
-    { $match: match },
-
-    // Lookup client details
-    {
-      $lookup: {
-        from: "clients",
-        let: { clientId: { $toObjectId: "$clientId" } },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ["$_id", "$$clientId"] },
-            },
-          },
-        ],
-        as: "client",
-      },
-    },
-    {
-      $unwind: {
-        path: "$client",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-
-    {
-      $lookup: {
-        from: "membershipplans",
-        let: { planId: { $toObjectId: "$membershipPlanId" } },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ["$_id", "$$planId"] },
-            },
-          },
-        ],
-        as: "plan",
-      },
-    },
-    {
-      $unwind: {
-        path: "$plan",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-
-    {
-      $project: {
-        id: "$_id",
-        clientId: 1,
-        trainerId: 1,
-        membershipPlanId: 1,
-        amount: 1,
-        stripePaymentId: 1,
-        stripeSessionId: 1,
-        trainerAmount: 1,
-        status: 1,
-        createdAt: 1,
-        updatedAt: 1,
-
-        clientName: {
-          $cond: {
-            if: { $eq: [{ $ifNull: ["$client", null] }, null] },
-            then: "Unknown Client",
-            else: {
-              $concat: [
-                { $ifNull: ["$client.firstName", ""] },
-                " ",
-                { $ifNull: ["$client.lastName", ""] },
-              ],
-            },
-          },
-        },
-
-        planTitle: {
-          $ifNull: ["$plan.name", "Unknown Plan"],
-        },
-
-        commission: {
-          $subtract: ["$amount", "$trainerAmount"],
-        },
-      },
-    },
-
-    // Pagination and total count
-    {
-      $facet: {
-        items: [
-          { $sort: { createdAt: -1 } },
-          { $skip: skip },
-          { $limit: limit },
-        ],
-        total: [{ $count: "count" }],
-      },
-    },
-
-    {
-      $project: {
-        items: 1,
-        total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
-      },
-    },
-  ];
-
-  try {
-    const result = await this.model.aggregate(pipeline).exec();
-    if (!result[0]) {
-      console.warn(`No results for trainerId: ${trainerId}`);
-      return { items: [], total: 0 };
+  async findTrainerPaymentHistory(
+    trainerId: string,
+    skip: number,
+    limit: number,
+    status?: string
+  ): Promise<{ items: IPaymentEntity[]; total: number }> {
+    const match: any = { trainerId };
+    if (status) {
+      match.status = status;
     }
 
-    const { items, total } = result[0];
-    const transformedItems = items.map((item: any) => this.mapToEntity(item));
-    return { items: transformedItems, total };
-  } catch (error) {
-    console.error(`Error fetching payment history for trainer ${trainerId}:`, error);
-    throw error;
+    const pipeline: PipelineStage[] = [
+      { $match: match },
+      {
+        $lookup: {
+          from: "clients",
+          let: { clientId: { $toObjectId: "$clientId" } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$clientId"] },
+              },
+            },
+          ],
+          as: "client",
+        },
+      },
+      {
+        $unwind: {
+          path: "$client",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "membershipplans",
+          let: { planId: { $toObjectId: "$membershipPlanId" } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$planId"] },
+              },
+            },
+          ],
+          as: "plan",
+        },
+      },
+      {
+        $unwind: {
+          path: "$plan",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          id: "$_id",
+          clientId: 1,
+          trainerId: 1,
+          membershipPlanId: 1,
+          amount: 1,
+          stripePaymentId: 1,
+          stripeSessionId: 1,
+          trainerAmount: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          clientName: {
+            $cond: {
+              if: { $eq: [{ $ifNull: ["$client", null] }, null] },
+              then: "Unknown Client",
+              else: {
+                $concat: [
+                  { $ifNull: ["$client.firstName", ""] },
+                  " ",
+                  { $ifNull: ["$client.lastName", ""] },
+                ],
+              },
+            },
+          },
+          planTitle: {
+            $ifNull: ["$plan.name", "Unknown Plan"],
+          },
+          commission: {
+            $subtract: ["$amount", "$trainerAmount"],
+          },
+        },
+      },
+      {
+        $facet: {
+          items: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+          total: [{ $count: "count" }],
+        },
+      },
+      {
+        $project: {
+          items: 1,
+          total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
+        },
+      },
+    ];
+
+    try {
+      const result = await this.model.aggregate(pipeline).exec();
+      if (!result[0]) {
+        console.warn(`No results for trainerId: ${trainerId}`);
+        return { items: [], total: 0 };
+      }
+
+      const { items, total } = result[0];
+      const transformedItems = items.map((item: any) => this.mapToEntity(item));
+      return { items: transformedItems, total };
+    } catch (error) {
+      console.error(`Error fetching payment history for trainer ${trainerId}:`, error);
+      throw error;
+    }
   }
-}
 
   async updateMany(
     query: FilterQuery<IPaymentEntity>,
@@ -261,10 +252,33 @@ async findTrainerPaymentHistory(
     const result = await this.model.updateMany(query, { $set: update }).exec();
     return { modifiedCount: result.modifiedCount };
   }
+
   async findOne(
-    filter: Partial<IPaymentEntity>
+    filter: Partial<IPaymentEntity>,
+    sort?: Record<string, 1 | -1>
   ): Promise<IPaymentEntity | null> {
-    const result = await this.model.findOne(filter).lean();
-    return result as IPaymentEntity | null;
+    try {
+      let query = this.model.findOne(filter);
+      if (sort) {
+        query = query.sort(sort);
+      }
+      const result = await query.lean();
+      return result ? this.mapToEntity(result) : null;
+    } catch (error) {
+      console.error(`Error finding payment with filter:`, filter, error);
+      throw error;
+    }
+  }
+
+  async updateById(id: string, data: Partial<IPaymentEntity>): Promise<void> {
+    try {
+      const result = await this.update(id, data);
+      if (!result) {
+        throw new CustomError("Payment not found", HTTP_STATUS.NOT_FOUND);
+      }
+    } catch (error) {
+      console.error(`Error updating payment with id ${id}:`, error);
+      throw error;
+    }
   }
 }

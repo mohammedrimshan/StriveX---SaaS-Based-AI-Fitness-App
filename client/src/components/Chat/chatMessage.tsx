@@ -90,9 +90,9 @@ export const ChatMessage = React.memo(
       const userReactions: { [emoji: string]: boolean } = {};
       const currentUserId = isCurrentUser ? String(message.senderId) : String(participantId);
       
-      message.reactions.forEach((reaction) => {
-        userReactions[reaction.emoji] = reaction.users.includes(currentUserId);
-      });
+      // message.reactions.forEach((reaction) => {
+      //   userReactions[reaction.emoji] = reaction.users.includes(currentUserId);
+      // });
       
       console.log('Updated currentUserReactions:', {
         messageId: message.id,
@@ -426,7 +426,7 @@ export const ChatMessage = React.memo(
                   onKeyDown={(e) => e.key === "Enter" && handleReactionClick(reaction.emoji)}
                 >
                   <span>{reaction.emoji}</span>
-                  <span className="text-slate-500 text-[10px] font-medium">{reaction.users.length}</span>
+                  {/* <span className="text-slate-500 text-[10px] font-medium">{reaction.users.length}</span> */}
                 </motion.div>
               ))}
             </motion.div>

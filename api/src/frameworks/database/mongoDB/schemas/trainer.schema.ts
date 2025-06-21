@@ -37,7 +37,10 @@ export const trainerSchema = new Schema<ITrainerModel>(
     clientCount: { type: Number, default: 0 },
     isOnline: { type: Boolean, default: false },
     rating: { type: Number, default: 0 },
-    reviewCount: { type: Number, default: 0 }
+    reviewCount: { type: Number, default: 0 },
+    optOutBackupRole: { type: Boolean, default: false }, // NEW
+    backupClientIds: [{ type: Schema.Types.ObjectId, ref: "Client", default: [] }], 
+    maxBackupClients: { type: Number, default: 5 }, // NEW (optional)
   },
   {
     timestamps: true,
@@ -48,6 +51,8 @@ export const trainerSchema = new Schema<ITrainerModel>(
 trainerSchema.statics.updateFCMToken = async function (clientId: string, fcmToken: string): Promise<void> {
   await this.updateOne({ clientId }, { fcmToken });
 };
+
 trainerSchema.index({ clientId: 1 }, { unique: true });
 trainerSchema.index({ specialization: 1, skills: 1, approvalStatus: 1, clientCount: 1 });
+trainerSchema.index({ backupClientIds: 1 });
 trainerSchema.index({ isOnline: 1 });

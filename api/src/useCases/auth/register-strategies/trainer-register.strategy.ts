@@ -2,8 +2,15 @@ import { inject, injectable } from "tsyringe";
 import { IRegisterStrategy } from "./register-strategy.interface";
 import { TrainerDTO, UserDTO } from "@/shared/dto/user.dto";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
+import { IAdminRepository } from "@/entities/repositoryInterfaces/admin/admin-repository.interface"; // Add this
+import { NotificationService } from "@/interfaceAdapters/services/notification.service"; // Add this
 import { CustomError } from "@/entities/utils/custom.error";
-import { ERROR_MESSAGES, HTTP_STATUS, TrainerApprovalStatus, RE_REGISTRATION_MAIL_CONTENT } from "@/shared/constants";
+import {
+  ERROR_MESSAGES,
+  HTTP_STATUS,
+  TrainerApprovalStatus,
+  RE_REGISTRATION_MAIL_CONTENT,
+} from "@/shared/constants";
 import { IBcrypt } from "@/frameworks/security/bcrypt.interface";
 import { generateUniqueId } from "@/frameworks/security/uniqueuid.bcrypt";
 import { IUserEntity } from "@/entities/models/user.entity";
@@ -14,13 +21,20 @@ import { IEmailService } from "@/entities/services/email-service.interface";
 export class TrainerRegisterStrategy implements IRegisterStrategy {
   constructor(
     @inject("IPasswordBcrypt") private _passwordBcrypt: IBcrypt,
-    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
-    @inject("IEmailService") private _emailService: IEmailService
+    @inject("ITrainerRepository")
+    private _trainerRepository: ITrainerRepository,
+    @inject("IEmailService") private _emailService: IEmailService,
+    @inject("IAdminRepository") private _adminRepository: IAdminRepository, // Inject AdminRepository
+    @inject("NotificationService")
+    private _notificationService: NotificationService // Inject NotificationService
   ) {}
 
   async register(user: UserDTO): Promise<IUserEntity | null> {
     if (user.role !== "trainer") {
-      throw new CustomError("Invalid role for user registration", HTTP_STATUS.BAD_REQUEST);
+      throw new CustomError(
+        "Invalid role for user registration",
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     const validationResult = trainerSchema.safeParse(user);
@@ -28,10 +42,22 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
       throw new CustomError("Invalid input data", HTTP_STATUS.BAD_REQUEST);
     }
 
-    const { firstName, lastName, email, phoneNumber, password, dateOfBirth, gender, experience, skills } = user as TrainerDTO;
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      password,
+      dateOfBirth,
+      gender,
+      experience,
+      skills,
+    } = user as TrainerDTO;
     const existingTrainer = await this._trainerRepository.findByEmail(email);
 
-    let hashedPassword = password ? await this._passwordBcrypt.hash(password) : "";
+    let hashedPassword = password
+      ? await this._passwordBcrypt.hash(password)
+      : "";
     const trainerData = {
       firstName,
       lastName,
@@ -44,13 +70,16 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
       skills,
       role: "trainer" as const,
       approvalStatus: TrainerApprovalStatus.PENDING,
-      rejectionReason: undefined, 
+      rejectionReason: undefined,
       approvedByAdmin: false,
     };
 
     let savedTrainer: IUserEntity | null;
 
-    if (existingTrainer && existingTrainer.approvalStatus === TrainerApprovalStatus.REJECTED) {
+    if (
+      existingTrainer &&
+      existingTrainer.approvalStatus === TrainerApprovalStatus.REJECTED
+    ) {
       // Re-registration case
       savedTrainer = await this._trainerRepository.updateByEmail(email, {
         ...trainerData,
@@ -58,7 +87,10 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
       });
 
       if (!savedTrainer) {
-        throw new CustomError("Failed to update trainer data", HTTP_STATUS.INTERNAL_SERVER_ERROR);
+        throw new CustomError(
+          "Failed to update trainer data",
+          HTTP_STATUS.INTERNAL_SERVER_ERROR
+        );
       }
 
       // Send re-registration email
@@ -82,6 +114,26 @@ export class TrainerRegisterStrategy implements IRegisterStrategy {
 
     if (!savedTrainer) {
       return null;
+    }
+
+    const { items: admins, total } = await this._adminRepository.find(
+      { role: "admin" },
+      0, // skip 0 records
+      1000 // fetch up to 1000 admins, adjust as needed
+    );
+    const notificationMessage = `Trainer ${firstName} ${lastName} has registered and requires approval.`;
+
+    for (const admin of admins) {
+      try {
+        await this._notificationService.sendToUser(
+          admin.id!,
+          "New Trainer Registration",
+          notificationMessage,
+          "INFO"
+        );
+      } catch (err) {
+        console.error("Failed to send notification to admin", err);
+      }
     }
 
     return savedTrainer;

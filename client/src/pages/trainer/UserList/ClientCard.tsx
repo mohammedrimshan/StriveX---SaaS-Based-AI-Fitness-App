@@ -3,7 +3,7 @@
 import React from "react";
 import { IClient } from "@/types/User";
 import { motion } from "framer-motion";
-import { Mail, Phone, Calendar, Award } from 'lucide-react';
+import { Mail, Phone, Calendar, Award, User } from 'lucide-react';
 import {
   formatFitnessGoal,
   formatExperienceLevel,
@@ -19,9 +19,27 @@ interface ClientCardProps {
 }
 
 const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
+  const UserAvatar: React.FC<{ client: IClient }> = ({ client }) => {
+    if (client.profileImage) {
+      return (
+        <img
+          src={client.profileImage}
+          alt={`${client.firstName} ${client.lastName}`}
+          className="w-24 h-24 object-cover rounded-full border-4 border-white dark:border-gray-800 shadow-md"
+        />
+      );
+    }
+
+    return (
+      <div className="w-24 h-24 bg-gradient-to-br from-purple-400 to-purple-600 dark:from-purple-500 dark:to-purple-700 rounded-full border-4 border-white dark:border-gray-800 shadow-md flex items-center justify-center">
+        <User className="w-10 h-10 text-white" />
+      </div>
+    );
+  };
+
   return (
     <motion.div
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden h-full"
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden h-full cursor-pointer"
       whileHover={{ 
         y: -5,
         boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
@@ -38,11 +56,7 @@ const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
         >
-          <img
-            src={client.profileImage || "https://via.placeholder.com/80"}
-            alt={`${client.firstName} ${client.lastName}`}
-            className="w-24 h-24 object-cover rounded-full border-4 border-white dark:border-gray-800 shadow-md"
-          />
+          <UserAvatar client={client} />
         </motion.div>
       </div>
 
@@ -72,7 +86,7 @@ const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
 
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
             <Calendar className="w-4 h-4 mr-2 text-purple-500" />
-            <span>{format(new Date(client.createdAt), "MMM dd, yyyy")}</span>
+            <span>{format(new Date(client.createdAt || new Date()), "MMM dd, yyyy")}</span>
           </div>
 
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">

@@ -2,18 +2,19 @@ import { injectable, inject } from "tsyringe";
 import { IStartVideoCallUseCase } from "@/entities/useCaseInterfaces/videocall/startvideo-usecase.interface";
 import { ISlotRepository } from "@/entities/repositoryInterfaces/slot/slot-repository.interface";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
-import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { SlotStatus, TrainerSelectionStatus, VideoCallStatus } from "@/shared/constants";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
 import { ISlotEntity } from "@/entities/models/slot.entity";
+import { NotificationService } from "@/interfaceAdapters/services/notification.service";
 
 @injectable()
 export class StartVideoCallUseCase implements IStartVideoCallUseCase {
   constructor(
     @inject("ISlotRepository") private slotRepository: ISlotRepository,
     @inject("IClientRepository") private clientRepository: IClientRepository,
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository
+    @inject("NotificationService") private notificationService: NotificationService
+
   ) {}
 
   async execute(
@@ -71,6 +72,22 @@ export class StartVideoCallUseCase implements IStartVideoCallUseCase {
         "Failed to start video call",
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
+    }
+
+    if (role === "trainer") {
+      const client = await this.clientRepository.findById(slot.clientId);
+      if (client) {
+        try {
+          await this.notificationService.sendToUser(
+            client.id as string,
+            "Call Started",
+            "Your trainer has started the session. Join the call now.",
+            "INFO"
+          );
+        } catch (error) {
+          console.error("Failed to send video call notification to client:", error);
+        }
+      }
     }
     return updatedSlot;
   }

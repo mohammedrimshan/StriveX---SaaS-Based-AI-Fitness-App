@@ -211,7 +211,6 @@ export default function WorkoutProgressChart() {
           </div>
           <h2 className="text-xl font-medium text-gray-800">No workout progress yet</h2>
           <p className="mt-2 text-gray-600">Complete your first workout to see your progress!</p>
-          <p className="mt-4 text-gray-600">Raw data: {JSON.stringify(progressData)}</p>
         </div>
       </div>
     );

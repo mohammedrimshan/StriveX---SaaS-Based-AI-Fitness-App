@@ -21,13 +21,17 @@ import { SessionHistoryController } from "@/interfaceAdapters/controllers/sessio
 import { AdminDashboardController } from "@/interfaceAdapters/controllers/admin/admindashboard.controller";
 import { ReviewController } from "@/interfaceAdapters/controllers/review.controller";
 import { TrainerDashboardController } from "@/interfaceAdapters/controllers/trainer-dashboard.controller";
+import { BackupTrainerController } from "@/interfaceAdapters/controllers/backuptrainerController";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
+import { DailyUnusedSessionProcessor } from "../queue/bull/daily-unused-session.processor";
 DependancyInjection.registerAll();
 
 export const processor = container.resolve<SlotExpiryProcessor>("SlotExpiryProcessor");
 
 export const subscriptionProcessor = container.resolve<SubscriptionExpiryProcessor>("SubscriptionExpiryProcessor");
+
+export const dailyUnusedSessionProcessor = container.resolve<DailyUnusedSessionProcessor>("DailyUnusedSessionProcessor");
 
 export const blockStatusMiddleware = container.resolve(BlockStatusMiddleware);
 
@@ -70,3 +74,5 @@ export const adminDashboardController = container.resolve(AdminDashboardControll
 export const reviewController = container.resolve(ReviewController);
 
 export const trainerDashboardController = container.resolve(TrainerDashboardController);
+
+export const backupTrainerController = container.resolve(BackupTrainerController);

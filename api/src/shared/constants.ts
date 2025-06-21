@@ -10,6 +10,20 @@ export enum MessageStatus {
   READ = "read",
 }
 
+
+export enum BackupInvitationStatus {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  REJECTED = "REJECTED",
+  AUTO_ASSIGNED = "AUTO_ASSIGNED",
+} 
+
+export enum TrainerChangeRequestStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
+
 export type TRole = "client" | "trainer" | "admin";
 
 export enum TrainerApprovalStatus {
@@ -28,6 +42,12 @@ export enum VideoCallStatus {
   NOT_STARTED = "not_started",
   IN_PROGRESS = "in_progress",
   ENDED = "ended",
+}
+
+export enum WalletTransactionType {
+  REFUND = "REFUND",
+  DEPOSIT = "DEPOSIT",
+  WITHDRAWAL = "WITHDRAWAL",
 }
 
 export const WORKOUT_TYPES = [
@@ -144,6 +164,10 @@ export const SUCCESS_MESSAGES = {
   TRAINER_SELECTION_SAVED: "Trainer selection preferences saved successfully",
   TRAINER_ASSIGNED: "Trainer assigned successfully",
   TRAINER_REQUEST_UPDATED: "Trainer request updated successfully",
+  BACKUP_TRAINER_ASSIGNMENT_INITIATED: "Backup trainer assignment process initiated",
+  BACKUP_INVITATION_UPDATED: "Backup invitation status updated",
+  REQUEST_SUBMITTED: "Request submitted successfully",
+  REQUEST_RESOLVED: "Request resolved successfully",
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -274,6 +298,8 @@ export const ERROR_MESSAGES = {
   UNAUTHORIZED_TOGGLE_SLOT: "Unauthorized: Only the trainer can toggle slot availability",
   BOOKED_SLOT_CANNOT_TOGGLE: "Cannot toggle availability of a booked slot",
   FAILED_TO_UPDATE_SLOT_AVAILABILITY: "Failed to update slot availability",
+  INVITATION_NOT_FOUND: "Invitation not found",
+
 } as const;
 
 export const VERIFICATION_MAIL_CONTENT = (otp: string) => `

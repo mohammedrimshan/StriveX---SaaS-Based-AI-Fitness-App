@@ -22,6 +22,7 @@ import {
   videoCallController,
   sessionHistoryController,
   reviewController,
+  backupTrainerController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -834,6 +835,59 @@ export class ClientRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         reviewController.updateReview(req, res);
+      }
+    );
+
+
+  
+    router.post(
+      "/client/backup-trainer/assign",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.assignBackupTrainer(req, res);
+      }
+    );
+
+    router.post(
+      "/client/backup-trainer/request",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.requestBackupTrainerChange(req, res);
+      }
+    );
+
+    router.get(
+      "/client/backup-trainer/getrequests",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.getClientChangeRequests(req, res);
+      }
+    );
+
+
+    router.get(
+      "/client/backup-trainer/invitations",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        backupTrainerController.getClientBackupInvitations(req, res);
+      }
+    );
+
+    router.get(
+      "/client/trainers-info",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        userController.getClientTrainerInfo(req, res);
       }
     );
   }

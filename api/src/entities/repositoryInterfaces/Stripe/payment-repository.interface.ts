@@ -21,5 +21,9 @@ export interface IPaymentRepository extends IBaseRepository<IPaymentEntity> {
   update: Partial<IPaymentEntity>
 ): Promise<{ modifiedCount: number }>;
 // In IPaymentRepository.ts
-findOne(filter: Partial<IPaymentEntity>): Promise<IPaymentEntity | null>;
+findOne(
+    filter: Partial<IPaymentEntity>,
+    sort?: Record<string, 1 | -1>
+  ): Promise<IPaymentEntity | null>;
+  updateById(id: string, data: Partial<IPaymentEntity>): Promise<void>;
 }

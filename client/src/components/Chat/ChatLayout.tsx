@@ -13,18 +13,21 @@ import type { UserRole } from "@/types/UserRole";
 import { SocketProvider } from "@/context/socketContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {  IChat, RecentChatsResponse, Participant } from "@/types/Chat";
-
+import { useClientProfile } from "@/hooks/client/useClientProfile";
+import { useNavigate } from "react-router-dom";
 export function ChatLayout() {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showSidebar, setShowSidebar] = useState(!isMobile);
   const [activeChatParticipantId, setActiveChatParticipantId] = useState<string | null>(null);
   const [activeParticipant, setActiveParticipant] = useState<Participant | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
-
+  const [error, __] = useState<string | null>(null);
   const { client, trainer } = useSelector((state: RootState) => ({
     client: state.client.client,
     trainer: state.trainer.trainer,
   }));
+  const { data: clientProfile,  error: profileError } = useClientProfile(client?.id || null);
 
   const user = client || trainer;
   const role = client ? "client" : trainer ? "trainer" : null;
@@ -89,6 +92,13 @@ export function ChatLayout() {
     setReplyTo(messageId);
   };
 
+
+
+
+  if (profileError || error) {
+    return <div className="py-16 text-center text-red-500">{profileError?.message || error || "Error loading data"}</div>;
+  }
+
   if (!user || !role) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
@@ -101,14 +111,14 @@ export function ChatLayout() {
     );
   }
 
-  if (role === "client" && client && (!client.isPremium || client.selectStatus !== "accepted")) {
+  if (role === "client" && clientProfile && (!clientProfile.isPremium || clientProfile.selectStatus !== "accepted")) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
         <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
           <div className="text-5xl mb-4">🔒</div>
           <h2 className="text-2xl font-semibold text-slate-800 mb-2">Premium Feature</h2>
           <p className="text-slate-600 mb-4">Please select a trainer and upgrade to premium to access chat features</p>
-          <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+          <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors" onClick={() => navigate("/premium")}>
             Upgrade Now
           </button>
         </div>

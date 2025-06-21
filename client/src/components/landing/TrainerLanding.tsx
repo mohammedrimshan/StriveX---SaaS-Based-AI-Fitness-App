@@ -38,11 +38,11 @@ const TrainerLanding = () => {
     <div className="min-h-screen antialiased">
       <main>
         <Hero />
-        <TrainerStats />
+        {/* <TrainerStats />
         <Benefits />
         <HowItWorks />
         <Testimonials />
-        <CallToAction />
+        <CallToAction /> */}
       </main>
     </div>
   );

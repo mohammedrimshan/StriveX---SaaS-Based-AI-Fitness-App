@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
 import { IClientModel } from "../models/client.model";
-import { ROLES, FITNESS_GOALS, WORKOUT_TYPES,EXPERIENCE_LEVELS, ACTIVITY_LEVELS, SKILLS, TrainerSelectionStatus } from "@/shared/constants";
+import { ROLES, FITNESS_GOALS, WORKOUT_TYPES,EXPERIENCE_LEVELS, ACTIVITY_LEVELS, SKILLS, TrainerSelectionStatus, BackupInvitationStatus } from "@/shared/constants";
 
 export const clientSchema = new Schema<IClientModel>(
   {
@@ -44,6 +44,13 @@ export const clientSchema = new Schema<IClientModel>(
     selectedTrainerId: { type: String, required: false },
     selectStatus: { type: String, enum: Object.values(TrainerSelectionStatus), default: TrainerSelectionStatus.PENDING },
     isOnline: { type: Boolean, default: false },
+    backupTrainerId: { type: String, required: false },
+    backupTrainerStatus: {
+      type: String,
+      enum: Object.values(BackupInvitationStatus),
+      required: false,
+      default: BackupInvitationStatus.PENDING,
+    },
   },
   {
     timestamps: true,

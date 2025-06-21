@@ -19,4 +19,7 @@ export interface ITrainerEntity extends IUserEntity {
   clientCount?: number;
   rating?: number;
   reviewCount?: number;
+   optOutBackupRole?: boolean;
+  backupClientIds?: string[];
+  maxBackupClients?: number;
 }

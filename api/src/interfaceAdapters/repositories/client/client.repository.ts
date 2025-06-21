@@ -3,7 +3,7 @@ import { IClientRepository } from "@/entities/repositoryInterfaces/client/client
 import { ClientModel } from "@/frameworks/database/mongoDB/models/client.model";
 import { IClientEntity } from "@/entities/models/client.entity";
 import { BaseRepository } from "../base.repository";
-import { PaymentStatus, TrainerSelectionStatus } from "@/shared/constants";
+import { BackupInvitationStatus, PaymentStatus, TrainerSelectionStatus } from "@/shared/constants";
 import { PipelineStage } from "mongoose";
 import { isValidObjectId } from "mongoose";
 
@@ -271,6 +271,7 @@ export class ClientRepository
       planName?: string;
       amount?: number;
       status: string;
+      remainingBalance?: number;
     }[];
     total: number;
   }> {
@@ -377,6 +378,7 @@ export class ClientRepository
           planName: { $ifNull: ["$plan.name", "Unknown Plan"] },
           amount: "$latestPayment.price",
           status: "$latestPayment.status",
+          remainingBalance: "$latestPayment.remainingBalance",
         },
       },
     ];
@@ -425,6 +427,7 @@ export class ClientRepository
           planName: item.planName,
           amount: item.amount,
           status: item.status || PaymentStatus.COMPLETED,
+          remainingBalance: item.remainingBalance || 0,
         })),
         total,
       };
@@ -432,5 +435,20 @@ export class ClientRepository
       console.error("Error fetching user subscriptions:", error);
       throw error;
     }
+  }
+
+  async updateBackupTrainer(clientId: string, backupTrainerId: string, status: BackupInvitationStatus): Promise<IClientEntity | null> {
+    console.log(clientId, backupTrainerId, status,"updateBackupTrainer");
+    return this.findOneAndUpdateAndMap(
+      { clientId },
+      { backupTrainerId, backupTrainerStatus: status }
+    );
+  }
+
+  async clearBackupTrainer(clientId: string): Promise<IClientEntity | null> {
+    return this.findOneAndUpdateAndMap(
+      { clientId },
+      { backupTrainerId: null, backupTrainerStatus: null }
+    );
   }
 }

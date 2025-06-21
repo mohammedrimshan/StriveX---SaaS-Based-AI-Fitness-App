@@ -322,6 +322,8 @@ export class WorkoutProgressRepository
       .collection("clients")
       .aggregate(fullPipeline)
       .toArray();
+
+      console.log("FULL RESULT",JSON.stringify(fullResult, null, 2));
     if (!fullResult.length) {
       throw new CustomError("No client found for user", HTTP_STATUS.NOT_FOUND);
     }

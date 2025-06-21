@@ -15,20 +15,10 @@ export class BookSlotUseCase implements IBookSlotUseCase {
     @inject("ISlotRepository") private slotRepository: ISlotRepository,
     @inject("IClientRepository") private clientRepository: IClientRepository,
     @inject("ITrainerRepository") private trainerRepository: ITrainerRepository,
-    @inject("NotificationService")
-    private notificationService: NotificationService
+    @inject("NotificationService") private notificationService: NotificationService
   ) {}
 
   async execute(clientId: string, slotId: string): Promise<ISlotEntity> {
-    const existingBookedSlot =
-      await this.slotRepository.findAnyBookedSlotByClientId(clientId);
-    if (existingBookedSlot) {
-      throw new CustomError(
-        ERROR_MESSAGES.ALREADY_BOOKED_SESSION,
-        HTTP_STATUS.BAD_REQUEST
-      );
-    }
-
     const slot = await this.slotRepository.findById(slotId);
     if (!slot) {
       throw new CustomError(
@@ -36,6 +26,7 @@ export class BookSlotUseCase implements IBookSlotUseCase {
         HTTP_STATUS.NOT_FOUND
       );
     }
+
     if (slot.status !== SlotStatus.AVAILABLE) {
       throw new CustomError(
         ERROR_MESSAGES.SLOT_NOT_AVAILABLE,
@@ -53,9 +44,22 @@ export class BookSlotUseCase implements IBookSlotUseCase {
         HTTP_STATUS.INTERNAL_SERVER_ERROR
       );
     }
+
     if (slotStartTime < new Date()) {
       throw new CustomError(
         ERROR_MESSAGES.PAST_SLOT_BOOKING,
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    const existingSlot = await this.slotRepository.findBookedSlotByClientIdAndDate(
+      clientId,
+      slot.date
+    );
+
+    if (existingSlot) {
+      throw new CustomError(
+        "You have already booked a slot for this date",
         HTTP_STATUS.BAD_REQUEST
       );
     }
@@ -65,6 +69,7 @@ export class BookSlotUseCase implements IBookSlotUseCase {
       SlotStatus.BOOKED,
       clientId
     );
+
     if (!updatedSlot) {
       throw new CustomError(
         ERROR_MESSAGES.FAILED_BOOKING_SLOT,

@@ -1,10 +1,10 @@
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { SlotModel } from "../../../frameworks/database/mongoDB/models/slot.model";
 import { ISlotEntity } from "../../../entities/models/slot.entity";
 import { ClientModel } from "@/frameworks/database/mongoDB/models/client.model";
 import { ISlotRepository } from "../../../entities/repositoryInterfaces/slot/slot-repository.interface";
 import { BaseRepository } from "../base.repository";
-import { SlotStatus, VideoCallStatus } from "@/shared/constants";
+import { PaymentStatus, SlotStatus, VideoCallStatus } from "@/shared/constants";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
 import { Types } from "mongoose";
@@ -15,12 +15,26 @@ import {
   ISessionHistoryModel,
   SessionHistoryModel,
 } from "@/frameworks/database/mongoDB/models/session-history.model";
+import { ITrainerEarningsRepository } from "@/entities/repositoryInterfaces/trainer/trainer-earnings.repository.interface";
+import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
+import { IMembershipPlanRepository } from "@/entities/repositoryInterfaces/Stripe/membership-plan-repository.interface";
+import { ITrainerEarningsEntity } from "@/entities/models/trainer-earnings.entity";
+import { IPaymentRepository } from "@/entities/repositoryInterfaces/Stripe/payment-repository.interface";
+import mongoose from "mongoose";
+
 @injectable()
 export class SlotRepository
   extends BaseRepository<ISlotEntity>
   implements ISlotRepository
 {
-  constructor() {
+  constructor(
+    @inject("IMembershipPlanRepository")
+    private membershipPlanRepository: IMembershipPlanRepository,
+    @inject("IClientRepository") private clientRepository: IClientRepository,
+    @inject("ITrainerEarningsRepository")
+    private trainerEarningsRepository: ITrainerEarningsRepository,
+    @inject("IPaymentRepository") private paymentRepository: IPaymentRepository
+  ) {
     super(SlotModel);
   }
 
@@ -187,18 +201,16 @@ export class SlotRepository
     return slot ? this.mapToEntity(slot) : null;
   }
 
-  async findAnyBookedSlotByClientId(
-    clientId: string
-  ): Promise<ISlotEntity | null> {
-    const slot = await this.model
-      .findOne({
-        clientId,
-        status: SlotStatus.BOOKED,
-      })
-      .lean();
+  async findBookedSlotByClientIdAndDate(clientId: string, date: string): Promise<ISlotEntity | null> {
+  const slot = await this.model.findOne({
+    clientId,
+    date,
+    status: SlotStatus.BOOKED,
+  }).lean();
 
-    return slot ? this.mapToEntity(slot) : null;
-  }
+  return slot ? this.mapToEntity(slot) : null;
+}
+
 
   async getSlotsWithStatus(
     trainerId: string,
@@ -616,20 +628,93 @@ export class SlotRepository
     }
 
     if (updatedSlot.status === SlotStatus.BOOKED) {
+      const session = await mongoose.startSession();
+      session.startTransaction();
       try {
         await this.saveToSessionHistory(this.mapToEntity(updatedSlot));
         console.log(`Session history saved for slot ${slotId}`);
+
+        const client = await this.clientRepository.findByClientNewId(
+          slot.clientId!
+        );
+        if (!client || !client.membershipPlanId) {
+          throw new CustomError(
+            "Client or membership plan not found",
+            HTTP_STATUS.NOT_FOUND
+          );
+        }
+
+        const plan = await this.membershipPlanRepository.findById(
+          client.membershipPlanId
+        );
+        if (!plan) {
+          throw new CustomError(
+            "Membership plan not found",
+            HTTP_STATUS.NOT_FOUND
+          );
+        }
+
+        const planDurationInDays = plan.durationMonths * 30;
+        const perSessionRate = plan.price / planDurationInDays;
+        const trainerShare = perSessionRate * 0.8;
+        const adminShare = perSessionRate * 0.2;
+
+        const earningsData: Partial<ITrainerEarningsEntity> = {
+          slotId,
+          trainerId: slot.trainerId.toString(),
+          clientId: slot.clientId!,
+          membershipPlanId: client.membershipPlanId,
+          amount: perSessionRate,
+          trainerShare,
+          adminShare,
+          completedAt: new Date(),
+        };
+
+        await this.trainerEarningsRepository.save(earningsData);
+        console.log(
+          `Earnings saved for slot ${slotId}: trainer=${trainerShare}, admin=${adminShare}`
+        );
+
+        const payment = await this.paymentRepository.findOne(
+          {
+            clientId: slot.clientId,
+            membershipPlanId: client.membershipPlanId,
+            status: PaymentStatus.COMPLETED,
+          },
+          { createdAt: -1 }
+        );
+
+        if (payment && payment.id) {
+          const newRemainingBalance =
+            (payment.remainingBalance || plan.price) - perSessionRate;
+          await this.paymentRepository.updateById(payment.id, {
+            remainingBalance: Math.max(newRemainingBalance, 0),
+            updatedAt: new Date(),
+          });
+          console.log(
+            `Updated remainingBalance to ${newRemainingBalance} for payment ${payment.id}`
+          );
+        } else {
+          console.warn(
+            `No completed payment found for client ${slot.clientId} and plan ${client.membershipPlanId}`
+          );
+        }
+
+        await session.commitTransaction();
       } catch (error) {
+        await session.abortTransaction();
         console.error(
-          `Failed to save session history for slot ${slotId}:`,
+          `Failed to save session history, earnings, or update payment for slot ${slotId}:`,
           error
         );
+        throw error;
+      } finally {
+        session.endSession();
       }
     }
 
     return this.mapToEntity(updatedSlot);
   }
-
   async getVideoCallDetails(slotId: string): Promise<{
     videoCallStatus: VideoCallStatus;
     videoCallRoomName?: string;

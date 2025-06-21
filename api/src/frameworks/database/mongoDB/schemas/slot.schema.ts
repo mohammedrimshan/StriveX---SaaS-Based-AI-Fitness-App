@@ -5,6 +5,8 @@ import { SlotStatus, VideoCallStatus } from "@/shared/constants";
 export const slotSchema = new Schema<ISlotModel>(
   {
     trainerId: { type: Schema.Types.ObjectId, required: true, ref: "Trainer" },
+    backupTrainerId: { type: Schema.Types.ObjectId, required: false, ref: "Trainer" },
+    previousTrainerId: [{ type: Schema.Types.ObjectId, required: false, ref: "Trainer" }],
     clientId: { type: String },
     date: {
       type: String,
