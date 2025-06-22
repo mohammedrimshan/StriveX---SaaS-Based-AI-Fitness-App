@@ -72,6 +72,14 @@ export class BaseRepository<T> implements IBaseRepository<T> {
     return this.model.countDocuments(filter);
   }
 
+  async updateRaw(id: string, update: any): Promise<T | null> {
+  const entity = await this.model
+    .findByIdAndUpdate(id, update, { new: true })
+    .lean();
+  return entity ? this.mapToEntity(entity) : null;
+}
+
+
   protected mapToEntity(doc: any): T {
     const { _id, __v, category, ...rest } = doc;
     return {

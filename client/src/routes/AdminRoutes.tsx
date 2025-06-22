@@ -19,6 +19,7 @@ import SessionHistoryPage from "@/components/common/SessionHistoryPage";
 import NotFoundPage from "@/components/common/NotFoundPage";
 import SubscriptionDashboard from "@/pages/admin/SubscriptionDashboard";
 import Notifications from "@/components/Notification/Notifications";
+import AdminDashboardTabs from "@/pages/admin/AdminBackupClients";
 export const AdminRoutes = () => {
   return (
     <Routes>
@@ -55,6 +56,7 @@ export const AdminRoutes = () => {
         />
         <Route path="subscriptions" element={<SubscriptionDashboard />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="backupclients" element={<AdminDashboardTabs />} />
 
         {/* Catch-all route for unmatched admin sub-routes */}
         <Route path="*" element={<NotFoundPage />} />

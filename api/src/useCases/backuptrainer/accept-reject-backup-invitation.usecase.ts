@@ -43,7 +43,6 @@ export class AcceptRejectBackupInvitationUseCase
     }
 
     const client = await this.clientRepository.findById(invitation.clientId);
-    console.log(invitation.clientId,"TO KNOW CLIENT ID");
     if (!client) {
       throw new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
@@ -54,42 +53,45 @@ export class AcceptRejectBackupInvitationUseCase
     }
 
     if (action === "accept") {
-      console.log("[ACCEPT] Updating invitation status...");
-      await this.invitationRepository.updateStatus(invitationId, BackupInvitationStatus.ACCEPTED, new Date());
-
-      console.log("[ACCEPT] Updating client backup trainer...");
-      await this.clientRepository.updateBackupTrainer(
+      // 1. Attempt atomic update to assign backup trainer only if none assigned yet
+      const updatedClient = await this.clientRepository.updateBackupTrainerIfNotAssigned(
         client.clientId,
         trainerId,
         BackupInvitationStatus.ACCEPTED
       );
 
-      console.log(`[ACCEPT] Adding client ${client.id} to trainer ${trainerId}'s backupClientIds`);
-      const updatedTrainer = await this.trainerRepository.addBackupClient(
-        trainerId,
-        client.id!
-      );
+      if (!updatedClient) {
+        // Someone else already accepted first
+        throw new CustomError(
+          "Backup trainer already assigned to another trainer",
+          HTTP_STATUS.CONFLICT
+        );
+      }
 
+      // 2. Mark this invitation as ACCEPTED
+      await this.invitationRepository.updateStatus(invitationId, BackupInvitationStatus.ACCEPTED, new Date());
+
+      // 3. Add client to trainer's backupClientIds
+      const updatedTrainer = await this.trainerRepository.addBackupClient(trainerId, client.id!);
       if (!updatedTrainer) {
-        console.error(`[ERROR] Failed to update trainer ${trainerId}`);
         throw new CustomError("Failed to update trainer backup clients", HTTP_STATUS.INTERNAL_SERVER_ERROR);
       }
 
-      console.log("[ACCEPT] Cancelling other invitations...");
+      // 4. Reject other pending invitations
       const pendingInvites = await this.invitationRepository.findPendingByClientId(client.clientId);
       for (const invite of pendingInvites) {
         if (invite.id !== invitationId) {
           await this.invitationRepository.updateStatus(invite.id, BackupInvitationStatus.REJECTED, new Date());
+
+          // Optional: notify rejected trainers
+          await this.notificationService.sendToUser(
+            invite.trainerId,
+            "Backup Invitation Expired",
+            `Your backup trainer invitation for ${client.firstName} ${client.lastName} was not selected.`,
+            "INFO"
+          );
         }
       }
-
-      // Notify client
-      await this.notificationRepository.save({
-        userId: client.clientId,
-        title: "Backup Trainer Assigned",
-        message: `Trainer ${trainer.firstName} ${trainer.lastName} has been assigned as your backup trainer.`,
-        type: "SUCCESS"
-      });
 
       await this.notificationService.sendToUser(
         client.id!,
@@ -98,20 +100,20 @@ export class AcceptRejectBackupInvitationUseCase
         "SUCCESS"
       );
 
-      console.log(`[SUCCESS] Trainer ${trainerId} now has backupClientIds:`, updatedTrainer.backupClientIds);
+      return updatedClient;
     } else {
-      // Reject case
+      // Reject case: mark invitation as REJECTED
       await this.invitationRepository.updateStatus(invitationId, BackupInvitationStatus.REJECTED, new Date());
-      await this.notificationRepository.save({
-        userId: client.clientId,
-        title: "Backup Trainer Invitation Rejected",
-        message: `Trainer ${trainer.firstName} ${trainer.lastName} has declined your backup trainer invitation.`,
-        type: "INFO"
-      });
 
-      console.log(`[REJECT] Trainer ${trainerId} rejected the backup invitation.`);
+      await this.notificationService.sendToUser(
+        client.id!,
+        "Backup Trainer Invitation Rejected",
+        `Trainer ${trainer.firstName} ${trainer.lastName} has declined your backup trainer invitation.`,
+        "ERROR"
+      );
+
+
+      return client;
     }
-
-    return client;
   }
 }

@@ -34,6 +34,7 @@ export interface IClientEntity extends IUserEntity {
   selectionMode?: "auto" | "manual";
   matchedTrainers?: string[];
   selectedTrainerId?: string;
+  previousTrainerId?: string; 
   selectStatus: TrainerSelectionStatus;
   backupTrainerId?: string | null;
   backupTrainerStatus?: BackupInvitationStatus | null;

@@ -1,7 +1,9 @@
 
+import { adminAxiosInstance } from "@/api/admin.axios";
 import { clientAxiosInstance } from "@/api/client.axios";
 import { trainerAxiosInstance } from "@/api/trainer.axios";
-import { GetBackupTrainerInvitationsResponse, GetTrainerChangeRequestsResponse, RespondToInvitationPayload, SubmitTrainerChangeRequestPayload, TrainerBackupInvitationResponse, TrainerChangeRequestResponse } from "@/types/backuptrainer";
+import { Params } from "@/hooks/backuptrainer/useAllTrainerChangeRequests";
+import { AdminClientBackupOverviewParams, BackupClientsOverviewResponse, GetBackupTrainerInvitationsResponse, GetTrainerChangeRequestsResponse, ResolveTrainerChangeRequestPayload, RespondToInvitationPayload, SubmitTrainerChangeRequestPayload, TrainerBackupInvitationResponse, TrainerChangeRequestResponse } from "@/types/backuptrainer";
 export const getClientBackupInvitations = async (
   page: number = 1,
   limit: number = 10
@@ -62,4 +64,39 @@ export const getTrainerBackupClients = async (page = 1, limit = 10) => {
     params: { page, limit },
   });
   return response.data;
+};
+
+
+export const getAllTrainerChangeRequests = async ({ page = 1, limit = 10, status }: Params) => {
+  const response = await adminAxiosInstance.get("/admin/backup-trainer/change-requests", {
+    params: { page, limit, status },
+  });
+  return response.data;
+};
+
+
+
+
+export const getBackupClientsOverview = async ({
+  page = 1,
+  limit = 10,
+}: AdminClientBackupOverviewParams): Promise<BackupClientsOverviewResponse> => {
+  const response = await adminAxiosInstance.get("/admin/backup-trainer/clients-overview", {
+    params: { page, limit },
+  });
+
+  return response.data;
+};
+
+
+export const resolveTrainerChangeRequest = async ({
+  requestId,
+  action,
+}: ResolveTrainerChangeRequestPayload) => {
+  const response = await adminAxiosInstance.post("/admin/backup-trainer/resolve-request", {
+    requestId,
+    action,
+  });
+
+  return response.data; 
 };

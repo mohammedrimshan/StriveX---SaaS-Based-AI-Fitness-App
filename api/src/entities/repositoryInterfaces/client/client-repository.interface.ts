@@ -59,5 +59,13 @@ findUserSubscriptions(
     total: number;
   }>;
   updateBackupTrainer(clientId: string, backupTrainerId: string, status: BackupInvitationStatus): Promise<IClientEntity | null>;
-  clearBackupTrainer(clientId: string): Promise<IClientEntity | null> 
+  clearBackupTrainer(clientId: string): Promise<IClientEntity | null> ;
+  updateBackupTrainerIfNotAssigned(
+      clientId: string,
+      trainerId: string,
+      status: BackupInvitationStatus
+    ): Promise<IClientEntity | null>;
+    findClientsBySelectedTrainerId(trainerId: string): Promise<IClientEntity[]>;
+    findClientsByBackupTrainerId(trainerId: string): Promise<IClientEntity[]>;
+    findClientsByPreviousTrainerId(trainerId: string): Promise<IClientEntity[]>;
 }

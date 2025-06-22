@@ -54,7 +54,7 @@ export class ResolveBackupTrainerChangeRequestUseCase
     }
 
     if (action === "approve") {
-      await this.handleApproval(request, client.id!);
+      await this.handleApproval(request, client.id!); // Use MongoDB _id string
     }
 
     const updatedStatus = action === "approve" 

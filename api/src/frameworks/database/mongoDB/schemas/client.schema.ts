@@ -45,6 +45,7 @@ export const clientSchema = new Schema<IClientModel>(
     selectStatus: { type: String, enum: Object.values(TrainerSelectionStatus), default: TrainerSelectionStatus.PENDING },
     isOnline: { type: Boolean, default: false },
     backupTrainerId: { type: String, required: false },
+    previousTrainerId: { type: String, required: false },
     backupTrainerStatus: {
       type: String,
       enum: Object.values(BackupInvitationStatus),

@@ -3,8 +3,12 @@ import { IClientRepository } from "@/entities/repositoryInterfaces/client/client
 import { ClientModel } from "@/frameworks/database/mongoDB/models/client.model";
 import { IClientEntity } from "@/entities/models/client.entity";
 import { BaseRepository } from "../base.repository";
-import { BackupInvitationStatus, PaymentStatus, TrainerSelectionStatus } from "@/shared/constants";
-import { PipelineStage } from "mongoose";
+import {
+  BackupInvitationStatus,
+  PaymentStatus,
+  TrainerSelectionStatus,
+} from "@/shared/constants";
+import mongoose, { PipelineStage } from "mongoose";
 import { isValidObjectId } from "mongoose";
 
 @injectable()
@@ -437,8 +441,12 @@ export class ClientRepository
     }
   }
 
-  async updateBackupTrainer(clientId: string, backupTrainerId: string, status: BackupInvitationStatus): Promise<IClientEntity | null> {
-    console.log(clientId, backupTrainerId, status,"updateBackupTrainer");
+  async updateBackupTrainer(
+    clientId: string,
+    backupTrainerId: string,
+    status: BackupInvitationStatus
+  ): Promise<IClientEntity | null> {
+    console.log(clientId, backupTrainerId, status, "updateBackupTrainer");
     return this.findOneAndUpdateAndMap(
       { clientId },
       { backupTrainerId, backupTrainerStatus: status }
@@ -447,8 +455,52 @@ export class ClientRepository
 
   async clearBackupTrainer(clientId: string): Promise<IClientEntity | null> {
     return this.findOneAndUpdateAndMap(
-      { clientId },
+      { _id: new mongoose.Types.ObjectId(clientId) },
       { backupTrainerId: null, backupTrainerStatus: null }
     );
+  }
+
+  async updateBackupTrainerIfNotAssigned(
+    clientId: string,
+    trainerId: string,
+    status: BackupInvitationStatus
+  ): Promise<IClientEntity | null> {
+    const doc = await ClientModel.findOneAndUpdate(
+      {
+        clientId,
+        $or: [
+          { backupTrainerId: null },
+          { backupTrainerId: { $exists: false } },
+        ],
+      },
+      {
+        backupTrainerId: trainerId,
+        backupTrainerStatus: status,
+      },
+      { new: true }
+    )
+      .lean()
+      .exec();
+
+    if (!doc) return null;
+
+    return this.mapToEntity(doc);
+  }
+
+  async findClientsBySelectedTrainerId(
+    trainerId: string
+  ): Promise<IClientEntity[]> {
+    return ClientModel.find({ selectedTrainerId: trainerId });
+  }
+
+  async findClientsByBackupTrainerId(
+    trainerId: string
+  ): Promise<IClientEntity[]> {
+    return ClientModel.find({ backupTrainerId: trainerId });
+  }
+  async findClientsByPreviousTrainerId(
+    trainerId: string
+  ): Promise<IClientEntity[]> {
+    return ClientModel.find({ previousTrainerId: trainerId });
   }
 }

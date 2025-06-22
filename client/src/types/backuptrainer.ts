@@ -1,3 +1,5 @@
+import { BackupClient } from "@/components/BackupTrainer/Admin/BackUpClients";
+
 export enum BackupInvitationStatus {
   PENDING = "PENDING",
   ACCEPTED = "ACCEPTED",
@@ -124,4 +126,24 @@ export interface TrainerBackupInvitation {
 export interface RespondToInvitationPayload {
   invitationId: string;
   action: "accept" | "reject";
+}
+
+
+export interface ResolveTrainerChangeRequestPayload {
+  requestId: string;
+  action: "approve" | "reject";
+}
+
+export interface BackupClientsOverviewResponse {
+  success: boolean;
+  message: string;
+  clients: BackupClient[];
+  totalPages: number;
+  currentPage: number;
+  totalClients: number;
+}
+
+export interface AdminClientBackupOverviewParams {
+  page?: number;
+  limit?: number;
 }

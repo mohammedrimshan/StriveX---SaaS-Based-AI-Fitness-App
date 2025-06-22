@@ -4,9 +4,6 @@ import { ITrainerChangeRequestRepository } from "@/entities/repositoryInterfaces
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { ITrainerChangeRequestEntity } from "@/entities/models/trainerchangerequest.entity";
-import { CustomError } from "@/entities/utils/custom.error";
-import { HTTP_STATUS, TrainerChangeRequestStatus } from "@/shared/constants";
-
 @injectable()
 export class GetAllChangeRequestsUseCase implements IGetAllChangeRequestsUseCase {
   constructor(
@@ -22,7 +19,7 @@ export class GetAllChangeRequestsUseCase implements IGetAllChangeRequestsUseCase
     // Enrich requests with client and trainer details
     const enrichedItems = await Promise.all(
       requests.items.map(async (request) => {
-        const client = await this.clientRepository.findByClientId(request.clientId);
+        const client = await this.clientRepository.findById(request.clientId);
         const trainer = await this.trainerRepository.findById(request.backupTrainerId);
         return {
           ...request,

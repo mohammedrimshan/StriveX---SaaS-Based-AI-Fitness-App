@@ -401,7 +401,7 @@ export const NotificationProvider: React.FC<{
         addTemporaryNotification,
       }}
     >
-      <Toaster />
+      <Toaster position="top-right" />
       {children}
     </NotificationContext.Provider>
   );

@@ -11,4 +11,5 @@ export interface IBaseRepository<T> {
     limit: number
   ): Promise<{ items: T[] | []; total: number }>;
   count(filter: object): Promise<number>;
+  updateRaw(id: string, update: any): Promise<T | null> 
 }
