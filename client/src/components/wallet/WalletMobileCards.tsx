@@ -3,7 +3,7 @@
 import type React from "react"
 import type { WalletRecord } from "@/types/wallet"
 import { formatCurrency, formatDateTime } from "@/utils/dateUtils"
-import { User, CreditCard, TrendingUp, Calendar } from "lucide-react"
+import { User, TrendingUp, Calendar } from "lucide-react"
 
 interface WalletMobileCardsProps {
   data: WalletRecord[]
@@ -37,13 +37,6 @@ export const WalletMobileCards: React.FC<WalletMobileCardsProps> = ({ data }) =>
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="bg-white/80 rounded-2xl p-4 border border-gray-100 group-hover:border-emerald-200 transition-colors">
-                <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className="w-4 h-4 text-emerald-500" />
-                  <span className="text-gray-600 font-medium">Amount Paid</span>
-                </div>
-                <p className="font-bold text-emerald-600 text-lg">{formatCurrency(record.amount)}</p>
-              </div>
 
               <div className="bg-white/80 rounded-2xl p-4 border border-gray-100 group-hover:border-blue-200 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
@@ -58,7 +51,7 @@ export const WalletMobileCards: React.FC<WalletMobileCardsProps> = ({ data }) =>
                   <TrendingUp className="w-4 h-4 text-purple-500" />
                   <span className="text-gray-600 font-medium">Commission</span>
                 </div>
-                <p className="font-bold text-purple-600 text-lg">{formatCurrency(record.commission)}</p>
+                <p className="font-bold text-purple-600 text-lg">{formatCurrency(record.adminShare)}</p>
               </div>
 
               <div className="bg-white/80 rounded-2xl p-4 border border-gray-100 group-hover:border-gray-200 transition-colors">
@@ -66,7 +59,7 @@ export const WalletMobileCards: React.FC<WalletMobileCardsProps> = ({ data }) =>
                   <Calendar className="w-4 h-4 text-gray-500" />
                   <span className="text-gray-600 font-medium">Date</span>
                 </div>
-                <p className="text-gray-800 font-semibold">{formatDateTime(record.createdAt)}</p>
+                <p className="text-gray-800 font-semibold">{formatDateTime(record.completedAt)}</p>
               </div>
             </div>
           </div>

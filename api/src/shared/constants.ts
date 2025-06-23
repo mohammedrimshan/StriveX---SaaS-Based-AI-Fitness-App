@@ -299,6 +299,7 @@ export const ERROR_MESSAGES = {
   BOOKED_SLOT_CANNOT_TOGGLE: "Cannot toggle availability of a booked slot",
   FAILED_TO_UPDATE_SLOT_AVAILABILITY: "Failed to update slot availability",
   INVITATION_NOT_FOUND: "Invitation not found",
+  WALLET_NOT_FOUND: "Wallet not found for the given client",
 
 } as const;
 

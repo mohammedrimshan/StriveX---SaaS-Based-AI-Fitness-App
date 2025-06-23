@@ -56,3 +56,5 @@ trainerSchema.index({ clientId: 1 }, { unique: true });
 trainerSchema.index({ specialization: 1, skills: 1, approvalStatus: 1, clientCount: 1 });
 trainerSchema.index({ backupClientIds: 1 });
 trainerSchema.index({ isOnline: 1 });
+trainerSchema.index({ experience: -1 });
+trainerSchema.index({ rating: -1, reviewCount: -1 });

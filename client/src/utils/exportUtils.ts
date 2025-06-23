@@ -2,7 +2,7 @@ import { WalletRecord } from '../types/wallet';
 import { formatCurrency, formatDateTime } from './dateUtils';
 
 export const exportToCSV = (data: WalletRecord[], filename: string = 'strivex-trainer-wallet.csv') => {
-  const headers = ['Client Name', 'Plan Title', 'Amount Paid', 'Trainer Earnings', 'Commission', 'Date & Time'];
+  const headers = ['Client Name', 'Plan Title', 'Trainer Earnings', 'Admin Share', 'Date & Time'];
   
   const csvContent = [
     headers.join(','),
@@ -11,8 +11,8 @@ export const exportToCSV = (data: WalletRecord[], filename: string = 'strivex-tr
       `"${record.planTitle}"`,
       record.amount,
       record.trainerAmount,
-      record.commission,
-      `"${formatDateTime(record.createdAt)}"`
+      record.adminShare,
+      `"${formatDateTime(record.completedAt)}"`
     ].join(','))
   ].join('\n');
 
@@ -167,7 +167,6 @@ export const exportToPDF = (data: WalletRecord[], trainerName: string = 'Trainer
                 <tr>
                   <th>Client</th>
                   <th>Plan</th>
-                  <th>Amount Paid</th>
                   <th>Your Earnings</th>
                   <th>Commission</th>
                   <th>Date</th>
@@ -178,10 +177,9 @@ export const exportToPDF = (data: WalletRecord[], trainerName: string = 'Trainer
                   <tr>
                     <td><strong>${record.clientName}</strong></td>
                     <td>${record.planTitle}</td>
-                    <td class="amount">${formatCurrency(record.amount)}</td>
                     <td class="amount">${formatCurrency(record.trainerAmount)}</td>
-                    <td class="commission">${formatCurrency(record.commission)}</td>
-                    <td>${formatDateTime(record.createdAt)}</td>
+                    <td class="commission">${formatCurrency(record.adminShare)}</td>
+                    <td>${formatDateTime(record.completedAt)}</td>
                   </tr>
                 `).join('')}
               </tbody>

@@ -9,7 +9,7 @@ export const paymentSchema = new Schema<IPaymentEntity>(
     membershipPlanId: { type: String, required: true },
     amount: { type: Number, required: true },
     stripePaymentId: { type: String, required: false },
-    stripeSessionId: { type: String, required: true },
+    stripeSessionId: { type: String, required: false },
     trainerAmount: { type: Number, required: false, default: 0 }, 
     adminAmount: { type: Number, required: true },
     status: {

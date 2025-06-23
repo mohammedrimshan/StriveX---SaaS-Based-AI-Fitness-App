@@ -1,9 +1,9 @@
 import { ClientSession } from "mongoose";
 
 export interface IBaseRepository<T> {
-  save(data: Partial<T>,session?: ClientSession): Promise<T>;
+  save(data: Partial<T>, session?: ClientSession): Promise<T>;
   findById(id: string): Promise<T | null>;
-  update(id: string, updates: Partial<T>): Promise<T | null>;
+  update(id: string, updates: Partial<T>, session?: ClientSession): Promise<T | null>;
   delete(id: string): Promise<boolean>;
   find(
     filter: any,
@@ -11,5 +11,5 @@ export interface IBaseRepository<T> {
     limit: number
   ): Promise<{ items: T[] | []; total: number }>;
   count(filter: object): Promise<number>;
-  updateRaw(id: string, update: any): Promise<T | null> 
+  updateRaw(id: string, update: any, session?: ClientSession): Promise<T | null>;
 }

@@ -4,9 +4,9 @@ export interface WalletRecord {
   planTitle: string;
   amount: number;
   trainerAmount: number;
-  commission: number;
-  createdAt: string;
-  status: string;
+  adminShare: number;
+  completedAt: string;
+  status?: string;
 }
 
 export interface WalletStatistics {
@@ -28,11 +28,11 @@ export interface WalletHistoryItem {
   stripeSessionId: string;
   trainerAmount: number;
   status: string;
-  createdAt: string;
+  completedAt: string;
   updatedAt: string;
   clientName: string;
   planTitle: string;
-  commission: number;
+  adminShare: number;
 }
 
 // Interface for paginated wallet history response

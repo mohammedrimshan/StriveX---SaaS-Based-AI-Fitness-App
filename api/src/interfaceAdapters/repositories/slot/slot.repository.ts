@@ -201,16 +201,20 @@ export class SlotRepository
     return slot ? this.mapToEntity(slot) : null;
   }
 
-  async findBookedSlotByClientIdAndDate(clientId: string, date: string): Promise<ISlotEntity | null> {
-  const slot = await this.model.findOne({
-    clientId,
-    date,
-    status: SlotStatus.BOOKED,
-  }).lean();
+  async findBookedSlotByClientIdAndDate(
+    clientId: string,
+    date: string
+  ): Promise<ISlotEntity | null> {
+    const slot = await this.model
+      .findOne({
+        clientId,
+        date,
+        status: SlotStatus.BOOKED,
+      })
+      .lean();
 
-  return slot ? this.mapToEntity(slot) : null;
-}
-
+    return slot ? this.mapToEntity(slot) : null;
+  }
 
   async getSlotsWithStatus(
     trainerId: string,
@@ -747,5 +751,39 @@ export class SlotRepository
       .lean();
 
     return slots.map(this.mapToEntity);
+  }
+  async findBookedSlotsByClientAndTrainer(
+    clientId: string,
+    trainerId: string
+  ): Promise<ISlotEntity[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const slots = await this.model
+      .find({
+        clientId,
+        trainerId,
+        status: SlotStatus.BOOKED,
+        date: { $gte: today.toISOString().split("T")[0] },
+      })
+      .lean();
+    return slots.map(this.mapToEntity);
+  }
+  async findSlotByTrainerAndTime(
+    trainerId: string,
+    date: string,
+    startTime: string,
+    endTime: string
+  ): Promise<ISlotEntity | null> {
+    const slot = await this.model
+      .findOne({
+        trainerId,
+        date,
+        startTime,
+        endTime,
+        status: SlotStatus.AVAILABLE,
+      })
+      .lean();
+
+    return slot ? this.mapToEntity(slot) : null;
   }
 }

@@ -3,7 +3,7 @@ import { adminAxiosInstance } from "@/api/admin.axios";
 import { clientAxiosInstance } from "@/api/client.axios";
 import { trainerAxiosInstance } from "@/api/trainer.axios";
 import { Params } from "@/hooks/backuptrainer/useAllTrainerChangeRequests";
-import { AdminClientBackupOverviewParams, BackupClientsOverviewResponse, GetBackupTrainerInvitationsResponse, GetTrainerChangeRequestsResponse, ResolveTrainerChangeRequestPayload, RespondToInvitationPayload, SubmitTrainerChangeRequestPayload, TrainerBackupInvitationResponse, TrainerChangeRequestResponse } from "@/types/backuptrainer";
+import { AdminClientBackupOverviewParams, AssignBackupTrainerResponse, BackupClientsOverviewResponse, GetBackupTrainerInvitationsResponse, GetTrainerChangeRequestsResponse, ResolveTrainerChangeRequestPayload, RespondToInvitationPayload, SubmitTrainerChangeRequestPayload, TrainerBackupInvitationResponse, TrainerChangeRequestResponse } from "@/types/backuptrainer";
 export const getClientBackupInvitations = async (
   page: number = 1,
   limit: number = 10
@@ -99,4 +99,11 @@ export const resolveTrainerChangeRequest = async ({
   });
 
   return response.data; 
+};
+
+export const assignBackupTrainer = async (): Promise<AssignBackupTrainerResponse> => {
+  const response = await clientAxiosInstance.post<AssignBackupTrainerResponse>(
+    "/client/backup-trainer/assign"
+  );
+  return response.data;
 };

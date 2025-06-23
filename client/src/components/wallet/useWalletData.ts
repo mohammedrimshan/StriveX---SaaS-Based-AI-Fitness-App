@@ -1,6 +1,5 @@
-
 import { useState, useMemo } from 'react';
-import { WalletRecord, WalletStatistics } from '../../types/wallet';
+import { WalletHistoryItem, WalletRecord, WalletStatistics } from '../../types/wallet';
 import { parseISO, isWithinInterval, startOfMonth, endOfMonth } from '../../utils/dateUtils';
 import { useTrainerWalletHistory } from '../../hooks/slot/useTrainerWalletHistory';
 
@@ -21,14 +20,18 @@ interface UseWalletDataReturn {
   totalPages: number;
 }
 
-export const useWalletData = (page: number, limit: number): UseWalletDataReturn => {
+export const useWalletBalanceData = (page: number, limit: number): UseWalletDataReturn => {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [status, setStatus] = useState<string | undefined>();
 
   const { data, isLoading, isError, error } = useTrainerWalletHistory({ page, limit, status });
 
-  const walletData: WalletRecord[] = useMemo(() => data?.data.items || [], [data]);
+  // Map the API wallet history items to WalletRecord type
+  const walletData: WalletRecord[] = data?.data.items
+    ? mapHistoryToRecord(data.data.items)
+    : [];
+
   const total = data?.data.total || 0;
   const totalPages = data?.data.totalPages || 1;
 
@@ -36,7 +39,7 @@ export const useWalletData = (page: number, limit: number): UseWalletDataReturn 
     if (!startDate && !endDate) return walletData;
 
     return walletData.filter((record) => {
-      const recordDate = parseISO(record.createdAt);
+      const recordDate = parseISO(record.completedAt);
 
       if (startDate && endDate) {
         return isWithinInterval(recordDate, { start: startDate, end: endDate });
@@ -56,7 +59,7 @@ export const useWalletData = (page: number, limit: number): UseWalletDataReturn 
     const monthEnd = endOfMonth(now);
 
     return filteredData.filter((record) => {
-      const recordDate = parseISO(record.createdAt);
+      const recordDate = parseISO(record.completedAt);
       return isWithinInterval(recordDate, { start: monthStart, end: monthEnd });
     });
   }, [filteredData]);
@@ -98,3 +101,17 @@ export const useWalletData = (page: number, limit: number): UseWalletDataReturn 
     totalPages,
   };
 };
+
+
+export function mapHistoryToRecord(historyItems: WalletHistoryItem[]): WalletRecord[] {
+  return historyItems.map(item => ({
+    id: item.id,
+    clientName: item.clientName,
+    planTitle: item.planTitle,
+    amount: item.amount,
+    trainerAmount: item.trainerAmount,
+    adminShare: item.adminShare,    
+    completedAt: item.completedAt,     
+    status: item.status,
+  }));
+}

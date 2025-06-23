@@ -9,17 +9,16 @@ interface WalletRecord {
   planTitle: string;
   amount: number;
   trainerAmount: number;
-  commission: number;
-  createdAt: string;
+  adminShare: number;
+  completedAt: string;
 }
 
 export const exportToCSV = (data: WalletRecord[], filename: string) => {
   const headers = [
     'Client Name',
     'Plan Name',
-    'Amount Paid (₹)',
-    'Trainer Earnings (₹)',
-    'Commission (₹)',
+    'Trainer Earnings ($)',
+    'Admin Share ($)',
     'Date & Time'
   ];
 
@@ -30,8 +29,8 @@ export const exportToCSV = (data: WalletRecord[], filename: string) => {
       `"${record.planTitle}"`,
       record.amount.toFixed(2),
       record.trainerAmount.toFixed(2),
-      record.commission.toFixed(2),
-      `"${format(parseISO(record.createdAt), 'dd MMM yyyy, hh:mm a')}"`
+      record.adminShare.toFixed(2),
+      `"${format(parseISO(record.completedAt), 'dd MMM yyyy, hh:mm a')}"`
     ].join(','))
   ].join('\n');
 
@@ -68,13 +67,13 @@ export const exportToPDF = (data: WalletRecord[], filename: string) => {
     record.planTitle,
     `₹${record.amount.toFixed(2)}`,
     `₹${record.trainerAmount.toFixed(2)}`,
-    `₹${record.commission.toFixed(2)}`,
-    format(parseISO(record.createdAt), 'dd MMM yyyy, hh:mm a')
+    `₹${record.adminShare.toFixed(2)}`,
+    format(parseISO(record.completedAt), 'dd MMM yyyy, hh:mm a')
   ]);
 
   // Add table
   autoTable(doc, {
-    head: [['Client Name', 'Plan Name', 'Amount Paid', 'Trainer Earnings', 'Commission', 'Date & Time']],
+    head: [['Client Name', 'Plan Name',  'Trainer Earnings', 'Admin Share', 'Date & Time']],
     body: tableData,
     startY: 40,
     theme: 'striped',
@@ -90,17 +89,16 @@ export const exportToPDF = (data: WalletRecord[], filename: string) => {
     columnStyles: {
       0: { cellWidth: 35 }, // Client Name
       1: { cellWidth: 25 }, // Plan Name
-      2: { cellWidth: 25 }, // Amount Paid
-      3: { cellWidth: 25 }, // Trainer Earnings
-      4: { cellWidth: 22 }, // Commission
-      5: { cellWidth: 35 }  // Date & Time
+      2: { cellWidth: 25 }, // Trainer Earnings
+      3: { cellWidth: 22 }, // Commission
+      4: { cellWidth: 35 }  // Date & Time
     }
   });
 
   // Calculate totals
   const totalAmount = data.reduce((sum, record) => sum + record.amount, 0);
   const totalTrainerEarnings = data.reduce((sum, record) => sum + record.trainerAmount, 0);
-  const totalCommission = data.reduce((sum, record) => sum + record.commission, 0);
+  const totalCommission = data.reduce((sum, record) => sum + record.adminShare, 0);
 
   // Add summary
   const finalY = (doc as any).lastAutoTable.finalY || 40;

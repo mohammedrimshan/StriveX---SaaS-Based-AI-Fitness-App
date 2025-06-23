@@ -1,17 +1,18 @@
+
 "use client";
 
 import { Check, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useRef } from "react";
-import { getAllMembershipPlans, getClientProfile } from "@/services/client/clientService";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { getAllMembershipPlans, getClientProfile, checkWalletBalance } from "@/services/client/clientService";
 import { MembershipPaymentFlow } from "@/components/modals/RefundPolicyModal";
-import { toast } from "react-hot-toast";
+import { useToaster } from "@/hooks/ui/useToaster";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store/store";
 import { useClientProfile } from "@/hooks/client/useClientProfile";
 import { clientLogin } from "@/store/slices/client.slice";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-// Define types for your plan data
 interface MembershipPlan {
   id: string;
   name: string;
@@ -22,7 +23,6 @@ interface MembershipPlan {
   updatedAt?: string;
 }
 
-// Extended plan with UI properties
 interface UIEnhancedPlan extends MembershipPlan {
   popular: boolean;
   cta: string;
@@ -44,16 +44,17 @@ export default function PricingPlans() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedPlan, setSelectedPlan] = useState<UIEnhancedPlan | null>(null);
   const [isUpgrade, setIsUpgrade] = useState<boolean>(false);
+  const [isWalletPromptOpen, setIsWalletPromptOpen] = useState<boolean>(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [useWalletBalance, setUseWalletBalance] = useState<boolean>(false);
   const client = useSelector((state: RootState) => state.client.client);
   const { data: clientProfile, isLoading: isProfileLoading, error: profileError } = useClientProfile(client?.id || null);
-
+const { successToast, errorToast } = useToaster();
   console.log("PricingPlans render:", { clientId: client?.id, clientProfile, selectedPlan });
 
   useEffect(() => {
-    // Trigger entrance animation
     setIsVisible(true);
 
-    // Fetch plans from API
     const fetchPlans = async () => {
       try {
         setLoading(true);
@@ -99,30 +100,30 @@ export default function PricingPlans() {
     fetchPlans();
   }, [clientProfile?.isPremium]);
 
-  const formatPrice = (price: number): string => {
+  const formatPrice = useCallback((price: number): string => {
     return `$${price}`;
-  };
+  }, []);
 
-  const getPrice = (plan: UIEnhancedPlan, isYearly: boolean): string => {
+  const getPrice = useCallback((plan: UIEnhancedPlan, isYearly: boolean): string => {
     if (isYearly) {
       return formatPrice(plan.price * plan.durationMonths);
     }
     return formatPrice(plan.price);
-  };
+  }, [formatPrice]);
 
-  const getComparisonPrice = (plan: UIEnhancedPlan, isYearly: boolean): number => {
+  const getComparisonPrice = useCallback((plan: UIEnhancedPlan, isYearly: boolean): number => {
     return isYearly ? plan.price * plan.durationMonths : plan.price;
-  };
+  }, []);
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setActiveIndex((prevIndex) => (prevIndex + 1) % plans.length);
-  };
+  }, [plans.length]);
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setActiveIndex((prevIndex) => (prevIndex - 1 + plans.length) % plans.length);
-  };
+  }, [plans.length]);
 
-  const getCardPositionClass = (index: number) => {
+  const getCardPositionClass = useCallback((index: number) => {
     const position = (index - activeIndex + plans.length) % plans.length;
 
     if (position === 0) return "z-20 scale-100 opacity-100 translate-x-0";
@@ -132,32 +133,49 @@ export default function PricingPlans() {
         : "z-10 scale-90 opacity-70 -translate-x-[85%] pointer-events-none";
     }
     return "scale-75 opacity-0 pointer-events-none";
-  };
+  }, [activeIndex, plans.length]);
 
-  const handleGetStarted = (plan: UIEnhancedPlan) => {
+  const handleGetStarted = useCallback(async (plan: UIEnhancedPlan) => {
     if (!client?.id) {
-      toast.error("Please log in to proceed");
+      errorToast("Please log in to proceed");
       return;
     }
-    console.log("Selected plan:", { id: plan.id, name: plan.name, price: plan.price, totalPrice: getComparisonPrice(plan, isYearly) });
+
     setSelectedPlan(plan);
     setIsUpgrade(clientProfile?.isPremium || false);
+
+    if (clientProfile?.isPremium) {
+      try {
+        const walletResponse = await checkWalletBalance();
+        if (walletResponse.success && walletResponse.hasBalance && walletResponse.balance && walletResponse.balance > 0) {
+          setWalletBalance(walletResponse.balance);
+          setIsWalletPromptOpen(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to check wallet balance:", error);
+        errorToast("Failed to check wallet balance. Proceeding without wallet balance.");
+      }
+    }
+
     setIsModalOpen(true);
     console.log("After setSelectedPlan:", { selectedPlan: plan });
-  };
+  }, [client?.id, clientProfile?.isPremium]);
 
-  const handleAgreementConfirmed = async () => {
+  const handleWalletPromptDecision = useCallback((useWalletBalance: boolean) => {
+    setUseWalletBalance(useWalletBalance);
+    setIsWalletPromptOpen(false);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleAgreementConfirmed = useCallback(async () => {
     if (selectedPlan) {
-      toast.success(
+      successToast(
         isUpgrade
           ? `Your ${selectedPlan.name} plan upgrade has been successfully activated.`
           : `Your ${selectedPlan.name} plan has been successfully activated.`,
-        {
-          duration: 5000,
-        }
       );
 
-      // Refetch and update Redux store
       if (client?.id) {
         try {
           const updatedProfile = await getClientProfile(client.id);
@@ -167,20 +185,18 @@ export default function PricingPlans() {
         }
       }
 
-      setIsModalOpen(false);
-      setSelectedPlan(null); // Reset selected plan
-      setIsUpgrade(false);
-      console.log("After agreement confirmed, reset selectedPlan:", { selectedPlan: null });
+      console.log("After agreement confirmed, keeping modal open for success step");
     }
-  };
+  }, [selectedPlan, isUpgrade, client?.id, dispatch]);
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     console.log("Modal closed, resetting selected plan");
     setIsModalOpen(false);
-    setSelectedPlan(null); // Reset selected plan
+    setSelectedPlan(null);
     setIsUpgrade(false);
+    setUseWalletBalance(false);
     console.log("After modal close, reset selectedPlan:", { selectedPlan: null });
-  };
+  }, []);
 
   if (isProfileLoading || loading) {
     return <div className="py-16 text-center">Loading...</div>;
@@ -259,9 +275,9 @@ export default function PricingPlans() {
               const selectedComparisonPrice = selectedPlan ? getComparisonPrice(selectedPlan, isYearly) : null;
               const currentPlan = plans.find((p) => p.id === clientProfile?.membershipPlanId);
               const isDisabled = !!(
-                (clientProfile?.isPremium && clientProfile?.membershipPlanId === plan.id) || // Current plan
-                (clientProfile?.isPremium && currentPlan && plan.price < currentPlan.price) || // Prevent downgrades
-                (selectedPlan && comparisonPrice < (selectedComparisonPrice || 0)) // Lower than selected plan
+                (clientProfile?.isPremium && clientProfile?.membershipPlanId === plan.id) ||
+                (clientProfile?.isPremium && currentPlan && plan.price < currentPlan.price) ||
+                (selectedPlan && comparisonPrice < (selectedComparisonPrice || 0))
               );
               console.log("Button disabled check:", {
                 planId: plan.id,
@@ -371,8 +387,39 @@ export default function PricingPlans() {
           trainerId={null}
           onConfirm={handleAgreementConfirmed}
           isUpgrade={isUpgrade}
+          useWalletBalance={useWalletBalance}
         />
       )}
+
+      <Dialog open={isWalletPromptOpen} onOpenChange={setIsWalletPromptOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Use Wallet Balance
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-6 text-center">
+            <p className="text-gray-600 mb-4">
+              You have a wallet balance of <span className="font-bold">${walletBalance}</span>. Would you like to use it to offset your subscription upgrade cost?
+            </p>
+          </div>
+          <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-2">
+            <Button
+              variant="outline"
+              onClick={() => handleWalletPromptDecision(false)}
+              className="border-gray-300"
+            >
+              No, Proceed Without Wallet
+            </Button>
+            <Button
+              onClick={() => handleWalletPromptDecision(true)}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+            >
+              Yes, Use Wallet Balance
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

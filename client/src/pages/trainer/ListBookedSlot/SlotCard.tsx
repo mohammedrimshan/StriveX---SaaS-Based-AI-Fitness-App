@@ -19,6 +19,17 @@ import {
   Star,
   Zap
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useCancelTrainerSlot } from "@/hooks/slot/useCancelTrainerSlot";
 import AnimatedBackground from "@/components/Animation/AnimatedBackgorund";
 import AnimatedTitle from "@/components/Animation/AnimatedTitle";
 import { useNavigate } from "react-router-dom";
@@ -40,7 +51,7 @@ export interface Slot {
   date: string;
   startTime: string;
   endTime: string;
-  status: "booked"| "cancelled";
+  status: "booked" | "cancelled";
   isBooked: boolean;
   isAvailable: boolean;
   videoCallStatus?: string;
@@ -58,7 +69,11 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
   const bookedSlots = slots.filter((slot: Slot) => slot.isBooked && slot.status === "booked");
   const cancelledSlots = slots.filter((slot: Slot) => slot.status === "cancelled" || slot.cancellationReason);
   const [activeTab, setActiveTab] = useState("booked");
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+  const [cancellationReason, setCancellationReason] = useState("");
   const navigate = useNavigate();
+  const cancelMutation = useCancelTrainerSlot();
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -76,6 +91,31 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
 
   const handleStartVideoCall = (slot: Slot): void => {
     navigate(`/trainer/video-call/${slot.id}`);
+  };
+
+  const handleOpenCancelModal = (slot: Slot): void => {
+    setSelectedSlot(slot);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleCloseCancelModal = (): void => {
+    setIsCancelModalOpen(false);
+    setSelectedSlot(null);
+    setCancellationReason("");
+  };
+
+  const handleCancelSession = async (): Promise<void> => {
+    if (selectedSlot && cancellationReason.trim()) {
+      try {
+        await cancelMutation.mutateAsync({
+          slotId: selectedSlot.id,
+          cancellationReason,
+        });
+        handleCloseCancelModal();
+      } catch (error) {
+        // Error handling is managed by the useCancelTrainerSlot hook
+      }
+    }
   };
 
   const getStatusBadge = (slot: Slot) => {
@@ -205,11 +245,9 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
                         transition={{ delay: index * 0.1 }}
                       >
                         <Card className="h-full overflow-hidden border-0 shadow-xl bg-white/90 backdrop-blur-sm border-l-4 border-l-gradient-to-b from-blue-500 to-purple-600 relative group">
-                          {/* Gradient overlay on hover */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group hover:opacity-100 transition-opacity duration-300" />
                           
                           <CardContent className="pt-6 relative z-10">
-                            {/* Header */}
                             <div className="flex items-start justify-between mb-6">
                               <div className="flex items-center">
                                 <motion.div
@@ -243,7 +281,6 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
                               </div>
                             </div>
 
-                            {/* Session Details */}
                             <div className="space-y-4 mb-6">
                               <motion.div 
                                 className="flex items-center p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg"
@@ -258,7 +295,7 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
                                 whileHover={{ scale: 1.02 }}
                               >
                                 <Clock className="h-5 w-5 mr-3 text-purple-600" />
-                                <span className="text-gray-700 font-medium">{slot.startTime} - {slot.endTime}</span>
+                                <span className=" text-gray-700 font-medium">{slot.startTime} - {slot.endTime}</span>
                               </motion.div>
                               
                               {slot.trainerName && (
@@ -272,22 +309,38 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
                               )}
                             </div>
 
-                            {/* Video Call Section */}
-                            {slot.videoCallStatus === "not_started" && (
+                            <div className="space-y-3">
+                              {slot.videoCallStatus === "not_started" && (
+                                <motion.div
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  <Button
+                                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg border-0 group relative overflow-hidden"
+                                    onClick={() => handleStartVideoCall(slot)}
+                                  >
+                                    <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                                    <Play className="h-4 w-4 mr-2 group-hover:animate-pulse" />
+                                    Start Video Session
+                                  </Button>
+                                </motion.div>
+                              )}
+
                               <motion.div
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >
                                 <Button
-                                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg border-0 group relative overflow-hidden"
-                                  onClick={() => handleStartVideoCall(slot)}
+                                  className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg border-0 group relative overflow-hidden"
+                                  onClick={() => handleOpenCancelModal(slot)}
+                                  disabled={cancelMutation.isPending}
                                 >
                                   <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                                  <Play className="h-4 w-4 mr-2 group-hover:animate-pulse" />
-                                  Start Video Session
+                                  <XCircle className="h-4 w-4 mr-2 group-hover:animate-pulse" />
+                                  Cancel Session
                                 </Button>
                               </motion.div>
-                            )}
+                            </div>
 
                             {slot.videoCallRoomName && (
                               <motion.div 
@@ -356,7 +409,6 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
                           <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           
                           <CardContent className="pt-6 relative z-10">
-                            {/* Header */}
                             <div className="flex items-start justify-between mb-6">
                               <div className="flex items-center">
                                 <Avatar className="h-14 w-14 mr-4 border-3 border-red-200 shadow-lg grayscale">
@@ -385,7 +437,6 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
                               </Badge>
                             </div>
 
-                            {/* Session Details */}
                             <div className="space-y-4 mb-6">
                               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                                 <Calendar className="h-5 w-5 mr-3 text-gray-400" />
@@ -405,7 +456,6 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
                               )}
                             </div>
 
-                            {/* Cancellation Reason */}
                             <motion.div 
                               className="bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-lg border border-red-100"
                               initial={{ opacity: 0, y: 10 }}
@@ -470,6 +520,46 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
               </TabsContent>
             </AnimatePresence>
           </Tabs>
+
+          <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+            <DialogContent className="bg-white/90 backdrop-blur-sm rounded-xl border-0 shadow-xl max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-red-600">Confirm Cancellation</DialogTitle>
+                <DialogDescription className="text-gray-500">
+                  Are you sure you want to cancel this training session? This action cannot be undone. Please provide a reason for cancellation.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <Label htmlFor="cancellationReason" className="text-gray-700 font-medium">
+                  Cancellation Reason
+                </Label>
+                <Input
+                  id="cancellationReason"
+                  className="mt-1 w-full"
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  placeholder="Enter reason for cancellation..."
+                  required
+                />
+              </div>
+              <DialogFooter className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleCloseCancelModal}
+                  className="mt-2 sm:mt-0 w-full sm:w-auto border-gray-200 hover:bg-gray-100"
+                >
+                  Back
+                </Button>
+                <Button
+                  className="mt-2 sm:mt-0 w-full sm:w-auto bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg"
+                  onClick={handleCancelSession}
+                  disabled={cancelMutation.isPending || !cancellationReason.trim()}
+                >
+                  {cancelMutation.isPending ? "Cancelling..." : "Confirm Cancellation"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </motion.div>
       </div>
     </AnimatedBackground>

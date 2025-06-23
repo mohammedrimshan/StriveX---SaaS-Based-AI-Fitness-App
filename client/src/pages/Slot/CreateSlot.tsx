@@ -17,6 +17,7 @@ import { SlotFormData } from '@/types/Slot';
 const TrainerSlotPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { data: slots, isLoading, error } = useTrainerOwnSlots();
+  console.log(slots,"my slots")
   const createSlotMutation = useCreateSlot();
   const { successToast, errorToast } = useToaster();
   

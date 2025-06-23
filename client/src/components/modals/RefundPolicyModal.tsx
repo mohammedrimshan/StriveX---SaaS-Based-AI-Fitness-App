@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,7 +12,7 @@ import { RootState } from "@/store/store";
 import { useCreateCheckoutSession } from "@/hooks/payment/useCreateCheckoutSession";
 import { useUpgradeSubscription } from "@/hooks/payment/useUpgradeSubscription";
 import { CreateCheckoutSessionData } from "@/services/client/clientService";
-import { toast } from "react-hot-toast";
+import { useToaster } from "@/hooks/ui/useToaster";
 
 interface MembershipPaymentFlowProps {
   isOpen: boolean;
@@ -24,6 +24,7 @@ interface MembershipPaymentFlowProps {
   trainerId: string | null;
   onConfirm: () => void;
   isUpgrade?: boolean;
+  useWalletBalance?: boolean;
 }
 
 export function MembershipPaymentFlow({
@@ -36,11 +37,12 @@ export function MembershipPaymentFlow({
   trainerId,
   onConfirm,
   isUpgrade = false,
+  useWalletBalance = false,
 }: MembershipPaymentFlowProps) {
   const [step, setStep] = useState<"policy" | "payment" | "success">("policy");
   const [showPolicyPdf, setShowPolicyPdf] = useState(false);
   const client = useSelector((state: RootState) => state.client.client);
-
+const {  errorToast } = useToaster();
   const { mutate: createCheckout, isPending: isCreatingCheckout, error: checkoutError } = useCreateCheckoutSession();
   const { mutate: upgradeSubscription, isPending: isUpgrading, error: upgradeError } = useUpgradeSubscription();
 
@@ -51,34 +53,47 @@ export function MembershipPaymentFlow({
     }
   }, [isOpen]);
 
-useEffect(() => {
-  if (step === "payment") {
-    if (!client?.id) {
-      toast.error("Please log in to proceed with checkout");
-      onClose();
-      return;
+  useEffect(() => {
+    if (step === "payment") {
+      if (!client?.id) {
+        errorToast("Please log in to proceed with checkout");
+        onClose();
+        return;
+      }
+
+      const checkoutData: CreateCheckoutSessionData = {
+        trainerId: trainerId || "default-trainer-id",
+        planId,
+        successUrl: `${window.location.origin}/checkout/success?planName=${encodeURIComponent(planName)}&isUpgrade=${isUpgrade}`,
+        cancelUrl: `${window.location.origin}/checkout/cancel`,
+        useWalletBalance,
+      };
+
+      const mutation = isUpgrade ? upgradeSubscription : createCheckout;
+
+      mutation(checkoutData, {
+        onSuccess: (data) => {
+          console.log("Payment response:", data); // Debug log
+          if (data.url) {
+            window.location.href = data.url; // Redirect to Stripe
+          } else if (data.success || (useWalletBalance && data.hasBalance)) {
+            // Handle successful payment (Stripe or wallet)
+            setStep("success");
+            onConfirm();
+          } else {
+            // Handle unexpected response
+            errorToast("Unexpected response from payment processing. Please try again.");
+            onClose();
+          }
+        },
+        onError: (error: any) => {
+          console.error(`Failed to create ${isUpgrade ? "upgrade" : "checkout"} session:`, error.message);
+          errorToast(error.message || `Failed to create ${isUpgrade ? "upgrade" : "checkout"} session`);
+          onClose();
+        },
+      });
     }
-
-    const checkoutData: CreateCheckoutSessionData = {
-      trainerId: trainerId || "default-trainer-id",
-      planId,
-      successUrl: `${window.location.origin}/checkout/success?planName=${encodeURIComponent(planName)}&isUpgrade=${isUpgrade}`,
-      cancelUrl: `${window.location.origin}/checkout/cancel`,
-    };
-
-    const mutation = isUpgrade ? upgradeSubscription : createCheckout;
-
-    mutation(checkoutData, {
-      onSuccess: (data) => {
-        window.location.href = data.url;
-      },
-      onError: (error) => {
-        console.error(`Failed to create ${isUpgrade ? "upgrade" : "checkout"} session:`, error.message);
-        toast.error(error.message || `Failed to create ${isUpgrade ? "upgrade" : "checkout"} session`);
-      },
-    });
-  }
-}, [step, planId, trainerId, client?.id, createCheckout, upgradeSubscription, isUpgrade, onClose, planName]);
+  }, [step, planId, trainerId, client?.id, createCheckout, upgradeSubscription, isUpgrade, onClose, planName, useWalletBalance, onConfirm]);
 
   useEffect(() => {
     if (isOpen && window.location.pathname === "/checkout/success") {
@@ -87,16 +102,16 @@ useEffect(() => {
     }
   }, [isOpen, onConfirm]);
 
-  const handlePolicyAccepted = () => {
+  const handlePolicyAccepted = useCallback(() => {
     setStep("payment");
-  };
+  }, []);
 
-  const handleDownloadPolicy = () => {
+  const handleDownloadPolicy = useCallback(() => {
     setShowPolicyPdf(true);
     generatePolicyPDF();
-  };
+  }, []);
 
-  const generatePolicyPDF = () => {
+  const generatePolicyPDF = useCallback(() => {
     const fullName = client ? `${client.firstName} ${client.lastName}` : "Unknown User";
 
     try {
@@ -144,13 +159,17 @@ useEffect(() => {
       doc.text(`Selected Plan: ${planName}`, 20, 90);
       doc.text(`Plan Price: $${planPrice}/${planInterval}`, 20, 100);
 
+      if (useWalletBalance) {
+        doc.text(`Wallet Balance Used: Yes`, 20, 110);
+      }
+
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
       doc.setTextColor(88, 86, 214);
       doc.text(
         isUpgrade ? "UPGRADE TERMS AND CONDITIONS" : "POLICY TERMS AND CONDITIONS",
         20,
-        120
+        useWalletBalance ? 130 : 120
       );
 
       doc.setFont("helvetica", "normal");
@@ -165,9 +184,13 @@ useEffect(() => {
             "",
             "3. Any remaining value from your current plan will be prorated and applied as a credit toward the new plan.",
             "",
-            "4. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
+            useWalletBalance
+              ? "4. A portion of the upgrade cost has been offset using your wallet balance."
+              : "4. No wallet balance was used for this upgrade.",
             "",
-            "5. This agreement constitutes the entire understanding between the member and the fitness center regarding the plan upgrade.",
+            "5. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
+            "",
+            "6. This agreement constitutes the entire understanding between the member and the fitness center regarding the plan upgrade.",
           ]
         : [
             "1. By agreeing to this policy, you acknowledge that all membership fees paid to our fitness center are",
@@ -180,15 +203,19 @@ useEffect(() => {
             "     c. Relocation",
             "     d. Medical conditions arising after membership purchase",
             "",
-            "3. Membership fees cannot be transferred to another individual.",
+            useWalletBalance
+              ? "3. A portion of the membership cost has been offset using your wallet balance."
+              : "3. No wallet balance was used for this membership.",
             "",
-            "4. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
+            "4. Membership fees cannot be transferred to another individual.",
             "",
-            "5. This agreement constitutes the entire understanding between the member and the fitness center",
+            "5. The fitness center reserves the right to terminate memberships for violation of club rules without refund.",
+            "",
+            "6. This agreement constitutes the entire understanding between the member and the fitness center",
             "   regarding the refund policy.",
           ];
 
-      let yPosition = 130;
+      let yPosition = useWalletBalance ? 140 : 130;
       policyText.forEach((line) => {
         doc.text(line, 20, yPosition);
         yPosition += 7;
@@ -235,7 +262,7 @@ useEffect(() => {
     } catch (error) {
       console.error("Error generating PDF:", error);
     }
-  };
+  }, [client, planName, planPrice, planInterval, isUpgrade, useWalletBalance]);
 
   const renderStep = () => {
     switch (step) {
@@ -246,6 +273,7 @@ useEffect(() => {
             onAccept={handlePolicyAccepted}
             onClose={onClose}
             isUpgrade={isUpgrade}
+            useWalletBalance={useWalletBalance}
           />
         );
       case "payment":
@@ -254,7 +282,7 @@ useEffect(() => {
             {isCreatingCheckout || isUpgrading ? (
               <>
                 <div className="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p>Preparing {isUpgrade ? "upgrade" : "checkout"}...</p>
+                <p>{useWalletBalance ? "Processing wallet payment..." : `Preparing ${isUpgrade ? "upgrade" : "checkout"}...`}</p>
               </>
             ) : checkoutError || upgradeError ? (
               <div className="p-3 bg-red-50 text-red-700 text-sm rounded-md">
@@ -262,7 +290,7 @@ useEffect(() => {
                   `Failed to create ${isUpgrade ? "upgrade" : "checkout"} session. Please try again.`}
               </div>
             ) : (
-              <p>Redirecting to secure {isUpgrade ? "upgrade" : "checkout"}...</p>
+              <p>{useWalletBalance ? "Processing wallet payment..." : `Redirecting to secure ${isUpgrade ? "upgrade" : "checkout"}...`}</p>
             )}
           </div>
         );
@@ -274,6 +302,7 @@ useEffect(() => {
             showPolicyPdf={showPolicyPdf}
             onClose={onClose}
             isUpgrade={isUpgrade}
+            useWalletBalance={useWalletBalance}
           />
         );
       default:
@@ -293,14 +322,13 @@ useEffect(() => {
           {step !== "payment" && (
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </button>
           )}
         </DialogHeader>
-
         {renderStep()}
       </DialogContent>
     </Dialog>
@@ -312,9 +340,10 @@ interface RefundPolicyStepProps {
   onAccept: () => void;
   onClose: () => void;
   isUpgrade?: boolean;
+  useWalletBalance?: boolean;
 }
 
-function RefundPolicyStep({ planName, onAccept, onClose, isUpgrade = false }: RefundPolicyStepProps) {
+function RefundPolicyStep({ planName, onAccept, onClose, isUpgrade = false, useWalletBalance = false }: RefundPolicyStepProps) {
   const [agreed, setAgreed] = useState(false);
   const client = useSelector((state: RootState) => state.client.client);
   const fullName = client ? `${client.firstName} ${client.lastName}` : "Unknown User";
@@ -324,14 +353,20 @@ function RefundPolicyStep({ planName, onAccept, onClose, isUpgrade = false }: Re
       <div className="max-h-[60vh] overflow-auto p-1">
         <div className="space-y-6 py-2 pb-4">
           <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
-            <h3 className="font-medium text-purple-800 mb-2">Agreement Information</h3>
+            <h3 className="font-medium text-purple-800 mb-2">Account Information</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="text-gray-500">Member:</div>
               <div className="font-medium">{fullName}</div>
               <div className="text-gray-500">Plan:</div>
               <div className="font-medium">{planName}</div>
-              <div className="text-gray-500">Date:</div>
+              <div className="text-gray-500">Date</div>
               <div className="font-medium">{new Date().toLocaleDateString()}</div>
+              {useWalletBalance && (
+                <>
+                  <div className="text-gray-500">Wallet Balance:</div>
+                  <div className="font-medium">Used</div>
+                </>
+              )}
             </div>
           </div>
 
@@ -346,6 +381,11 @@ function RefundPolicyStep({ planName, onAccept, onClose, isUpgrade = false }: Re
                   <p>By agreeing to this policy, you acknowledge that you are upgrading your existing membership plan.</p>
                   <p>The upgraded membership fees are non-refundable, except as required by applicable law.</p>
                   <p>Any remaining value from your current plan will be prorated and applied as a credit toward the new plan.</p>
+                  {useWalletBalance ? (
+                    <p>A portion of the upgrade cost has been offset using your wallet balance.</p>
+                  ) : (
+                    <p>No wallet balance was used for this upgrade.</p>
+                  )}
                   <p>The fitness center reserves the right to terminate memberships for violation of club rules without refund.</p>
                   <p>This agreement constitutes the entire understanding between the member and the fitness center regarding the plan upgrade.</p>
                 </>
@@ -359,6 +399,11 @@ function RefundPolicyStep({ planName, onAccept, onClose, isUpgrade = false }: Re
                     <li>Relocation</li>
                     <li>Medical conditions arising after membership purchase</li>
                   </ul>
+                  {useWalletBalance ? (
+                    <p>A portion of the membership cost has been offset using your wallet balance.</p>
+                  ) : (
+                    <p>No wallet balance was used for this membership.</p>
+                  )}
                   <p>Membership fees cannot be transferred to another individual.</p>
                   <p>The fitness center reserves the right to terminate memberships for violation of club rules without refund.</p>
                   <p>This agreement constitutes the entire understanding between the member and the fitness center regarding the refund policy.</p>
@@ -408,9 +453,10 @@ interface SuccessStepProps {
   showPolicyPdf: boolean;
   onClose: () => void;
   isUpgrade?: boolean;
+  useWalletBalance?: boolean;
 }
 
-function SuccessStep({ planName, onDownload, showPolicyPdf, onClose, isUpgrade = false }: SuccessStepProps) {
+function SuccessStep({ planName, onDownload, showPolicyPdf, onClose, isUpgrade = false, useWalletBalance = false }: SuccessStepProps) {
   const client = useSelector((state: RootState) => state.client.client);
   const fullName = client ? `${client.firstName} ${client.lastName}` : "Unknown User";
 
@@ -426,6 +472,7 @@ function SuccessStep({ planName, onDownload, showPolicyPdf, onClose, isUpgrade =
         </h3>
         <p className="text-gray-600 mb-6">
           Your {planName} {isUpgrade ? "plan upgrade is now active" : "membership is now active"}
+          {useWalletBalance && ". A portion of the cost was paid using your wallet balance."}
         </p>
 
         <div className="bg-gray-50 rounded-lg p-6 mb-6 mx-auto max-w-md">
@@ -447,6 +494,12 @@ function SuccessStep({ planName, onDownload, showPolicyPdf, onClose, isUpgrade =
               <span className="text-gray-500">Activation Date:</span>
               <span className="font-medium">{new Date().toLocaleDateString()}</span>
             </div>
+            {useWalletBalance && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Wallet Balance Used:</span>
+                <span className="font-medium">Yes</span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -22,9 +22,11 @@ import { AdminDashboardController } from "@/interfaceAdapters/controllers/admin/
 import { ReviewController } from "@/interfaceAdapters/controllers/review.controller";
 import { TrainerDashboardController } from "@/interfaceAdapters/controllers/trainer-dashboard.controller";
 import { BackupTrainerController } from "@/interfaceAdapters/controllers/backuptrainerController";
+import { ClientWalletController } from "@/interfaceAdapters/controllers/client-wallet.controller";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
 import { DailyUnusedSessionProcessor } from "../queue/bull/daily-unused-session.processor";
+
 DependancyInjection.registerAll();
 
 export const processor = container.resolve<SlotExpiryProcessor>("SlotExpiryProcessor");
@@ -76,3 +78,5 @@ export const reviewController = container.resolve(ReviewController);
 export const trainerDashboardController = container.resolve(TrainerDashboardController);
 
 export const backupTrainerController = container.resolve(BackupTrainerController);
+
+export const clientWalletController = container.resolve(ClientWalletController);

@@ -1,3 +1,4 @@
+import { BackupInvitationStatus } from "./backuptrainer";
 import { UserRole } from "./UserRole";
 
 export interface User {
@@ -78,6 +79,7 @@ export interface IClient extends User {
   membershipPlanId?: string;
   selectedTrainerId?: string;
   selectStatus: TrainerSelectionStatus;
+  backupTrainerStatus: BackupInvitationStatus;
 }
 export interface ITrainer extends User {
   id: string;

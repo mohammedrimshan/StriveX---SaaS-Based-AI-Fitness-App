@@ -2,10 +2,11 @@ import { injectable } from "tsyringe";
 import { ITrainerEntity } from "@/entities/models/trainer.entity";
 import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { TrainerModel } from "@/frameworks/database/mongoDB/models/trainer.model";
-import { TrainerApprovalStatus } from "@/shared/constants";
+import { SlotStatus, TrainerApprovalStatus } from "@/shared/constants";
 import { BaseRepository } from "../base.repository";
 import { IClientEntity } from "@/entities/models/client.entity";
-import {  UpdateQuery } from "mongoose";
+import { SlotModel } from "@/frameworks/database/mongoDB/models/slot.model";
+import { UpdateQuery } from "mongoose";
 import { Types } from "mongoose";
 @injectable()
 export class TrainerRepository
@@ -113,69 +114,135 @@ export class TrainerRepository
   }
 
   async addBackupClient(
-  trainerId: string,
-  clientId: string
-): Promise<ITrainerEntity | null> {
-  return this.findOneAndUpdateAndMap(
-    { _id: trainerId },
-    { $addToSet: { backupClientIds: clientId } } as UpdateQuery<ITrainerEntity>
-  );
-}
+    trainerId: string,
+    clientId: string
+  ): Promise<ITrainerEntity | null> {
+    return this.findOneAndUpdateAndMap({ _id: trainerId }, {
+      $addToSet: { backupClientIds: clientId },
+    } as UpdateQuery<ITrainerEntity>);
+  }
 
- async removeBackupClient(
-  trainerId: string,
-  clientId: string
-): Promise<ITrainerEntity | null> {
-  return this.findOneAndUpdateAndMap(
-    { _id: trainerId },
-    { $pull: { backupClientIds: clientId } } as UpdateQuery<ITrainerEntity>
-  );
-}
+  async removeBackupClient(
+    trainerId: string,
+    clientId: string
+  ): Promise<ITrainerEntity | null> {
+    return this.findOneAndUpdateAndMap({ _id: trainerId }, {
+      $pull: { backupClientIds: clientId },
+    } as UpdateQuery<ITrainerEntity>);
+  }
 
   async updateOptOutBackupRole(
-  trainerId: string,
-  optOut: boolean
-): Promise<ITrainerEntity | null> {
-  return this.findOneAndUpdateAndMap(
-    { _id: trainerId },
-    { optOutBackupRole: optOut }
-  );
-}
-
+    trainerId: string,
+    optOut: boolean
+  ): Promise<ITrainerEntity | null> {
+    return this.findOneAndUpdateAndMap(
+      { _id: trainerId },
+      { optOutBackupRole: optOut }
+    );
+  }
 
 async findAvailableBackupTrainers(
   clientPreferences: Partial<IClientEntity>,
   excludedTrainerIds: Types.ObjectId[]
 ): Promise<ITrainerEntity[]> {
+  const preferredWorkout = clientPreferences.preferredWorkout || "";
+
   const filter = {
     approvalStatus: TrainerApprovalStatus.APPROVED,
     status: "active",
     optOutBackupRole: false,
     _id: { $nin: excludedTrainerIds },
-    specialization: { $in: [clientPreferences.preferredWorkout] },
+    ...(preferredWorkout
+      ? { specialization: { $in: [preferredWorkout] } }
+      : {}),
     $expr: {
       $lt: [
         { $size: { $ifNull: ["$backupClientIds", []] } },
-        "$maxBackupClients"
-      ]
-    }
+        { $ifNull: ["$maxBackupClients", 5] },
+      ],
+    },
   };
 
-  const trainers = await this.model.find(filter).lean();
-  console.log("Excluded trainer IDs:", excludedTrainerIds);
-  console.log("Returning trainer IDs:", trainers.map(t => t._id));
+  const trainers = await this.model
+    .find(filter)
+    .sort({ experience: -1 })
+    .limit(3)
+    .lean();
 
   return trainers.map((trainer) => this.mapToEntity(trainer));
 }
 
-async findTrainerWithBackupClients(trainerId: string): Promise<any | null> {
-  return this.model
-    .findById(trainerId)
-    .populate({
-      path: 'backupClientIds',
-      select: 'firstName lastName profileImage clientId'
-    })
-    .lean();
-}
 
+  async findTrainerWithBackupClients(trainerId: string): Promise<any | null> {
+    return this.model
+      .findById(trainerId)
+      .populate({
+        path: "backupClientIds",
+        select: "firstName lastName profileImage clientId",
+      })
+      .lean();
+  }
+
+  async findAvailableTrainersBySkillsOrPreferredWorkout(
+    date: string,
+    startTime: string,
+    endTime: string,
+    clientSkills: string[],
+    clientPreferredWorkout: string,
+    excludedTrainerIds: string[]
+  ): Promise<ITrainerEntity[]> {
+    // Validate and convert excludedTrainerIds to ObjectId array
+    const excludedIds = excludedTrainerIds
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+
+    // Base query to filter trainers who are active, approved, not opted out of backup role, and have less than maxBackupClients
+    const baseQuery: any = {
+      approvalStatus: TrainerApprovalStatus.APPROVED,
+      status: "active",
+      optOutBackupRole: false,
+      _id: { $nin: excludedIds },
+      $expr: {
+        $lt: [
+          { $size: { $ifNull: ["$backupClientIds", []] } },
+          "$maxBackupClients",
+        ],
+      },
+    };
+
+    // Add skill or preferredWorkout condition
+    if (clientSkills.length > 0) {
+      baseQuery.skills = { $in: clientSkills };
+    } else if (clientPreferredWorkout) {
+      baseQuery.specializations = clientPreferredWorkout;
+      // if specializations is an array, this matches trainers where preferred workout is present inside specializations
+      // if specializations is stored as array field, this works fine
+    }
+
+    // Find trainers matching criteria
+    const trainers = await this.model.find(baseQuery).lean();
+
+    const availableTrainers: ITrainerEntity[] = [];
+
+    // Filter trainers by availability (no conflicting booked slots)
+    for (const trainer of trainers) {
+      const conflictingSlots = await SlotModel.find({
+        trainerId: trainer._id,
+        date,
+        $or: [
+          {
+            startTime: { $lt: endTime },
+            endTime: { $gt: startTime },
+          },
+        ],
+        status: SlotStatus.BOOKED,
+      }).lean();
+
+      if (conflictingSlots.length === 0) {
+        availableTrainers.push(this.mapToEntity(trainer));
+      }
+    }
+
+    return availableTrainers;
+  }
 }

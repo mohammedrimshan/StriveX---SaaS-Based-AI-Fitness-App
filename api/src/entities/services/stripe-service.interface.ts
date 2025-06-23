@@ -6,7 +6,8 @@ export interface IStripeService {
     userId: string,
     plan: { id: string; price: number; name: string },
     successUrl: string,
-    cancelUrl: string
+    cancelUrl: string,
+     metadata?: Record<string, string>
   ): Promise<{ url: string; sessionId: string }>; // Updated return type
   createTransfer(
     amount: number,

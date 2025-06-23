@@ -29,6 +29,7 @@ import SessionHistoryPage from "@/components/common/SessionHistoryPage";
 import NotFoundPage from "@/components/common/NotFoundPage";
 import CommunityForum from "@/pages/client/Community";
 import TrainerManagement from "@/pages/client/TrainerManagement";
+import ClientWallet from "@/pages/client/ClientWallet";
 export const ClientRoutes = () => {
   return (
     <Routes>
@@ -208,6 +209,15 @@ export const ClientRoutes = () => {
             <AuthRoute
               allowedRoles={["client"]}
               element={<TrainerManagement />}
+            />
+          }
+        />
+        <Route
+          path="/wallet"
+          element={
+            <AuthRoute
+              allowedRoles={["client"]}
+              element={<ClientWallet />}
             />
           }
         />

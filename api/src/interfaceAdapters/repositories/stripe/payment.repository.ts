@@ -6,6 +6,8 @@ import { BaseRepository } from "../base.repository";
 import { FilterQuery, PipelineStage } from "mongoose";
 import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
+import { ITrainerEarningsEntity } from "@/entities/models/trainer-earnings.entity";
+import { TrainerEarningsModel } from "@/frameworks/database/mongoDB/models/trainer-earnings.model";
 
 @injectable()
 export class PaymentRepository
@@ -124,126 +126,105 @@ export class PaymentRepository
     }
   }
 
-  async findTrainerPaymentHistory(
-    trainerId: string,
-    skip: number,
-    limit: number,
-    status?: string
-  ): Promise<{ items: IPaymentEntity[]; total: number }> {
-    const match: any = { trainerId };
-    if (status) {
-      match.status = status;
-    }
+ async findTrainerPaymentHistory(
+  trainerId: string,
+  skip: number,
+  limit: number
+): Promise<{
+  items: {
+    clientName: string;
+    planTitle: string;
+    trainerAmount: number;
+    adminShare: number;
+    completedAt: Date;
+  }[];
+  total: number;
+}> {
+  const pipeline: PipelineStage[] = [
+    { $match: { trainerId } },
 
-    const pipeline: PipelineStage[] = [
-      { $match: match },
-      {
-        $lookup: {
-          from: "clients",
-          let: { clientId: { $toObjectId: "$clientId" } },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ["$_id", "$$clientId"] },
-              },
-            },
-          ],
-          as: "client",
-        },
-      },
-      {
-        $unwind: {
-          path: "$client",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "membershipplans",
-          let: { planId: { $toObjectId: "$membershipPlanId" } },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ["$_id", "$$planId"] },
-              },
-            },
-          ],
-          as: "plan",
-        },
-      },
-      {
-        $unwind: {
-          path: "$plan",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $project: {
-          id: "$_id",
-          clientId: 1,
-          trainerId: 1,
-          membershipPlanId: 1,
-          amount: 1,
-          stripePaymentId: 1,
-          stripeSessionId: 1,
-          trainerAmount: 1,
-          status: 1,
-          createdAt: 1,
-          updatedAt: 1,
-          clientName: {
-            $cond: {
-              if: { $eq: [{ $ifNull: ["$client", null] }, null] },
-              then: "Unknown Client",
-              else: {
-                $concat: [
-                  { $ifNull: ["$client.firstName", ""] },
-                  " ",
-                  { $ifNull: ["$client.lastName", ""] },
-                ],
-              },
+    // Join with client
+    {
+      $lookup: {
+        from: "clients",
+        let: { clientId: { $toObjectId: "$clientId" } },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$_id", "$$clientId"] },
             },
           },
-          planTitle: {
-            $ifNull: ["$plan.name", "Unknown Plan"],
-          },
-          commission: {
-            $subtract: ["$amount", "$trainerAmount"],
-          },
-        },
+        ],
+        as: "client",
       },
-      {
-        $facet: {
-          items: [
-            { $sort: { createdAt: -1 } },
-            { $skip: skip },
-            { $limit: limit },
-          ],
-          total: [{ $count: "count" }],
-        },
-      },
-      {
-        $project: {
-          items: 1,
-          total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
-        },
-      },
-    ];
+    },
+    { $unwind: { path: "$client", preserveNullAndEmptyArrays: true } },
 
-    try {
-      const result = await this.model.aggregate(pipeline).exec();
-      if (!result[0]) {
-        console.warn(`No results for trainerId: ${trainerId}`);
-        return { items: [], total: 0 };
-      }
+    // Join with membership plan
+    {
+      $lookup: {
+        from: "membershipplans",
+        let: { planId: { $toObjectId: "$membershipPlanId" } },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$_id", "$$planId"] },
+            },
+          },
+        ],
+        as: "plan",
+      },
+    },
+    { $unwind: { path: "$plan", preserveNullAndEmptyArrays: true } },
 
-      const { items, total } = result[0];
-      const transformedItems = items.map((item: any) => this.mapToEntity(item));
-      return { items: transformedItems, total };
-    } catch (error) {
-      console.error(`Error fetching payment history for trainer ${trainerId}:`, error);
-      throw error;
-    }
-  }
+    // Final projection for table
+    {
+      $project: {
+        clientName: {
+          $cond: {
+            if: { $eq: [{ $ifNull: ["$client", null] }, null] },
+            then: "Unknown Client",
+            else: {
+              $concat: [
+                { $ifNull: ["$client.firstName", ""] },
+                " ",
+                { $ifNull: ["$client.lastName", ""] },
+              ],
+            },
+          },
+        },
+        planTitle: { $ifNull: ["$plan.name", "Unknown Plan"] },
+        trainerAmount: "$trainerShare",
+        adminShare: "$adminShare",
+        completedAt: 1,
+      },
+    },
+
+    // Paginate and count
+    {
+      $facet: {
+        items: [
+          { $sort: { completedAt: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+        ],
+        total: [{ $count: "count" }],
+      },
+    },
+    {
+      $project: {
+        items: 1,
+        total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
+      },
+    },
+  ];
+
+  const result = await TrainerEarningsModel.aggregate(pipeline).exec();
+  const { items, total } = result[0] || { items: [], total: 0 };
+  return { items, total };
+}
+
+
 
   async updateMany(
     query: FilterQuery<IPaymentEntity>,

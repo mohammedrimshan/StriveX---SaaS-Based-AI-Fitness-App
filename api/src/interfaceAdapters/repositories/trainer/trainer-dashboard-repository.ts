@@ -49,6 +49,7 @@ import {
   SlotModel,
 } from "@/frameworks/database/mongoDB/models/slot.model";
 import mongoose from "mongoose";
+import { TrainerEarningsModel } from "@/frameworks/database/mongoDB/models/trainer-earnings.model";
 
 @injectable()
 export class TrainerDashboardRepository
@@ -84,10 +85,12 @@ export class TrainerDashboardRepository
     month: number
   ): Promise<ITrainerDashboardStats> {
     const trainerObjectId = new Types.ObjectId(trainerId);
+
     const now = new Date(
       new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
     );
     const todayISO = now.toISOString().split("T")[0];
+
     const monthStart = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
     const monthEnd = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
@@ -101,23 +104,20 @@ export class TrainerDashboardRepository
           trainerId,
           videoCallStatus: "ended",
         }),
-        this.paymentModel
-          .aggregate([
-            {
-              $match: {
-                trainerId: trainerId, // make sure this is a string if stored as string
-                status: "completed",
-                createdAt: { $gte: monthStart, $lte: monthEnd },
-              },
+        TrainerEarningsModel.aggregate([
+          {
+            $match: {
+              trainerId,
+              completedAt: { $gte: monthStart, $lte: monthEnd },
             },
-            {
-              $group: {
-                _id: null,
-                total: { $sum: "$trainerAmount" },
-              },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: "$trainerShare" },
             },
-          ])
-          .exec(),
+          },
+        ]).exec(),
         this.reviewModel
           .aggregate([
             { $match: { trainerId } },
@@ -131,18 +131,12 @@ export class TrainerDashboardRepository
         }),
       ]);
 
-    console.log({
-      monthStart,
-      monthEnd,
-      trainerId,
-      earnings,
-    });
     return {
       totalClients: clientCount,
       totalSessions: sessionCount,
       earningsThisMonth: earnings[0]?.total || 0,
       averageRating: avgRating[0]?.avgRating || 0,
-      upcomingSessions: upcomingSessions,
+      upcomingSessions,
     };
   }
 
@@ -193,7 +187,7 @@ export class TrainerDashboardRepository
             clientName: {
               $concat: ["$client.firstName", " ", "$client.lastName"],
             },
-            
+
             clientId: "$client._id",
             profileImage: "$client.profileImage",
           },
@@ -212,7 +206,7 @@ export class TrainerDashboardRepository
       endTime: item.endTime,
       clientName: item.clientName,
       clientId: item.clientId.toString(),
-       profileImage: item.profileImage ?? null,
+      profileImage: item.profileImage ?? null,
     }));
   }
 
@@ -319,35 +313,29 @@ export class TrainerDashboardRepository
   ): Promise<IEarningsReport> {
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
-    const commissionRate = 0.8; // 80% commission
 
-    const result = await this.paymentModel
-      .aggregate([
-        {
-          $match: {
-            trainerId,
-            status: "completed",
-            createdAt: { $gte: monthStart, $lte: monthEnd },
-          },
+    const result = await TrainerEarningsModel.aggregate([
+      {
+        $match: {
+          trainerId,
+          completedAt: { $gte: monthStart, $lte: monthEnd },
         },
-        {
-          $group: {
-            _id: null,
-            totalEarnings: { $sum: "$trainerAmount" },
-            totalPayments: { $sum: "$amount" },
-          },
+      },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: { $sum: "$trainerShare" },
+          platformCommission: { $sum: "$adminShare" },
         },
-        {
-          $project: {
-            totalEarnings: 1,
-            platformCommission: {
-              $multiply: ["$totalPayments", 1 - commissionRate],
-            },
-            _id: 0,
-          },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalEarnings: 1,
+          platformCommission: 1,
         },
-      ])
-      .exec();
+      },
+    ]).exec();
 
     return {
       totalEarnings: result[0]?.totalEarnings || 0,
@@ -394,7 +382,7 @@ export class TrainerDashboardRepository
           },
         },
         { $sort: { consistency: -1 } },
-        { $limit: limit * 2 }, 
+        { $limit: limit * 2 },
       ])
       .exec();
 

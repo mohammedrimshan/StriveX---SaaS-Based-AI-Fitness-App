@@ -5,7 +5,7 @@ import { FilterControls } from '@/components/wallet/FilterControls';
 import { WalletTable } from '@/components/wallet/WalletTable';
 import { WalletMobileCards } from '@/components/wallet/WalletMobileCards';
 import { Pagination } from '@/components/wallet/Pagination';
-import { useWalletData } from '@/components/wallet/useWalletData';
+import { useWalletBalanceData } from '@/components/wallet/useWalletData';
 import { usePagination } from '@/components/wallet/usePagination';
 import { exportToCSV, exportToPDF } from '../../../utils/exportUtils';
 import { format, formatCurrency } from '../../../utils/dateUtils';
@@ -31,7 +31,7 @@ const TrainerWallet: React.FC = () => {
     error,
     total,
     totalPages,
-  } = useWalletData(1, limit);
+  } = useWalletBalanceData(1, limit);
 
   const {
     currentPage,

@@ -12,6 +12,8 @@ export interface IPaymentEntity {
   adminAmount: number;
   status: PaymentStatus;
   remainingBalance?: number;
+  walletAppliedAmount?: number;
+  walletDeducted?:boolean;
   createdAt: Date;
   updatedAt?: Date;
 }

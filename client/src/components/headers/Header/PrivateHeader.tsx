@@ -38,6 +38,8 @@ import {
   HelpCircle,
   Dumbbell,
   Badge,
+  Crown,
+  UserCheck,
 } from "lucide-react";
 import { useNotifications } from "@/context/NotificationContext"; 
 
@@ -134,6 +136,16 @@ export function PrivateHeader({
       default:
         navigate("/notifications");
     }
+  };
+
+  // Premium navigation
+  const handlePremium = () => {
+    navigate("/premium");
+  };
+
+  // Trainer navigation
+  const handleTrainer = () => {
+    navigate("/alltrainers");
   };
 
   return (
@@ -240,6 +252,47 @@ export function PrivateHeader({
           </div>
         )}
 
+        {/* Navigation Buttons - Premium and Trainer (only for user type) */}
+        {userType === "user" && (
+          <div className="ml-2 sm:ml-4 flex items-center space-x-1 sm:space-x-2">
+            {/* Premium Button */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePremium}
+                    className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-950/20"
+                  >
+                    <Crown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Premium</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Upgrade to Premium</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* Trainer Button */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleTrainer}
+                    className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950/20"
+                  >
+                    <UserCheck className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Trainers</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Find a Trainer</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
+
         {/* Spacer for admin/trainer when no search */}
         {(userType === "admin" || userType === "trainer") && (
           <div className="flex-1" />
@@ -247,15 +300,15 @@ export function PrivateHeader({
 
         {/* Right Section */}
         <div className="ml-2 sm:ml-4 lg:ml-8 flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
-          {/* User Info - Hidden on mobile and small tablets */}
-          <div className="hidden lg:flex items-center space-x-3 xl:space-x-4">
+          {/* User Info - Hidden on mobile and tablets, shown on large screens */}
+          <div className="hidden xl:flex items-center space-x-3 2xl:space-x-4">
             <div className="flex flex-col items-end">
-              <span className="text-sm font-medium truncate max-w-32 xl:max-w-none">
+              <span className="text-sm font-medium truncate max-w-32 2xl:max-w-none">
                 Hi, {userName}
               </span>
               <div className="flex items-center text-xs text-muted-foreground">
                 <MapPin className="mr-1 h-3 w-3 shrink-0" />
-                <span className="truncate max-w-24 xl:max-w-none">{userLocation}</span>
+                <span className="truncate max-w-24 2xl:max-w-none">{userLocation}</span>
               </div>
             </div>
           </div>
@@ -311,7 +364,7 @@ export function PrivateHeader({
                           <p className="text-sm font-medium leading-none truncate">
                             {userName}
                           </p>
-                          <div className="flex items-center text-xs text-muted-foreground lg:hidden">
+                          <div className="flex items-center text-xs text-muted-foreground xl:hidden">
                             <MapPin className="mr-1 h-3 w-3 shrink-0" />
                             <span className="truncate">{userLocation}</span>
                           </div>

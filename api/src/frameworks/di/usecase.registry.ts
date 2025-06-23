@@ -304,6 +304,8 @@ import { IResolveBackupTrainerChangeRequestUseCase } from "@/entities/useCaseInt
 import { ResolveBackupTrainerChangeRequestUseCase } from "@/useCases/backuptrainer/resolve-backup-trainer-change-request.usecase.interface";
 import { IGetClientTrainersInfoUseCase } from "@/entities/useCaseInterfaces/users/get-client-trainers-info.usecase.interface";
 import { GetClientTrainersInfoUseCase } from "@/useCases/user/get-client-trainers-info.usecase";
+import { IGetClientWalletDetailsUseCase } from "@/entities/useCaseInterfaces/wallet/get-client-wallet-details-usecase.interface";
+import { GetClientWalletDetailsUseCase } from "@/useCases/wallet/get-client-wallet-details.usecase";
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
 import { DailyUnusedSessionProcessor } from "../queue/bull/daily-unused-session.processor";
@@ -1132,5 +1134,10 @@ export class UseCaseRegistry {
      container.register<IGetClientTrainersInfoUseCase>("IGetClientTrainersInfoUseCase", {
       useClass: GetClientTrainersInfoUseCase,
     });
+
+    container.register<IGetClientWalletDetailsUseCase>("IGetClientWalletDetailsUseCase", {
+      useClass: GetClientWalletDetailsUseCase,
+    });
+
   }
 }

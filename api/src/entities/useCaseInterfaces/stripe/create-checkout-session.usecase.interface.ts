@@ -4,5 +4,6 @@ export interface ICreateCheckoutSessionUseCase {
     planId: string;
     successUrl: string;
     cancelUrl: string;
+    useWalletBalance?: boolean;
   }): Promise<string>;
 }

@@ -389,7 +389,6 @@ export class TrainerController implements ITrainerController {
         trainerId,
         pageNumber,
         limitNumber,
-        statusFilter
       );
 
       res.json({

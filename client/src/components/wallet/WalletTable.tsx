@@ -3,8 +3,7 @@ import { WalletRecord } from '../../types/wallet';
 import { formatCurrency, formatDateTime } from '../../utils/dateUtils';
 import { 
   User, 
-  Crown, 
-  DollarSign, 
+  Crown,  
   TrendingUp, 
   Percent, 
   Clock,
@@ -33,12 +32,7 @@ export const WalletTable: React.FC<WalletTableProps> = ({ data }) => {
                 Plan
               </div>
             </th>
-            <th className="px-4 py-3 text-left">
-              <div className="flex items-center gap-2 text-xs font-bold text-gray-800 uppercase">
-                <DollarSign className="w-3 h-3 text-green-600" />
-                Paid
-              </div>
-            </th>
+        
             <th className="px-4 py-3 text-left">
               <div className="flex items-center gap-2 text-xs font-bold text-gray-800 uppercase">
                 <TrendingUp className="w-3 h-3 text-blue-600" />
@@ -84,23 +78,18 @@ export const WalletTable: React.FC<WalletTableProps> = ({ data }) => {
                 </span>
               </td>
               <td className="px-4 py-3">
-                <div className="font-semibold text-sm text-green-700">
-                  {formatCurrency(record.amount)}
-                </div>
-              </td>
-              <td className="px-4 py-3">
                 <div className="font-semibold text-sm text-blue-700">
                   {formatCurrency(record.trainerAmount)}
                 </div>
               </td>
               <td className="px-4 py-3">
                 <div className="font-semibold text-sm text-purple-700">
-                  {formatCurrency(record.commission)}
+                  {formatCurrency(record.adminShare)}
                 </div>
               </td>
               <td className="px-4 py-3">
                 <div className="text-sm text-gray-600">
-                  {formatDateTime(record.createdAt)}
+                  {formatDateTime(record.completedAt)}
                 </div>
               </td>
             </tr>

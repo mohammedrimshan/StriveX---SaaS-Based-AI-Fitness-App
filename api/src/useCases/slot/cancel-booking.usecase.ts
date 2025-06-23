@@ -5,8 +5,7 @@ import { ICancellationRepository } from "../../entities/repositoryInterfaces/slo
 import { ISlotEntity } from "../../entities/models/slot.entity";
 import { ICancellationEntity } from "../../entities/models/cancellation.entity";
 import { CustomError } from "../../entities/utils/custom.error";
-import { HTTP_STATUS, ERROR_MESSAGES } from "../../shared/constants";
-import { SlotStatus } from "../../shared/constants";
+import { HTTP_STATUS, ERROR_MESSAGES, SlotStatus } from "../../shared/constants";
 import { IClientRepository } from "../../entities/repositoryInterfaces/client/client-repository.interface";
 import { ITrainerRepository } from "../../entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import { NotificationService } from "../../interfaceAdapters/services/notification.service";
@@ -15,12 +14,10 @@ import { NotificationService } from "../../interfaceAdapters/services/notificati
 export class CancelBookingUseCase implements ICancelBookingUseCase {
   constructor(
     @inject("ISlotRepository") private slotRepository: ISlotRepository,
-    @inject("ICancellationRepository")
-    private cancellationRepository: ICancellationRepository,
+    @inject("ICancellationRepository") private cancellationRepository: ICancellationRepository,
     @inject("IClientRepository") private clientRepository: IClientRepository,
     @inject("ITrainerRepository") private trainerRepository: ITrainerRepository,
-    @inject("NotificationService")
-    private notificationService: NotificationService
+    @inject("NotificationService") private notificationService: NotificationService
   ) {}
 
   async execute(
@@ -28,15 +25,9 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
     slotId: string,
     cancellationReason?: string
   ): Promise<ISlotEntity> {
-    const slot = await this.slotRepository.findBookedSlotByClientId(
-      clientId,
-      slotId
-    );
+    const slot = await this.slotRepository.findBookedSlotByClientId(clientId, slotId);
     if (!slot) {
-      throw new CustomError(
-        ERROR_MESSAGES.SLOT_NOT_FOUND_OR_NOT_BOOKED,
-        HTTP_STATUS.NOT_FOUND
-      );
+      throw new CustomError(ERROR_MESSAGES.SLOT_NOT_FOUND_OR_NOT_BOOKED, HTTP_STATUS.NOT_FOUND);
     }
 
     const [year, month, day] = slot.date.split("-").map(Number);
@@ -44,27 +35,16 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
     const slotStartTime = new Date(year, month - 1, day, hours, minutes);
 
     if (isNaN(slotStartTime.getTime())) {
-      throw new CustomError(
-        ERROR_MESSAGES.INVALID_SLOT_DATE_TIME,
-        HTTP_STATUS.INTERNAL_SERVER_ERROR
-      );
+      throw new CustomError(ERROR_MESSAGES.INVALID_SLOT_DATE_TIME, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
 
-    const cancellationThreshold = new Date(
-      slotStartTime.getTime() - 30 * 60 * 1000
-    );
+    const cancellationThreshold = new Date(slotStartTime.getTime() - 30 * 60 * 1000);
     if (new Date() > cancellationThreshold) {
-      throw new CustomError(
-        ERROR_MESSAGES.CANNOT_CANCEL_WITHIN_30_MINUTES,
-        HTTP_STATUS.BAD_REQUEST
-      );
+      throw new CustomError(ERROR_MESSAGES.CANNOT_CANCEL_WITHIN_30_MINUTES, HTTP_STATUS.BAD_REQUEST);
     }
 
     if (!cancellationReason || cancellationReason.trim() === "") {
-      throw new CustomError(
-        "Cancellation reason is required",
-        HTTP_STATUS.BAD_REQUEST
-      );
+      throw new CustomError("Cancellation reason is required", HTTP_STATUS.BAD_REQUEST);
     }
 
     const updatedSlot = await this.slotRepository.updateStatus(
@@ -75,19 +55,20 @@ export class CancelBookingUseCase implements ICancelBookingUseCase {
       cancellationReason
     );
     if (!updatedSlot) {
-      throw new CustomError(
-        ERROR_MESSAGES.FAILED_CANCEL_BOOKING,
-        HTTP_STATUS.INTERNAL_SERVER_ERROR
-      );
+      throw new CustomError(ERROR_MESSAGES.FAILED_CANCEL_BOOKING, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
 
-    const cancellationData: Partial<ICancellationEntity> = {
+    // Create a properly typed cancellation record
+    const cancellationData: ICancellationEntity = {
       slotId: slotId,
       clientId: clientId,
       trainerId: slot.trainerId,
       cancellationReason: cancellationReason,
+      cancelledBy: "client", 
       cancelledAt: new Date(),
+      
     };
+console.log("Cancellation data before save:", cancellationData);
     await this.cancellationRepository.save(cancellationData);
 
     try {

@@ -1,10 +1,9 @@
-import { IPaymentEntity } from "@/entities/models/payment.entity";
+import { ITrainerWalletViewEntity } from "@/entities/models/trainer-walletview.entity";
 
 export interface IGetTrainerWalletUseCase {
   execute(
     trainerId: string,
-    page: number,
-    limit: number,
-    status?: string
-  ): Promise<{ items: IPaymentEntity[]; total: number }>;
+    page?: number,
+    limit?: number
+  ): Promise<{ items: ITrainerWalletViewEntity[]; total: number }>;
 }

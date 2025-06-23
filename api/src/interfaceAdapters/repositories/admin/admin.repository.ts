@@ -36,4 +36,15 @@ export class AdminRepository extends BaseRepository<IAdminEntity> implements IAd
       id: admin._id.toString(),
     } as IAdminEntity;
   }
+
+   async findByIdAndUpdate(
+      id: any,
+      updateData: Partial<IAdminEntity>
+    ): Promise<IAdminEntity | null> {
+      const client = await this.model
+        .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+        .lean();
+      return client ? this.mapToEntity(client) : null;
+    }
+  
 }

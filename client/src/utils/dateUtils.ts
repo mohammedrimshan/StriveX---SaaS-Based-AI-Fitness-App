@@ -35,12 +35,13 @@ export const endOfMonth = (date: Date): Date => {
 };
 
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-IN', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'INR',
+    currency: 'USD',
     minimumFractionDigits: 2
   }).format(amount);
 };
+
 
 export const formatDateTime = (dateString: string): string => {
   const date = parseISO(dateString);

@@ -22,6 +22,7 @@ import {
 } from "@/types/Slot";
 import { IComment,IPost } from "@/types/Post";
 import { CategoryType } from "@/hooks/admin/useAllCategory";
+import { IWalletDetailsResponse } from "@/types/clientWallet";
 
 export interface IReport {
   userId: string;
@@ -35,12 +36,16 @@ export interface CreateCheckoutSessionData {
   planId: string;
   successUrl: string;
   cancelUrl: string;
+  useWalletBalance?: boolean;
 }
 
 export interface CheckoutSessionResponse {
   success: boolean;
   message: string;
   url: string;
+  balance?: number; 
+  hasBalance?: boolean; 
+  prompt?: string; 
 }
 
 // Interface for trainer preferences payload
@@ -742,4 +747,23 @@ export const getClientTrainersInfo = async (): Promise<ClientTrainersResponse> =
   }>("/client/trainers-info");
 
   return response.data.data;
+};
+
+
+export const checkWalletBalance = async (): Promise<CheckoutSessionResponse> => {
+  const response = await clientAxiosInstance.get<CheckoutSessionResponse>("/client/walletbalance");
+  return response.data;
+};
+
+// New function to get wallet details
+export const getClientWalletDetails = async (
+  year: number,
+  month: number,
+  page: number = 1,
+  limit: number = 10
+): Promise<IWalletDetailsResponse> => {
+  const res = await clientAxiosInstance.get("/client/wallet", {
+    params: { year, month, page, limit },
+  });
+  return res.data.data;
 };

@@ -49,7 +49,7 @@ export class BackupTrainerController implements IBackupTrainerController {
 
   async assignBackupTrainer(req: Request, res: Response): Promise<void> {
     try {
-      const clientId = (req as CustomRequest).user.clientId;
+      const clientId = (req as CustomRequest).user.id;
       if (!clientId) {
         throw new CustomError(
           ERROR_MESSAGES.UNAUTHORIZED_ACCESS,

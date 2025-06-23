@@ -42,4 +42,12 @@ export interface ITrainerRepository extends IBaseRepository<ITrainerEntity> {
     excludedTrainerIds: Types.ObjectId[]
   ): Promise<ITrainerEntity[]>;
   findTrainerWithBackupClients(trainerId: string): Promise<any | null> ;
+  findAvailableTrainersBySkillsOrPreferredWorkout(
+  date: string,
+  startTime: string,
+  endTime: string,
+  clientSkills: string[],
+  clientPreferredWorkout: string,
+  excludedTrainerIds: string[]
+): Promise<ITrainerEntity[]>;
 }

@@ -15,6 +15,7 @@ import {
  MessageSquare, 
  Globe,
  History,
+ Wallet,
  
 } from "lucide-react";
 import { FaCalendarCheck } from "react-icons/fa";
@@ -37,9 +38,9 @@ const navItems = {
       path: "/aiplanning",
     },
     {
-      title: "Trainers",
+      title: "Trainers Management",
       icon: Users,
-      path: "/alltrainers",
+      path: "/trainermanagement",
     },
     {
       title: "Trainer Selection",
@@ -67,9 +68,9 @@ const navItems = {
       path: "/community",
     },
     {
-      title: "Subscription",
-      icon: CreditCard,
-      path: "/premium",
+      title: "Wallet",
+      icon: Wallet,
+      path: "/wallet",
     },
     {
       title: "Session History",

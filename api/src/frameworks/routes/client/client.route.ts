@@ -23,6 +23,7 @@ import {
   sessionHistoryController,
   reviewController,
   backupTrainerController,
+  clientWalletController,
 } from "../../di/resolver";
 
 import { BaseRoute } from "../base.route";
@@ -807,7 +808,6 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-    
     router.put(
       "/client/submitreview",
       verifyAuth,
@@ -838,8 +838,6 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-
-  
     router.post(
       "/client/backup-trainer/assign",
       verifyAuth,
@@ -870,7 +868,6 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-
     router.get(
       "/client/backup-trainer/invitations",
       verifyAuth,
@@ -888,6 +885,27 @@ export class ClientRoutes extends BaseRoute {
       blockStatusMiddleware.checkStatus as RequestHandler,
       (req: Request, res: Response) => {
         userController.getClientTrainerInfo(req, res);
+      }
+    );
+
+    router.get(
+      "/client/wallet",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        clientWalletController.getWalletDetails(req, res);
+      }
+    );
+
+
+    router.get(
+      "/client/walletbalance",
+      verifyAuth,
+      authorizeRole(["client"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        paymentController.checkWalletBalance(req, res);
       }
     );
   }

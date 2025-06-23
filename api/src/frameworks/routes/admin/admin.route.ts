@@ -20,6 +20,7 @@ import {
   sessionHistoryController,
   adminDashboardController,
   backupTrainerController,
+  slotController,
 } from "../../di/resolver";
 
 export class AdminRoutes extends BaseRoute {
@@ -430,5 +431,14 @@ export class AdminRoutes extends BaseRoute {
       }
     );
 
+    router.post(
+      "/admin/reassign-trainer",
+      verifyAuth,
+      authorizeRole(["admin"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.reassignTrainer(req, res);
+      }
+    );
   }
 }

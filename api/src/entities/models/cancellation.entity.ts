@@ -6,7 +6,6 @@ export interface ICancellationEntity {
   clientId:  Types.ObjectId | string;
   trainerId: Types.ObjectId | string;
   cancellationReason: string;
+   cancelledBy: "trainer" | "client"; 
   cancelledAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
 }

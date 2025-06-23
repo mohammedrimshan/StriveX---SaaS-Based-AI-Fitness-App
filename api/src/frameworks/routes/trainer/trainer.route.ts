@@ -384,7 +384,6 @@ export class TrainerRoutes extends BaseRoute {
       }
     );
 
-
     router.get(
       "/trainer/:trainerId/stats",
       verifyAuth,
@@ -456,15 +455,14 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-          "/trainer/reviews/:trainerId",
-          verifyAuth,
-          authorizeRole(["trainer"]),
-          blockStatusMiddleware.checkStatus as RequestHandler,
-          (req: Request, res: Response) => {
-            reviewController.getTrainerReviews(req, res);
-          }
-        );
-
+      "/trainer/reviews/:trainerId",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        reviewController.getTrainerReviews(req, res);
+      }
+    );
 
     router.post(
       "/trainer/backup-trainer/invitation",
@@ -495,6 +493,15 @@ export class TrainerRoutes extends BaseRoute {
         backupTrainerController.getTrainerBackupClients(req, res);
       }
     );
-    
+
+    router.post(
+      "/trainer/cancel-slot",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.cancelTrainerSlot(req, res);
+      }
+    );
   }
 }

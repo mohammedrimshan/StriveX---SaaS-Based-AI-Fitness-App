@@ -5,5 +5,6 @@ export interface IUpgradeSubscriptionUseCase {
     newPlanId: string;
     successUrl: string;
     cancelUrl: string;
+    useWalletBalance?: boolean;
   }): Promise<string>;
 }

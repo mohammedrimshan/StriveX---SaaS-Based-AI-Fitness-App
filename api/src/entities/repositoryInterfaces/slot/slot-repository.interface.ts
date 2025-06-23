@@ -25,7 +25,10 @@ export interface ISlotRepository extends IBaseRepository<ISlotEntity> {
     clientId: string,
     slotId: string
   ): Promise<ISlotEntity | null>;
-  findBookedSlotByClientIdAndDate(clientId: string, date: string): Promise<ISlotEntity | null>;
+  findBookedSlotByClientIdAndDate(
+    clientId: string,
+    date: string
+  ): Promise<ISlotEntity | null>;
   getSlotsWithStatus(
     trainerId: string,
     startTime?: Date,
@@ -51,9 +54,13 @@ export interface ISlotRepository extends IBaseRepository<ISlotEntity> {
     slotId: string,
     videoCallStatus: VideoCallStatus,
     videoCallRoomName?: string,
-    jitsiJwt?: string ,
+    jitsiJwt?: string
   ): Promise<ISlotEntity | null>;
-  findSlotsWithClients(trainerId: string): Promise<(ISlotEntity & { client?: ClientInfoDTO; cancellationReason?: string })[]>
+  findSlotsWithClients(
+    trainerId: string
+  ): Promise<
+    (ISlotEntity & { client?: ClientInfoDTO; cancellationReason?: string })[]
+  >;
   endVideoCall(slotId: string): Promise<ISlotEntity | null>;
   getVideoCallDetails(slotId: string): Promise<{
     videoCallStatus: VideoCallStatus;
@@ -61,4 +68,14 @@ export interface ISlotRepository extends IBaseRepository<ISlotEntity> {
     videoCallJwt?: string;
   } | null>;
   findAvailableSlots(trainerId: string): Promise<ISlotEntity[]>;
+  findBookedSlotsByClientAndTrainer(
+    clientId: string,
+    trainerId: string
+  ): Promise<ISlotEntity[]>;
+  findSlotByTrainerAndTime(
+    trainerId: string,
+    date: string,
+    startTime: string,
+    endTime: string
+  ): Promise<ISlotEntity | null>;
 }

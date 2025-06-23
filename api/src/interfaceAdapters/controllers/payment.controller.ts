@@ -5,6 +5,7 @@ import { ICreateCheckoutSessionUseCase } from "@/entities/useCaseInterfaces/stri
 import { IHandleWebhookUseCase } from "@/entities/useCaseInterfaces/stripe/handle-webhook.usecase.interface";
 import { IUpgradeSubscriptionUseCase } from "@/entities/useCaseInterfaces/stripe/upgrade-subscription-usecase.interface";
 import { IMembershipPlanRepository } from "@/entities/repositoryInterfaces/Stripe/membership-plan-repository.interface";
+import { IClientWalletRepository } from "@/entities/repositoryInterfaces/wallet/client-wallet.repository.interface";
 import { HTTP_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/shared/constants";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { createCheckoutSessionSchema } from "@/shared/validations/payment.schema";
@@ -15,7 +16,8 @@ export class PaymentController implements IPaymentController {
     @inject("ICreateCheckoutSessionUseCase") private createCheckoutSessionUseCase: ICreateCheckoutSessionUseCase,
     @inject("IHandleWebhookUseCase") private handleWebhookUseCase: IHandleWebhookUseCase,
     @inject("IMembershipPlanRepository") private membershipPlanRepository: IMembershipPlanRepository,
-    @inject("IUpgradeSubscriptionUseCase") private upgradeSubscriptionUseCase: IUpgradeSubscriptionUseCase
+    @inject("IUpgradeSubscriptionUseCase") private upgradeSubscriptionUseCase: IUpgradeSubscriptionUseCase,
+    @inject("IClientWalletRepository") private clientWalletRepository: IClientWalletRepository
   ) {}
 
   async createCheckoutSession(req: Request, res: Response): Promise<void> {
@@ -31,10 +33,11 @@ export class PaymentController implements IPaymentController {
       const validatedData = createCheckoutSessionSchema.parse(req.body);
 
       const url = await this.createCheckoutSessionUseCase.execute({
-        userId: req.user.id, // Assuming req.user.id is clientId
+        userId: req.user.id,
         planId: validatedData.planId,
         successUrl: validatedData.successUrl,
         cancelUrl: validatedData.cancelUrl,
+        useWalletBalance: validatedData.useWalletBalance, // Pass useWalletBalance
       });
 
       res.status(HTTP_STATUS.OK).json({
@@ -86,6 +89,30 @@ export class PaymentController implements IPaymentController {
     }
   }
 
+  async checkWalletBalance(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
+          success: false,
+          message: ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+        });
+        return;
+      }
+
+      const wallet = await this.clientWalletRepository.findByClientId(req.user.id);
+      const balance = wallet?.balance || 0;
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        balance,
+        hasBalance: balance > 0,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+ 
   async upgradeSubscription(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
@@ -96,14 +123,30 @@ export class PaymentController implements IPaymentController {
         return;
       }
 
+      // Validate request body
       const validatedData = createCheckoutSessionSchema.parse(req.body);
+      console.log("Validated request data:", validatedData);
+
+      // Call use case
       const url = await this.upgradeSubscriptionUseCase.execute({
         clientId: req.user.id,
         newPlanId: validatedData.planId,
         successUrl: validatedData.successUrl,
         cancelUrl: validatedData.cancelUrl,
+        useWalletBalance: validatedData.useWalletBalance ?? false,
       });
 
+      // If URL is empty string => no payment required, upgrade done
+      if (!url) {
+        res.status(HTTP_STATUS.OK).json({
+          success: true,
+          message: "Subscription upgraded successfully without additional payment.",
+          url: null,
+        });
+        return;
+      }
+
+      // Otherwise, return Stripe checkout URL
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,

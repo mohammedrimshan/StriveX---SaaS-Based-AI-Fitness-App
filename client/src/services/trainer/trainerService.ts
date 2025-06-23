@@ -3,7 +3,7 @@ import { IClient, ITrainer } from "@/types/User";
 import { CategoryResponse } from "@/hooks/admin/useAllCategory";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/trainer/useTrainerPasswordChange";
-import { SlotsResponse, CreateSlotData } from "@/types/Slot";
+import { SlotsResponse, CreateSlotData, CancelSlotData, CancelSlotResponse } from "@/types/Slot";
 import { WalletHistoryResponse } from "@/types/wallet";
 import {
   ITrainerDashboardStats,
@@ -422,4 +422,12 @@ export const fetchTrainerReviews = async (
     console.error("fetchTrainerReviews Error:", error);
     throw error;
   }
+};
+
+
+export const cancelTrainerSlot = async (
+  payload: CancelSlotData
+): Promise<CancelSlotResponse> => {
+  const response = await trainerAxiosInstance.post("/trainer/cancel-slot", payload);
+  return response.data;
 };

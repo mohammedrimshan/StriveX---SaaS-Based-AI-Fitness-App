@@ -93,3 +93,10 @@ export interface SlotFormData {
   startTime: string;
   endTime: string;
 }
+
+
+export interface CancelSlotResponse {
+  success: boolean;
+  message: string;
+  slot: ISlot;
+}

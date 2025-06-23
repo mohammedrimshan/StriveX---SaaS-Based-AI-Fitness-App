@@ -147,3 +147,9 @@ export interface AdminClientBackupOverviewParams {
   page?: number;
   limit?: number;
 }
+
+export interface AssignBackupTrainerResponse {
+  success: boolean;
+  message: string;
+  client: any; // replace with your Client type if available
+}
