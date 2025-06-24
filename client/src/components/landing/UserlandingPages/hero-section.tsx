@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { motion, useAnimation, useInView } from "framer-motion"
-import bg1 from '@/assets/common/bg1.png'
-import bg2 from '@/assets/common/bg2.png'
 import { useNavigate } from "react-router-dom"
 
 interface HeroSectionProps {
@@ -251,7 +249,7 @@ export function HeroSection({ user, isLoggedIn }: HeroSectionProps) {
             >
               <div className="absolute inset-0 w-full h-full">
                 <motion.img
-                  src={bg1}
+                  src="https://res.cloudinary.com/daee3szbl/image/upload/v1750763658/bg1-min_qbasjg.png"
                   alt="Fitness woman with digital interface"
                   className="object-contain absolute inset-0 w-full h-full transform transition-transform duration-700"
                   initial={{ scale: 1 }}
@@ -264,7 +262,7 @@ export function HeroSection({ user, isLoggedIn }: HeroSectionProps) {
                 />
                 
                 <motion.img
-                  src={bg2}
+                  src="https://res.cloudinary.com/daee3szbl/image/upload/v1750763404/bg2_wlu2yn.png"
                   alt="Person with fitness smartwatch"
                   className="object-contain absolute inset-0 w-full h-full"
                   initial={{ opacity: 0 }}

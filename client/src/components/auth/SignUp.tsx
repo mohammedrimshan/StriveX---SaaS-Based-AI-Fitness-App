@@ -24,7 +24,7 @@ import {
   User2,
   Puzzle,
 } from "lucide-react";
-import sgn from "@/assets/common/sgn.jpg";
+
 
 import { User as UserType } from "@/types/User";
 import { useFormik } from "formik";
@@ -449,7 +449,7 @@ const SignUp = ({
               ? new Date(formik.values.dateOfBirth)
               : null
           }
-           // use inputFormat instead of format
+          // use inputFormat instead of format
           onChange={(date) => {
             formik.setFieldValue("dateOfBirth", date);
           }}
@@ -689,9 +689,10 @@ const SignUp = ({
         <div className="hidden md:flex w-1/2 bg-[var(--bg-violet)] relative overflow-hidden justify-center items-end">
           <div className="absolute inset-0 pattern-bg opacity-10"></div>
           <img
-            src={sgn || "/placeholder.svg"}
+            src="https://res.cloudinary.com/daee3szbl/image/upload/v1750763232/sgn_oe7aqc.jpg"
             alt="trainer-tools-bg"
             className="absolute inset-0 w-full h-full object-cover brightness-90"
+            loading="lazy"
           />
         </div>
 

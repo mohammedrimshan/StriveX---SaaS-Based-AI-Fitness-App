@@ -8,7 +8,7 @@ import { IWorkoutPlan } from "@/types/Workout";
 import { IDietPlan } from "@/types/Diet";
 // import { PaginatedResult } from "@/types/Workout";
 import { Review, ReviewInput, TrainerProfile, TrainerProfileType, UpdateReviewInput } from "@/types/trainer";
-import { IWorkoutEntity } from "../../../../api/src/entities/models/workout.entity";
+
 import { IWorkoutProgressEntity } from "../progress/workoutProgressService";
 import { PaginatedTrainersResponse } from "@/types/Response";
 import { PaginatedResponse } from "@/types/Response";
@@ -24,6 +24,29 @@ import { IComment,IPost } from "@/types/Post";
 import { CategoryType } from "@/hooks/admin/useAllCategory";
 import { IWalletDetailsResponse } from "@/types/clientWallet";
 
+export interface IExerciseEntity {
+  _id?: string; 
+  name: string;
+  description: string;
+  duration: number;
+  defaultRestDuration: number;
+  videoUrl: string;
+}
+
+export interface IWorkoutEntity {
+  id?: string;
+  title: string;
+  description: string;
+  category: string; 
+  duration: number; 
+  difficulty: "Beginner" | "Intermediate" | "Advanced";
+  imageUrl?: string; 
+  exercises:IExerciseEntity[];
+  isPremium: boolean; 
+  status: boolean; 
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 export interface IReport {
   userId: string;
   reason: string;

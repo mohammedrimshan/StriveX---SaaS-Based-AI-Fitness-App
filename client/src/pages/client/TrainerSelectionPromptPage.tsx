@@ -7,9 +7,6 @@ import { useToaster } from "@/hooks/ui/useToaster";
 import AnimatedBackground from "@/components/Animation/AnimatedBackgorund";
 import AnimatedTitle from "@/components/Animation/AnimatedTitle";
 import { motion, AnimatePresence } from "framer-motion";
-import trainer1 from '@/assets/common/trainer1.jpg';
-import trainer2 from '@/assets/common/trainer2.jpg';
-import trainer3 from '@/assets/common/trainer4.jpg';
 import { useClientProfile } from "@/hooks/client/useClientProfile";
 import { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
@@ -22,7 +19,12 @@ export default function TrainerSelectionPromptPage() {
    const client = useSelector((state: RootState) => state.client.client);
   const { data: clientProfile, isLoading, error } = useClientProfile(client?.id || null);
 
-  const images = [trainer1, trainer2, trainer3];
+  const images = [
+    "https://res.cloudinary.com/daee3szbl/image/upload/v1750761630/trainer1_ptthds.jpg",
+    "https://res.cloudinary.com/daee3szbl/image/upload/v1750761627/trainer2_y70waf.jpg",
+    "https://res.cloudinary.com/daee3szbl/image/upload/v1750761498/trainer4_hioepm.jpg"
+  ];
+
   useEffect(() => {
     if (clientProfile?.isPremium && clientProfile?.selectStatus === "accepted") {
       infoToast("You already have an assigned trainer!");
@@ -33,7 +35,7 @@ export default function TrainerSelectionPromptPage() {
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 5000); 
+    }, 3000); 
 
     return () => clearInterval(intervalId);
   }, []);
@@ -99,10 +101,10 @@ export default function TrainerSelectionPromptPage() {
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={currentImageIndex}
-                    initial={{ opacity: 0 }}
+                    initial={{ opacity: .15 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1.2, ease: "easeInOut" }}
+                    exit={{ opacity: .15 }}
+                    transition={{ duration: 1.5, ease: "easeInOut" }}
                     src={images[currentImageIndex]}
                     alt="Personal trainer session"
                     className="w-full h-full object-cover"

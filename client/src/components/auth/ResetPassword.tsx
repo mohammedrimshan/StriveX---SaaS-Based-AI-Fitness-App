@@ -21,7 +21,6 @@ import { passwordSchema } from "@/utils/validations/password.validator";
 
 // Import assets
 import congrats from "@/assets/congrats.json"; 
-import Reset from '@/assets/common/reset.jpg'
 // Import your hooks (maintain the same functionality)
 import { useResetPasswordMutation } from "@/hooks/auth/useResetPassword";
 import { useToaster } from "@/hooks/ui/useToaster";
@@ -73,7 +72,7 @@ const ResetPassword = ({ role, signInPath }: ResetPasswordProps) => {
         <div className="hidden md:block w-1/2 bg-violet-100 relative overflow-hidden order-1">
           <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-violet-700/30"></div>
           <img
-            src={Reset} 
+            src="https://res.cloudinary.com/daee3szbl/image/upload/v1750764278/reset_x3xayr.jpg"
             alt="Security illustration"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />

@@ -89,6 +89,7 @@ export class ResolveBackupTrainerChangeRequestUseCase
       await this.clientRepository.clearBackupTrainer(clientId);
       await this.trainerRepository.removeBackupClient(request.backupTrainerId, clientId);
     } else if (request.requestType === "CHANGE") {
+      await this.clientRepository.clearBackupTrainer(clientId);
       await this.trainerRepository.removeBackupClient(request.backupTrainerId, clientId);
       await this.assignBackupTrainerUseCase.execute(clientId);
     }

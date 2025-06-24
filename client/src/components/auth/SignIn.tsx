@@ -2,9 +2,6 @@ import { useState } from "react";
 import { TextField, Button } from "@mui/material";
 import { Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
-import sgn2 from "@/assets/common/sgn2.jpg";
-import adminBg from "@/assets/common/admin-bg.jpg";
-import trainerBg from "@/assets/common/trainer-bg.jpg";
 import { signinSchema } from "@/utils/validations/signin.validator";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -35,16 +32,24 @@ const SignIn = ({
     },
   });
 
+
+  const bgImages = {
+  admin: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762549/admin-bg_ezjkhj.jpg",
+  trainer: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762528/trainer-bg_fkfh5n.jpg",
+  default: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762538/sgn2_hs4kf1.jpg",
+};
+
+
   const getBgImage = () => {
-    switch (userType) {
-      case "admin":
-        return adminBg;
-      case "trainer":
-        return trainerBg;
-      default:
-        return sgn2;
-    }
-  };
+  switch (userType) {
+    case "admin":
+      return bgImages.admin;
+    case "trainer":
+      return bgImages.trainer;
+    default:
+      return bgImages.default;
+  }
+};
 
   const handleForgotPasswordRedirection = () => {
     switch (userType) {

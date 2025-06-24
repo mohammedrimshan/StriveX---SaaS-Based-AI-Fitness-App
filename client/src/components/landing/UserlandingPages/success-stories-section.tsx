@@ -5,9 +5,6 @@ import { motion, useInView, AnimatePresence } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import user1 from '@/assets/common/user1.jpeg'
-import user2 from '@/assets/common/user22.jpg'
-import user3 from '@/assets/common/user3.jpg'
 interface Testimonial {
   id: string
   name: string
@@ -21,7 +18,7 @@ const testimonials: Testimonial[] = [
     id: "alex",
     name: "Alex",
     role: "Marketing Specialist",
-    image: user1,
+    image: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762833/user1_llnzw8.jpg",
     content:
       "Hey, I'm Alex, an enthusiastic beginner in the fitness world. With personalized plans to fit into my busy schedule, AI-powered analysis, and meal advice based on my data, I saw pounds melt away and gained confidence. FitGenius showed me that data-driven fitness works!",
   },
@@ -29,7 +26,7 @@ const testimonials: Testimonial[] = [
     id: "sarah",
     name: "Sarah",
     role: "Software Engineer",
-    image: user2,
+    image: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762832/user22_swrv0m.jpg",
     content:
       "As a software engineer with long desk hours, I struggled to find a fitness routine that worked. The AI-powered analysis understood my lifestyle and created a perfect balance of workouts and nutrition. I've lost 15 pounds and gained so much energy!",
   },
@@ -37,7 +34,7 @@ const testimonials: Testimonial[] = [
     id: "carl",
     name: "Carl",
     role: "Teacher",
-    image: user3,
+    image: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762832/user3_w3zhlo.jpg",
     content:
       "After years of on-and-off gym memberships, I finally found consistency with StriveX. The personalized approach and data tracking keep me accountable. I'm stronger at 45 than I was at 25!",
   },

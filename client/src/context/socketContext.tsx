@@ -7,10 +7,20 @@ import {
 } from "react";
 import io from "socket.io-client";
 import { Socket } from "socket.io-client";
-import { WorkoutType, WORKOUT_TYPES } from "../../../api/src/shared/constants";
 import { IPost, UserRole } from "@/types/Post";
 import { INotification } from "../types/notification";
 
+
+export const WORKOUT_TYPES = [
+  "Yoga",
+  "Cardio",
+  "WeightTraining",
+  "Meditation",
+  "Calisthenics",
+  "Pilates",
+  "General",
+] as const;
+export type WorkoutType = (typeof WORKOUT_TYPES)[number];
 interface IPostAuthor {
   _id: string;
   firstName: string;

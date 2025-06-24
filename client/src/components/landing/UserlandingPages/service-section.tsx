@@ -6,9 +6,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Zap, Feather } from "lucide-react"
-import meditation from '@/assets/common/med.png'
-import cardio from '@/assets/common/cardio.png'
-import yoga from '@/assets/common/yoga.png'
+
 interface Service {
   title: string;
   description: string;
@@ -23,7 +21,7 @@ const services: Service[] = [
   {
     title: "CARDIO",
     description: "Boost your energy with high-intensity cardio workouts tailored to your fitness level.",
-    image:cardio,
+    image:"https://res.cloudinary.com/daee3szbl/image/upload/v1750763791/cardio_j0cie8.png",
     color: "from-blue-50 to-blue-200",
     textColor: "text-blue-700",
     icon: <Zap className="h-6 w-6" />,
@@ -32,7 +30,7 @@ const services: Service[] = [
   {
     title: "MEDITATION",
     description: "Find your inner peace with guided meditation sessions for all levels.",
-    image:meditation,
+    image:"https://res.cloudinary.com/daee3szbl/image/upload/v1750763794/med_mtaqi8.png",
     color: "from-emerald-50 to-emerald-200",
     textColor: "text-emerald-700",
     icon: <Feather className="h-6 w-6" />,
@@ -41,7 +39,7 @@ const services: Service[] = [
   {
     title: "YOGA",
     description: "Improve flexibility and strength with our range of yoga classes for all abilities.",
-    image: yoga,
+    image: "https://res.cloudinary.com/daee3szbl/image/upload/v1750763793/yoga_titqhf.png",
     color: "from-rose-50 to-rose-200",
     textColor: "text-rose-700",
     icon: <Heart className="h-6 w-6" />,

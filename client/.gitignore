@@ -22,3 +22,50 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# Environment variables
+.env
+.env.*.local
+
+# Build output folders
+/build/
+/out/
+/coverage/
+
+# Test coverage reports
+coverage/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Parcel cache (if using Parcel bundler)
+.cache/
+
+# Mac OS system files
+.AppleDouble
+.LSOverride
+
+# Thumbnails and other OS files
+Thumbs.db
+
+# Logs directory
+logs/
+
+# Yarn integrity file
+.yarn-integrity
+
+# Temporary files
+*.tmp
+*.temp
+
+# Lock files (if you want to ignore, but usually best to commit them)
+# package-lock.json
+# yarn.lock
+
+
+# TypeScript build info
+*.tsbuildinfo

@@ -73,7 +73,7 @@ export class HandleWebhookUseCase implements IHandleWebhookUseCase {
             });
             console.log(`Saved new payment for clientId: ${clientId}, planId: ${planId}`);
           } else if (sessionPayment.status !== PaymentStatus.COMPLETED) {
-            await this.paymentRepository.updatePayment(sessionPayment.id!, {
+            await this.paymentRepository.update(sessionPayment.id!, {
               stripePaymentId,
               status: PaymentStatus.COMPLETED,
               updatedAt: new Date(),
@@ -154,7 +154,7 @@ export class HandleWebhookUseCase implements IHandleWebhookUseCase {
             });
             console.log(`Saved pending payment for clientId: ${clientIdPIC}`);
           } else if (payment) {
-            await this.paymentRepository.updatePayment(payment.id!, {
+            await this.paymentRepository.update(payment.id!, {
               stripePaymentId: stripePaymentIdPIC,
               status: PaymentStatus.PENDING,
               updatedAt: new Date(),
@@ -215,7 +215,7 @@ export class HandleWebhookUseCase implements IHandleWebhookUseCase {
             break;
           }
 
-          await this.paymentRepository.updatePayment(succeededPayment.id!, {
+          await this.paymentRepository.update(succeededPayment.id!, {
             status: PaymentStatus.COMPLETED,
             stripePaymentId: stripePaymentIdPI,
             updatedAt: new Date(),
@@ -261,7 +261,7 @@ export class HandleWebhookUseCase implements IHandleWebhookUseCase {
             break;
           }
 
-          await this.paymentRepository.updatePayment(chargePayment.id!, {
+          await this.paymentRepository.update(chargePayment.id!, {
             status: PaymentStatus.COMPLETED,
             stripePaymentId: stripePaymentIdCS,
             updatedAt: new Date(),
@@ -302,7 +302,7 @@ export class HandleWebhookUseCase implements IHandleWebhookUseCase {
             break;
           }
 
-          await this.paymentRepository.updatePayment(updatedChargePayment.id!, {
+          await this.paymentRepository.update(updatedChargePayment.id!, {
             status: paymentStatusCU,
             updatedAt: new Date(),
           });

@@ -77,13 +77,23 @@ export class AcceptRejectBackupInvitationUseCase
         throw new CustomError("Failed to update trainer backup clients", HTTP_STATUS.INTERNAL_SERVER_ERROR);
       }
 
-      // 4. Reject other pending invitations
-      const pendingInvites = await this.invitationRepository.findPendingByClientId(client.clientId);
-      for (const invite of pendingInvites) {
-        if (invite.id !== invitationId) {
-          await this.invitationRepository.updateStatus(invite.id, BackupInvitationStatus.REJECTED, new Date());
+      // 4. Reject other pending invitations in bulk
+      await this.invitationRepository.updateManyStatusByClientIdExcept(
+        client.clientId,
+        invitationId,
+        BackupInvitationStatus.REJECTED,
+        new Date()
+      );
 
-          // Optional: notify rejected trainers
+      // 5. Notify rejected trainers about rejection
+      // Fetch the rejected invitations to notify trainers
+      const rejectedInvitations = await this.invitationRepository.findByClientIdAndStatus(
+        client.clientId,
+        BackupInvitationStatus.REJECTED
+      );
+
+      for (const invite of rejectedInvitations) {
+        if (invite.id !== invitationId) {
           await this.notificationService.sendToUser(
             invite.trainerId,
             "Backup Invitation Expired",
@@ -93,6 +103,7 @@ export class AcceptRejectBackupInvitationUseCase
         }
       }
 
+      // 6. Notify client about the assigned backup trainer
       await this.notificationService.sendToUser(
         client.id!,
         "Backup Trainer Assigned",
@@ -111,7 +122,6 @@ export class AcceptRejectBackupInvitationUseCase
         `Trainer ${trainer.firstName} ${trainer.lastName} has declined your backup trainer invitation.`,
         "ERROR"
       );
-
 
       return client;
     }

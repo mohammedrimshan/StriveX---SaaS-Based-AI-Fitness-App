@@ -21,7 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import sideImageSrc from "@/assets/common/forgot.jpg";
 import Lottie from "lottie-react";
 import emailSentAnimation from "@/assets/emailSent.json";
 import { ForgotPasswordProps } from "@/types/Response";
@@ -124,7 +123,7 @@ const ForgotPassword = ({ role, signInPath }: ForgotPasswordProps) => {
         >
           {/* Image covers the entire left side */}
           <img
-            src={sideImageSrc || "/api/placeholder/500/800"}
+            src="https://res.cloudinary.com/daee3szbl/image/upload/v1750764156/forgot_1_ce7stf.jpg"
             alt="Password recovery"
             className="object-cover w-full h-full"
           />
