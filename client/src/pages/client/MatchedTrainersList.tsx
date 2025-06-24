@@ -50,7 +50,7 @@ const transformTrainerData = (apiTrainer: TrainerProfile): TrainerProfile => {
   }
 }
 
-export function MatchedTrainersPage() {
+export default function MatchedTrainersPage() {
   const navigate = useNavigate()
   const { successToast, errorToast } = useToaster()
   const { data: apiResponse, isLoading, isError } = useMatchedTrainers()

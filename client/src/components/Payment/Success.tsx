@@ -15,7 +15,7 @@ function useQuery() {
 }
 
 // Success Page Component
-export function PaymentSuccessPage() {
+export default function PaymentSuccessPage() {
   const [showPolicyPdf, setShowPolicyPdf] = useState(false);
   const navigate = useNavigate();
   const query = useQuery();

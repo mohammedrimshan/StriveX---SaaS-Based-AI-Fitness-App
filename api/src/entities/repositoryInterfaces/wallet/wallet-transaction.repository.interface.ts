@@ -3,5 +3,5 @@ import { IWalletTransactionEntity } from "@/entities/models/wallet-transaction.e
 import { IBaseRepository } from "../base-repository.interface";
 
 export interface IWalletTransactionRepository extends IBaseRepository<IWalletTransactionEntity> {
-
+ deleteByReason(reason: string): Promise<void> 
 }

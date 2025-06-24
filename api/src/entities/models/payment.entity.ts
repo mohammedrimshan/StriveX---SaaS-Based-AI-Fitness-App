@@ -16,4 +16,5 @@ export interface IPaymentEntity {
   walletDeducted?:boolean;
   createdAt: Date;
   updatedAt?: Date;
+  paymentSource?: 'WALLET' | 'STRIPE' | 'MIXED';
 }

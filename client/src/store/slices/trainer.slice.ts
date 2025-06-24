@@ -17,6 +17,7 @@ export interface ITrainer {
   status?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  clientCount?: number;
   isActive?: boolean;
   
 }

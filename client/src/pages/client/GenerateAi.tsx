@@ -24,7 +24,7 @@ import { FeatureCards } from "./AiGenerator/FeatureCards";
 import { LoadingModal } from "./AiGenerator/LoadingModal";
 import { PlanDisplay } from "./PlanDisplay";
 
-export function PlanGenerator() {
+export default function PlanGenerator() {
   const [activeTab, setActiveTab] = useState<"workout" | "diet">("workout");
   const [showSuccess, setShowSuccess] = useState(false);
 

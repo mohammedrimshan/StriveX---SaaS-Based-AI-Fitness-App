@@ -116,7 +116,7 @@ const getGoalIcon = (goal: string) => {
   }
 };
 
-export function TrainerPreferencesPage() {
+export default function TrainerPreferencesPage() {
   const navigate = useNavigate();
   const { successToast, errorToast } = useToaster();
   const { mutate: savePreferences } = useSaveTrainerPreferences();

@@ -33,8 +33,23 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
     console.log(`[${new Date().toISOString()}] [UpgradeSubscriptionUseCase] Start: clientId=${clientId}, newPlanId=${newPlanId}, useWalletBalance=${useWalletBalance}`);
 
     try {
+      // Check for existing pending payment
+      console.log(`[${new Date().toISOString()}] Checking for existing pending payment for clientId: ${clientId}, newPlanId: ${newPlanId}`);
+      const existingPayment = await this.paymentRepository.findOne({
+        clientId,
+        membershipPlanId: newPlanId,
+        status: PaymentStatus.PENDING,
+      });
+      if (existingPayment && existingPayment.stripeSessionId) {
+        console.log(`[${new Date().toISOString()}] Reusing existing pending payment: ${existingPayment.id}`);
+        const stripeSession = await this.stripeService.getCheckoutSessionByUrl(existingPayment.stripeSessionId);
+        if (stripeSession.url) {
+          return stripeSession.url;
+        }
+      }
+
       // Validate client
-      console.log(`[${new Date().toISOString()}] [UpgradeSubscriptionUseCase] Validating client: ${clientId}`);
+      console.log(`[${new Date().toISOString()}] Validating client: ${clientId}`);
       const client = await this.clientRepository.findById(clientId);
       if (!client || !client.isPremium || !client.subscriptionEndDate) {
         console.error(`[${new Date().toISOString()}] No active premium subscription for clientId: ${clientId}`);
@@ -42,15 +57,15 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
       }
 
       // Validate new plan
-      console.log(`[${new Date().toISOString()}] [UpgradeSubscriptionUseCase] Validating plan: ${newPlanId}`);
+      console.log(`[${new Date().toISOString()}] Validating plan: ${newPlanId}`);
       const newPlan = await this.membershipPlanRepository.findById(newPlanId);
-      if (!newPlan || !newPlan.id) {
+      if (!newPlan) {
         console.error(`[${new Date().toISOString()}] Membership plan not found: ${newPlanId}`);
         throw new CustomError(ERROR_MESSAGES.MEMBERSHIP_NOT_FOUND, HTTP_STATUS.BAD_REQUEST);
       }
 
       // Validate current payment
-      console.log(`[${new Date().toISOString()}] [UpgradeSubscriptionUseCase] Finding current payment for clientId: ${clientId}`);
+      console.log(`[${new Date().toISOString()}] Finding current payment for clientId: ${clientId}`);
       const currentPayment = await this.paymentRepository.findOne({
         clientId,
         status: PaymentStatus.COMPLETED,
@@ -61,11 +76,11 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
       }
 
       // Validate current plan
-      console.log(`[${new Date().toISOString()}] [UpgradeSubscriptionUseCase] Validating current plan: ${currentPayment.membershipPlanId}`);
+      console.log(`[${new Date().toISOString()}] Validating plan: ${currentPayment.membershipPlanId}`);
       const currentPlan = await this.membershipPlanRepository.findById(currentPayment.membershipPlanId);
       if (!currentPlan) {
         console.error(`[${new Date().toISOString()}] Current plan not found: ${currentPayment.membershipPlanId}`);
-        throw new CustomError("Current plan not found", HTTP_STATUS.NOT_FOUND);
+        throw new CustomError("Current plan not found", HTTP_STATUS.BAD_REQUEST);
       }
 
       if (currentPlan.id === newPlan.id) {
@@ -74,7 +89,7 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
       }
 
       // Calculate proration credit
-      console.log(`[${new Date().toISOString()}] [UpgradeSubscriptionUseCase] Calculating proration credit`);
+      console.log(`[${new Date().toISOString()}] Calculating proration credit`);
       const now = new Date();
       const remainingDays = Math.ceil(
         (client.subscriptionEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
@@ -90,19 +105,27 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
       let walletBalance = 0;
       let walletUsedAmount = 0;
       if (useWalletBalance) {
-        console.log(`[${new Date().toISOString()}] [UpgradeSubscriptionUseCase] Checking wallet balance for clientId: ${clientId}`);
+        console.log(`[${new Date().toISOString()}] Checking wallet balance for clientId: ${clientId}`);
         const wallet = await this.clientWalletRepository.findByClientId(clientId);
-        walletBalance = wallet?.balance || 0;
+        if (!wallet) {
+          console.error(`[${new Date().toISOString()}] No wallet found for clientId: ${clientId}`);
+          throw new CustomError("No wallet found", HTTP_STATUS.BAD_REQUEST);
+        }
+        walletBalance = wallet.balance || 0;
         console.log(`[${new Date().toISOString()}] Wallet balance for clientId ${clientId}: ${walletBalance}`);
 
         if (walletBalance > 0) {
           walletUsedAmount = Math.min(walletBalance, amountToCharge);
           amountToCharge -= walletUsedAmount;
           amountToCharge = Math.max(amountToCharge, 0);
+        } else {
+          console.log(`[${new Date().toISOString()}] Insufficient wallet balance for clientId: ${clientId}`);
         }
       }
 
-      console.log(`[${new Date().toISOString()}] Amount to charge after proration and wallet applied: ${amountToCharge}, walletUsedAmount: ${walletUsedAmount}`);
+      console.log(
+        `[${new Date().toISOString()}] Amount to charge after proration and wallet applied: ${amountToCharge}, walletUsedAmount: ${walletUsedAmount}`
+      );
 
       // Determine trainerId
       let trainerId: string | undefined;
@@ -111,11 +134,41 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
         console.log(`[${new Date().toISOString()}] Trainer ID assigned: ${trainerId}`);
       }
 
+      // Deduct wallet balance if used
+      if (walletUsedAmount > 0) {
+        console.log(`[${new Date().toISOString()}] Deducting wallet balance: ${walletUsedAmount}`);
+        const walletBefore = await this.clientWalletRepository.findByClientId(clientId);
+        if (!walletBefore) {
+          console.error(`[${new Date().toISOString()}] No wallet found for clientId: ${clientId} during wallet deduction`);
+          throw new CustomError("No wallet found", HTTP_STATUS.BAD_REQUEST);
+        }
+        console.log(`[${new Date().toISOString()}] Wallet balance before deduction: ${walletBefore.balance}`);
+
+        const updatedWallet = await this.clientWalletRepository.updateBalance(clientId, -walletUsedAmount);
+        if (!updatedWallet || updatedWallet.balance < 0) {
+          console.error(
+            `[${new Date().toISOString()}] Failed to update wallet balance for clientId: ${clientId}, new balance: ${
+              updatedWallet?.balance
+            }`
+          );
+          throw new CustomError("Failed to update wallet balance or insufficient balance", HTTP_STATUS.INTERNAL_SERVER_ERROR);
+        }
+        console.log(`[${new Date().toISOString()}] Wallet balance updated, new balance: ${updatedWallet.balance}`);
+
+        await this.walletTransactionRepository.save({
+          clientId,
+          amount: walletUsedAmount,
+          type: WalletTransactionType.WITHDRAWAL,
+          reason: `SUBSCRIPTION_${newPlan.id}_WALLET`,
+          createdAt: new Date(),
+        });
+        console.log(`[${new Date().toISOString()}] Wallet transaction recorded for clientId: ${clientId}, amount: ${walletUsedAmount}`);
+      }
+
       if (amountToCharge <= 0) {
         // Wallet fully covers amount, no Stripe payment needed
-        console.log(`[${new Date().toISOString()}] [UpgradeSubscriptionUseCase] No Stripe payment needed, processing wallet-only payment`);
-        const session = await mongoose.startSession();
-        session.startTransaction();
+        console.log(`[${new Date().toISOString()}] No Stripe payment needed, processing wallet-only payment`);
+
         try {
           // Save payment record
           const payment: Partial<IPaymentEntity> = {
@@ -128,72 +181,52 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
             trainerId,
             status: PaymentStatus.COMPLETED,
             createdAt: new Date(),
+            updatedAt: new Date(),
             remainingBalance: 0,
             walletAppliedAmount: walletUsedAmount,
+            paymentSource: "WALLET",
+            stripeSessionId: undefined,
+            stripePaymentId: undefined,
           };
-          await this.paymentRepository.save(payment, session);
+          await this.paymentRepository.save(payment);
           console.log(`[${new Date().toISOString()}] Payment saved: ${payment.id}`);
-
-          // Deduct wallet balance and record transaction
-          if (walletUsedAmount > 0) {
-            console.log(`[${new Date().toISOString()}] Deducting wallet balance: ${walletUsedAmount}`);
-            const walletBefore = await this.clientWalletRepository.findByClientId(clientId);
-            console.log(`[${new Date().toISOString()}] Wallet balance before deduction: ${walletBefore?.balance || 0}`);
-
-            const updatedWallet = await this.clientWalletRepository.updateBalance(clientId, -walletUsedAmount, session);
-            if (!updatedWallet) {
-              console.error(`[${new Date().toISOString()}] Failed to update wallet balance for clientId: ${clientId}`);
-              throw new CustomError("Failed to update wallet balance", HTTP_STATUS.INTERNAL_SERVER_ERROR);
-            }
-            console.log(`[${new Date().toISOString()}] Wallet balance updated, new balance: ${updatedWallet.balance}`);
-
-            const walletAfter = await this.clientWalletRepository.findByClientId(clientId);
-            console.log(`[${new Date().toISOString()}] Wallet balance after deduction: ${walletAfter?.balance || 0}`);
-
-            await this.walletTransactionRepository.save(
-              {
-                clientId,
-                amount: walletUsedAmount,
-                type: WalletTransactionType.WITHDRAWAL,
-                reason: `SUBSCRIPTION_${newPlan.id}_WALLET`,
-                createdAt: new Date(),
-              },
-              session
-            );
-            console.log(`[${new Date().toISOString()}] Wallet transaction recorded for clientId: ${clientId}, amount: ${walletUsedAmount}`);
-          }
 
           // Update client subscription
           console.log(`[${new Date().toISOString()}] Updating client subscription for clientId: ${clientId}`);
           const startDate = new Date();
           const endDate = new Date(startDate);
           endDate.setMonth(endDate.getMonth() + newPlan.durationMonths);
-          const updated = await this.clientRepository.update(
-            clientId,
-            {
-              isPremium: true,
-              membershipPlanId: newPlan.id,
-              subscriptionStartDate: startDate,
-              subscriptionEndDate: endDate,
-            },
-            session
-          );
+          const updated = await this.clientRepository.update(clientId, {
+            isPremium: true,
+            membershipPlanId: newPlan.id,
+            subscriptionStartDate: startDate,
+            subscriptionEndDate: endDate,
+          });
           if (!updated) {
             console.error(`[${new Date().toISOString()}] Failed to update client subscription for clientId: ${clientId}`);
+            // Rollback payment and wallet changes
+            if (walletUsedAmount > 0) {
+              await this.clientWalletRepository.updateBalance(clientId, walletUsedAmount); // Restore wallet balance
+              await this.walletTransactionRepository.deleteByReason(`SUBSCRIPTION_${newPlan.id}_WALLET`);
+            }
+            await this.paymentRepository.deleteById(payment.id!);
             throw new CustomError("Failed to update client subscription", HTTP_STATUS.INTERNAL_SERVER_ERROR);
           }
           console.log(`[${new Date().toISOString()}] Client subscription updated for clientId: ${clientId}`);
 
-          await session.commitTransaction();
-          console.log(`[${new Date().toISOString()}] Transaction committed for clientId: ${clientId}`);
-          return ""; // No Stripe URL because payment done fully by wallet
+          return `${successUrl}?source=wallet`; // Return wallet-specific success URL
         } catch (error: unknown) {
-          await session.abortTransaction();
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          console.error(`[${new Date().toISOString()}] Transaction aborted for clientId: ${clientId}, error: ${errorMessage}`);
-          throw error instanceof Error ? error : new CustomError(errorMessage, HTTP_STATUS.INTERNAL_SERVER_ERROR);
-        } finally {
-          session.endSession();
+          console.error(
+            `[${new Date().toISOString()}] Error processing wallet-only payment for clientId: ${clientId}, error: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+          // Rollback wallet changes if payment or client update fails
+          if (walletUsedAmount > 0) {
+            await this.clientWalletRepository.updateBalance(clientId, walletUsedAmount); // Restore wallet balance
+            await this.walletTransactionRepository.deleteByReason(`SUBSCRIPTION_${newPlan.id}_WALLET`);
+          }
+          throw error instanceof Error ? error : new CustomError(String(error), HTTP_STATUS.INTERNAL_SERVER_ERROR);
         }
       }
 
@@ -219,17 +252,34 @@ export class UpgradeSubscriptionUseCase implements IUpgradeSubscriptionUseCase {
         stripeSessionId: session.sessionId,
         status: PaymentStatus.PENDING,
         createdAt: new Date(),
+        updatedAt: new Date(),
         remainingBalance: amountToCharge,
         walletAppliedAmount: walletUsedAmount,
+        paymentSource: walletUsedAmount > 0 ? "MIXED" : "STRIPE",
       };
-      await this.paymentRepository.save(payment);
-      console.log(`[${new Date().toISOString()}] Pending payment saved: ${payment.id}, stripeSessionId: ${session.sessionId}`);
+
+      try {
+        await this.paymentRepository.save(payment);
+        console.log(`[${new Date().toISOString()}] Pending payment saved: ${payment.id}, stripeSessionId: ${session.sessionId}`);
+      } catch (error: unknown) {
+        console.error(
+          `[${new Date().toISOString()}] Error saving pending payment for clientId: ${clientId}, error: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+        // Rollback wallet changes if payment save fails
+        if (walletUsedAmount > 0) {
+          await this.clientWalletRepository.updateBalance(clientId, walletUsedAmount); // Restore wallet balance
+          await this.walletTransactionRepository.deleteByReason(`SUBSCRIPTION_${newPlan.id}_WALLET`);
+        }
+        throw error instanceof Error ? error : new CustomError(String(error), HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      }
 
       return session.url!;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(`[${new Date().toISOString()}] Error in UpgradeSubscriptionUseCase for clientId: ${clientId}, error: ${errorMessage}`);
-      throw error instanceof Error ? error : new CustomError(errorMessage, HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      throw error;
     }
   }
 }

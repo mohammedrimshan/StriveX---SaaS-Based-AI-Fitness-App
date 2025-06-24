@@ -1,6 +1,6 @@
 import { IPaymentEntity } from "@/entities/models/payment.entity";
 import { IBaseRepository } from "../base-repository.interface";
-import { FilterQuery } from "mongoose";
+import { ClientSession, FilterQuery } from "mongoose";
 import { ITrainerEarningsEntity } from "@/entities/models/trainer-earnings.entity";
 
 export interface IPaymentRepository extends IBaseRepository<IPaymentEntity> {
@@ -39,4 +39,6 @@ export interface IPaymentRepository extends IBaseRepository<IPaymentEntity> {
     sort?: Record<string, 1 | -1>
   ): Promise<IPaymentEntity | null>;
   updateById(id: string, data: Partial<IPaymentEntity>): Promise<void>;
+  updatePayment(id: string, updates: Partial<IPaymentEntity>, session?: ClientSession): Promise<IPaymentEntity | null>
+   deleteById(id: string): Promise<void> 
 }

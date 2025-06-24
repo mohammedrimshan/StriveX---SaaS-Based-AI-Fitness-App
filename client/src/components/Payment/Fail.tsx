@@ -11,7 +11,7 @@ function useQuery() {
 }
 
 // Failed Payment Page Component
-export function PaymentFailedPage() {
+export default function PaymentFailedPage() {
   const navigate = useNavigate();
   const query = useQuery();
   const error = query.get("error") || query.get("error");

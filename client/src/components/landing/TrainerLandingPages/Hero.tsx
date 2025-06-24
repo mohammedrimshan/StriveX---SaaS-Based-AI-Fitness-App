@@ -1,11 +1,19 @@
-import  { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Search } from 'lucide-react';
-import { Avatar } from "@/components/ui/avatar";
-import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  // Get trainer data from Redux
+  const trainer = useSelector((state: RootState) => state.trainer.trainer);
+  const clientCount =trainer?.clientCount; 
+
+  // Combine firstName and lastName for full name
+  const fullName = trainer ? `${trainer.firstName} ${trainer.lastName}` : "Trainer";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,14 +34,12 @@ const Hero = () => {
 
   return (
     <div className="relative bg-white overflow-hidden" ref={heroRef}>
-    
-      {/* Hero Content */}
       <div className="pt-24 pb-16 md:pt-32 md:pb-24">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 animate-fade-in">
               <div className="inline-block px-4 py-1.5 bg-violet-100 rounded-full text-violet-800 text-sm font-medium">
-                Welcome back, Alex!
+                Welcome back, {fullName}!
               </div>
               
               <h1 className="text-4xl md:text-5xl font-bold leading-tight">
@@ -45,11 +51,11 @@ const Hero = () => {
               </p>
               
               <div className="flex flex-wrap gap-4">
-                <Button className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 h-auto">
+                <Button 
+                  className="bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 h-auto" 
+                  onClick={() => navigate("/trainer/bookslots")}
+                >
                   View Schedule
-                </Button>
-                <Button variant="outline" className="border-violet-200 text-violet-600 hover:bg-violet-50 px-6 py-2 h-auto">
-                  Add New Client
                 </Button>
               </div>
               
@@ -63,7 +69,7 @@ const Hero = () => {
                   ))}
                 </div>
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">4 clients</span> scheduled today
+                  <span className="font-semibold">Total {clientCount} clients</span> 
                 </p>
               </div>
             </div>
@@ -78,7 +84,6 @@ const Hero = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-violet-900/40 to-transparent"></div>
               </div>
               
-              {/* Floating Elements */}
               <div className="absolute top-1/4 -right-6 bg-white p-4 rounded-lg shadow-xl animate-float z-20 border border-gray-100">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
@@ -107,32 +112,9 @@ const Hero = () => {
                 </div>
               </div>
               
-              {/* Background Elements */}
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-violet-100 rounded-full blur-3xl opacity-70 parallax" data-speed="0.2"></div>
               <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-blue-100 rounded-full blur-3xl opacity-50 parallax" data-speed="0.3"></div>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Search Bar */}
-      <div className="container mx-auto px-4 -mt-6 relative z-10">
-        <div className="bg-white rounded-xl shadow-lg p-4 flex items-center space-x-4 border border-gray-100 animate-fade-in animate-delay-500">
-          <div className="flex-1 flex items-center space-x-4">
-            <Search className="h-5 w-5 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search clients, sessions, or workouts..." 
-              className="flex-1 bg-transparent border-none focus:outline-none text-gray-700 placeholder-gray-400"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" className="border-gray-200 text-gray-600 hover:bg-gray-50 h-9">
-              Filters
-            </Button>
-            <Button className="bg-violet-600 hover:bg-violet-700 h-9">
-              Search
-            </Button>
           </div>
         </div>
       </div>

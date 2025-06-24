@@ -15,7 +15,7 @@ import { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
 
 
-export function TrainerSelectionPromptPage() {
+export default function TrainerSelectionPromptPage() {
   const navigate = useNavigate();
   const { infoToast } = useToaster();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

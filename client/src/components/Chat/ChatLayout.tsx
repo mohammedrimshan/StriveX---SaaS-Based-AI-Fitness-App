@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {  IChat, RecentChatsResponse, Participant } from "@/types/Chat";
 import { useClientProfile } from "@/hooks/client/useClientProfile";
 import { useNavigate } from "react-router-dom";
-export function ChatLayout() {
+export default function ChatLayout() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showSidebar, setShowSidebar] = useState(!isMobile);

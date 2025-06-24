@@ -12,5 +12,7 @@ export class WalletTransactionRepository
   constructor() {
     super(WalletTransactionModel);
   }
-
+async deleteByReason(reason: string): Promise<void> {
+  await WalletTransactionModel.deleteMany({ reason });
+}
 }

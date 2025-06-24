@@ -1,15 +1,21 @@
 import { injectable } from "tsyringe";
-import { Model, QueryOptions } from "mongoose";
+import { ClientSession, Model, QueryOptions } from "mongoose";
 import { IBaseRepository } from "@/entities/repositoryInterfaces/base-repository.interface";
 
 @injectable()
 export class BaseRepository<T> implements IBaseRepository<T> {
   constructor(protected model: Model<any>) {}
 
-  async save(data: Partial<T>): Promise<T> {
-    const entity = new this.model(data);
-    const savedEntity = await entity.save();
-    return this.mapToEntity(savedEntity.toObject());
+   async save(data: Partial<T>, session?: ClientSession): Promise<T> {
+    try {
+      const entity = new this.model(data);
+      const savedEntity = await entity.save({ session });
+      console.log(`[${new Date().toISOString()}] Saved entity to ${this.model.modelName}: ${entity._id}`);
+      return this.mapToEntity(savedEntity.toObject());
+    } catch (error: any) {
+      console.error(`[${new Date().toISOString()}] Error saving entity to ${this.model.modelName}: ${error.message}`);
+      throw error;
+    }
   }
 
   async findById(id: string): Promise<T | null> {

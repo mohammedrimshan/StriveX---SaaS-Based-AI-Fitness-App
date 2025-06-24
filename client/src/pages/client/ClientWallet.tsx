@@ -43,7 +43,7 @@ const ClientWallet = () => {
   const month = currentDate.getMonth() + 1; // Months are 1-based for the API
 
   // Fetch wallet data using the hook
-  const { data: walletData, isLoading, isError, error } = useClientWallet(year, month, currentPage, 10);
+  const { data: walletData, isLoading } = useClientWallet(year, month, currentPage, 10);
 
   // Calculate unbooked days count
   const unbookedDaysCount = useMemo(() => {
