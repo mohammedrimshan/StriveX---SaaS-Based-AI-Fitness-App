@@ -24,7 +24,6 @@ export class GetSessionHistoryUseCase implements IGetSessionHistoryUseCase {
     skip: number,
     limit: number
   ): Promise<{ items: ISessionHistoryModel[]; total: number }> {
-    console.log("UseCase: Received role:", role, "Expected roles:", ROLES); // Add logging
     if (role === ROLES.TRAINER) {
       const trainer = await this.trainerRepository.findById(userId);
       if (!trainer) {
@@ -47,7 +46,6 @@ export class GetSessionHistoryUseCase implements IGetSessionHistoryUseCase {
       );
     } else if (role === ROLES.ADMIN) {
       const admin = await this.adminRepository.findById(userId);
-      console.log(admin, "UseCase: Admin found:", admin); 
       if (!admin) {
         throw new CustomError("Admin not found", HTTP_STATUS.NOT_FOUND);
       }

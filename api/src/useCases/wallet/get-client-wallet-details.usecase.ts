@@ -9,7 +9,7 @@ import { HTTP_STATUS, ERROR_MESSAGES } from "@/shared/constants";
 @injectable()
 export class GetClientWalletDetailsUseCase implements IGetClientWalletDetailsUseCase {
   constructor(
-    @inject("IClientWalletRepository") private walletRepository: IClientWalletRepository
+    @inject("IClientWalletRepository") private _walletRepository: IClientWalletRepository
   ) {}
 
   async execute(
@@ -39,8 +39,8 @@ export class GetClientWalletDetailsUseCase implements IGetClientWalletDetailsUse
     }
 
     const [wallet, transactionSummary] = await Promise.all([
-      this.walletRepository.findByClientId(clientId),
-      this.walletRepository.getWalletTransactionSummary(clientId, year, month, skip, limit),
+      this._walletRepository.findByClientId(clientId),
+      this._walletRepository.getWalletTransactionSummary(clientId, year, month, skip, limit),
     ]);
 
     if (!wallet) {

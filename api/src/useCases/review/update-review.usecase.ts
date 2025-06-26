@@ -20,9 +20,8 @@ export class UpdateReviewUseCase implements IUpdateReviewUseCase {
     rating: number,
     comment?: string
   ): Promise<IReviewEntity> {
-    // Validate client eligibility
     const client = await this.clientRepository.findById(clientId);
-    console.log(client,"update review");
+    console.log(client, "update review");
     if (!client) {
       throw new Error("Client not found");
     }
@@ -30,7 +29,10 @@ export class UpdateReviewUseCase implements IUpdateReviewUseCase {
       throw new Error("Only premium clients can update reviews");
     }
 
-    const review = await this.reviewRepository.findReviewByClientAndTrainer(clientId, client.selectedTrainerId!);
+    const review = await this.reviewRepository.findReviewByClientAndTrainer(
+      clientId,
+      client.selectedTrainerId!
+    );
     if (!review || review.id !== reviewId) {
       throw new Error("Review not found or not authorized to update");
     }
@@ -38,7 +40,6 @@ export class UpdateReviewUseCase implements IUpdateReviewUseCase {
       throw new Error("Rating must be between 1 and 5");
     }
 
-    // Update review
     const updatedReview = await this.reviewRepository.updateReview(reviewId, {
       rating,
       comment,
@@ -49,18 +50,19 @@ export class UpdateReviewUseCase implements IUpdateReviewUseCase {
       throw new Error("Failed to update review");
     }
 
-    // Update trainer's rating and reviewCount
     await this.updateTrainerRating(review.trainerId);
 
     return updatedReview;
   }
 
   private async updateTrainerRating(trainerId: string): Promise<void> {
-    const { items: reviews } = await this.reviewRepository.findReviewsByTrainerId(trainerId, 0, 0);
+    const { items: reviews } =
+      await this.reviewRepository.findReviewsByTrainerId(trainerId, 0, 0);
     const reviewCount = reviews.length;
-    const averageRating = reviewCount > 0 
-      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount 
-      : 0;
+    const averageRating =
+      reviewCount > 0
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
+        : 0;
 
     await this.trainerRepository.findByIdAndUpdate(trainerId, {
       rating: averageRating,

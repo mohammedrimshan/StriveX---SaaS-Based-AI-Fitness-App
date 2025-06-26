@@ -11,9 +11,9 @@ import { NotificationService } from "@/interfaceAdapters/services/notification.s
 @injectable()
 export class StartVideoCallUseCase implements IStartVideoCallUseCase {
   constructor(
-    @inject("ISlotRepository") private slotRepository: ISlotRepository,
-    @inject("IClientRepository") private clientRepository: IClientRepository,
-    @inject("NotificationService") private notificationService: NotificationService
+    @inject("ISlotRepository") private _slotRepository: ISlotRepository,
+    @inject("IClientRepository") private _clientRepository: IClientRepository,
+    @inject("NotificationService") private _notificationService: NotificationService
 
   ) {}
 
@@ -22,7 +22,7 @@ export class StartVideoCallUseCase implements IStartVideoCallUseCase {
     userId: string,
     role: "trainer" | "client"
   ): Promise<ISlotEntity> {
-    const slot = await this.slotRepository.findById(slotId);
+    const slot = await this._slotRepository.findById(slotId);
     if (!slot) {
       throw new CustomError("Slot not found", HTTP_STATUS.NOT_FOUND);
     }
@@ -46,7 +46,7 @@ export class StartVideoCallUseCase implements IStartVideoCallUseCase {
     }
 
     if (role === "client") {
-      const client = await this.clientRepository.findByClientNewId(userId);
+      const client = await this._clientRepository.findByClientNewId(userId);
       if (
         !client ||
         client.id !== slot.clientId ||
@@ -60,7 +60,7 @@ export class StartVideoCallUseCase implements IStartVideoCallUseCase {
     }
 
     const roomName = `StriveX-${slotId}`;
-    const updatedSlot = await this.slotRepository.updateVideoCallStatus(
+    const updatedSlot = await this._slotRepository.updateVideoCallStatus(
       slotId,
       VideoCallStatus.IN_PROGRESS,
       roomName,
@@ -75,10 +75,10 @@ export class StartVideoCallUseCase implements IStartVideoCallUseCase {
     }
 
     if (role === "trainer") {
-      const client = await this.clientRepository.findById(slot.clientId);
+      const client = await this._clientRepository.findById(slot.clientId);
       if (client) {
         try {
-          await this.notificationService.sendToUser(
+          await this._notificationService.sendToUser(
             client.id as string,
             "Call Started",
             "Your trainer has started the session. Join the call now.",

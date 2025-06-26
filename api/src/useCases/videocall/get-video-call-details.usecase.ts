@@ -8,15 +8,15 @@ import { ZegoTokenService } from "@/interfaceAdapters/services/zego-token.servic
 @injectable()
 export class GetVideoCallDetailsUseCase implements IGetVideoCallDetailsUseCase {
   constructor(
-    @inject("ISlotRepository") private slotRepository: ISlotRepository,
-    @inject("ZegoTokenService") private zegoTokenService: ZegoTokenService
+    @inject("ISlotRepository") private _slotRepository: ISlotRepository,
+    @inject("ZegoTokenService") private _zegoTokenService: ZegoTokenService
   ) {}
 
   async execute(slotId: string, userId: string, role: "trainer" | "client"): Promise<{
     roomName: string;
     token: string;
   }> {
-    const slot = await this.slotRepository.findById(slotId);
+    const slot = await this._slotRepository.findById(slotId);
     if (!slot) {
       throw new CustomError("Slot not found", HTTP_STATUS.NOT_FOUND);
     }
@@ -28,7 +28,7 @@ export class GetVideoCallDetailsUseCase implements IGetVideoCallDetailsUseCase {
       throw new CustomError("Unauthorized: You do not have access to this slot", HTTP_STATUS.FORBIDDEN);
     }
 
-    const videoCallDetails = await this.slotRepository.getVideoCallDetails(slotId);
+    const videoCallDetails = await this._slotRepository.getVideoCallDetails(slotId);
     if (!videoCallDetails) {
       throw new CustomError("Video call details not found", HTTP_STATUS.NOT_FOUND);
     }
@@ -44,7 +44,7 @@ export class GetVideoCallDetailsUseCase implements IGetVideoCallDetailsUseCase {
       throw new CustomError("Video call room name missing", HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
 
-    const token = this.zegoTokenService.generateToken(userId, videoCallDetails.videoCallRoomName);
+    const token = this._zegoTokenService.generateToken(userId, videoCallDetails.videoCallRoomName);
 
     return {
       roomName: videoCallDetails.videoCallRoomName,

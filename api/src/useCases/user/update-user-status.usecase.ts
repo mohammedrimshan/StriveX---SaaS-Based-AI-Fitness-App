@@ -85,7 +85,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
     for (const client of affectedClients) {
       try {
         if (client.backupTrainerId) {
-          // Reassign client to backup trainer
           await this._clientRepository.findByIdAndUpdate(client.id, {
             previousTrainerId: client.selectedTrainerId,
             selectedTrainerId: client.backupTrainerId,
@@ -93,7 +92,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
             selectStatus: TrainerSelectionStatus.ACCEPTED,
           });
 
-          // Handle slot reassignment with conflict check
           await this.reassignSlots(
             client.id!,
             trainerId,
@@ -107,7 +105,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
             "INFO"
           );
         } else {
-          // No backup trainer, cancel all slots
           await this.cancelSlots(
             client.id!,
             trainerId,
@@ -133,7 +130,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
 
     for (const client of clientsToRestore) {
       try {
-        // Restore original trainer
         await this._clientRepository.updateRaw(client.id!, {
           $set: {
             selectedTrainerId: trainerId,
@@ -145,7 +141,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
           },
         });
 
-        // Reassign slots back to original trainer
         await this.reassignSlots(
           client.id!,
           client.selectedTrainerId!,
@@ -180,10 +175,9 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
         const slotEndTime = this.parseSlotDateTime(slot.date, slot.endTime);
 
         if (slotStartTime < new Date()) {
-          continue; // Skip past slots
+          continue;
         }
 
-        // Find if backup trainer has an available slot at same date/time
         const backupAvailableSlot =
           await this._slotRepository.findSlotByTrainerAndTime(
             newTrainerId,
@@ -196,13 +190,11 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
           backupAvailableSlot &&
           backupAvailableSlot.status === SlotStatus.AVAILABLE
         ) {
-          // Book backup trainer's slot for client
           await this._slotRepository.update(backupAvailableSlot.id!, {
             clientId,
             status: SlotStatus.BOOKED,
           });
 
-          // Cancel original slot of primary trainer
           await this.cancelSlot(
             slot,
             clientId,
@@ -214,7 +206,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
             `Reassigned slot ${slot.id} from primary trainer ${currentTrainerId} to backup trainer ${newTrainerId} for client ${clientId}`
           );
 
-          // Notify client and backup trainer about reassignment
           const newTrainer = await this._trainerRepository.findById(
             newTrainerId
           );
@@ -236,7 +227,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
             );
           }
         } else {
-          // No available slot for backup trainer - cancel original slot
           await this.cancelSlot(
             slot,
             clientId,
@@ -268,7 +258,7 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
       try {
         const slotStartTime = this.parseSlotDateTime(slot.date, slot.startTime);
         if (slotStartTime < new Date()) {
-          continue; // Skip past slots
+          continue;
         }
 
         await this.cancelSlot(slot, clientId, trainerId, reason);
@@ -297,7 +287,7 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
       clientId,
       trainerId,
       cancellationReason: reason,
-	  cancelledBy: "trainer",
+      cancelledBy: "trainer",
       cancelledAt: new Date(),
     };
     await this._cancellationRepository.save(cancellationData);

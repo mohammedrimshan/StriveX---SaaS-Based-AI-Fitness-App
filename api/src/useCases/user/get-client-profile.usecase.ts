@@ -9,11 +9,11 @@ import { IGetClientProfileUseCase } from '@/entities/useCaseInterfaces/users/get
 export class GetClientProfileUseCase implements IGetClientProfileUseCase {
   constructor(
     @inject('IClientRepository')
-    private clientRepository: IClientRepository,
+    private _clientRepository: IClientRepository,
   ) {}
 
   async execute(clientId: string): Promise<IClientEntity> {
-    const client = await this.clientRepository.findById(clientId);
+    const client = await this._clientRepository.findById(clientId);
     if (!client) {
       throw new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }

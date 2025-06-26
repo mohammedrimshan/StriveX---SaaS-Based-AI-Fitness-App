@@ -12,14 +12,14 @@ import { NotificationService } from "../../interfaceAdapters/services/notificati
 @injectable()
 export class BookSlotUseCase implements IBookSlotUseCase {
   constructor(
-    @inject("ISlotRepository") private slotRepository: ISlotRepository,
-    @inject("IClientRepository") private clientRepository: IClientRepository,
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository,
-    @inject("NotificationService") private notificationService: NotificationService
+    @inject("ISlotRepository") private _slotRepository: ISlotRepository,
+    @inject("IClientRepository") private _clientRepository: IClientRepository,
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
+    @inject("NotificationService") private _notificationService: NotificationService
   ) {}
 
   async execute(clientId: string, slotId: string): Promise<ISlotEntity> {
-    const slot = await this.slotRepository.findById(slotId);
+    const slot = await this._slotRepository.findById(slotId);
     if (!slot) {
       throw new CustomError(
         ERROR_MESSAGES.SLOT_NOT_FOUND,
@@ -52,7 +52,7 @@ export class BookSlotUseCase implements IBookSlotUseCase {
       );
     }
 
-    const existingSlot = await this.slotRepository.findBookedSlotByClientIdAndDate(
+    const existingSlot = await this._slotRepository.findBookedSlotByClientIdAndDate(
       clientId,
       slot.date
     );
@@ -64,7 +64,7 @@ export class BookSlotUseCase implements IBookSlotUseCase {
       );
     }
 
-    const updatedSlot = await this.slotRepository.updateStatus(
+    const updatedSlot = await this._slotRepository.updateStatus(
       slotId,
       SlotStatus.BOOKED,
       clientId
@@ -79,14 +79,14 @@ export class BookSlotUseCase implements IBookSlotUseCase {
 
     try {
       let clientName = "Someone";
-      const client = await this.clientRepository.findByClientNewId(clientId);
+      const client = await this._clientRepository.findByClientNewId(clientId);
       if (client) {
         clientName = `${client.firstName} ${client.lastName}`;
       }
 
-      const trainer = await this.trainerRepository.findById(slot.trainerId);
+      const trainer = await this._trainerRepository.findById(slot.trainerId);
       if (trainer) {
-        await this.notificationService.sendToUser(
+        await this._notificationService.sendToUser(
           slot.trainerId as string,
           "Slot Booked",
           `${clientName} booked your slot on ${slot.date} at ${slot.startTime}!`,

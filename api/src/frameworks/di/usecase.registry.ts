@@ -26,7 +26,7 @@ import { GeminiService } from "@/interfaceAdapters/services/gemini.service";
 import { IStripeService } from "@/entities/services/stripe-service.interface";
 import { StripeService } from "@/interfaceAdapters/services/stripe.service";
 import { SocketService } from "@/interfaceAdapters/services/socket.service";
-import { INotificationSocketService } from "@/entities/services/socket-service.interface";
+import ChatbotService from "@/interfaceAdapters/services/chatbot.service";
 import { SocketNotificationService } from "@/interfaceAdapters/services/socket-notification.service";
 import { NotificationService } from "@/interfaceAdapters/services/notification.service";
 import { FCMService } from "@/interfaceAdapters/services/fcm.service";
@@ -371,6 +371,10 @@ export class UseCaseRegistry {
 
     container.register<ZegoTokenService>("ZegoTokenService", {
       useClass: ZegoTokenService,
+    });
+
+    container.register<ChatbotService>("ChatbotService", {
+      useClass: ChatbotService,
     });
 
     //* ====== Register Slot Expiry Processor ====== *//

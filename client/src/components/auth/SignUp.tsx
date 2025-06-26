@@ -25,7 +25,6 @@ import {
   Puzzle,
 } from "lucide-react";
 
-
 import { User as UserType } from "@/types/User";
 import { useFormik } from "formik";
 import { getValidationSchema } from "@/utils/validations/signup.validator";
@@ -684,7 +683,7 @@ const SignUp = ({
   return (
     <>
       {/* <Header /> */}
-      <motion.div className="min-h-screen flex flex-col md:flex-row">
+      <motion.div className="min-h-screen flex flex-col md:flex-row pt-[4rem] md:pt-0">
         {/* Left Section with Image */}
         <div className="hidden md:flex w-1/2 bg-[var(--bg-violet)] relative overflow-hidden justify-center items-end">
           <div className="absolute inset-0 pattern-bg opacity-10"></div>

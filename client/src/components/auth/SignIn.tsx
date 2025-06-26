@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { GoogleAuthButton } from "./googleAuth";
 import { SignInProps } from "@/types/Response";
 
-
 const SignIn = ({
   userType,
   onSubmit,
@@ -32,24 +31,25 @@ const SignIn = ({
     },
   });
 
-
   const bgImages = {
-  admin: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762549/admin-bg_ezjkhj.jpg",
-  trainer: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762528/trainer-bg_fkfh5n.jpg",
-  default: "https://res.cloudinary.com/daee3szbl/image/upload/v1750762538/sgn2_hs4kf1.jpg",
-};
-
+    admin:
+      "https://res.cloudinary.com/daee3szbl/image/upload/v1750762549/admin-bg_ezjkhj.jpg",
+    trainer:
+      "https://res.cloudinary.com/daee3szbl/image/upload/v1750762528/trainer-bg_fkfh5n.jpg",
+    default:
+      "https://res.cloudinary.com/daee3szbl/image/upload/v1750762538/sgn2_hs4kf1.jpg",
+  };
 
   const getBgImage = () => {
-  switch (userType) {
-    case "admin":
-      return bgImages.admin;
-    case "trainer":
-      return bgImages.trainer;
-    default:
-      return bgImages.default;
-  }
-};
+    switch (userType) {
+      case "admin":
+        return bgImages.admin;
+      case "trainer":
+        return bgImages.trainer;
+      default:
+        return bgImages.default;
+    }
+  };
 
   const handleForgotPasswordRedirection = () => {
     switch (userType) {
@@ -68,7 +68,7 @@ const SignIn = ({
   return (
     <>
       {/* <Header /> */}
-      <div className="min-h-screen flex flex-col md:flex-row">
+      <div className="min-h-screen flex flex-col md:flex-row pt-[4rem] md:pt-0">
         {/* Left Section with Image */}
         <div className="hidden md:flex w-1/2 bg-[var(--bg-violet)] relative overflow-hidden justify-center items-end">
           <div className="absolute inset-0 pattern-bg opacity-10"></div>
@@ -268,9 +268,7 @@ const SignIn = ({
                   <div className="text-center my-4 text-muted-foreground text-xs">
                     OR
                   </div>
-                  <GoogleAuthButton
-										handleGoogleSuccess={handleGoogleAuth}
-									/>
+                  <GoogleAuthButton handleGoogleSuccess={handleGoogleAuth} />
                 </>
               )}
             </form>

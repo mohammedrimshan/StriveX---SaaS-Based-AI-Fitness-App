@@ -8,6 +8,7 @@ import { lazy, Suspense } from "react";
 // Eager-loaded components (critical for initial render)
 import LandingPage from "@/components/landing/Landing";
 import FallbackUI from "@/components/common/FallBackUi";
+import SupportPage from "@/components/common/SupportPage";
 
 // Lazy-loaded components
 const ForgotPassword = lazy(() => import("@/components/auth/ForgotPassword"));
@@ -229,6 +230,18 @@ const ClientRoutes = () => {
               />
             }
           />
+
+          <Route
+            path="/support"
+            element={
+              <AuthRoute
+                allowedRoles={["client"]}
+                element={<SupportPage />}
+              />
+            }
+          />
+
+
           {/* Catch-all route for unmatched client sub-routes */}
           <Route path="*" element={<NotFoundPage />} />
         </Route>

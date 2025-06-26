@@ -11,22 +11,25 @@ import { ISlotRepository } from "@/entities/repositoryInterfaces/slot/slot-repos
 @injectable()
 export class GetTrainerProfileUseCase implements IGetTrainerProfileUseCase {
   constructor(
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository,
-    @inject("IReviewRepository") private reviewRepository: IReviewRepository,
-    @inject("IClientRepository") private clientRepository: IClientRepository,
-    @inject("ISessionHistoryRepository") private sessionHistoryRepository: ISessionHistoryRepository,
-    @inject("ISlotRepository") private slotRepository: ISlotRepository
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository,
+    @inject("IReviewRepository") private _reviewRepository: IReviewRepository,
+    @inject("IClientRepository") private _clientRepository: IClientRepository,
+    @inject("ISessionHistoryRepository")
+    private _sessionHistoryRepository: ISessionHistoryRepository,
+    @inject("ISlotRepository") private _slotRepository: ISlotRepository
   ) {}
 
-  async execute(trainerId: string, clientId?: string): Promise<TrainerProfileViewDto> {
-    console.log(clientId,"client from usecase get trainer profile");
-    // Fetch trainer data
-    const trainer = await this.trainerRepository.findById(trainerId);
+  async execute(
+    trainerId: string,
+    clientId?: string
+  ): Promise<TrainerProfileViewDto> {
+    console.log(clientId, "client from usecase get trainer profile");
+
+    const trainer = await this._trainerRepository.findById(trainerId);
     if (!trainer) {
       throw new Error("Trainer not found");
     }
 
-    // Calculate age from dateOfBirth
     let age: number | undefined;
     if (trainer.dateOfBirth) {
       const dob = new Date(trainer.dateOfBirth);
@@ -40,27 +43,25 @@ export class GetTrainerProfileUseCase implements IGetTrainerProfileUseCase {
       }
     }
 
-    // Fetch reviews and stats
-    const [latestReviews, allReviews, performanceStats, availableSlots] = await Promise.all([
-        
-      this.reviewRepository.findLatestReviewsByTrainerId(trainerId, 3),
-      this.reviewRepository.findReviewsByTrainerId(trainerId, 0, 0),
-      this.sessionHistoryRepository.getPerformanceStats(trainerId),
-      this.slotRepository.findAvailableSlots(trainerId),
-    ]);
+    const [latestReviews, allReviews, performanceStats, availableSlots] =
+      await Promise.all([
+        this._reviewRepository.findLatestReviewsByTrainerId(trainerId, 3),
+        this._reviewRepository.findReviewsByTrainerId(trainerId, 0, 0),
+        this._sessionHistoryRepository.getPerformanceStats(trainerId),
+        this._slotRepository.findAvailableSlots(trainerId),
+      ]);
 
-    console.log(performanceStats,"performance stats");
-    // Calculate average rating
+    console.log(performanceStats, "performance stats");
+
     const averageRating =
       allReviews.items.length > 0
         ? allReviews.items.reduce((sum, review) => sum + review.rating, 0) /
           allReviews.items.length
         : 0;
 
-    // Determine canReview
     let canReview = false;
     if (clientId) {
-      const client = await this.clientRepository.findById(clientId);
+      const client = await this._clientRepository.findById(clientId);
       console.log(client, "clientfrom usecase  get trainer profile");
       if (
         client &&

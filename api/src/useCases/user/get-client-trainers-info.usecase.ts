@@ -9,23 +9,23 @@ import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 @injectable()
 export class GetClientTrainersInfoUseCase implements IGetClientTrainersInfoUseCase {
   constructor(
-    @inject("IClientRepository") private clientRepository: IClientRepository,
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository
+    @inject("IClientRepository") private _clientRepository: IClientRepository,
+    @inject("ITrainerRepository") private _trainerRepository: ITrainerRepository
   ) {}
 
   async execute(clientId: string) {
-    const client = await this.clientRepository.findById(clientId);
+    const client = await this._clientRepository.findById(clientId);
     if (!client) {
       throw new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
     const selectedTrainer =
       client.selectedTrainerId &&
-      (await this.trainerRepository.findById(client.selectedTrainerId));
+      (await this._trainerRepository.findById(client.selectedTrainerId));
 
     const backupTrainer =
       client.backupTrainerId &&
-      (await this.trainerRepository.findById(client.backupTrainerId));
+      (await this._trainerRepository.findById(client.backupTrainerId));
 
     const mapTrainer = (trainer: any) =>
       trainer

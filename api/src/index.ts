@@ -12,7 +12,7 @@ import { VideoSocketService } from './interfaceAdapters/services/video-socket.se
 import { NotificationService } from './interfaceAdapters/services/notification.service';
 import { subscriptionProcessor, processor as slotExpiryProcessor } from './frameworks/di/resolver';
 import { dailyUnusedSessionProcessor } from './frameworks/di/resolver';
-
+import ChatbotService from './interfaceAdapters/services/chatbot.service';
 import "@/frameworks/queue/bull/handleexpiredinvitations";
 
 
@@ -26,9 +26,11 @@ const httpServer = createServer(app);
 const socketService = container.resolve(SocketService);
 const videoSocketService = container.resolve(VideoSocketService);
 const notificationService = container.resolve(NotificationService);
+const chatbotService = container.resolve(ChatbotService);
 
 socketService.initialize(httpServer);
 videoSocketService.initialize(httpServer);
+chatbotService.handleSocket(socketService.getIO());
 
 subscriptionProcessor.start();
 dailyUnusedSessionProcessor.start();

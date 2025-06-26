@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clientLogout } from "@/store/slices/client.slice";
 import { useToaster } from "@/hooks/ui/useToaster";
 import { RootState } from "@/store/store";
+import Chatbot from "@/components/common/ChatBot";
 
 export const ClientLayout = () => {
 	const [isSideBarVisible, setIsSideBarVisible] = useState(false);
@@ -60,6 +61,7 @@ export const ClientLayout = () => {
 			
 			{/* Main content */}
 			<Outlet context={user}/>
+			{isLoggedIn && <Chatbot />}
 		</div>
 	);
 };

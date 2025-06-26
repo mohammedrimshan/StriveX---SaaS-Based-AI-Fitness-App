@@ -2,7 +2,6 @@ import { injectable, inject } from "tsyringe";
 import { IEndVideoCallUseCase } from "@/entities/useCaseInterfaces/videocall/end-video-usecase.interface";
 import { ISlotRepository } from "@/entities/repositoryInterfaces/slot/slot-repository.interface";
 import { IClientRepository } from "@/entities/repositoryInterfaces/client/client-repository.interface";
-import { ITrainerRepository } from "@/entities/repositoryInterfaces/trainer/trainer-repository.interface";
 import {
   ROLES,
   SlotStatus,
@@ -16,9 +15,8 @@ import { ISlotEntity } from "@/entities/models/slot.entity";
 @injectable()
 export class EndVideoCallUseCase implements IEndVideoCallUseCase {
   constructor(
-    @inject("ISlotRepository") private slotRepository: ISlotRepository,
-    @inject("IClientRepository") private clientRepository: IClientRepository,
-    @inject("ITrainerRepository") private trainerRepository: ITrainerRepository
+    @inject("ISlotRepository") private _slotRepository: ISlotRepository,
+    @inject("IClientRepository") private _clientRepository: IClientRepository,
   ) {}
 
   async execute(
@@ -26,7 +24,7 @@ export class EndVideoCallUseCase implements IEndVideoCallUseCase {
     userId: string,
     role: "trainer" | "client"
   ): Promise<ISlotEntity> {
-    const slot = await this.slotRepository.findById(slotId);
+    const slot = await this._slotRepository.findById(slotId);
     if (!slot) {
       throw new CustomError("Slot not found", HTTP_STATUS.NOT_FOUND);
     }
@@ -59,7 +57,7 @@ export class EndVideoCallUseCase implements IEndVideoCallUseCase {
     }
 
     if (role === "client") {
-      const client = await this.clientRepository.findByClientNewId(userId);
+      const client = await this._clientRepository.findByClientNewId(userId);
       if (
         !client ||
         client.id !== slot.clientId ||
@@ -72,7 +70,7 @@ export class EndVideoCallUseCase implements IEndVideoCallUseCase {
       }
     }
 
-    const updatedSlot = await this.slotRepository.endVideoCall(slotId);
+    const updatedSlot = await this._slotRepository.endVideoCall(slotId);
     if (!updatedSlot) {
       throw new CustomError(
         "Failed to end video call",
