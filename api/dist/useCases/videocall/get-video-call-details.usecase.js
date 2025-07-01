@@ -27,13 +27,13 @@ const custom_error_1 = require("@/entities/utils/custom.error");
 const constants_1 = require("@/shared/constants");
 const zego_token_service_1 = require("@/interfaceAdapters/services/zego-token.service");
 let GetVideoCallDetailsUseCase = class GetVideoCallDetailsUseCase {
-    constructor(slotRepository, zegoTokenService) {
-        this.slotRepository = slotRepository;
-        this.zegoTokenService = zegoTokenService;
+    constructor(_slotRepository, _zegoTokenService) {
+        this._slotRepository = _slotRepository;
+        this._zegoTokenService = _zegoTokenService;
     }
     execute(slotId, userId, role) {
         return __awaiter(this, void 0, void 0, function* () {
-            const slot = yield this.slotRepository.findById(slotId);
+            const slot = yield this._slotRepository.findById(slotId);
             if (!slot) {
                 throw new custom_error_1.CustomError("Slot not found", constants_1.HTTP_STATUS.NOT_FOUND);
             }
@@ -41,7 +41,7 @@ let GetVideoCallDetailsUseCase = class GetVideoCallDetailsUseCase {
                 (role === constants_1.ROLES.USER && slot.clientId !== userId)) {
                 throw new custom_error_1.CustomError("Unauthorized: You do not have access to this slot", constants_1.HTTP_STATUS.FORBIDDEN);
             }
-            const videoCallDetails = yield this.slotRepository.getVideoCallDetails(slotId);
+            const videoCallDetails = yield this._slotRepository.getVideoCallDetails(slotId);
             if (!videoCallDetails) {
                 throw new custom_error_1.CustomError("Video call details not found", constants_1.HTTP_STATUS.NOT_FOUND);
             }
@@ -51,7 +51,7 @@ let GetVideoCallDetailsUseCase = class GetVideoCallDetailsUseCase {
             if (!videoCallDetails.videoCallRoomName) {
                 throw new custom_error_1.CustomError("Video call room name missing", constants_1.HTTP_STATUS.INTERNAL_SERVER_ERROR);
             }
-            const token = this.zegoTokenService.generateToken(userId, videoCallDetails.videoCallRoomName);
+            const token = this._zegoTokenService.generateToken(userId, videoCallDetails.videoCallRoomName);
             return {
                 roomName: videoCallDetails.videoCallRoomName,
                 token,

@@ -27,4 +27,4 @@ export const WorkoutVideoProgressSchema = new Schema<IWorkoutVideoProgressModel>
   }
 );
 
-WorkoutVideoProgressSchema.index({ userId: 1, workoutId: 1 });
+WorkoutVideoProgressSchema.index({ userId: 1, workoutId: 1, exerciseId: 1 }, { unique: true });

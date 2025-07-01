@@ -11,31 +11,33 @@ import { useClientProfile } from "@/hooks/client/useClientProfile";
 import { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
 
-
 export default function TrainerSelectionPromptPage() {
   const navigate = useNavigate();
   const { infoToast } = useToaster();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-   const client = useSelector((state: RootState) => state.client.client);
+  const client = useSelector((state: RootState) => state.client.client);
   const { data: clientProfile, isLoading, error } = useClientProfile(client?.id || null);
 
   const images = [
     "https://res.cloudinary.com/daee3szbl/image/upload/v1750761630/trainer1_ptthds.jpg",
     "https://res.cloudinary.com/daee3szbl/image/upload/v1750761627/trainer2_y70waf.jpg",
-    "https://res.cloudinary.com/daee3szbl/image/upload/v1750761498/trainer4_hioepm.jpg"
+    "https://res.cloudinary.com/daee3szbl/image/upload/v1750761498/trainer4_hioepm.jpg",
   ];
 
   useEffect(() => {
     if (clientProfile?.isPremium && clientProfile?.selectStatus === "accepted") {
       infoToast("You already have an assigned trainer!");
-      navigate("/dashboard"); 
+      navigate("/dashboard");
+    } else if (clientProfile && !clientProfile.isPremium) {
+      infoToast("Please upgrade to premium to select a trainer");
+      navigate("/premium");
     }
   }, [clientProfile, navigate, infoToast]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 3000); 
+    }, 3000);
 
     return () => clearInterval(intervalId);
   }, []);
@@ -65,6 +67,42 @@ export default function TrainerSelectionPromptPage() {
       <AnimatedBackground>
         <div className="flex min-h-screen flex-col items-center justify-center w-full px-4 py-6">
           <p className="text-red-500">{error.message || "Error loading profile"}</p>
+        </div>
+      </AnimatedBackground>
+    );
+  }
+
+  if (!client) {
+    return (
+      <AnimatedBackground>
+        <div className="flex min-h-screen flex-col items-center justify-center w-full px-4 py-6">
+          <div className="text-center p-8 bg-white rounded-xl shadow-lg">
+            <div className="text-5xl mb-4">👋</div>
+            <h2 className="text-2xl font-semibold text-slate-800 mb-2">Welcome</h2>
+            <p className="text-slate-600">Please log in to access trainer selection</p>
+          </div>
+        </div>
+      </AnimatedBackground>
+    );
+  }
+
+  if (clientProfile && !clientProfile.isPremium) {
+    return (
+      <AnimatedBackground>
+        <div className="flex min-h-screen flex-col items-center justify-center w-full px-4 py-6">
+          <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-2xl font-semibold text-slate-800 mb-2">Premium Feature</h2>
+            <p className="text-slate-600 mb-4">
+              Please upgrade to premium to access trainer selection
+            </p>
+            <button
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              onClick={() => navigate("/premium")}
+            >
+              Upgrade Now
+            </button>
+          </div>
         </div>
       </AnimatedBackground>
     );
@@ -101,9 +139,9 @@ export default function TrainerSelectionPromptPage() {
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={currentImageIndex}
-                    initial={{ opacity: .15 }}
+                    initial={{ opacity: 0.15 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: .15 }}
+                    exit={{ opacity: 0.15 }}
                     transition={{ duration: 1.5, ease: "easeInOut" }}
                     src={images[currentImageIndex]}
                     alt="Personal trainer session"

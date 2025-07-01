@@ -23,6 +23,7 @@ const Bookslots: React.FC = () => {
     if (!response?.slots) return [];
 
     return response.slots.map((slot) => ({
+      
       id: slot.id,
       trainerId: slot.trainerId,
       clientId: slot.clientId,
@@ -48,7 +49,10 @@ const Bookslots: React.FC = () => {
       cancellationReason: slot.cancellationReason,
       cancellationReasons: slot.cancellationReason ? [slot.cancellationReason] : [],
     }));
+    
   };
+
+
 
   const slots = transformSlots(data as SlotsResponse | undefined);
 

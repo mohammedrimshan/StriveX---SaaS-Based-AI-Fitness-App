@@ -234,41 +234,64 @@ export class PostController implements IPostController {
     }
   }
 
- async likePost(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      console.log(`LIKE POST: postId=${id}, userId=${req.user!.id}`);
-      if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-        throw new CustomError(ERROR_MESSAGES.INVALID_ID, HTTP_STATUS.BAD_REQUEST);
-      }
+async likePost(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
 
-      const post = await this._likePostUseCase.execute(id, req.user!.id);
-      console.log(`POST:`, post);
+    console.log(`LIKE POST: postId=${id}, userId=${userId}`);
 
-      const io = this._socketService.getIO();
-      const clients = await io.in("community").allSockets();
-      console.log(clients,"clients community")
-      console.log(
-        `[DEBUG] Emitting postLiked to ${clients.size} clients for post ${id}, userId=${req.user!.id}, likes:`,
-        post.likes
-      );
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      throw new CustomError(ERROR_MESSAGES.INVALID_ID, HTTP_STATUS.BAD_REQUEST);
+    }
+
+    // Like or unlike the post using the use case
+    const post = await this._likePostUseCase.execute(id, userId);
+
+    if (!post) {
+      throw new CustomError("Failed to like/unlike the post.", HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    }
+
+    console.log(`POST:`, post);
+
+    const io = this._socketService.getIO();
+
+    // ✅ Wait briefly to ensure the "community" room has updated
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const clients = await io.in("community").allSockets();
+    console.log(clients, "clients community");
+
+    console.log(
+      `[DEBUG] Emitting postLiked to ${clients.size} clients for post ${id}, userId=${userId}, likes:`,
+      post.likes
+    );
+
+    if (clients.size > 0) {
       io.to("community").emit("postLiked", {
         postId: id,
-        userId: req.user!.id,
-        likes: post.likes || [],
-        hasLiked: post.likes.includes(req.user!.id),
+        userId: userId,
+        likes: Array.isArray(post.likes) ? post.likes : [],
+        hasLiked: post.likes.includes(userId),
       });
-
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
-        post,
-      });
-    } catch (error) {
-      console.error(`[DEBUG] likePost error:`, error);
-      handleErrorResponse(res, error);
+    } else {
+      console.warn(`[WARN] No active clients in community room at emit time for post ${id}.`);
     }
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
+      data:post,
+    });
+  } catch (error:any) {
+    console.error(`[DEBUG] likePost error:`, {
+      message: error.message,
+      stack: error.stack,
+    });
+    handleErrorResponse(res, error);
   }
+}
+
 
   async reportPost(req: Request, res: Response): Promise<void> {
     try {

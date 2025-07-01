@@ -21,7 +21,10 @@ export const useTrainerBookedAndCancelledSlots = ({
       getTrainerBookedAndCancelledSlots({ trainerId, date, page, limit }),
     enabled: !!trainerId && (!date || !isNaN(new Date(date).getTime())),
     staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000, // or cacheTime if using React Query <v5
+    gcTime: 10 * 60 * 1000,
     retry: 1,
+    refetchOnWindowFocus: true, // add this
+    refetchOnMount: true,       // optional
   });
 };
+

@@ -157,6 +157,9 @@ export function UserBookings({
   const upcomingSessions = processedBookings.filter(
     (booking) => !booking.isPast
   );
+
+  console.log(upcomingSessions, "Upcoming Sessions");
+  
   const pastSessions = processedBookings.filter((booking) => booking.isPast);
 
   return (

@@ -541,14 +541,28 @@ export const likePost = async (id: string, role: string): Promise<IPost> => {
       `/client/community/posts/${id}/like`,
       { role }
     );
+
     console.log('[DEBUG] Like post raw response:', {
       status: response.status,
       data: response.data,
+      timestamp: new Date().toISOString(),
     });
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || 'Invalid response structure');
+
+    // Check if the response is successful and contains a post
+    if (response.status !== 200 || !response.data.success) {
+      throw new Error(response.data.message || 'Failed to like/unlike post');
     }
-    console.log('[DEBUG] Like post response:', response.data);
+
+    // Ensure post data exists
+    if (!response.data.data) {
+      console.warn('[DEBUG] Like post response missing data:', response.data);
+      throw new Error('Invalid response: No post data returned');
+    }
+
+    console.log('[DEBUG] Like post response:', {
+      post: response.data.data,
+      timestamp: new Date().toISOString(),
+    });
     return response.data.data;
   } catch (error: any) {
     console.error('[DEBUG] Like post error:', {
@@ -557,8 +571,9 @@ export const likePost = async (id: string, role: string): Promise<IPost> => {
       status: error.response?.status,
       name: error.name,
       code: error.code,
+      timestamp: new Date().toISOString(),
     });
-    throw new Error(error.response?.data?.message || error.message || 'Failed to like post');
+    throw new Error(error.response?.data?.message || error.message || 'Failed to like/unlike post');
   }
 };
 

@@ -35,7 +35,6 @@ let GetSessionHistoryUseCase = class GetSessionHistoryUseCase {
     }
     execute(userId, role, skip, limit) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("UseCase: Received role:", role, "Expected roles:", constants_1.ROLES); // Add logging
             if (role === constants_1.ROLES.TRAINER) {
                 const trainer = yield this.trainerRepository.findById(userId);
                 if (!trainer) {
@@ -52,7 +51,6 @@ let GetSessionHistoryUseCase = class GetSessionHistoryUseCase {
             }
             else if (role === constants_1.ROLES.ADMIN) {
                 const admin = yield this.adminRepository.findById(userId);
-                console.log(admin, "UseCase: Admin found:", admin);
                 if (!admin) {
                     throw new custom_error_1.CustomError("Admin not found", constants_1.HTTP_STATUS.NOT_FOUND);
                 }

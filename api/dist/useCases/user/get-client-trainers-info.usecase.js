@@ -26,20 +26,20 @@ const tsyringe_1 = require("tsyringe");
 const custom_error_1 = require("@/entities/utils/custom.error");
 const constants_1 = require("@/shared/constants");
 let GetClientTrainersInfoUseCase = class GetClientTrainersInfoUseCase {
-    constructor(clientRepository, trainerRepository) {
-        this.clientRepository = clientRepository;
-        this.trainerRepository = trainerRepository;
+    constructor(_clientRepository, _trainerRepository) {
+        this._clientRepository = _clientRepository;
+        this._trainerRepository = _trainerRepository;
     }
     execute(clientId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const client = yield this.clientRepository.findById(clientId);
+            const client = yield this._clientRepository.findById(clientId);
             if (!client) {
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.USER_NOT_FOUND, constants_1.HTTP_STATUS.NOT_FOUND);
             }
             const selectedTrainer = client.selectedTrainerId &&
-                (yield this.trainerRepository.findById(client.selectedTrainerId));
+                (yield this._trainerRepository.findById(client.selectedTrainerId));
             const backupTrainer = client.backupTrainerId &&
-                (yield this.trainerRepository.findById(client.backupTrainerId));
+                (yield this._trainerRepository.findById(client.backupTrainerId));
             const mapTrainer = (trainer) => trainer
                 ? {
                     id: trainer.id,

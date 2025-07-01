@@ -27,14 +27,13 @@ const constants_1 = require("@/shared/constants");
 const custom_error_1 = require("@/entities/utils/custom.error");
 const constants_2 = require("@/shared/constants");
 let EndVideoCallUseCase = class EndVideoCallUseCase {
-    constructor(slotRepository, clientRepository, trainerRepository) {
-        this.slotRepository = slotRepository;
-        this.clientRepository = clientRepository;
-        this.trainerRepository = trainerRepository;
+    constructor(_slotRepository, _clientRepository) {
+        this._slotRepository = _slotRepository;
+        this._clientRepository = _clientRepository;
     }
     execute(slotId, userId, role) {
         return __awaiter(this, void 0, void 0, function* () {
-            const slot = yield this.slotRepository.findById(slotId);
+            const slot = yield this._slotRepository.findById(slotId);
             if (!slot) {
                 throw new custom_error_1.CustomError("Slot not found", constants_2.HTTP_STATUS.NOT_FOUND);
             }
@@ -52,14 +51,14 @@ let EndVideoCallUseCase = class EndVideoCallUseCase {
                 throw new custom_error_1.CustomError("Only the assigned trainer can end the call", constants_2.HTTP_STATUS.UNAUTHORIZED);
             }
             if (role === "client") {
-                const client = yield this.clientRepository.findByClientNewId(userId);
+                const client = yield this._clientRepository.findByClientNewId(userId);
                 if (!client ||
                     client.id !== slot.clientId ||
                     client.selectStatus !== constants_1.TrainerSelectionStatus.ACCEPTED) {
                     throw new custom_error_1.CustomError("Unauthorized client or invalid relationship", constants_2.HTTP_STATUS.UNAUTHORIZED);
                 }
             }
-            const updatedSlot = yield this.slotRepository.endVideoCall(slotId);
+            const updatedSlot = yield this._slotRepository.endVideoCall(slotId);
             if (!updatedSlot) {
                 throw new custom_error_1.CustomError("Failed to end video call", constants_2.HTTP_STATUS.INTERNAL_SERVER_ERROR);
             }
@@ -72,6 +71,5 @@ exports.EndVideoCallUseCase = EndVideoCallUseCase = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)("ISlotRepository")),
     __param(1, (0, tsyringe_1.inject)("IClientRepository")),
-    __param(2, (0, tsyringe_1.inject)("ITrainerRepository")),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __metadata("design:paramtypes", [Object, Object])
 ], EndVideoCallUseCase);

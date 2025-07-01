@@ -68,6 +68,8 @@ interface TrainerSlotsProps {
 export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
   const bookedSlots = slots.filter((slot: Slot) => slot.isBooked && slot.status === "booked");
   const cancelledSlots = slots.filter((slot: Slot) => slot.status === "cancelled" || slot.cancellationReason);
+  console.log("Booked slots:", bookedSlots); // Debugging
+  console.log("Cancelled slots:", cancelledSlots); // Debugging
   const [activeTab, setActiveTab] = useState("booked");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
@@ -326,20 +328,22 @@ export const TrainerSlots = ({ slots }: TrainerSlotsProps) => {
                                 </motion.div>
                               )}
 
-                              <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                              >
-                                <Button
-                                  className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg border-0 group relative overflow-hidden"
-                                  onClick={() => handleOpenCancelModal(slot)}
-                                  disabled={cancelMutation.isPending}
+                              {(!slot.videoCallStatus || slot.videoCallStatus === "not_started") && (
+                                <motion.div
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
                                 >
-                                  <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                                  <XCircle className="h-4 w-4 mr-2 group-hover:animate-pulse" />
-                                  Cancel Session
-                                </Button>
-                              </motion.div>
+                                  <Button
+                                    className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg border-0 group relative overflow-hidden"
+                                    onClick={() => handleOpenCancelModal(slot)}
+                                    disabled={cancelMutation.isPending}
+                                  >
+                                    <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                                    <XCircle className="h-4 w-4 mr-2 group-hover:animate-pulse" />
+                                    Cancel Session
+                                  </Button>
+                                </motion.div>
+                              )}
                             </div>
 
                             {slot.videoCallRoomName && (

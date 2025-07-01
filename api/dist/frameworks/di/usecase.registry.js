@@ -163,6 +163,7 @@ const request_backup_trainer_change_usecase_1 = require("@/useCases/backuptraine
 const resolve_backup_trainer_change_request_usecase_interface_1 = require("@/useCases/backuptrainer/resolve-backup-trainer-change-request.usecase.interface");
 const get_client_trainers_info_usecase_1 = require("@/useCases/user/get-client-trainers-info.usecase");
 const get_client_wallet_details_usecase_1 = require("@/useCases/wallet/get-client-wallet-details.usecase");
+const create_slots_from_rule_usecase_1 = require("@/useCases/slot/create-slots-from-rule.usecase");
 const slot_expiry_processor_1 = require("../queue/bull/slot-expiry.processor");
 const subscription_expiry_processor_1 = require("../queue/bull/subscription-expiry.processor");
 const daily_unused_session_processor_1 = require("../queue/bull/daily-unused-session.processor");
@@ -667,6 +668,9 @@ class UseCaseRegistry {
         });
         tsyringe_1.container.register("IGetClientWalletDetailsUseCase", {
             useClass: get_client_wallet_details_usecase_1.GetClientWalletDetailsUseCase,
+        });
+        tsyringe_1.container.register("ICreateSlotsFromRuleUseCase", {
+            useClass: create_slots_from_rule_usecase_1.CreateSlotsFromRuleUseCase,
         });
     }
 }

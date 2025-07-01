@@ -84,19 +84,16 @@ let UpdateUserStatusUseCase = class UpdateUserStatusUseCase {
             for (const client of affectedClients) {
                 try {
                     if (client.backupTrainerId) {
-                        // Reassign client to backup trainer
                         yield this._clientRepository.findByIdAndUpdate(client.id, {
                             previousTrainerId: client.selectedTrainerId,
                             selectedTrainerId: client.backupTrainerId,
                             backupTrainerId: null,
                             selectStatus: constants_1.TrainerSelectionStatus.ACCEPTED,
                         });
-                        // Handle slot reassignment with conflict check
                         yield this.reassignSlots(client.id, trainerId, client.backupTrainerId);
                         yield this.notificationService.sendToUser(client.id, "Trainer Blocked", `Your primary trainer was blocked. Your backup trainer has been assigned. Slots have been reassigned where possible; please check your schedule for any canceled slots.`, "INFO");
                     }
                     else {
-                        // No backup trainer, cancel all slots
                         yield this.cancelSlots(client.id, trainerId, "Trainer blocked, no backup trainer available");
                         yield this.notificationService.sendToUser(client.id, "Trainer Blocked", "Your primary trainer was blocked. Please choose a new trainer manually. All upcoming slots have been canceled.", "WARNING");
                     }
@@ -112,7 +109,6 @@ let UpdateUserStatusUseCase = class UpdateUserStatusUseCase {
             const clientsToRestore = yield this._clientRepository.findClientsByPreviousTrainerId(trainerId);
             for (const client of clientsToRestore) {
                 try {
-                    // Restore original trainer
                     yield this._clientRepository.updateRaw(client.id, {
                         $set: {
                             selectedTrainerId: trainerId,
@@ -123,7 +119,6 @@ let UpdateUserStatusUseCase = class UpdateUserStatusUseCase {
                             previousTrainerId: "",
                         },
                     });
-                    // Reassign slots back to original trainer
                     yield this.reassignSlots(client.id, client.selectedTrainerId, trainerId);
                     yield this.notificationService.sendToUser(client.id, "Trainer Reactivated", `Your original trainer is now active again and has been reassigned to you. Slots have been reassigned where possible; please check your schedule.`, "SUCCESS");
                 }
@@ -141,21 +136,17 @@ let UpdateUserStatusUseCase = class UpdateUserStatusUseCase {
                     const slotStartTime = this.parseSlotDateTime(slot.date, slot.startTime);
                     const slotEndTime = this.parseSlotDateTime(slot.date, slot.endTime);
                     if (slotStartTime < new Date()) {
-                        continue; // Skip past slots
+                        continue;
                     }
-                    // Find if backup trainer has an available slot at same date/time
                     const backupAvailableSlot = yield this._slotRepository.findSlotByTrainerAndTime(newTrainerId, slot.date, slot.startTime, slot.endTime);
                     if (backupAvailableSlot &&
                         backupAvailableSlot.status === constants_1.SlotStatus.AVAILABLE) {
-                        // Book backup trainer's slot for client
                         yield this._slotRepository.update(backupAvailableSlot.id, {
                             clientId,
                             status: constants_1.SlotStatus.BOOKED,
                         });
-                        // Cancel original slot of primary trainer
                         yield this.cancelSlot(slot, clientId, currentTrainerId, "Trainer blocked, reassigned to backup trainer");
                         console.log(`Reassigned slot ${slot.id} from primary trainer ${currentTrainerId} to backup trainer ${newTrainerId} for client ${clientId}`);
-                        // Notify client and backup trainer about reassignment
                         const newTrainer = yield this._trainerRepository.findById(newTrainerId);
                         const formattedDateTime = (0, date_fns_1.format)(slotStartTime, "PPpp");
                         yield this.notificationService.sendToUser(clientId, "Slot Reassigned", `Your session on ${formattedDateTime} has been reassigned to ${newTrainer === null || newTrainer === void 0 ? void 0 : newTrainer.firstName} ${newTrainer === null || newTrainer === void 0 ? void 0 : newTrainer.lastName}.`, "INFO");
@@ -164,7 +155,6 @@ let UpdateUserStatusUseCase = class UpdateUserStatusUseCase {
                         }
                     }
                     else {
-                        // No available slot for backup trainer - cancel original slot
                         yield this.cancelSlot(slot, clientId, currentTrainerId, "Trainer blocked, no available slot with backup trainer");
                         console.log(`Canceled slot ${slot.id} for client ${clientId} due to no available backup slot.`);
                     }
@@ -182,7 +172,7 @@ let UpdateUserStatusUseCase = class UpdateUserStatusUseCase {
                 try {
                     const slotStartTime = this.parseSlotDateTime(slot.date, slot.startTime);
                     if (slotStartTime < new Date()) {
-                        continue; // Skip past slots
+                        continue;
                     }
                     yield this.cancelSlot(slot, clientId, trainerId, reason);
                 }

@@ -24,4 +24,4 @@ exports.WorkoutVideoProgressSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-exports.WorkoutVideoProgressSchema.index({ userId: 1, workoutId: 1 });
+exports.WorkoutVideoProgressSchema.index({ userId: 1, workoutId: 1, exerciseId: 1 }, { unique: true });

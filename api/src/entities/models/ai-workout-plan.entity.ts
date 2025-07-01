@@ -1,7 +1,7 @@
 export interface IWorkoutExercise {
   name: string;
   sets: number;
-  reps: number;
+  reps: string | number;
   duration?: string;
   restTime?: string;
   notes?: string;

@@ -26,12 +26,12 @@ const tsyringe_1 = require("tsyringe");
 const custom_error_1 = require("@/entities/utils/custom.error");
 const constants_1 = require("@/shared/constants");
 let GetClientProfileUseCase = class GetClientProfileUseCase {
-    constructor(clientRepository) {
-        this.clientRepository = clientRepository;
+    constructor(_clientRepository) {
+        this._clientRepository = _clientRepository;
     }
     execute(clientId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const client = yield this.clientRepository.findById(clientId);
+            const client = yield this._clientRepository.findById(clientId);
             if (!client) {
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.USER_NOT_FOUND, constants_1.HTTP_STATUS.NOT_FOUND);
             }

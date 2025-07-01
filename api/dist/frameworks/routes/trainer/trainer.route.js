@@ -162,6 +162,9 @@ class TrainerRoutes extends base_route_1.BaseRoute {
         router.post("/trainer/cancel-slot", auth_middleware_1.verifyAuth, (0, auth_middleware_1.authorizeRole)(["trainer"]), resolver_1.blockStatusMiddleware.checkStatus, (req, res) => {
             resolver_1.slotController.cancelTrainerSlot(req, res);
         });
+        router.post("/trainer/slots/rule", auth_middleware_1.verifyAuth, (0, auth_middleware_1.authorizeRole)(["trainer"]), resolver_1.blockStatusMiddleware.checkStatus, (req, res) => {
+            resolver_1.slotController.createSlotsFromRule(req, res);
+        });
     }
 }
 exports.TrainerRoutes = TrainerRoutes;

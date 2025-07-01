@@ -306,6 +306,9 @@ import { IGetClientTrainersInfoUseCase } from "@/entities/useCaseInterfaces/user
 import { GetClientTrainersInfoUseCase } from "@/useCases/user/get-client-trainers-info.usecase";
 import { IGetClientWalletDetailsUseCase } from "@/entities/useCaseInterfaces/wallet/get-client-wallet-details-usecase.interface";
 import { GetClientWalletDetailsUseCase } from "@/useCases/wallet/get-client-wallet-details.usecase";
+import { ICreateSlotsFromRuleUseCase } from "@/entities/useCaseInterfaces/slot/create-slots-from-rule.usecase.interface";
+import { CreateSlotsFromRuleUseCase } from "@/useCases/slot/create-slots-from-rule.usecase";
+
 import { SlotExpiryProcessor } from "../queue/bull/slot-expiry.processor";
 import { SubscriptionExpiryProcessor } from "../queue/bull/subscription-expiry.processor";
 import { DailyUnusedSessionProcessor } from "../queue/bull/daily-unused-session.processor";
@@ -1082,66 +1085,111 @@ export class UseCaseRegistry {
       {
         useClass: AcceptRejectBackupInvitationUseCase,
       }
-    )
+    );
 
     container.register<IAssignBackupTrainerUseCase>(
       "IAssignBackupTrainerUseCase",
       {
         useClass: AssignBackupTrainerUseCase,
       }
-    )
+    );
 
-    container.register<IGetClientBackupTrainerUseCase>("IGetClientBackupTrainerUseCase", {
-      useClass: GetClientBackupTrainerUseCase,
-    });
+    container.register<IGetClientBackupTrainerUseCase>(
+      "IGetClientBackupTrainerUseCase",
+      {
+        useClass: GetClientBackupTrainerUseCase,
+      }
+    );
 
-    container.register<IGetClientBackupInvitationsUseCase>("IGetClientBackupInvitationsUseCase", {
-      useClass: GetClientBackupInvitationsUseCase,
-    });
+    container.register<IGetClientBackupInvitationsUseCase>(
+      "IGetClientBackupInvitationsUseCase",
+      {
+        useClass: GetClientBackupInvitationsUseCase,
+      }
+    );
 
-    container.register<IGetPendingChangeRequestsUseCase>("IGetPendingChangeRequestsUseCase", {
-      useClass: GetPendingChangeRequestsUseCase,
-    });
+    container.register<IGetPendingChangeRequestsUseCase>(
+      "IGetPendingChangeRequestsUseCase",
+      {
+        useClass: GetPendingChangeRequestsUseCase,
+      }
+    );
 
-    container.register<IGetAllChangeRequestsUseCase>("IGetAllChangeRequestsUseCase", {
-      useClass: GetAllChangeRequestsUseCase,
-    });
+    container.register<IGetAllChangeRequestsUseCase>(
+      "IGetAllChangeRequestsUseCase",
+      {
+        useClass: GetAllChangeRequestsUseCase,
+      }
+    );
 
-    container.register<IGetClientChangeRequestsUseCase>("IGetClientChangeRequestsUseCase", {
-      useClass: GetClientChangeRequestsUseCase,
-    });
+    container.register<IGetClientChangeRequestsUseCase>(
+      "IGetClientChangeRequestsUseCase",
+      {
+        useClass: GetClientChangeRequestsUseCase,
+      }
+    );
 
-    container.register<IGetTrainerBackupInvitationsUseCase>("IGetTrainerBackupInvitationsUseCase", {
-      useClass: GetTrainerBackupInvitationsUseCase,
-    });
+    container.register<IGetTrainerBackupInvitationsUseCase>(
+      "IGetTrainerBackupInvitationsUseCase",
+      {
+        useClass: GetTrainerBackupInvitationsUseCase,
+      }
+    );
 
-    container.register<IGetTrainerBackupClientsUseCase>("IGetTrainerBackupClientsUseCase", {
-      useClass: GetTrainerBackupClientsUseCase,
-    });
+    container.register<IGetTrainerBackupClientsUseCase>(
+      "IGetTrainerBackupClientsUseCase",
+      {
+        useClass: GetTrainerBackupClientsUseCase,
+      }
+    );
 
-    container.register<IGetClientsBackupOverviewUseCase>("IGetClientsBackupOverviewUseCase", {
-      useClass: GetClientsBackupOverviewUseCase,
-    });
+    container.register<IGetClientsBackupOverviewUseCase>(
+      "IGetClientsBackupOverviewUseCase",
+      {
+        useClass: GetClientsBackupOverviewUseCase,
+      }
+    );
 
-    container.register<IHandleExpiredInvitationsUseCase>("IHandleExpiredInvitationsUseCase", {
-      useClass: HandleExpiredInvitationsUseCase,
-    });
+    container.register<IHandleExpiredInvitationsUseCase>(
+      "IHandleExpiredInvitationsUseCase",
+      {
+        useClass: HandleExpiredInvitationsUseCase,
+      }
+    );
 
-    container.register<IRequestBackupTrainerChangeUseCase>("IRequestBackupTrainerChangeUseCase", {
-      useClass: RequestBackupTrainerChangeUseCase,
-    });
+    container.register<IRequestBackupTrainerChangeUseCase>(
+      "IRequestBackupTrainerChangeUseCase",
+      {
+        useClass: RequestBackupTrainerChangeUseCase,
+      }
+    );
 
-    container.register<IResolveBackupTrainerChangeRequestUseCase>("IResolveBackupTrainerChangeRequestUseCase", {
-      useClass: ResolveBackupTrainerChangeRequestUseCase,
-    });
+    container.register<IResolveBackupTrainerChangeRequestUseCase>(
+      "IResolveBackupTrainerChangeRequestUseCase",
+      {
+        useClass: ResolveBackupTrainerChangeRequestUseCase,
+      }
+    );
 
-     container.register<IGetClientTrainersInfoUseCase>("IGetClientTrainersInfoUseCase", {
-      useClass: GetClientTrainersInfoUseCase,
-    });
+    container.register<IGetClientTrainersInfoUseCase>(
+      "IGetClientTrainersInfoUseCase",
+      {
+        useClass: GetClientTrainersInfoUseCase,
+      }
+    );
 
-    container.register<IGetClientWalletDetailsUseCase>("IGetClientWalletDetailsUseCase", {
-      useClass: GetClientWalletDetailsUseCase,
-    });
+    container.register<IGetClientWalletDetailsUseCase>(
+      "IGetClientWalletDetailsUseCase",
+      {
+        useClass: GetClientWalletDetailsUseCase,
+      }
+    );
 
+    container.register<ICreateSlotsFromRuleUseCase>(
+      "ICreateSlotsFromRuleUseCase",
+      {
+        useClass: CreateSlotsFromRuleUseCase,
+      }
+    );
   }
 }

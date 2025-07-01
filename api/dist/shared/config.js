@@ -8,7 +8,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const envalid_1 = require("envalid");
 dotenv_1.default.config();
 const env = (0, envalid_1.cleanEnv)(process.env, {
-    CORS_ALLOWED_ORIGIN: (0, envalid_1.str)({ default: "https://strivex.rimshan.in" }),
+    CORS_ALLOWED_ORIGIN: (0, envalid_1.str)({ default: "http://localhost:5173" }),
     PORT: (0, envalid_1.port)({ default: 5000 }),
     NODE_ENV: (0, envalid_1.str)({ default: "production" }),
     DATABASE_URI: (0, envalid_1.str)(),
@@ -34,7 +34,7 @@ const env = (0, envalid_1.cleanEnv)(process.env, {
     MAKERSUITE_KEY: (0, envalid_1.str)()
 });
 exports.config = {
-    cors: { ALLOWED_ORIGIN: env.CORS_ALLOWED_ORIGIN },
+    cors: { ALLOWED_ORIGIN: env.CORS_ALLOWED_ORIGIN || "https://strivex.rimshan.in" || "http://localhost:5173" },
     server: { PORT: env.PORT, NODE_ENV: env.NODE_ENV },
     database: { URI: env.DATABASE_URI },
     gemini: { GEMINI_API_KEY: env.GEMINI_API_KEY, MAKERSUITE_KEY: env.MAKERSUITE_KEY },

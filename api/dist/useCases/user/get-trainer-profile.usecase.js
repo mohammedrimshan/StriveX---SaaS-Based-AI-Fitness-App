@@ -25,22 +25,20 @@ exports.GetTrainerProfileUseCase = void 0;
 const tsyringe_1 = require("tsyringe");
 const constants_1 = require("@/shared/constants");
 let GetTrainerProfileUseCase = class GetTrainerProfileUseCase {
-    constructor(trainerRepository, reviewRepository, clientRepository, sessionHistoryRepository, slotRepository) {
-        this.trainerRepository = trainerRepository;
-        this.reviewRepository = reviewRepository;
-        this.clientRepository = clientRepository;
-        this.sessionHistoryRepository = sessionHistoryRepository;
-        this.slotRepository = slotRepository;
+    constructor(_trainerRepository, _reviewRepository, _clientRepository, _sessionHistoryRepository, _slotRepository) {
+        this._trainerRepository = _trainerRepository;
+        this._reviewRepository = _reviewRepository;
+        this._clientRepository = _clientRepository;
+        this._sessionHistoryRepository = _sessionHistoryRepository;
+        this._slotRepository = _slotRepository;
     }
     execute(trainerId, clientId) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log(clientId, "client from usecase get trainer profile");
-            // Fetch trainer data
-            const trainer = yield this.trainerRepository.findById(trainerId);
+            const trainer = yield this._trainerRepository.findById(trainerId);
             if (!trainer) {
                 throw new Error("Trainer not found");
             }
-            // Calculate age from dateOfBirth
             let age;
             if (trainer.dateOfBirth) {
                 const dob = new Date(trainer.dateOfBirth);
@@ -51,23 +49,20 @@ let GetTrainerProfileUseCase = class GetTrainerProfileUseCase {
                     age--;
                 }
             }
-            // Fetch reviews and stats
             const [latestReviews, allReviews, performanceStats, availableSlots] = yield Promise.all([
-                this.reviewRepository.findLatestReviewsByTrainerId(trainerId, 3),
-                this.reviewRepository.findReviewsByTrainerId(trainerId, 0, 0),
-                this.sessionHistoryRepository.getPerformanceStats(trainerId),
-                this.slotRepository.findAvailableSlots(trainerId),
+                this._reviewRepository.findLatestReviewsByTrainerId(trainerId, 3),
+                this._reviewRepository.findReviewsByTrainerId(trainerId, 0, 0),
+                this._sessionHistoryRepository.getPerformanceStats(trainerId),
+                this._slotRepository.findAvailableSlots(trainerId),
             ]);
             console.log(performanceStats, "performance stats");
-            // Calculate average rating
             const averageRating = allReviews.items.length > 0
                 ? allReviews.items.reduce((sum, review) => sum + review.rating, 0) /
                     allReviews.items.length
                 : 0;
-            // Determine canReview
             let canReview = false;
             if (clientId) {
-                const client = yield this.clientRepository.findById(clientId);
+                const client = yield this._clientRepository.findById(clientId);
                 console.log(client, "clientfrom usecase  get trainer profile");
                 if (client &&
                     client.isPremium &&

@@ -42,10 +42,10 @@ interface VideoCallDetails {
   token: string
 }
 
-const SOCKET_URL = import.meta.env.VITE_PRIVATE_API_URL?.replace(/"/g, "") || ""
+const SOCKET_URL = "https://api.strivex.rimshan.in" // Update with your actual socket URL
 const SOCKET_PATH = "/socket.io/video"
-const ZEGO_APP_ID = Number.parseInt(import.meta.env.VITE_ZEGO_APP_ID || "2145027660")
-const ZEGO_SERVER_SECRET = import.meta.env.VITE_ZEGO_SERVER_SECRET || "43e0723bdd54783d4133c0801552a65e"
+const ZEGO_APP_ID = Number.parseInt(import.meta.env.VITE_ZEGO_APP_ID || "201333030")
+const ZEGO_SERVER_SECRET = import.meta.env.VITE_ZEGO_SERVER_SECRET || "dba3a1533b1aff4cb9ecc3350401a713"
 
 const getAxiosInstance = (role: "trainer" | "client") => {
   return role === "trainer" ? trainerAxiosInstance : clientAxiosInstance
@@ -336,6 +336,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
         logWithTimestamp("Attempting to initialize ZegoUIKit with token")
 
         let kitToken = videoCallDetails.token
+        console.log(kitToken," kitToken from videoCallDetails")
         if (ZEGO_APP_ID && ZEGO_SERVER_SECRET) {
           try {
             kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(

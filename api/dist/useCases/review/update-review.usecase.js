@@ -31,7 +31,6 @@ let UpdateReviewUseCase = class UpdateReviewUseCase {
     }
     execute(reviewId, clientId, rating, comment) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Validate client eligibility
             const client = yield this.clientRepository.findById(clientId);
             console.log(client, "update review");
             if (!client) {
@@ -47,7 +46,6 @@ let UpdateReviewUseCase = class UpdateReviewUseCase {
             if (rating < 1 || rating > 5) {
                 throw new Error("Rating must be between 1 and 5");
             }
-            // Update review
             const updatedReview = yield this.reviewRepository.updateReview(reviewId, {
                 rating,
                 comment,
@@ -56,7 +54,6 @@ let UpdateReviewUseCase = class UpdateReviewUseCase {
             if (!updatedReview) {
                 throw new Error("Failed to update review");
             }
-            // Update trainer's rating and reviewCount
             yield this.updateTrainerRating(review.trainerId);
             return updatedReview;
         });

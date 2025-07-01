@@ -28,14 +28,14 @@ const custom_error_1 = require("@/entities/utils/custom.error");
 const constants_2 = require("@/shared/constants");
 const notification_service_1 = require("@/interfaceAdapters/services/notification.service");
 let StartVideoCallUseCase = class StartVideoCallUseCase {
-    constructor(slotRepository, clientRepository, notificationService) {
-        this.slotRepository = slotRepository;
-        this.clientRepository = clientRepository;
-        this.notificationService = notificationService;
+    constructor(_slotRepository, _clientRepository, _notificationService) {
+        this._slotRepository = _slotRepository;
+        this._clientRepository = _clientRepository;
+        this._notificationService = _notificationService;
     }
     execute(slotId, userId, role) {
         return __awaiter(this, void 0, void 0, function* () {
-            const slot = yield this.slotRepository.findById(slotId);
+            const slot = yield this._slotRepository.findById(slotId);
             if (!slot) {
                 throw new custom_error_1.CustomError("Slot not found", constants_2.HTTP_STATUS.NOT_FOUND);
             }
@@ -49,7 +49,7 @@ let StartVideoCallUseCase = class StartVideoCallUseCase {
                 throw new custom_error_1.CustomError("Only the assigned trainer can start the call", constants_2.HTTP_STATUS.UNAUTHORIZED);
             }
             if (role === "client") {
-                const client = yield this.clientRepository.findByClientNewId(userId);
+                const client = yield this._clientRepository.findByClientNewId(userId);
                 if (!client ||
                     client.id !== slot.clientId ||
                     client.selectStatus !== constants_1.TrainerSelectionStatus.ACCEPTED) {
@@ -57,16 +57,16 @@ let StartVideoCallUseCase = class StartVideoCallUseCase {
                 }
             }
             const roomName = `StriveX-${slotId}`;
-            const updatedSlot = yield this.slotRepository.updateVideoCallStatus(slotId, constants_1.VideoCallStatus.IN_PROGRESS, roomName);
+            const updatedSlot = yield this._slotRepository.updateVideoCallStatus(slotId, constants_1.VideoCallStatus.IN_PROGRESS, roomName);
             if (!updatedSlot) {
                 console.error("StartVideoCallUseCase - Failed to update slot:", slotId);
                 throw new custom_error_1.CustomError("Failed to start video call", constants_2.HTTP_STATUS.INTERNAL_SERVER_ERROR);
             }
             if (role === "trainer") {
-                const client = yield this.clientRepository.findById(slot.clientId);
+                const client = yield this._clientRepository.findById(slot.clientId);
                 if (client) {
                     try {
-                        yield this.notificationService.sendToUser(client.id, "Call Started", "Your trainer has started the session. Join the call now.", "INFO");
+                        yield this._notificationService.sendToUser(client.id, "Call Started", "Your trainer has started the session. Join the call now.", "INFO");
                     }
                     catch (error) {
                         console.error("Failed to send video call notification to client:", error);

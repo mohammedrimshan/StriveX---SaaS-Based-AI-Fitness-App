@@ -54,6 +54,7 @@ const WorkoutDetails = () => {
   const [progressId, setProgressId] = useState<string | null>(null);
   const [existingWorkoutProgress, setExistingWorkoutProgress] =
     useState<IWorkoutProgressEntity | null>(null);
+  const [currentVideoProgress, setCurrentVideoProgress] = useState<number>(0);
 
   const client = useSelector((state: RootState) => state.client.client);
   const userId = client?.id;
@@ -65,10 +66,8 @@ const WorkoutDetails = () => {
     useGetUserWorkoutProgress(userId || "");
   const { mutate: updateVideoProgress, isPaused: isUpdatingVideoProgress } =
     useUpdateWorkoutVideoProgress();
-  const {
-    mutate: createWorkoutProgress,
-    isPaused: isCreatingWorkoutProgress,
-  } = useCreateWorkoutProgress();
+  const { mutate: createWorkoutProgress, isPaused: isCreatingWorkoutProgress } =
+    useCreateWorkoutProgress();
   const { mutate: updateWorkoutProgress } = useUpdateWorkoutProgress();
 
   useEffect(() => {
@@ -78,10 +77,12 @@ const WorkoutDetails = () => {
       return;
     }
 
-    const socketInstance = io("http://localhost:5001");
+    const socketInstance = io("https://api.strivex.rimshan.in");
     socketInstance.on("connect", () => {
       socketInstance.emit("register", { userId, role: "client" });
     });
+
+    
     socketInstance.on(
       "workoutCompleted",
       (data: { userId: string; workoutId: string }) => {
@@ -121,11 +122,18 @@ const WorkoutDetails = () => {
     }
 
     let videoProgress: IWorkoutVideoProgressEntity | undefined;
-    if ((videoProgressData as any)?.items) {
+
+    if (Array.isArray((videoProgressData as any)?.items)) {
       videoProgress = (videoProgressData as any).items.find(
         (item: IWorkoutVideoProgressEntity) => item.workoutId === id
       );
+    } else {
+      console.warn(
+        "videoProgressData.items is not an array:",
+        videoProgressData
+      );
     }
+
     console.log("Video progress data:", videoProgress);
 
     let latestWorkoutProgress: IWorkoutProgressEntity | undefined;
@@ -188,6 +196,11 @@ const WorkoutDetails = () => {
       const newExerciseIdx =
         nextExerciseIdx !== -1 ? nextExerciseIdx : workout.exercises.length - 1;
       setCurrentExerciseIdx(newExerciseIdx);
+      // Initialize video progress for the current exercise
+      const currentExerciseProgress = videoProgress?.exerciseProgress?.find(
+        (ep) => ep.exerciseId === (workout.exercises[newExerciseIdx]?.id || workout.exercises[newExerciseIdx]?._id)
+      );
+      setCurrentVideoProgress(currentExerciseProgress?.videoProgress || 0);
     }
   }, [
     paginatedData,
@@ -209,6 +222,15 @@ const WorkoutDetails = () => {
       if (!isValidObjectId(exerciseId)) {
         console.error("Invalid exerciseId:", exerciseId);
         setErrorMessage("Invalid exercise ID.");
+        return;
+      }
+
+      if (currentVideoProgress < 90) {
+        setErrorMessage(
+          `Please watch at least 90% of the video to mark this exercise as completed. Current progress: ${Math.round(
+            currentVideoProgress
+          )}%`
+        );
         return;
       }
 
@@ -242,7 +264,7 @@ const WorkoutDetails = () => {
           ),
           {
             exerciseId,
-            videoProgress: 100,
+            videoProgress: currentVideoProgress,
             status: "Completed" as const,
             lastUpdated: new Date(),
           },
@@ -301,7 +323,7 @@ const WorkoutDetails = () => {
         updateVideoProgress(
           {
             workoutId: id!,
-            videoProgress: 100,
+            videoProgress: currentVideoProgress,
             status: isWorkoutComplete ? "Completed" : "In Progress",
             completedExercises: newCompletedExercises,
             userId: userId!,
@@ -444,6 +466,7 @@ const WorkoutDetails = () => {
       socket,
       client?.weight,
       queryClient,
+      currentVideoProgress,
     ]
   );
 
@@ -660,11 +683,14 @@ const WorkoutDetails = () => {
               onNext={() => {
                 if (safeExerciseIndex < workout.exercises.length - 1) {
                   setCurrentExerciseIdx(safeExerciseIndex + 1);
+                  setCurrentVideoProgress(0);
                 }
               }}
               workout={workout}
               userId={userId}
               exerciseId={currentExerciseId}
+              onProgressUpdate={setCurrentVideoProgress}
+              initialProgress={currentVideoProgress}
             />
 
             <div className="mt-6 flex justify-between items-center">
@@ -675,6 +701,11 @@ const WorkoutDetails = () => {
                 onClick={() => {
                   if (safeExerciseIndex > 0) {
                     setCurrentExerciseIdx(safeExerciseIndex - 1);
+                    const prevExerciseId = workout.exercises[safeExerciseIndex - 1]?.id || workout.exercises[safeExerciseIndex - 1]?._id;
+                    const prevProgress = workoutProgress.exerciseProgress.find(
+                      (ep) => ep.exerciseId === prevExerciseId
+                    );
+                    setCurrentVideoProgress(prevProgress?.videoProgress || 0);
                   }
                 }}
                 disabled={safeExerciseIndex === 0}
@@ -682,20 +713,35 @@ const WorkoutDetails = () => {
                 Previous
               </button>
 
-              <button
-                className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 flex items-center"
-                onClick={() => {
-                  markExerciseAsCompleted(currentExerciseId);
-                  if (safeExerciseIndex < workout.exercises.length - 1) {
-                    setCurrentExerciseIdx(safeExerciseIndex + 1);
-                  }
-                }}
-              >
-                {safeExerciseIndex < workout.exercises.length - 1
-                  ? "Next Exercise"
-                  : "Finish Workout"}
-                <Play className="ml-2 h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-4">
+                <div className="text-gray-600">
+                  Video Progress: {Math.round(currentVideoProgress)}%
+                </div>
+                <button
+                  className={`px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 flex items-center ${
+                    currentVideoProgress < 90 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  onClick={() => {
+                    if (currentVideoProgress >= 90) {
+                      markExerciseAsCompleted(currentExerciseId);
+                      if (safeExerciseIndex < workout.exercises.length - 1) {
+                        setCurrentExerciseIdx(safeExerciseIndex + 1);
+                        const nextExerciseId = workout.exercises[safeExerciseIndex + 1]?.id || workout.exercises[safeExerciseIndex + 1]?._id;
+                        const nextProgress = workoutProgress.exerciseProgress.find(
+                          (ep) => ep.exerciseId === nextExerciseId
+                        );
+                        setCurrentVideoProgress(nextProgress?.videoProgress || 0);
+                      }
+                    }
+                  }}
+                  disabled={currentVideoProgress < 90}
+                >
+                  {safeExerciseIndex < workout.exercises.length - 1
+                    ? "Next Exercise"
+                    : "Finish Workout"}
+                  <Play className="ml-2 h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             <motion.div
@@ -738,6 +784,10 @@ const WorkoutDetails = () => {
                           )}
                           onClick={() => {
                             setCurrentExerciseIdx(index);
+                            const exerciseProgress = workoutProgress.exerciseProgress.find(
+                              (ep) => ep.exerciseId === exerciseId
+                            );
+                            setCurrentVideoProgress(exerciseProgress?.videoProgress || 0);
                           }}
                         />
                       );

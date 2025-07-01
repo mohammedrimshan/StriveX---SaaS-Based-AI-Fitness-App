@@ -26,8 +26,8 @@ const tsyringe_1 = require("tsyringe");
 const custom_error_1 = require("@/entities/utils/custom.error");
 const constants_1 = require("@/shared/constants");
 let GetClientWalletDetailsUseCase = class GetClientWalletDetailsUseCase {
-    constructor(walletRepository) {
-        this.walletRepository = walletRepository;
+    constructor(_walletRepository) {
+        this._walletRepository = _walletRepository;
     }
     execute(clientId, year, month, skip, limit) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -41,8 +41,8 @@ let GetClientWalletDetailsUseCase = class GetClientWalletDetailsUseCase {
                 throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
             }
             const [wallet, transactionSummary] = yield Promise.all([
-                this.walletRepository.findByClientId(clientId),
-                this.walletRepository.getWalletTransactionSummary(clientId, year, month, skip, limit),
+                this._walletRepository.findByClientId(clientId),
+                this._walletRepository.getWalletTransactionSummary(clientId, year, month, skip, limit),
             ]);
             if (!wallet) {
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.WALLET_NOT_FOUND, constants_1.HTTP_STATUS.NOT_FOUND);

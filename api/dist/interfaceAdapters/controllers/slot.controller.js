@@ -29,7 +29,7 @@ const constants_1 = require("../../shared/constants");
 const errorHandler_1 = require("../../shared/utils/errorHandler");
 const mongoose_1 = require("mongoose");
 let SlotController = class SlotController {
-    constructor(createSlotUseCase, getTrainerSlotsUseCase, bookSlotUseCase, cancelBookingUseCase, toggleSlotAvailabilityUseCase, getSelectedTrainerSlotsUseCase, getUserBookingsUseCase, getBookedTrainerSlotsUseCase, trainerSlotCancellationUseCase, reassignTrainerUseCase) {
+    constructor(createSlotUseCase, getTrainerSlotsUseCase, bookSlotUseCase, cancelBookingUseCase, toggleSlotAvailabilityUseCase, getSelectedTrainerSlotsUseCase, getUserBookingsUseCase, getBookedTrainerSlotsUseCase, trainerSlotCancellationUseCase, reassignTrainerUseCase, createSlotsFromRuleUseCase) {
         this.createSlotUseCase = createSlotUseCase;
         this.getTrainerSlotsUseCase = getTrainerSlotsUseCase;
         this.bookSlotUseCase = bookSlotUseCase;
@@ -40,6 +40,7 @@ let SlotController = class SlotController {
         this.getBookedTrainerSlotsUseCase = getBookedTrainerSlotsUseCase;
         this.trainerSlotCancellationUseCase = trainerSlotCancellationUseCase;
         this.reassignTrainerUseCase = reassignTrainerUseCase;
+        this.createSlotsFromRuleUseCase = createSlotsFromRuleUseCase;
     }
     createSlot(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -258,6 +259,32 @@ let SlotController = class SlotController {
             }
         });
     }
+    createSlotsFromRule(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const trainerId = req.user.id;
+                const { rules, fromDate, toDate, slotDurationInMinutes } = req.body;
+                if (!rules || !fromDate || !toDate) {
+                    throw new custom_error_1.CustomError("Rules, fromDate and toDate are required", constants_1.HTTP_STATUS.BAD_REQUEST);
+                }
+                const slots = yield this.createSlotsFromRuleUseCase.execute({
+                    trainerId,
+                    rules,
+                    fromDate,
+                    toDate,
+                    slotDurationInMinutes,
+                });
+                res.status(constants_1.HTTP_STATUS.CREATED).json({
+                    success: true,
+                    message: constants_1.SUCCESS_MESSAGES.OPERATION_SUCCESS,
+                    slots,
+                });
+            }
+            catch (error) {
+                (0, errorHandler_1.handleErrorResponse)(res, error);
+            }
+        });
+    }
 };
 exports.SlotController = SlotController;
 exports.SlotController = SlotController = __decorate([
@@ -272,5 +299,6 @@ exports.SlotController = SlotController = __decorate([
     __param(7, (0, tsyringe_1.inject)("IGetBookedTrainerSlotsUseCase")),
     __param(8, (0, tsyringe_1.inject)("ITrainerSlotCancellationUseCase")),
     __param(9, (0, tsyringe_1.inject)("IReassignTrainerUseCase")),
-    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object, Object, Object, Object, Object])
+    __param(10, (0, tsyringe_1.inject)("ICreateSlotsFromRuleUseCase")),
+    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object])
 ], SlotController);

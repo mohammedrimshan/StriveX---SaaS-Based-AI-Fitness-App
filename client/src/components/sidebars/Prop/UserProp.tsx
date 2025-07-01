@@ -119,11 +119,11 @@ const navItems = {
       icon: MessageSquare,
       path: "/trainer/chat",
     },
-    {
-      title: "Workout Plans",
-      icon: Dumbbell,
-      path: "/trainer/workout-plans",
-    },
+    // {
+    //   title: "Workout Plans",
+    //   icon: Dumbbell,
+    //   path: "/trainer/workout-plans",
+    // },
     {
       title: "Earnings",
       icon: CreditCard,
@@ -195,6 +195,11 @@ const navItems = {
       title: "Session History",
       icon: History,
       path: "/admin/session-history",
+    },
+    {
+      title: "Backup clients Management",
+      icon: Users,
+      path: "/admin/backupclients",
     },
     {
       title: "Settings",

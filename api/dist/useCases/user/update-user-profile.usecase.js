@@ -39,21 +39,20 @@ let UpdateUserProfileUseCase = class UpdateUserProfileUseCase {
             if (!existingUser) {
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.USER_NOT_FOUND, constants_1.HTTP_STATUS.NOT_FOUND);
             }
-            // Validate healthConditions
             if (data.healthConditions) {
                 if (!Array.isArray(data.healthConditions)) {
                     throw new custom_error_1.CustomError("healthConditions must be an array", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 data.healthConditions = data.healthConditions.map((condition) => String(condition));
             }
-            // Validate preferredWorkout
             if (data.preferredWorkout) {
                 if (!constants_1.WORKOUT_TYPES.includes(data.preferredWorkout)) {
                     throw new custom_error_1.CustomError("Invalid preferredWorkout type", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
             }
             if (data.waterIntakeTarget !== undefined) {
-                if (typeof data.waterIntakeTarget !== "number" || data.waterIntakeTarget < 0) {
+                if (typeof data.waterIntakeTarget !== "number" ||
+                    data.waterIntakeTarget < 0) {
                     throw new custom_error_1.CustomError("waterIntakeTarget must be a non-negative number", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
             }
@@ -67,7 +66,9 @@ let UpdateUserProfileUseCase = class UpdateUserProfileUseCase {
                     throw new custom_error_1.CustomError("height must be a positive number", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
             }
-            if (data.profileImage && typeof data.profileImage === "string" && data.profileImage.startsWith("data:")) {
+            if (data.profileImage &&
+                typeof data.profileImage === "string" &&
+                data.profileImage.startsWith("data:")) {
                 try {
                     const uploadResult = yield this._cloudinaryService.uploadImage(data.profileImage, {
                         folder: "profile_images",
@@ -80,13 +81,11 @@ let UpdateUserProfileUseCase = class UpdateUserProfileUseCase {
                     throw new custom_error_1.CustomError("Failed to upload profile image", constants_1.HTTP_STATUS.INTERNAL_SERVER_ERROR);
                 }
             }
-            // Check if we need to save progress history
             const progressFields = {
                 userId: new mongoose_1.Types.ObjectId(userId),
                 date: new Date(),
             };
             let shouldSaveProgress = false;
-            // Set the fields that are being updated
             if (data.weight !== undefined) {
                 progressFields.weight = data.weight;
                 shouldSaveProgress = true;
@@ -103,20 +102,21 @@ let UpdateUserProfileUseCase = class UpdateUserProfileUseCase {
                 progressFields.waterIntakeTarget = data.waterIntakeTarget;
                 shouldSaveProgress = true;
             }
-            // If there are fields to save, compare with the latest entry
             if (shouldSaveProgress) {
                 const latestProgress = yield this._clientProgressHistoryRepository.findLatestByUserId(userId);
-                // Compare with the latest entry to see if anything has changed
-                const hasChanges = (progressFields.weight !== undefined && progressFields.weight !== ((_a = latestProgress === null || latestProgress === void 0 ? void 0 : latestProgress.weight) !== null && _a !== void 0 ? _a : 0)) ||
-                    (progressFields.height !== undefined && progressFields.height !== ((_b = latestProgress === null || latestProgress === void 0 ? void 0 : latestProgress.height) !== null && _b !== void 0 ? _b : 0)) ||
-                    (progressFields.waterIntake !== undefined && progressFields.waterIntake !== ((_c = latestProgress === null || latestProgress === void 0 ? void 0 : latestProgress.waterIntake) !== null && _c !== void 0 ? _c : 0)) ||
-                    (progressFields.waterIntakeTarget !== undefined && progressFields.waterIntakeTarget !== ((_d = latestProgress === null || latestProgress === void 0 ? void 0 : latestProgress.waterIntakeTarget) !== null && _d !== void 0 ? _d : 0));
-                // If no changes and there's a previous entry, skip saving
+                const hasChanges = (progressFields.weight !== undefined &&
+                    progressFields.weight !== ((_a = latestProgress === null || latestProgress === void 0 ? void 0 : latestProgress.weight) !== null && _a !== void 0 ? _a : 0)) ||
+                    (progressFields.height !== undefined &&
+                        progressFields.height !== ((_b = latestProgress === null || latestProgress === void 0 ? void 0 : latestProgress.height) !== null && _b !== void 0 ? _b : 0)) ||
+                    (progressFields.waterIntake !== undefined &&
+                        progressFields.waterIntake !== ((_c = latestProgress === null || latestProgress === void 0 ? void 0 : latestProgress.waterIntake) !== null && _c !== void 0 ? _c : 0)) ||
+                    (progressFields.waterIntakeTarget !== undefined &&
+                        progressFields.waterIntakeTarget !==
+                            ((_d = latestProgress === null || latestProgress === void 0 ? void 0 : latestProgress.waterIntakeTarget) !== null && _d !== void 0 ? _d : 0));
                 if (!hasChanges && latestProgress) {
                     shouldSaveProgress = false;
                 }
             }
-            // Save progress history only if there are changes
             if (shouldSaveProgress) {
                 try {
                     const savedProgress = yield this._clientProgressHistoryRepository.save(progressFields);

@@ -26,6 +26,7 @@ import {
 } from "@/entities/models/socket.entity";
 import { ITokenService } from "@/entities/services/token-service.interface";
 import { JwtPayload } from "jsonwebtoken";
+import { config } from "@/shared/config";
 
 @injectable()
 export class SocketService {

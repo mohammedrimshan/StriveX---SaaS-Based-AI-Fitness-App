@@ -503,5 +503,15 @@ export class TrainerRoutes extends BaseRoute {
         slotController.cancelTrainerSlot(req, res);
       }
     );
+
+    router.post(
+      "/trainer/slots/rule",
+      verifyAuth,
+      authorizeRole(["trainer"]),
+      blockStatusMiddleware.checkStatus as RequestHandler,
+      (req: Request, res: Response) => {
+        slotController.createSlotsFromRule(req, res);
+      }
+    );
   }
 }

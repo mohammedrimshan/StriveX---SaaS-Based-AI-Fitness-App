@@ -3,7 +3,7 @@ import { IClient, ITrainer } from "@/types/User";
 import { CategoryResponse } from "@/hooks/admin/useAllCategory";
 import { IAxiosResponse } from "@/types/Response";
 import { UpdatePasswordData } from "@/hooks/trainer/useTrainerPasswordChange";
-import { SlotsResponse, CreateSlotData, CancelSlotData, CancelSlotResponse } from "@/types/Slot";
+import { SlotsResponse, CreateSlotData, CancelSlotData, CancelSlotResponse, RuleBasedSlotInput } from "@/types/Slot";
 import { WalletHistoryResponse } from "@/types/wallet";
 import {
   ITrainerDashboardStats,
@@ -430,4 +430,23 @@ export const cancelTrainerSlot = async (
 ): Promise<CancelSlotResponse> => {
   const response = await trainerAxiosInstance.post("/trainer/cancel-slot", payload);
   return response.data;
+};
+
+
+export const createSlotsFromRule = async (
+  data: RuleBasedSlotInput
+): Promise<SlotsResponse> => {
+  try {
+    const response = await trainerAxiosInstance.post<SlotsResponse>(
+      "/trainer/slots/rule",
+      data
+    );
+    console.log("Slots created from rule:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Create slots from rule error:", error.response?.data);
+    throw new Error(
+      error.response?.data?.message || "Failed to create slots from rule"
+    );
+  }
 };

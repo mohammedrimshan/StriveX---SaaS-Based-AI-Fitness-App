@@ -35,7 +35,7 @@ export class VideoSocketService {
   ) {
     this.io = new Server({
       cors: {
-        origin: process.env.CORS_ALLOWED_ORIGIN || "https://strivex.rimshan.in/",
+        origin: process.env.CORS_ALLOWED_ORIGIN || "https://strivex.rimshan.in",
         methods: ["GET", "POST"],
         credentials: true,
       },

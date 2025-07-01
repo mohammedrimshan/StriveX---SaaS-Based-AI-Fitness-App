@@ -88,7 +88,7 @@ export default function UsersPage({
     IClient | ITrainer
   >(getAllUsers, currentPage, limit, debouncedSearch, userType);
 
-  // Filter trainers based on approval status and admin approval
+  // Apply client-side filtering for trainers
   const filteredUsers =
     data?.users.filter((user) => {
       if (userType === "trainer") {
@@ -101,8 +101,9 @@ export default function UsersPage({
       return true; // No filtering for clients
     }) || [];
 
-  const totalFilteredUsers = filteredUsers.length;
-  const totalPages = Math.ceil(totalFilteredUsers / limit) || 1;
+  // Use totalPages and totalUsers from server response
+  const totalPages = data?.totalPages || 1;
+  const totalUsers = data?.totalPages ? data.totalPages * limit : 0; // Estimate total users for display
 
   useEffect(() => {
     if (userType === "trainer" && filteredUsers.length > 0) {
@@ -117,7 +118,7 @@ export default function UsersPage({
       {
         onSuccess: (data) => {
           successToast(data.message);
-          refetch(); 
+          refetch();
         },
         onError: (error: any) => {
           errorToast(
@@ -137,14 +138,10 @@ export default function UsersPage({
   const getUserSpecialization = (user: IClient | ITrainer) => {
     if (userType === "client") {
       const client = user as IClient;
-      return client.specialization || client.preferences?.[0] || "Workout";
+      return client.preferredWorkout || client.preferences?.[0] || "Workout";
     } else {
       const trainer = user as ITrainer;
-      return (
-        trainer.specialization?.[0] ||
-        trainer.skills?.[0] ||
-        "Workout"
-      );
+      return trainer.specialization?.[0] || trainer.skills?.[0] || "Workout";
     }
   };
 
@@ -186,7 +183,7 @@ export default function UsersPage({
                   : "bg-orange-50 text-orange-700 border-orange-200"
               }`}
             >
-              {totalFilteredUsers || 0} total
+              {totalUsers || 0} total
             </Badge>
           </motion.div>
 
@@ -245,7 +242,7 @@ export default function UsersPage({
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1); 
+                setCurrentPage(1);
               }}
               className={`pl-10 ${
                 userType === "client"
@@ -564,7 +561,7 @@ export default function UsersPage({
         </motion.div>
 
         {/* Pagination */}
-        {!isLoading && filteredUsers.length > 0 && (
+        {!isLoading && totalPages > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -578,6 +575,7 @@ export default function UsersPage({
               onPageNext={() =>
                 setCurrentPage((prev) => Math.min(totalPages, prev + 1))
               }
+              onPageSelect={(page) => setCurrentPage(page)} // Handle direct page selection
             />
           </motion.div>
         )}

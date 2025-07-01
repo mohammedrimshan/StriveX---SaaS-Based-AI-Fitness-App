@@ -52,7 +52,15 @@ let CreateSlotUseCase = class CreateSlotUseCase {
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.INVALID_TIME_FORMAT(slotData.startTime, slotData.endTime), constants_1.HTTP_STATUS.BAD_REQUEST);
             }
             if (startTime >= endTime) {
+                const isNextDaySlot = endTime.getDate() !== startTime.getDate();
+                if (isNextDaySlot) {
+                    throw new custom_error_1.CustomError("Slot time cannot span across multiple days. Please select a time range within the same day.", constants_1.HTTP_STATUS.BAD_REQUEST);
+                }
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.START_TIME_BEFORE_END_TIME(slotData.startTime, slotData.endTime), constants_1.HTTP_STATUS.BAD_REQUEST);
+            }
+            const durationInMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+            if (durationInMinutes !== 30) {
+                throw new custom_error_1.CustomError(`Each slot must be exactly 30 minutes. Given duration is ${durationInMinutes} minutes.`, constants_1.HTTP_STATUS.BAD_REQUEST);
             }
             const overlappingSlots = yield this.slotRepository.findOverlappingSlots(trainerId, startTime, endTime);
             if (overlappingSlots.length > 0) {

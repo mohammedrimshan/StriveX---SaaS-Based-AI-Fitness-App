@@ -11,7 +11,7 @@ const AdminDashboardTabs = () => {
   const [activeTab, setActiveTab] = useState("backup-clients");
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white mt-15">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Enhanced Header Section */}
         <motion.div

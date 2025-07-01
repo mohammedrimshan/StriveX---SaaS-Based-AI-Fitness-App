@@ -4,7 +4,7 @@ import { cleanEnv, str, port, num } from "envalid";
 dotenv.config();
 
 const env = cleanEnv(process.env, {
-  CORS_ALLOWED_ORIGIN: str({ default: "https://strivex.rimshan.in" }),
+  CORS_ALLOWED_ORIGIN: str({ default: "http://localhost:5173" }),
   PORT: port({ default: 5000 }),
   NODE_ENV: str({ default: "production" }),
   DATABASE_URI: str(),
@@ -31,7 +31,7 @@ const env = cleanEnv(process.env, {
 });
 
 export const config = {
-  cors: { ALLOWED_ORIGIN: env.CORS_ALLOWED_ORIGIN },
+  cors: { ALLOWED_ORIGIN: env.CORS_ALLOWED_ORIGIN || "https://strivex.rimshan.in" || "http://localhost:5173" },
   server: { PORT: env.PORT, NODE_ENV: env.NODE_ENV },
   database: { URI: env.DATABASE_URI },
   gemini: { GEMINI_API_KEY: env.GEMINI_API_KEY,MAKERSUITE_KEY: env.MAKERSUITE_KEY },

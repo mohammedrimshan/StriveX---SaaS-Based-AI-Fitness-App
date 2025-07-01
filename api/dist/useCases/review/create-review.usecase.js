@@ -32,7 +32,6 @@ let CreateReviewUseCase = class CreateReviewUseCase {
     }
     execute(clientId, trainerId, rating, comment) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Validate client eligibility
             const client = yield this.clientRepository.findById(clientId);
             if (!client) {
                 throw new Error("Client not found");
@@ -40,18 +39,17 @@ let CreateReviewUseCase = class CreateReviewUseCase {
             if (!client.isPremium) {
                 throw new Error("Only premium clients can submit reviews");
             }
-            if (client.selectedTrainerId !== trainerId || client.selectStatus !== constants_1.TrainerSelectionStatus.ACCEPTED) {
+            if (client.selectedTrainerId !== trainerId ||
+                client.selectStatus !== constants_1.TrainerSelectionStatus.ACCEPTED) {
                 throw new Error("Client must have an approved selected trainer to submit a review");
             }
             if (rating < 1 || rating > 5) {
                 throw new Error("Rating must be between 1 and 5");
             }
-            // Check if review already exists
             const existingReview = yield this.reviewRepository.findReviewByClientAndTrainer(clientId, trainerId);
             if (existingReview) {
                 throw new Error("Client has already submitted a review for this trainer");
             }
-            // Create review
             const reviewData = {
                 clientId,
                 trainerId,
@@ -61,7 +59,6 @@ let CreateReviewUseCase = class CreateReviewUseCase {
                 clientName: `${client.firstName} ${client.lastName}`.trim(),
             };
             const review = yield this.reviewRepository.createReview(reviewData);
-            // Update trainer's rating and reviewCount
             yield this.updateTrainerRating(trainerId);
             return review;
         });

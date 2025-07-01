@@ -141,7 +141,9 @@ export const SocketProvider = ({
       return;
     }
 
-    const socketUrl = import.meta.env.VITE_PRIVATE_API_URL.replace("/api/v1/pvt", "");
+    const socketUrl = "https://api.strivex.rimshan.in"; // Replace with your actual socket URL
+
+    console.log(socketUrl, "Socket URL");
     const newSocket = io(socketUrl, {
       withCredentials: true,
       transports: ["websocket", "polling"],

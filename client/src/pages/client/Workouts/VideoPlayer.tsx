@@ -1,7 +1,7 @@
-
 import React, { useRef, useState, useEffect } from "react";
 import { Play, Pause, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { useUpdateWorkoutVideoProgress } from "@/hooks/progress/useUpdateWorkoutVideoProgress";
+
 interface VideoPlayerProps {
   videoUrl?: string | string[];
   exerciseName: string;
@@ -13,6 +13,8 @@ interface VideoPlayerProps {
   onComplete: (exerciseId: string) => void;
   onNext?: () => void;
   workout: { exercises: any[]; duration: number; difficulty: string };
+  onProgressUpdate?: (progress: number) => void;
+  initialProgress?: number;
 }
 
 const isValidObjectId = (id: string): boolean => /^[0-9a-fA-F]{24}$/.test(id);
@@ -27,14 +29,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   completedExercises,
   onComplete,
   onNext,
+  onProgressUpdate,
+  initialProgress = 0,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(initialProgress);
   const [isCompleted, setIsCompleted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { mutate: updateVideoProgress } = useUpdateWorkoutVideoProgress();
   const selectedVideoUrl = Array.isArray(videoUrl) ? videoUrl[0] : videoUrl;
+  const hasSetInitialTime = useRef(false);
 
   useEffect(() => {
     if (!isValidObjectId(exerciseId)) {
@@ -44,10 +49,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     if (completedExercises.includes(exerciseId)) {
       setIsCompleted(true);
+      setProgress(100);
+      onProgressUpdate?.(100);
     } else {
       setIsCompleted(false);
+      setProgress(initialProgress);
+      onProgressUpdate?.(initialProgress);
     }
-  }, [exerciseId, completedExercises]);
+    // Reset initial time flag when exerciseId or initialProgress changes
+    hasSetInitialTime.current = false;
+  }, [exerciseId, completedExercises, onProgressUpdate, initialProgress]);
 
   useEffect(() => {
     if (isCompleted && onNext) {
@@ -69,14 +80,34 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       return;
     }
 
+    const video = videoRef.current;
+    if (!video) return;
+
+    const setInitialTime = () => {
+      if (!hasSetInitialTime.current && initialProgress > 0 && !isCompleted) {
+        const duration = video.duration;
+        if (duration && !isNaN(duration)) {
+          const startTime = (initialProgress / 100) * duration;
+          video.currentTime = startTime;
+          hasSetInitialTime.current = true;
+          console.log(`Set video start time to ${startTime}s (${initialProgress}%)`);
+        }
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      setInitialTime();
+    };
+
     let timeout: NodeJS.Timeout;
     const updateProgress = () => {
-      if (videoRef.current && userId && !isCompleted) {
-        const duration = videoRef.current.duration;
-        const currentTime = videoRef.current.currentTime;
-        if (duration && currentTime) {
+      if (video && userId && !isCompleted) {
+        const duration = video.duration;
+        const currentTime = video.currentTime;
+        if (duration && currentTime && !isNaN(duration) && !isNaN(currentTime)) {
           const videoProgress = Math.round((currentTime / duration) * 100);
           setProgress(videoProgress);
+          onProgressUpdate?.(videoProgress);
 
           if ((videoProgress % 10 === 0 || videoProgress >= 90) && !isCompleted) {
             clearTimeout(timeout);
@@ -103,9 +134,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     if (status === "Completed") {
                       onComplete(exerciseId);
                       setIsCompleted(true);
-                      if (videoRef.current) {
-                        videoRef.current.pause();
-                        videoRef.current.loop = false;
+                      if (video) {
+                        video.pause();
+                        video.loop = false;
                         setIsPlaying(false);
                       }
                       if (onNext) {
@@ -123,55 +154,107 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     };
 
-    const video = videoRef.current;
-    if (video) {
-      video.addEventListener("timeupdate", updateProgress);
-      video.addEventListener("ended", () => {
-        if (!isCompleted) {
-          updateVideoProgress(
-            {
-              workoutId,
-              exerciseId,
-              videoProgress: 100,
-              status: "Completed",
-              userId,
-              completedExercises: [...completedExercises, exerciseId].filter(
-                (id, index, self) => self.indexOf(id) === index && isValidObjectId(id)
-              ),
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("timeupdate", updateProgress);
+    video.addEventListener("ended", () => {
+      if (!isCompleted) {
+        updateVideoProgress(
+          {
+            workoutId,
+            exerciseId,
+            videoProgress: 100,
+            status: "Completed",
+            userId,
+            completedExercises: [...completedExercises, exerciseId].filter(
+              (id, index, self) => self.indexOf(id) === index && isValidObjectId(id)
+            ),
+          },
+          {
+            onError: (error) => {
+              console.error("Failed to update video progress:", error);
             },
-            {
-              onError: (error) => {
-                console.error("Failed to update video progress:", error);
-              },
-              onSuccess: () => {
-                onComplete(exerciseId);
-                setIsCompleted(true);
-                video.pause();
-                video.loop = false;
-                setIsPlaying(false);
-                if (onNext) {
-                  setTimeout(() => {
-                    onNext();
-                  }, 1000);
-                }
-              },
-            }
-          );
-        }
-      });
-      return () => {
-        video.removeEventListener("timeupdate", updateProgress);
-        video.removeEventListener("ended", () => {});
-        clearTimeout(timeout);
-      };
-    }
-  }, [workoutId, exerciseId, onComplete, updateVideoProgress, userId, completedExercises, isCompleted, onNext]);
+            onSuccess: () => {
+              onComplete(exerciseId);
+              setIsCompleted(true);
+              video.pause();
+              video.loop = false;
+              setIsPlaying(false);
+              if (onNext) {
+                setTimeout(() => {
+                  onNext();
+                }, 1000);
+              }
+            },
+          }
+        );
+      }
+    });
+
+    return () => {
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("timeupdate", updateProgress);
+      video.removeEventListener("ended", () => {});
+      clearTimeout(timeout);
+    };
+  }, [workoutId, exerciseId, onComplete, updateVideoProgress, userId, completedExercises, isCompleted, onNext, onProgressUpdate, initialProgress]);
 
   const handlePlayPause = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
+        // Update progress in backend when pausing
+        const duration = videoRef.current.duration;
+        const currentTime = videoRef.current.currentTime;
+        if (duration && currentTime && !isNaN(duration) && !isNaN(currentTime) && !isCompleted) {
+          const videoProgress = Math.round((currentTime / duration) * 100);
+          setProgress(videoProgress);
+          onProgressUpdate?.(videoProgress);
+          updateVideoProgress(
+            {
+              workoutId,
+              exerciseId,
+              videoProgress,
+              status: videoProgress >= 90 ? "Completed" : "In Progress",
+              userId,
+              completedExercises: videoProgress >= 90
+                ? [...completedExercises, exerciseId].filter(
+                    (id, index, self) => self.indexOf(id) === index && isValidObjectId(id)
+                  )
+                : completedExercises,
+            },
+  {
+              onError: (error) => {
+                console.error("Failed to update video progress on pause:", error);
+              },
+              onSuccess: () => {
+                console.log(`Video progress updated to ${videoProgress}% on pause`);
+                if (videoProgress >= 90) {
+                  onComplete(exerciseId);
+                  setIsCompleted(true);
+                  videoRef.current?.pause();
+                  videoRef.current!.loop = false;
+                  setIsPlaying(false);
+                  if (onNext) {
+                    setTimeout(() => {
+                      onNext();
+                    }, 1000);
+                  }
+                }
+              },
+            }
+          );
+        }
       } else {
+        // Ensure video starts at the correct position
+        if (!hasSetInitialTime.current && initialProgress > 0 && !isCompleted) {
+          const duration = videoRef.current.duration;
+          if (duration && !isNaN(duration)) {
+            const startTime = (initialProgress / 100) * duration;
+            videoRef.current.currentTime = startTime;
+            hasSetInitialTime.current = true;
+            console.log(`Set video start time to ${startTime}s (${initialProgress}%) on play`);
+          }
+        }
         videoRef.current.play();
       }
       setIsPlaying(!isPlaying);

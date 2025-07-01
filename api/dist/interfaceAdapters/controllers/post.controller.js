@@ -206,30 +206,45 @@ let PostController = class PostController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = req.params;
-                console.log(`LIKE POST: postId=${id}, userId=${req.user.id}`);
+                const userId = req.user.id;
+                console.log(`LIKE POST: postId=${id}, userId=${userId}`);
                 if (!id || !mongoose_1.default.Types.ObjectId.isValid(id)) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.INVALID_ID, constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
-                const post = yield this._likePostUseCase.execute(id, req.user.id);
+                // Like or unlike the post using the use case
+                const post = yield this._likePostUseCase.execute(id, userId);
+                if (!post) {
+                    throw new custom_error_1.CustomError("Failed to like/unlike the post.", constants_1.HTTP_STATUS.INTERNAL_SERVER_ERROR);
+                }
                 console.log(`POST:`, post);
                 const io = this._socketService.getIO();
+                // ✅ Wait briefly to ensure the "community" room has updated
+                yield new Promise((resolve) => setTimeout(resolve, 300));
                 const clients = yield io.in("community").allSockets();
                 console.log(clients, "clients community");
-                console.log(`[DEBUG] Emitting postLiked to ${clients.size} clients for post ${id}, userId=${req.user.id}, likes:`, post.likes);
-                io.to("community").emit("postLiked", {
-                    postId: id,
-                    userId: req.user.id,
-                    likes: post.likes || [],
-                    hasLiked: post.likes.includes(req.user.id),
-                });
+                console.log(`[DEBUG] Emitting postLiked to ${clients.size} clients for post ${id}, userId=${userId}, likes:`, post.likes);
+                if (clients.size > 0) {
+                    io.to("community").emit("postLiked", {
+                        postId: id,
+                        userId: userId,
+                        likes: Array.isArray(post.likes) ? post.likes : [],
+                        hasLiked: post.likes.includes(userId),
+                    });
+                }
+                else {
+                    console.warn(`[WARN] No active clients in community room at emit time for post ${id}.`);
+                }
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     message: constants_1.SUCCESS_MESSAGES.OPERATION_SUCCESS,
-                    post,
+                    data: post,
                 });
             }
             catch (error) {
-                console.error(`[DEBUG] likePost error:`, error);
+                console.error(`[DEBUG] likePost error:`, {
+                    message: error.message,
+                    stack: error.stack,
+                });
                 (0, errorHandler_1.handleErrorResponse)(res, error);
             }
         });

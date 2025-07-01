@@ -120,7 +120,7 @@ const navigate = useNavigate()
           onClick={onClose}
         >
           <motion.div
-            className="relative w-full max-w-md max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar"
             variants={modalVariants}
             initial="initial"
             animate="animate"
@@ -241,7 +241,7 @@ const navigate = useNavigate()
                 <motion.div variants={itemVariants}>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Exercise Breakdown</h3>
                   <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                    <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
                       {exercises.map((exercise, index) => (
                         <motion.div
                           key={index}

@@ -350,7 +350,7 @@ function RefundPolicyStep({ planName, onAccept, onClose, isUpgrade = false, useW
 
   return (
     <>
-      <div className="max-h-[60vh] overflow-auto p-1">
+      <div className="max-h-[60vh] overflow-auto p-1 custom-scrollbar">
         <div className="space-y-6 py-2 pb-4">
           <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
             <h3 className="font-medium text-purple-800 mb-2">Account Information</h3>

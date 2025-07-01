@@ -28,15 +28,15 @@ const constants_1 = require("../../shared/constants");
 const constants_2 = require("../../shared/constants");
 const notification_service_1 = require("../../interfaceAdapters/services/notification.service");
 let BookSlotUseCase = class BookSlotUseCase {
-    constructor(slotRepository, clientRepository, trainerRepository, notificationService) {
-        this.slotRepository = slotRepository;
-        this.clientRepository = clientRepository;
-        this.trainerRepository = trainerRepository;
-        this.notificationService = notificationService;
+    constructor(_slotRepository, _clientRepository, _trainerRepository, _notificationService) {
+        this._slotRepository = _slotRepository;
+        this._clientRepository = _clientRepository;
+        this._trainerRepository = _trainerRepository;
+        this._notificationService = _notificationService;
     }
     execute(clientId, slotId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const slot = yield this.slotRepository.findById(slotId);
+            const slot = yield this._slotRepository.findById(slotId);
             if (!slot) {
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.SLOT_NOT_FOUND, constants_1.HTTP_STATUS.NOT_FOUND);
             }
@@ -52,23 +52,23 @@ let BookSlotUseCase = class BookSlotUseCase {
             if (slotStartTime < new Date()) {
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.PAST_SLOT_BOOKING, constants_1.HTTP_STATUS.BAD_REQUEST);
             }
-            const existingSlot = yield this.slotRepository.findBookedSlotByClientIdAndDate(clientId, slot.date);
+            const existingSlot = yield this._slotRepository.findBookedSlotByClientIdAndDate(clientId, slot.date);
             if (existingSlot) {
                 throw new custom_error_1.CustomError("You have already booked a slot for this date", constants_1.HTTP_STATUS.BAD_REQUEST);
             }
-            const updatedSlot = yield this.slotRepository.updateStatus(slotId, constants_2.SlotStatus.BOOKED, clientId);
+            const updatedSlot = yield this._slotRepository.updateStatus(slotId, constants_2.SlotStatus.BOOKED, clientId);
             if (!updatedSlot) {
                 throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.FAILED_BOOKING_SLOT, constants_1.HTTP_STATUS.INTERNAL_SERVER_ERROR);
             }
             try {
                 let clientName = "Someone";
-                const client = yield this.clientRepository.findByClientNewId(clientId);
+                const client = yield this._clientRepository.findByClientNewId(clientId);
                 if (client) {
                     clientName = `${client.firstName} ${client.lastName}`;
                 }
-                const trainer = yield this.trainerRepository.findById(slot.trainerId);
+                const trainer = yield this._trainerRepository.findById(slot.trainerId);
                 if (trainer) {
-                    yield this.notificationService.sendToUser(slot.trainerId, "Slot Booked", `${clientName} booked your slot on ${slot.date} at ${slot.startTime}!`, "SUCCESS");
+                    yield this._notificationService.sendToUser(slot.trainerId, "Slot Booked", `${clientName} booked your slot on ${slot.date} at ${slot.startTime}!`, "SUCCESS");
                 }
             }
             catch (error) {

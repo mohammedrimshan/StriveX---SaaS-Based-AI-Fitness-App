@@ -27,6 +27,7 @@ const generative_ai_1 = require("@google/generative-ai");
 const config_1 = require("@/shared/config");
 const ioredis_1 = __importDefault(require("ioredis"));
 const cron_1 = require("cron");
+const jsonrepair_1 = require("jsonrepair");
 let GeminiService = class GeminiService {
     constructor() {
         this.cronJobs = new Map();
@@ -34,8 +35,8 @@ let GeminiService = class GeminiService {
         this.model = this.genAI.getGenerativeModel({
             model: "gemini-1.5-flash",
             generationConfig: {
-                responseMimeType: "application/json"
-            }
+                responseMimeType: "application/json",
+            },
         });
         try {
             this.redis = new ioredis_1.default({
@@ -43,7 +44,7 @@ let GeminiService = class GeminiService {
                 port: config_1.config.redis.REDIS_PORT,
                 password: config_1.config.redis.REDIS_PASS,
                 connectTimeout: 10000,
-                maxRetriesPerRequest: 3
+                maxRetriesPerRequest: 3,
             });
             console.log("Redis connection initialized");
         }
@@ -86,7 +87,7 @@ let GeminiService = class GeminiService {
                 console.log("Final diet plan structure for client:", client.clientId, JSON.stringify(parsedPlan, null, 2));
                 const plan = this.formatDietPlan(client, parsedPlan);
                 yield this.cachePlan(cacheKey, plan);
-                this.setupAutoRegeneration(client, 'diet');
+                this.setupAutoRegeneration(client, "diet");
                 console.log("Diet plan generated successfully for client:", client.clientId);
                 return plan;
             }
@@ -140,7 +141,7 @@ let GeminiService = class GeminiService {
                 console.log("Final workout plan structure for client:", client.clientId, JSON.stringify(parsedPlan, null, 2));
                 const plan = this.formatWorkoutPlan(client, parsedPlan);
                 yield this.cachePlan(cacheKey, plan);
-                this.setupAutoRegeneration(client, 'workout');
+                this.setupAutoRegeneration(client, "workout");
                 console.log("Workout plan generated successfully for client:", client.clientId);
                 return plan;
             }
@@ -161,8 +162,9 @@ let GeminiService = class GeminiService {
     createDietPrompt(client) {
         var _a, _b;
         const calorieTarget = Number(client.calorieTarget) || 2000;
-        const healthConditions = ((_a = client.healthConditions) === null || _a === void 0 ? void 0 : _a.join(', ')) || 'None';
-        const dietaryRestrictions = healthConditions.includes('diabetes') || healthConditions.includes('heart-disease')
+        const healthConditions = ((_a = client.healthConditions) === null || _a === void 0 ? void 0 : _a.join(", ")) || "None";
+        const dietaryRestrictions = healthConditions.includes("diabetes") ||
+            healthConditions.includes("heart-disease")
             ? "Ensure meals are low in added sugars, saturated fats, and sodium, suitable for diabetes and heart-disease management."
             : "Follow standard balanced diet guidelines.";
         const prompt = JSON.stringify({
@@ -170,9 +172,11 @@ let GeminiService = class GeminiService {
             requirements: {
                 format: "strict JSON",
                 structure: {
-                    weeklyPlan: [{
+                    weeklyPlan: [
+                        {
                             day: "string",
-                            meals: [{
+                            meals: [
+                                {
                                     name: "string",
                                     time: "string",
                                     foods: ["string"],
@@ -180,15 +184,17 @@ let GeminiService = class GeminiService {
                                     protein: "number",
                                     carbs: "number",
                                     fats: "number",
-                                    notes: "string"
-                                }],
+                                    notes: "string",
+                                },
+                            ],
                             totalCalories: "number",
                             totalProtein: "number",
                             totalCarbs: "number",
                             totalFats: "number",
                             waterIntake: "number",
-                            notes: "string"
-                        }]
+                            notes: "string",
+                        },
+                    ],
                 },
                 additionalRequirements: {
                     dietaryPreference: client.dietPreference || "balanced",
@@ -196,19 +202,19 @@ let GeminiService = class GeminiService {
                     foodVariety: "Include diverse foods to prevent boredom",
                     nonEmpty: "Ensure weeklyPlan contains exactly 7 days with at least 3 meals per day (breakfast, lunch, dinner)",
                     jsonValidity: "Ensure the response is valid JSON with no unescaped quotes, missing commas, or trailing commas",
-                    mandatoryFields: "Include totalCarbs and totalFats as numeric values (in grams) for each day, calculated as the sum of carbs and fats from meals. These fields are required and must not be null or undefined."
-                }
+                    mandatoryFields: "Include totalCarbs and totalFats as numeric values (in grams) for each day, calculated as the sum of carbs and fats from meals. These fields are required and must not be null or undefined.",
+                },
             },
             client: {
                 height: `${client.height} cm`,
                 weight: `${client.weight} kg`,
                 fitnessGoal: client.fitnessGoal,
                 activityLevel: client.activityLevel,
-                dietPreference: client.dietPreference || 'balanced',
+                dietPreference: client.dietPreference || "balanced",
                 healthConditions: healthConditions,
                 waterIntakeGoal: `${client.waterIntake || 2000} ml`,
-                foodAllergies: ((_b = client.foodAllergies) === null || _b === void 0 ? void 0 : _b.join(', ')) || 'None',
-                calorieTarget: calorieTarget
+                foodAllergies: ((_b = client.foodAllergies) === null || _b === void 0 ? void 0 : _b.join(", ")) || "None",
+                calorieTarget: calorieTarget,
             },
             examples: {
                 validResponse: {
@@ -224,7 +230,7 @@ let GeminiService = class GeminiService {
                                     protein: 15,
                                     carbs: 60,
                                     fats: 10,
-                                    notes: "Use almond milk for oatmeal, no added sugar"
+                                    notes: "Use almond milk for oatmeal, no added sugar",
                                 },
                                 {
                                     name: "Lunch",
@@ -234,7 +240,7 @@ let GeminiService = class GeminiService {
                                     protein: 30,
                                     carbs: 20,
                                     fats: 25,
-                                    notes: "Include mixed greens, use low-sodium dressing"
+                                    notes: "Include mixed greens, use low-sodium dressing",
                                 },
                                 {
                                     name: "Dinner",
@@ -244,19 +250,19 @@ let GeminiService = class GeminiService {
                                     protein: 35,
                                     carbs: 50,
                                     fats: 20,
-                                    notes: "Season with lemon, avoid butter"
-                                }
+                                    notes: "Season with lemon, avoid butter",
+                                },
                             ],
                             totalCalories: calorieTarget,
                             totalProtein: 80,
                             totalCarbs: 130,
                             totalFats: 55,
                             waterIntake: 3800,
-                            notes: "Ensure adequate hydration"
-                        }
-                    ]
-                }
-            }
+                            notes: "Ensure adequate hydration",
+                        },
+                    ],
+                },
+            },
         });
         console.log("Created diet prompt:", prompt);
         return prompt;
@@ -264,49 +270,71 @@ let GeminiService = class GeminiService {
     createWorkoutPrompt(client) {
         var _a, _b, _c, _d, _e, _f;
         const preferredWorkout = ((_a = client.preferredWorkout) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || "general";
-        const isSpecificCategory = ["yoga", "meditation", "crossfit", "calisthenics", "pilates"].includes(preferredWorkout);
+        const isSpecificCategory = [
+            "yoga",
+            "meditation",
+            "crossfit",
+            "calisthenics",
+            "pilates",
+        ].includes(preferredWorkout);
         const equipmentInstruction = preferredWorkout === "yoga"
             ? "Exercises must not require any equipment except a yoga mat. Focus on bodyweight yoga poses and flows suitable for the client's experience level."
             : preferredWorkout === "meditation"
                 ? "Exercises must not require any equipment. Focus on mindfulness and breathing techniques."
-                : `Exercises may use available equipment: ${((_b = client.equipmentAvailable) === null || _b === void 0 ? void 0 : _b.join(', ')) || 'Basic'}.`;
+                : `Exercises may use available equipment: ${((_b = client.equipmentAvailable) === null || _b === void 0 ? void 0 : _b.join(", ")) || "Basic"}.`;
+        const repsInstruction = isSpecificCategory &&
+            (preferredWorkout === "yoga" || preferredWorkout === "meditation")
+            ? "Reps must be specified as a string in the format 'X seconds' or 'X minutes' (e.g., '30 seconds', '10 minutes') for yoga or meditation exercises."
+            : "Reps must be specified as a number (e.g., 10) or a range (e.g., '10-12'). For exercises performed per leg (e.g., lunges), include 'per leg' in the notes field, not in reps. Do not use phrases like 'As many as' or 'AMRAP'; instead, use a numeric value or range and add 'As many reps as possible' to the notes field if applicable.";
         const categoryInstruction = isSpecificCategory
-            ? `Generate a comprehensive 7-day ${preferredWorkout} plan. All days must focus exclusively on ${preferredWorkout}, with progressive difficulty and variety suitable for ${preferredWorkout}. ${equipmentInstruction}`
-            : `Generate a balanced 7-day workout plan with varied focus areas based on general fitness principles. ${equipmentInstruction}`;
+            ? `Generate a comprehensive 7-day ${preferredWorkout} plan. All days must focus exclusively on ${preferredWorkout}, with progressive difficulty and variety suitable for ${preferredWorkout}. ${equipmentInstruction} ${repsInstruction}`
+            : `Generate a balanced 7-day workout plan with varied focus areas based on general fitness principles. ${equipmentInstruction} ${repsInstruction}`;
         const prompt = JSON.stringify({
-            instruction: `Generate a detailed 7-day workout plan for a client with the following details. ${categoryInstruction}`,
+            instruction: `Generate a detailed 7-day workout plan in strict JSON format for a client with the following details. ${categoryInstruction}`,
             requirements: {
                 format: "strict JSON",
                 structure: {
-                    weeklyPlan: [{
+                    weeklyPlan: [
+                        {
                             day: "string",
                             focus: "string",
-                            exercises: [{
+                            exercises: [
+                                {
                                     name: "string",
                                     sets: "number",
-                                    reps: "number|string",
+                                    reps: isSpecificCategory &&
+                                        (preferredWorkout === "yoga" ||
+                                            preferredWorkout === "meditation")
+                                        ? "string"
+                                        : "number | string", // Allow ranges like "10-12"
                                     restTime: "string",
-                                    notes: "string"
-                                }],
+                                    notes: "string",
+                                },
+                            ],
                             warmup: "string",
                             cooldown: "string",
                             duration: "string",
-                            intensity: "string"
-                        }]
+                            intensity: "string",
+                        },
+                    ],
                 },
-                additionalRequirements: isSpecificCategory ? {
-                    consistency: `All days must be ${preferredWorkout} focused`,
-                    progression: "Include progressive difficulty through the week",
-                    variety: `Include different styles/variations of ${preferredWorkout}`,
-                    equipment: preferredWorkout === "yoga"
-                        ? "No equipment except a yoga mat; focus on yoga poses and flows"
-                        : preferredWorkout === "meditation"
-                            ? "No equipment; focus on mindfulness techniques"
-                            : `Use available equipment: ${((_c = client.equipmentAvailable) === null || _c === void 0 ? void 0 : _c.join(', ')) || 'Basic'}`
-                } : {
-                    variety: "Include a mix of strength, cardio, and flexibility exercises",
-                    equipment: `Use available equipment: ${((_d = client.equipmentAvailable) === null || _d === void 0 ? void 0 : _d.join(', ')) || 'Basic'}`
-                }
+                additionalRequirements: isSpecificCategory
+                    ? {
+                        consistency: `All days must be ${preferredWorkout} focused`,
+                        progression: "Include progressive difficulty through the week",
+                        variety: `Include different styles/variations of ${preferredWorkout}`,
+                        equipment: preferredWorkout === "yoga"
+                            ? "No equipment except a yoga mat; focus on yoga poses and flows"
+                            : preferredWorkout === "meditation"
+                                ? "No equipment; focus on mindfulness techniques"
+                                : `Use available equipment: ${((_c = client.equipmentAvailable) === null || _c === void 0 ? void 0 : _c.join(", ")) || "Basic"}`,
+                        jsonValidity: "Ensure the response is valid JSON with no unescaped quotes, missing commas, or trailing commas. All reps fields must be either a number (e.g., 10) or a string range (e.g., '10-12'). Avoid phrases like 'As many as' or 'AMRAP' in reps.",
+                    }
+                    : {
+                        variety: "Include a mix of strength, cardio, and flexibility exercises",
+                        equipment: `Use available equipment: ${((_d = client.equipmentAvailable) === null || _d === void 0 ? void 0 : _d.join(", ")) || "Basic"}`,
+                        jsonValidity: "Ensure the response is valid JSON with no unescaped quotes, missing commas, or trailing commas. All reps fields must be either a number (e.g., 10) or a string range (e.g., '10-12'). Avoid phrases like 'As many as' or 'AMRAP' in reps.",
+                    },
             },
             client: {
                 height: `${client.height} cm`,
@@ -315,34 +343,68 @@ let GeminiService = class GeminiService {
                 experienceLevel: client.experienceLevel,
                 preferredWorkout: preferredWorkout,
                 activityLevel: client.activityLevel,
-                healthConditions: ((_e = client.healthConditions) === null || _e === void 0 ? void 0 : _e.join(', ')) || 'None',
-                availableEquipment: preferredWorkout === "yoga" ? ["yoga mat"] : (((_f = client.equipmentAvailable) === null || _f === void 0 ? void 0 : _f.join(', ')) || 'Basic')
+                healthConditions: ((_e = client.healthConditions) === null || _e === void 0 ? void 0 : _e.join(", ")) || "None",
+                availableEquipment: preferredWorkout === "yoga"
+                    ? ["yoga mat"]
+                    : ((_f = client.equipmentAvailable) === null || _f === void 0 ? void 0 : _f.join(", ")) || "Basic",
             },
             examples: {
                 validResponse: {
-                    weeklyPlan: [{
+                    weeklyPlan: [
+                        {
                             day: "Monday",
-                            focus: preferredWorkout === "yoga" ? "Yoga Basics" : (isSpecificCategory ? `${preferredWorkout} Basics` : "Full Body Strength"),
+                            focus: preferredWorkout === "yoga"
+                                ? "Yoga Basics"
+                                : isSpecificCategory
+                                    ? `${preferredWorkout} Basics`
+                                    : "Full Body Strength",
                             exercises: preferredWorkout === "yoga"
-                                ? [{
+                                ? [
+                                    {
                                         name: "Downward Dog",
                                         sets: 3,
                                         reps: "30 seconds",
                                         restTime: "15 seconds",
-                                        notes: "Focus on breath and alignment; use yoga mat"
-                                    }]
-                                : this.getCategoryExerciseExample(preferredWorkout),
+                                        notes: "Focus on breath and alignment; use yoga mat",
+                                    },
+                                ]
+                                : preferredWorkout === "meditation"
+                                    ? [
+                                        {
+                                            name: "Mindful Breathing",
+                                            sets: 1,
+                                            reps: "10 minutes",
+                                            restTime: "N/A",
+                                            notes: "Focus on deep, steady breaths",
+                                        },
+                                    ]
+                                    : [
+                                        {
+                                            name: "Squats",
+                                            sets: 3,
+                                            reps: "10-12",
+                                            restTime: "60 seconds",
+                                            notes: "Maintain proper form; As many reps as possible within range",
+                                        },
+                                    ],
                             warmup: preferredWorkout === "yoga"
                                 ? "5 min gentle yoga stretches"
-                                : (isSpecificCategory ? `5 min gentle ${preferredWorkout}-specific preparation` : "10 min dynamic stretching"),
+                                : isSpecificCategory
+                                    ? `5 min gentle ${preferredWorkout}-specific preparation`
+                                    : "10 min dynamic stretching",
                             cooldown: preferredWorkout === "yoga"
                                 ? "5 min Savasana relaxation"
-                                : (isSpecificCategory ? `5 min ${preferredWorkout}-specific relaxation` : "5 min static stretching"),
-                            duration: preferredWorkout === "yoga" ? "45 minutes" : (isSpecificCategory ? "45 minutes" : "60 minutes"),
-                            intensity: "Moderate"
-                        }]
-                }
-            }
+                                : isSpecificCategory
+                                    ? `5 min ${preferredWorkout}-specific relaxation`
+                                    : "5 min static stretching",
+                            duration: preferredWorkout === "yoga" || isSpecificCategory
+                                ? "45 minutes"
+                                : "60 minutes",
+                            intensity: "Moderate",
+                        },
+                    ],
+                },
+            },
         });
         console.log("Created workout prompt:", prompt);
         return prompt;
@@ -351,13 +413,15 @@ let GeminiService = class GeminiService {
         console.log("Parsing diet response:", response);
         try {
             const parsed = JSON.parse(response);
-            if (!parsed.weeklyPlan || !Array.isArray(parsed.weeklyPlan) || parsed.weeklyPlan.length !== 7) {
+            if (!parsed.weeklyPlan ||
+                !Array.isArray(parsed.weeklyPlan) ||
+                parsed.weeklyPlan.length !== 7) {
                 console.warn("Diet response has invalid weeklyPlan:", parsed);
                 throw new Error("Diet plan must contain exactly 7 days");
             }
             for (let i = 0; i < parsed.weeklyPlan.length; i++) {
                 const day = parsed.weeklyPlan[i];
-                if (!day.day || typeof day.day !== 'string') {
+                if (!day.day || typeof day.day !== "string") {
                     console.warn(`Day ${i} missing valid day field:`, day);
                     throw new Error(`Day ${i} must have a valid day string`);
                 }
@@ -365,16 +429,22 @@ let GeminiService = class GeminiService {
                     console.warn(`Day ${day.day} has insufficient meals:`, day.meals);
                     throw new Error(`Day ${day.day} must have at least 3 meals`);
                 }
-                if (typeof day.totalCalories !== 'number' || typeof day.totalProtein !== 'number' ||
-                    typeof day.totalCarbs !== 'number' || typeof day.totalFats !== 'number' ||
-                    typeof day.waterIntake !== 'number') {
+                if (typeof day.totalCalories !== "number" ||
+                    typeof day.totalProtein !== "number" ||
+                    typeof day.totalCarbs !== "number" ||
+                    typeof day.totalFats !== "number" ||
+                    typeof day.waterIntake !== "number") {
                     console.warn(`Day ${day.day} missing required numeric fields:`, day);
                     throw new Error(`Day ${day.day} missing totalCalories, totalProtein, totalCarbs, totalFats, or waterIntake`);
                 }
                 for (const meal of day.meals) {
-                    if (!meal.name || !meal.time || !Array.isArray(meal.foods) ||
-                        typeof meal.calories !== 'number' || typeof meal.protein !== 'number' ||
-                        typeof meal.carbs !== 'number' || typeof meal.fats !== 'number') {
+                    if (!meal.name ||
+                        !meal.time ||
+                        !Array.isArray(meal.foods) ||
+                        typeof meal.calories !== "number" ||
+                        typeof meal.protein !== "number" ||
+                        typeof meal.carbs !== "number" ||
+                        typeof meal.fats !== "number") {
                         console.warn(`Invalid meal in day ${day.day}:`, meal);
                         throw new Error(`Invalid meal structure in day ${day.day}`);
                     }
@@ -392,15 +462,63 @@ let GeminiService = class GeminiService {
         console.log("Parsing workout response:", response);
         try {
             const parsed = JSON.parse(response);
-            if (!parsed.weeklyPlan || !Array.isArray(parsed.weeklyPlan) || parsed.weeklyPlan.length === 0) {
+            if (!parsed.weeklyPlan ||
+                !Array.isArray(parsed.weeklyPlan) ||
+                parsed.weeklyPlan.length === 0) {
                 console.warn("Workout response has empty or invalid weeklyPlan:", parsed);
                 throw new Error("Empty or invalid workout plan received");
             }
             for (let i = 0; i < parsed.weeklyPlan.length; i++) {
                 const day = parsed.weeklyPlan[i];
-                if (!day.exercises || !Array.isArray(day.exercises) || day.exercises.length === 0) {
-                    console.warn(`Day ${day.day || i} has no valid exercises:`, day);
-                    throw new Error(`Day ${day.day || i} must have at least one exercise`);
+                if (!day.day || typeof day.day !== "string") {
+                    console.warn(`Day ${i} missing valid day field:`, day);
+                    throw new Error(`Day ${i} must have a valid day string`);
+                }
+                if (!day.exercises || !Array.isArray(day.exercises)) {
+                    console.warn(`Day ${day.day || i} has invalid exercises array:`, day);
+                    throw new Error(`Day ${day.day || i} must have a valid exercises array`);
+                }
+                // Allow empty exercises array for rest days
+                if (day.exercises.length === 0 &&
+                    !["Rest", "Active Rest"].includes(day.focus)) {
+                    console.warn(`Day ${day.day || i} has no exercises and is not a rest day:`, day);
+                    throw new Error(`Day ${day.day || i} must have at least one exercise unless it is a Rest or Active Rest day`);
+                }
+                for (let j = 0; j < day.exercises.length; j++) {
+                    const exercise = day.exercises[j];
+                    if (!exercise.name ||
+                        typeof exercise.sets !== "number" ||
+                        !exercise.reps ||
+                        !exercise.restTime) {
+                        console.warn(`Invalid exercise in day ${day.day || i}, index ${j}:`, exercise);
+                        throw new Error(`Invalid exercise structure in day ${day.day || i}`);
+                    }
+                    // Validate reps
+                    if (typeof exercise.reps === "string") {
+                        if (/^\d+$|^\d+\s*(seconds|minutes)$|^\d+-\d+$/.test(exercise.reps)) {
+                            // Valid: number, time-based (e.g., "30 seconds"), or range (e.g., "10-12")
+                            continue;
+                        }
+                        else if (exercise.reps.toLowerCase() === "amrap") {
+                            exercise.notes =
+                                (exercise.notes || "") + " As many reps as possible";
+                            exercise.reps = "10-12"; // Default range for AMRAP
+                        }
+                        else {
+                            const match = exercise.reps.match(/^(\d+)/);
+                            if (match) {
+                                exercise.reps = parseInt(match[1]);
+                                exercise.notes =
+                                    (exercise.notes || "") + ` (originally ${exercise.reps})`;
+                            }
+                            else {
+                                exercise.reps = "10-12"; // Default range
+                                exercise.notes =
+                                    (exercise.notes || "") + ` (invalid reps: ${exercise.reps})`;
+                            }
+                            console.warn(`Fixed invalid reps in day ${day.day || i}, exercise ${j}:`, exercise);
+                        }
+                    }
                 }
             }
             console.log("Workout response parsed successfully:", parsed);
@@ -418,19 +536,19 @@ let GeminiService = class GeminiService {
             const calculatedFats = ((_b = day.meals) === null || _b === void 0 ? void 0 : _b.reduce((sum, meal) => sum + (Number(meal.fats) || 0), 0)) || 50;
             const calculatedCalories = ((_c = day.meals) === null || _c === void 0 ? void 0 : _c.reduce((sum, meal) => sum + (Number(meal.calories) || 0), 0)) || 2000;
             const calculatedProtein = ((_d = day.meals) === null || _d === void 0 ? void 0 : _d.reduce((sum, meal) => sum + (Number(meal.protein) || 0), 0)) || 80;
-            if (typeof day.totalCarbs !== 'number') {
+            if (typeof day.totalCarbs !== "number") {
                 console.warn(`Day ${day.day || index} missing totalCarbs, using calculated: ${calculatedCarbs}`);
                 day.totalCarbs = calculatedCarbs;
             }
-            if (typeof day.totalFats !== 'number') {
+            if (typeof day.totalFats !== "number") {
                 console.warn(`Day ${day.day || index} missing totalFats, using calculated: ${calculatedFats}`);
                 day.totalFats = calculatedFats;
             }
-            if (typeof day.totalCalories !== 'number') {
+            if (typeof day.totalCalories !== "number") {
                 console.warn(`Day ${day.day || index} missing totalCalories, using calculated: ${calculatedCalories}`);
                 day.totalCalories = calculatedCalories;
             }
-            if (typeof day.totalProtein !== 'number') {
+            if (typeof day.totalProtein !== "number") {
                 console.warn(`Day ${day.day || index} missing totalProtein, using calculated: ${calculatedProtein}`);
                 day.totalProtein = calculatedProtein;
             }
@@ -442,7 +560,7 @@ let GeminiService = class GeminiService {
                 protein: Number(meal.protein) || 10,
                 carbs: Number(meal.carbs) || 30,
                 fats: Number(meal.fats) || 10,
-                notes: meal.notes || ""
+                notes: meal.notes || "",
             }));
             return {
                 day: day.day || `Day ${index + 1}`,
@@ -452,7 +570,7 @@ let GeminiService = class GeminiService {
                 totalCarbs: Number(day.totalCarbs),
                 totalFats: Number(day.totalFats),
                 waterIntake: Number(day.waterIntake) || 2000,
-                notes: day.notes || "Generated diet plan"
+                notes: day.notes || "Generated diet plan",
             };
         });
         if (weeklyPlan.length !== 7) {
@@ -464,12 +582,12 @@ let GeminiService = class GeminiService {
         }
         const plan = {
             clientId: client.clientId,
-            title: `${client.firstName || 'Client'}'s ${client.dietPreference ? client.dietPreference + ' ' : ''}Diet Plan`,
-            description: `Custom diet plan based on ${client.fitnessGoal || 'general health'} goal`,
+            title: `${client.firstName || "Client"}'s ${client.dietPreference ? client.dietPreference + " " : ""}Diet Plan`,
+            description: `Custom diet plan based on ${client.fitnessGoal || "general health"} goal`,
             weeklyPlan,
             createdAt: new Date(),
             updatedAt: new Date(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         };
         console.log("Formatted diet plan:", JSON.stringify(plan, null, 2));
         return plan;
@@ -481,16 +599,16 @@ let GeminiService = class GeminiService {
                 sets: Number(exercise.sets) || 3,
                 reps: exercise.reps || "10",
                 restTime: exercise.restTime || "60 seconds",
-                notes: exercise.notes || ""
+                notes: exercise.notes || "",
             })), warmup: day.warmup || "5 min light stretching", cooldown: day.cooldown || "5 min static stretching", duration: day.duration || "45 minutes", intensity: day.intensity || "Moderate" })));
         const plan = {
             clientId: client.clientId,
-            title: `${client.firstName || 'Client'}'s ${category} Workout Plan`,
-            description: `Custom ${category} workout plan based on ${client.fitnessGoal || 'general fitness'} goal`,
+            title: `${client.firstName || "Client"}'s ${category} Workout Plan`,
+            description: `Custom ${category} workout plan based on ${client.fitnessGoal || "general fitness"} goal`,
             weeklyPlan,
             createdAt: new Date(),
             updatedAt: new Date(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         };
         console.log("Formatted workout plan:", JSON.stringify(plan, null, 2));
         return plan;
@@ -498,7 +616,15 @@ let GeminiService = class GeminiService {
     createDefaultDietPlan(client) {
         console.log("Generating default diet plan for client:", client.clientId);
         const calorieTarget = Number(client.calorieTarget) || 2000;
-        const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        const daysOfWeek = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ];
         const weeklyPlan = daysOfWeek.map((day) => {
             const meals = [
                 {
@@ -509,17 +635,21 @@ let GeminiService = class GeminiService {
                     protein: 12,
                     carbs: 55,
                     fats: 8,
-                    notes: "Use unsweetened almond milk, no added sugar"
+                    notes: "Use unsweetened almond milk, no added sugar",
                 },
                 {
                     name: "Lunch",
                     time: "12:00 PM",
-                    foods: ["Grilled Chicken Salad", "Olive Oil Dressing", "Whole Grain Bread"],
+                    foods: [
+                        "Grilled Chicken Salad",
+                        "Olive Oil Dressing",
+                        "Whole Grain Bread",
+                    ],
                     calories: 450,
                     protein: 25,
                     carbs: 35,
                     fats: 15,
-                    notes: "Use low-sodium dressing, include mixed greens"
+                    notes: "Use low-sodium dressing, include mixed greens",
                 },
                 {
                     name: "Dinner",
@@ -529,8 +659,8 @@ let GeminiService = class GeminiService {
                     protein: 30,
                     carbs: 40,
                     fats: 20,
-                    notes: "Season with herbs, avoid butter"
-                }
+                    notes: "Season with herbs, avoid butter",
+                },
             ];
             return {
                 day,
@@ -540,17 +670,17 @@ let GeminiService = class GeminiService {
                 totalCarbs: meals.reduce((sum, meal) => sum + meal.carbs, 0),
                 totalFats: meals.reduce((sum, meal) => sum + meal.fats, 0),
                 waterIntake: client.waterIntake || 2000,
-                notes: `Default plan for ${day}, suitable for diabetes and heart-disease`
+                notes: `Default plan for ${day}, suitable for diabetes and heart-disease`,
             };
         });
         const plan = {
             clientId: client.clientId,
-            title: `${client.firstName || 'Client'}'s Default Diet Plan`,
-            description: `Default diet plan for ${client.fitnessGoal || 'general health'}`,
+            title: `${client.firstName || "Client"}'s Default Diet Plan`,
+            description: `Default diet plan for ${client.fitnessGoal || "general health"}`,
             weeklyPlan,
             createdAt: new Date(),
             updatedAt: new Date(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         };
         console.log("Default diet plan created:", JSON.stringify(plan, null, 2));
         return plan;
@@ -569,13 +699,14 @@ let GeminiService = class GeminiService {
                 console.error("Error context:", rawResponse.substring(Math.max(0, Number((_b = initialError.message.match(/position (\d+)/)) === null || _b === void 0 ? void 0 : _b[1]) - 50), Number((_c = initialError.message.match(/position (\d+)/)) === null || _c === void 0 ? void 0 : _c[1]) + 50));
             }
             let cleaned = rawResponse
-                .replace(/```(json)?\s*/g, '')
-                .replace(/```\s*/g, '')
-                .replace(/\n\s*/g, '')
+                .replace(/```(json)?\s*/g, "") // Remove code block markers
+                .replace(/```\s*/g, "")
+                .replace(/\n\s*/g, "") // Remove newlines
                 .trim();
             console.log("Cleaned response:", cleaned);
             try {
-                const parsed = JSON.parse(cleaned);
+                const repaired = (0, jsonrepair_1.jsonrepair)(cleaned);
+                const parsed = JSON.parse(repaired);
                 console.log("Cleaned response is valid JSON");
                 return { response: cleaned, wasRepaired: true };
             }
@@ -591,7 +722,9 @@ let GeminiService = class GeminiService {
             console.log("Repaired response:", repaired);
             try {
                 const parsed = JSON.parse(repaired);
-                if (!parsed.weeklyPlan || !Array.isArray(parsed.weeklyPlan) || parsed.weeklyPlan.length === 0) {
+                if (!parsed.weeklyPlan ||
+                    !Array.isArray(parsed.weeklyPlan) ||
+                    parsed.weeklyPlan.length === 0) {
                     console.error("Repaired JSON is valid but has empty or invalid weeklyPlan:", parsed);
                     throw new Error("Invalid plan structure");
                 }
@@ -608,22 +741,33 @@ let GeminiService = class GeminiService {
     repairMalformedJson(jsonString) {
         console.log("Attempting to repair JSON:", jsonString.substring(0, 1000) + (jsonString.length > 1000 ? "..." : ""));
         try {
-            const jsonStart = jsonString.indexOf('{');
-            const jsonEnd = jsonString.lastIndexOf('}') + 1;
+            const jsonStart = jsonString.indexOf("{");
+            const jsonEnd = jsonString.lastIndexOf("}") + 1;
             if (jsonStart >= 0 && jsonEnd > jsonStart) {
                 jsonString = jsonString.substring(jsonStart, jsonEnd);
             }
-            let repaired = jsonString
-                .replace(/([{,\[]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)/g, '$1"$2"$3')
-                .replace(/'([^']+)'/g, '"$1"')
-                .replace(/,\s*([}\]])/g, '$1')
-                .replace(/([}\]])\s*([{\[])/g, '$1,$2')
-                .replace(/\/\/.*?[\r\n]/g, '')
-                .replace(/\/\*[\s\S]*?\*\//g, '')
-                .replace(/\\"/g, '"')
-                .replace(/}\s*{/g, '},{')
-                .replace(/,+/g, ',')
-                .replace(/\]\s*\[/g, '],[');
+            let repaired = jsonString;
+            repaired = repaired.replace(/"reps":\s*"(\d+)\s*per\s*leg"/g, (match, num) => {
+                return `"reps": ${num}, "notes": "Per leg"`;
+            });
+            repaired = repaired
+                .replace(/([{,\[]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)/g, '$1"$2"$3') // Quote unquoted keys
+                .replace(/'([^']+)'/g, '"$1"') // Replace single quotes with double quotes
+                .replace(/,\s*([}\]])/g, "$1") // Remove trailing commas
+                .replace(/([}\]])\s*([{\[])/g, "$1,$2") // Add missing commas between objects/arrays
+                .replace(/\/\/.*?[\r\n]/g, "") // Remove comments
+                .replace(/\/\*[\s\S]*?\*\//g, "") // Remove multi-line comments
+                .replace(/\\"/g, '"') // Unescape quotes
+                .replace(/}\s*{/g, "},{") // Add commas between objects
+                .replace(/,+/g, ",") // Replace multiple commas with single
+                .replace(/\]\s*\[/g, "],["); // Add commas between arrays
+            // Specifically handle invalid reps values like "As many as"
+            repaired = repaired.replace(/"reps":\s*"As many as[^"]*"/g, `"reps": "AMRAP", "notes": "As many reps as possible"`);
+            repaired = repaired.replace(/"reps":\s*"[^0-9][^"]*"/g, (match) => {
+                var _a;
+                const notes = ((_a = match.match(/"reps":\s*"(.*?)"/)) === null || _a === void 0 ? void 0 : _a[1]) || "Invalid reps";
+                return `"reps": "10", "notes": "Originally ${notes}"`;
+            });
             try {
                 const parsed = JSON.parse(repaired);
                 if (!parsed.weeklyPlan || !Array.isArray(parsed.weeklyPlan)) {
@@ -702,34 +846,48 @@ let GeminiService = class GeminiService {
                 const cached = yield this.redis.get(key);
                 if (cached) {
                     const parsed = JSON.parse(cached);
-                    if (parsed.weeklyPlan && Array.isArray(parsed.weeklyPlan) && parsed.weeklyPlan.length > 0) {
-                        if (key.startsWith('diet:')) {
+                    if (parsed.weeklyPlan &&
+                        Array.isArray(parsed.weeklyPlan) &&
+                        parsed.weeklyPlan.length > 0) {
+                        if (key.startsWith("diet:")) {
                             for (let i = 0; i < parsed.weeklyPlan.length; i++) {
                                 const day = parsed.weeklyPlan[i];
-                                if (typeof day.totalCarbs !== 'number' || typeof day.totalFats !== 'number') {
+                                if (typeof day.totalCarbs !== "number" ||
+                                    typeof day.totalFats !== "number") {
                                     console.warn(`Invalid cached diet plan for key ${key}: Day ${day.day || i} missing totalCarbs or totalFats`);
                                     yield this.redis.del(key);
                                     return null;
                                 }
                             }
                         }
-                        else if (key.startsWith('workout:') && (client === null || client === void 0 ? void 0 : client.preferredWorkout)) {
+                        else if (key.startsWith("workout:") && (client === null || client === void 0 ? void 0 : client.preferredWorkout)) {
                             const category = client.preferredWorkout.toLowerCase();
-                            if (category === 'yoga') {
+                            if (category === "yoga") {
                                 for (let i = 0; i < parsed.weeklyPlan.length; i++) {
                                     const day = parsed.weeklyPlan[i];
                                     // Check if focus explicitly includes 'yoga' or related terms
-                                    const focusLower = (day.focus || '').toLowerCase();
-                                    if (!focusLower.includes('yoga') && !focusLower.includes('vinyasa') && !focusLower.includes('asana')) {
+                                    const focusLower = (day.focus || "").toLowerCase();
+                                    if (!focusLower.includes("yoga") &&
+                                        !focusLower.includes("vinyasa") &&
+                                        !focusLower.includes("asana")) {
                                         console.warn(`Invalid cached workout plan for key ${key}: Day ${day.day || i} focus (${day.focus}) does not match yoga category`);
                                         yield this.redis.del(key);
                                         return null;
                                     }
                                     // Check for equipment-based exercises
                                     for (const exercise of day.exercises || []) {
-                                        const nameLower = (exercise.name || '').toLowerCase();
-                                        const equipmentTerms = ['dumbbell', 'barbell', 'machine', 'weight', 'kettlebell', 'resistance band', 'bench', 'cable'];
-                                        if (equipmentTerms.some(term => nameLower.includes(term))) {
+                                        const nameLower = (exercise.name || "").toLowerCase();
+                                        const equipmentTerms = [
+                                            "dumbbell",
+                                            "barbell",
+                                            "machine",
+                                            "weight",
+                                            "kettlebell",
+                                            "resistance band",
+                                            "bench",
+                                            "cable",
+                                        ];
+                                        if (equipmentTerms.some((term) => nameLower.includes(term))) {
                                             console.warn(`Invalid cached workout plan for key ${key}: Day ${day.day || i} includes equipment-based exercise: ${exercise.name}`);
                                             yield this.redis.del(key);
                                             return null;
@@ -755,9 +913,9 @@ let GeminiService = class GeminiService {
         });
     }
     setupCleanupJob() {
-        const job = new cron_1.CronJob('0 3 * * *', () => __awaiter(this, void 0, void 0, function* () {
+        const job = new cron_1.CronJob("0 3 * * *", () => __awaiter(this, void 0, void 0, function* () {
             try {
-                const keys = yield this.redis.keys('*:in_progress');
+                const keys = yield this.redis.keys("*:in_progress");
                 const pipeline = this.redis.pipeline();
                 for (const key of keys) {
                     const ttl = yield this.redis.ttl(key);
@@ -781,10 +939,10 @@ let GeminiService = class GeminiService {
             console.log(`Auto-regeneration job already exists for ${jobKey}`);
             return;
         }
-        const job = new cron_1.CronJob('0 6 */7 * *', () => __awaiter(this, void 0, void 0, function* () {
+        const job = new cron_1.CronJob("0 6 */7 * *", () => __awaiter(this, void 0, void 0, function* () {
             try {
                 console.log(`Starting auto-regeneration of ${type} plan for client ${client.clientId}`);
-                if (type === 'workout') {
+                if (type === "workout") {
                     yield this.generateWorkoutPlan(client);
                 }
                 else {
@@ -798,7 +956,7 @@ let GeminiService = class GeminiService {
                     this.setupAutoRegeneration(client, type);
                 }, 3600000);
             }
-        }), null, true, 'UTC');
+        }), null, true, "UTC");
         this.cronJobs.set(jobKey, job);
         console.log(`Auto-regeneration job scheduled for ${jobKey}`);
     }
@@ -840,22 +998,24 @@ let GeminiService = class GeminiService {
     getRetryDelay(error) {
         var _a;
         const typedError = error;
-        const retryInfo = (_a = typedError.errorDetails) === null || _a === void 0 ? void 0 : _a.find(d => d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo');
-        const delay = (retryInfo === null || retryInfo === void 0 ? void 0 : retryInfo.retryDelay) ? this.parseRetryDelay(retryInfo.retryDelay) : 5000;
+        const retryInfo = (_a = typedError.errorDetails) === null || _a === void 0 ? void 0 : _a.find((d) => d["@type"] === "type.googleapis.com/google.rpc.RetryInfo");
+        const delay = (retryInfo === null || retryInfo === void 0 ? void 0 : retryInfo.retryDelay)
+            ? this.parseRetryDelay(retryInfo.retryDelay)
+            : 5000;
         console.log("Calculated retry delay:", delay);
         return delay;
     }
     parseRetryDelay(delay) {
         const value = parseFloat(delay);
-        if (delay.endsWith('s'))
+        if (delay.endsWith("s"))
             return value * 1000;
-        if (delay.endsWith('ms'))
+        if (delay.endsWith("ms"))
             return value;
         return value * 1000;
     }
     sleep(ms) {
         console.log(`Sleeping for ${ms}ms`);
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
     logError(error, planType, client) {
         console.error(`Error generating ${planType} plan for client ${client.clientId}:`, {
@@ -865,67 +1025,79 @@ let GeminiService = class GeminiService {
                 id: client.clientId,
                 height: client.height,
                 weight: client.weight,
-                goal: client.fitnessGoal
-            }
+                goal: client.fitnessGoal,
+            },
         });
     }
     createServiceError(error, planType) {
         const message = error instanceof Error ? error.message : `Failed to generate ${planType}`;
         const serviceError = new Error(message);
-        serviceError.name = 'GeminiServiceError';
+        serviceError.name = "GeminiServiceError";
         console.error("Service error created:", message);
         return serviceError;
     }
     getCategoryExerciseExample(category) {
         switch (category.toLowerCase()) {
             case "yoga":
-                return [{
+                return [
+                    {
                         name: "Downward Dog",
                         sets: 3,
                         reps: "30 seconds",
                         restTime: "15 seconds",
-                        notes: "Focus on breath and alignment; use yoga mat"
-                    }];
+                        notes: "Focus on breath and alignment; use yoga mat",
+                    },
+                ];
             case "meditation":
-                return [{
+                return [
+                    {
                         name: "Mindful Breathing",
                         sets: 1,
                         reps: "10 minutes",
                         restTime: "N/A",
-                        notes: "Focus on deep, steady breaths"
-                    }];
+                        notes: "Focus on deep, steady breaths",
+                    },
+                ];
             case "crossfit":
-                return [{
+                return [
+                    {
                         name: "Burpees",
                         sets: 4,
                         reps: 15,
                         restTime: "45 seconds",
-                        notes: "Explosive movement"
-                    }];
+                        notes: "Explosive movement",
+                    },
+                ];
             case "calisthenics":
-                return [{
+                return [
+                    {
                         name: "Pull-ups",
                         sets: 3,
                         reps: 10,
                         restTime: "60 seconds",
-                        notes: "Use controlled motion"
-                    }];
+                        notes: "Use controlled motion",
+                    },
+                ];
             case "pilates":
-                return [{
+                return [
+                    {
                         name: "The Hundred",
                         sets: 3,
                         reps: "100 pulses",
                         restTime: "30 seconds",
-                        notes: "Engage core throughout"
-                    }];
+                        notes: "Engage core throughout",
+                    },
+                ];
             default:
-                return [{
+                return [
+                    {
                         name: "Squats",
                         sets: 3,
                         reps: 12,
                         restTime: "60 seconds",
-                        notes: "Maintain proper form"
-                    }];
+                        notes: "Maintain proper form",
+                    },
+                ];
         }
     }
     shutdown() {

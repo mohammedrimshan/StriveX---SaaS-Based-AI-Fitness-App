@@ -24,7 +24,7 @@ import { useAllWorkouts } from "@/hooks/client/useAllWorkouts";
 import { RootState } from "@/store/store";
 import { IWorkoutVideoProgressEntity, ExerciseProgress } from "@/services/progress/workoutProgressService";
 import { WorkoutVideoAsProgressResponse } from "@/types/Progress";
-import { WorkoutDetailsPro } from "@/types/Workouts"; // Import workout type
+import { WorkoutDetailsPro } from "@/types/Workouts";
 
 // Custom badge component props
 interface CustomBadgeProps {
@@ -40,7 +40,7 @@ export default function WorkoutProgressChart() {
     isLoading: boolean;
     error: unknown;
   };
-  const { data: workoutsData, isLoading: isWorkoutsLoading, error: workoutsError } = useAllWorkouts(1, 100, {}); // Fetch all workouts
+  const { data: workoutsData, isLoading: isWorkoutsLoading, error: workoutsError } = useAllWorkouts(1, 100, {});
   console.log("Progress Data:", progressData);
   console.log("Workouts Data:", workoutsData);
 
@@ -49,7 +49,7 @@ export default function WorkoutProgressChart() {
   const [showAnimation, setShowAnimation] = useState(false);
 
   const workoutItems = Array.isArray(progressData?.items?.items) ? progressData.items.items : [];
-  const allWorkouts = Array.isArray(workoutsData?.data) ? workoutsData.data : []; // Access workoutsData.data
+  const allWorkouts = Array.isArray(workoutsData?.data) ? workoutsData.data : [];
   console.log("Workout Items:", workoutItems);
   console.log("All Workouts:", allWorkouts);
 
@@ -320,7 +320,7 @@ export default function WorkoutProgressChart() {
                   <BarChart3 className="mr-2 h-5 w-5 text-violet-600" />
                   Exercise Breakdown
                 </CardTitle>
-                <CardDescription>Exercise completion by type</CardDescription>
+                <CardDescription>Exercise video progress by type</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6 py-4">
@@ -335,17 +335,17 @@ export default function WorkoutProgressChart() {
                       (workout.exerciseProgress || []).filter((ex: ExerciseProgress) => ex.exerciseDetails?.name === exerciseName)
                     );
 
-                    const completedCount = allExercises.filter((ex: ExerciseProgress) => ex.status === "Completed").length;
-                    const totalCount = allExercises.length;
-                    const completionRate = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-                    const animatedCompletionRate = showAnimation ? completionRate : 0;
+                    // Calculate average video progress for this exercise type
+                    const totalVideoProgress = allExercises.reduce((sum, ex) => sum + (ex.videoProgress ?? 0), 0);
+                    const averageVideoProgress = allExercises.length > 0 ? totalVideoProgress / allExercises.length : 0;
+                    const animatedVideoProgress = showAnimation ? averageVideoProgress : 0;
 
                     return (
                       <div key={i} className="space-y-2 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                         <div className="flex justify-between">
                           <span className="font-medium text-sm">{exerciseName}</span>
                           <span className="text-sm text-gray-500 font-medium">
-                            {completedCount}/{totalCount}
+                            {Math.round(averageVideoProgress)}%
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -353,13 +353,13 @@ export default function WorkoutProgressChart() {
                             <div
                               className="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out"
                               style={{
-                                width: `${animatedCompletionRate}%`,
+                                width: `${animatedVideoProgress}%`,
                                 background: `linear-gradient(to right, #8b5cf6, #4f46e5)`,
                               }}
                             ></div>
                           </div>
                           <span className="text-xs font-medium bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-                            {Math.round(completionRate)}%
+                            {Math.round(averageVideoProgress)}%
                           </span>
                         </div>
                       </div>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
-import { toast } from "sonner";
+import { useToaster } from '@/hooks/ui/useToaster';
 import { CalendarModal } from './DatePicker';
 import { TimePicker } from './TimePicker';
-import { SlotFormProps,SlotFormData } from '@/types/Slot';
+import { SlotFormProps, SlotFormData } from '@/types/Slot';
 
 export const SlotForm: React.FC<SlotFormProps> = ({
   onSubmit,
@@ -19,6 +19,8 @@ export const SlotForm: React.FC<SlotFormProps> = ({
     endTime: ''
   });
 
+  const { successToast, errorToast } = useToaster();
+
   // Handle form input changes
   const handleInputChange = (field: keyof SlotFormData, value: string) => {
     setFormData(prev => ({
@@ -29,7 +31,7 @@ export const SlotForm: React.FC<SlotFormProps> = ({
 
   useEffect(() => {
     if (isSuccess) {
-      toast.success("Time slot created successfully!");
+      successToast("Time slot created successfully!");
       setFormData({
         date: '',
         startTime: '',
@@ -38,7 +40,7 @@ export const SlotForm: React.FC<SlotFormProps> = ({
     }
     
     if (isError && error) {
-      toast.error(`Error: ${error.message}`);
+      errorToast(`Error: ${error.message}`);
     }
   }, [isSuccess, isError, error]);
 
@@ -48,23 +50,23 @@ export const SlotForm: React.FC<SlotFormProps> = ({
     
     // Validate form data
     if (!formData.date) {
-      toast.error("Please select a date");
+      errorToast("Please select a date");
       return;
     }
     
     if (!formData.startTime) {
-      toast.error("Please select a start time");
+      errorToast("Please select a start time");
       return;
     }
     
     if (!formData.endTime) {
-      toast.error("Please select an end time");
+      errorToast("Please select an end time");
       return;
     }
     
     // Validate end time is after start time
     if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
-      toast.error("End time must be after start time");
+      errorToast("End time must be after start time");
       return;
     }
     
@@ -104,6 +106,7 @@ export const SlotForm: React.FC<SlotFormProps> = ({
               value={formData.startTime}
               onChange={(value) => handleInputChange('startTime', value)}
               label="Start Time"
+              selectedDate={formData.date} // Pass selected date
             />
           </div>
           
@@ -114,6 +117,7 @@ export const SlotForm: React.FC<SlotFormProps> = ({
               value={formData.endTime}
               onChange={(value) => handleInputChange('endTime', value)}
               label="End Time"
+              selectedDate={formData.date} // Pass selected date
             />
           </div>
         </div>

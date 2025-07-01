@@ -38,7 +38,7 @@ let VideoSocketService = class VideoSocketService {
         this.connectedUsers = new Map();
         this.io = new socket_io_1.Server({
             cors: {
-                origin: process.env.CORS_ALLOWED_ORIGIN || "https://strivex.rimshan.in/",
+                origin: process.env.CORS_ALLOWED_ORIGIN || "https://strivex.rimshan.in",
                 methods: ["GET", "POST"],
                 credentials: true,
             },

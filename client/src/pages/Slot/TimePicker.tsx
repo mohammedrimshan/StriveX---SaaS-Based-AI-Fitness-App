@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 
 interface TimePickerProps {
   id: string;
@@ -12,6 +12,7 @@ interface TimePickerProps {
   onChange: (value: string) => void;
   label?: string;
   className?: string;
+  selectedDate?: string; // New prop for the selected date
 }
 
 const generateTimeSlots = (interval: number = 30): string[] => {
@@ -37,7 +38,8 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   value,
   onChange,
   label,
-  className
+  className,
+  selectedDate,
 }) => {
   const [open, setOpen] = useState(false);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
@@ -47,9 +49,32 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     setTimeSlots(generateTimeSlots(30));
   }, []);
 
+  const isTimeDisabled = (time: string): boolean => {
+    if (!selectedDate || !isToday(new Date(selectedDate))) {
+      return false; // All times available for future dates
+    }
+
+    // Get current time
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    
+    // Parse the time slot
+    const [slotHours, slotMinutes] = time.split(':').map(Number);
+    
+    // Compare times
+    const currentTotalMinutes = currentHours * 60 + currentMinutes;
+    const slotTotalMinutes = slotHours * 60 + slotMinutes;
+    
+    // Disable if time is in the past (before current time)
+    return slotTotalMinutes < currentTotalMinutes;
+  };
+
   const handleTimeSelect = (time: string) => {
-    onChange(time);
-    setOpen(false);
+    if (!isTimeDisabled(time)) {
+      onChange(time);
+      setOpen(false);
+    }
   };
   
   const displayTime = (time: string) => {
@@ -90,19 +115,22 @@ export const TimePicker: React.FC<TimePickerProps> = ({
           <DialogHeader className="px-4 pt-4 pb-2 border-b dark:border-gray-700">
             <DialogTitle className="text-center font-medium">Select Time</DialogTitle>
           </DialogHeader>
-          
-          <div className="max-h-[300px] overflow-y-auto p-4 scrollbar-none">
+
+          <div className="max-h-[300px] overflow-y-auto p-4 custom-scrollbar">
             <div className="grid grid-cols-3 gap-2">
               {timeSlots.map((time) => (
                 <button
                   key={time}
                   type="button"
                   onClick={() => handleTimeSelect(time)}
+                  disabled={isTimeDisabled(time)}
                   className={cn(
-                    "py-2 px-1 rounded-md text-sm font-medium transition-all hover:bg-purple-100 dark:hover:bg-purple-900/30",
-                    time === value ? 
-                      "bg-purple-500 text-white hover:bg-purple-600 dark:hover:bg-purple-600" : 
-                      "bg-gray-50 dark:bg-gray-800"
+                    "py-2 px-1 rounded-md text-sm font-medium transition-all",
+                    time === value
+                      ? "bg-purple-500 text-white hover:bg-purple-600 dark:hover:bg-purple-600"
+                      : isTimeDisabled(time)
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
+                      : "bg-gray-50 hover:bg-purple-100 dark:bg-gray-800 dark:hover:bg-purple-900/30"
                   )}
                 >
                   {displayTime(time)}

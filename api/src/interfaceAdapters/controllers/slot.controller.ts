@@ -12,6 +12,7 @@ import { IGetUserBookingsUseCase } from "../../useCases/slot/get-user-bookings.u
 import { IGetBookedTrainerSlotsUseCase } from "../../entities/useCaseInterfaces/slot/get-booked-slots.usecase.interface";
 import { ITrainerSlotCancellationUseCase } from "@/entities/useCaseInterfaces/slot/trainer-slot-cancellation-usecase.interface";
 import { IReassignTrainerUseCase } from "../../entities/useCaseInterfaces/slot/reassign-trainer-usecase.interface";
+import { ICreateSlotsFromRuleUseCase } from "../../entities/useCaseInterfaces/slot/create-slots-from-rule.usecase.interface";
 import { CustomError } from "../../entities/utils/custom.error";
 import { HTTP_STATUS, SUCCESS_MESSAGES, ERROR_MESSAGES } from "../../shared/constants";
 import { handleErrorResponse } from "../../shared/utils/errorHandler";
@@ -31,7 +32,8 @@ export class SlotController implements ISlotController {
     @inject("IGetUserBookingsUseCase") private getUserBookingsUseCase: IGetUserBookingsUseCase,
     @inject("IGetBookedTrainerSlotsUseCase") private getBookedTrainerSlotsUseCase: IGetBookedTrainerSlotsUseCase,
     @inject("ITrainerSlotCancellationUseCase") private trainerSlotCancellationUseCase: ITrainerSlotCancellationUseCase,
-    @inject("IReassignTrainerUseCase") private reassignTrainerUseCase: IReassignTrainerUseCase
+    @inject("IReassignTrainerUseCase") private reassignTrainerUseCase: IReassignTrainerUseCase,
+    @inject("ICreateSlotsFromRuleUseCase") private createSlotsFromRuleUseCase: ICreateSlotsFromRuleUseCase
   ) {}
 
   async createSlot(req: Request, res: Response): Promise<void> {
@@ -265,6 +267,36 @@ export class SlotController implements ISlotController {
         success: true,
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
         slot,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
+    }
+  }
+
+   async createSlotsFromRule(req: Request, res: Response): Promise<void> {
+    try {
+      const trainerId = (req as CustomRequest).user.id;
+      const { rules, fromDate, toDate, slotDurationInMinutes } = req.body;
+
+      if (!rules || !fromDate || !toDate) {
+        throw new CustomError(
+          "Rules, fromDate and toDate are required",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      const slots = await this.createSlotsFromRuleUseCase.execute({
+        trainerId,
+        rules,
+        fromDate,
+        toDate,
+        slotDurationInMinutes,
+      });
+
+      res.status(HTTP_STATUS.CREATED).json({
+        success: true,
+        message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
+        slots,
       });
     } catch (error) {
       handleErrorResponse(res, error);
