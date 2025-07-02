@@ -15,6 +15,14 @@ import { IWalletTransaction } from '@/types/clientWallet';
 // Define transaction type to include WITHDRAWAL
 type TransactionType = 'ALL' | 'REFUND' | 'WITHDRAWAL' | 'DEPOSIT';
 
+// Generate list of months and years for selection
+const months = Array.from({ length: 12 }, (_, i) => ({
+  value: i + 1,
+  label: new Date(0, i).toLocaleString('en-IN', { month: 'long' }),
+}));
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 5 }, (_, i) => currentYear - i); // Last 5 years
+
 const formatReason = (reason: string) => {
   if (reason === "UNBOOKED_DAY") return "Unbooked Day";
   if (reason.startsWith("SUBSCRIPTION_UPGRADE")) return "Subscription Upgrade";
@@ -36,14 +44,11 @@ const ClientWallet = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<TransactionType>('ALL');
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
-  // Get current year and month for the query
-  const currentDate = new Date();
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1; // Months are 1-based for the API
-
-  // Fetch wallet data using the hook
-  const { data: walletData, isLoading } = useClientWallet(year, month, currentPage, 10);
+  // Fetch wallet data using the hook with selected year and month
+  const { data: walletData, isLoading } = useClientWallet(selectedYear, selectedMonth, currentPage, 10);
 
   // Calculate unbooked days count
   const unbookedDaysCount = useMemo(() => {
@@ -149,29 +154,12 @@ const ClientWallet = () => {
     );
   }
 
-//   if (isError) {
-//     return (
-//       <AnimatedBackground>
-//         <div className="min-h-screen flex items-center justify-center">
-//           <motion.div
-//             initial={{ opacity: 0, scale: 0.8 }}
-//             animate={{ opacity: 1, scale: 1 }}
-//             className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl"
-//           >
-//             <p className="text-lg font-semibold text-red-600">Error loading wallet data</p>
-//             <p className="text-gray-600 mt-1 text-sm">{error?.message || 'Please try again later'}</p>
-//           </motion.div>
-//         </div>
-//       </AnimatedBackground>
-//     );
-//   }
-
   return (
     <AnimatedBackground>
       <div className="min-h-screen">
         {/* Header Section */}
         <div className="relative pt-12 pb-8">
-          <div className="container mx-auto px-4">
+          <div className="container11 mx-auto px-4">
             <AnimatedTitle 
               title="My Wallet" 
               subtitle="Track your fitness journey earnings and expenses with style"
@@ -305,6 +293,48 @@ const ClientWallet = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                    {/* Month Selector */}
+                    <Select 
+                      value={selectedMonth.toString()} 
+                      onValueChange={(value) => {
+                        setSelectedMonth(Number(value));
+                        setCurrentPage(1); // Reset to first page on month change
+                      }}
+                    >
+                      <SelectTrigger className="w-full sm:w-40 h-10 rounded-xl border-2 border-indigo-100 focus:border-indigo-300 bg-white/50 backdrop-blur-sm text-sm">
+                        <Calendar className="h-4 w-4 mr-2 text-indigo-600" />
+                        <SelectValue placeholder="Select Month" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-2 border-indigo-100">
+                        {months.map((month) => (
+                          <SelectItem key={month.value} value={month.value.toString()}>
+                            {month.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Year Selector */}
+                    <Select 
+                      value={selectedYear.toString()} 
+                      onValueChange={(value) => {
+                        setSelectedYear(Number(value));
+                        setCurrentPage(1); // Reset to first page on year change
+                      }}
+                    >
+                      <SelectTrigger className="w-full sm:w-40 h-10 rounded-xl border-2 border-indigo-100 focus:border-indigo-300 bg-white/50 backdrop-blur-sm text-sm">
+                        <Calendar className="h-4 w-4 mr-2 text-indigo-600" />
+                        <SelectValue placeholder="Select Year" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-2 border-indigo-100">
+                        {years.map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input

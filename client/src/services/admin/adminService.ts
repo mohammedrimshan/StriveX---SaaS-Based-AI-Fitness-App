@@ -1,4 +1,4 @@
-import { adminAxiosInstance } from "@/api/admin.axios";
+// import { adminAxiosInstance } from "@/api/_ad/admin.axios";
 import { CategoryResponse } from "@/hooks/admin/useAllCategory";
 import { FetchUsersParams, UsersResponse } from "@/hooks/admin/useAllUsers";
 import { IAxiosResponse } from "@/types/Response";
@@ -7,6 +7,7 @@ import { Workout, Exercise } from "@/types/Workouts";
 import { MembershipPlanResponse,MembershipPlansPaginatedResponse } from "@/types/membership";
 import { FetchSubscriptionsParams, SubscriptionsResponse } from "@/types/subscription.types";
 import { FetchTransactionsParams, TransactionResponse } from "@/types/transaction";
+import { axiosInstance } from "@/api/private.axios";
 export interface WorkoutExercise {
   _id?: string;
   id?:string;
@@ -108,7 +109,7 @@ export const getAllUsers = async <T extends IClient | ITrainer>({
   limit = 5,
   search = "",
 }: FetchUsersParams): Promise<UsersResponse<T>> => {
-  const response = await adminAxiosInstance.get("/admin/users", {
+  const response = await axiosInstance.get("/_ad/admin/users", {
     params: { userType, page, limit, search },
   });
 
@@ -123,8 +124,8 @@ export const updateUserStatus = async (data: {
   userType: string;
   userId: string;
 }): Promise<IAxiosResponse> => {
-  const response = await adminAxiosInstance.patch(
-    "/admin/user-status",
+  const response = await axiosInstance.patch(
+    "/_ad/admin/user-status",
     {},
     {
       params: {
@@ -148,7 +149,7 @@ export const updateTrainerApprovalStatus = async ({
       rejectionReason: reason,
     };
     console.log("Sending to backend:", payload);
-    const response = await adminAxiosInstance.patch("/admin/trainer-approval", payload);
+    const response = await axiosInstance.patch("/_ad/admin/trainer-approval", payload);
     console.log("Backend response:", response.data);
     return response.data;
   } catch (error: any) {
@@ -166,7 +167,7 @@ export const getAllCategories = async ({
   limit: number;
   search: string;
 }): Promise<CategoryResponse> => {
-  const response = await adminAxiosInstance.get("/admin/categories", {
+  const response = await axiosInstance.get("/_ad/admin/categories", {
     params: { page, limit, searchTerm: search },
   });
   console.log("Categories response:", response.data);
@@ -180,13 +181,13 @@ export const addAndEditCategory = async (categoryData: {
   description?: string;
 }): Promise<IAxiosResponse> => {
   if (categoryData.id) {
-    const response = await adminAxiosInstance.put(
-      `/admin/categories/${categoryData.id}`,
+    const response = await axiosInstance.put(
+      `/_ad/admin/categories/${categoryData.id}`,
       { name: categoryData.name,metValue:categoryData.metValue, description: categoryData.description }
     );
     return response.data;
   } else {
-    const response = await adminAxiosInstance.post("/admin/categories", {
+    const response = await axiosInstance.post("/_ad/admin/categories", {
       name: categoryData.name,
       metValue:categoryData.metValue,
       description: categoryData.description
@@ -197,7 +198,7 @@ export const addAndEditCategory = async (categoryData: {
 };
 
 export const toggleCategoryStatus = async (categoryId: string, status: boolean): Promise<IAxiosResponse> => {
-  const response = await adminAxiosInstance.patch(`/admin/categories/${categoryId}`, {
+  const response = await axiosInstance.patch(`/_ad/admin/categories/${categoryId}`, {
     status: status ? "false" : "true",
   });
   return response.data;
@@ -209,7 +210,7 @@ export const addWorkout = async (workoutData: WorkoutType, image?: string): Prom
     imageUrl: image,
   };
   console.log("Sending to backend:", payload);
-  const response = await adminAxiosInstance.post("/admin/workouts", payload);
+  const response = await axiosInstance.post("/_ad/admin/workouts", payload);
   return response.data;
 };
 
@@ -226,12 +227,12 @@ export const updateWorkout = async (
     musicUrl: files?.music || workoutData.musicUrl || "", // if you track music url
   };
   console.log("Sending to backend:", payload);
-  const response = await adminAxiosInstance.put(`/admin/workouts/${workoutId}`, payload);
+  const response = await axiosInstance.put(`/_ad/admin/workouts/${workoutId}`, payload);
   return response.data;
 };
 
 export const deleteWorkout = async (workoutId: string): Promise<IAxiosResponse> => {
-  const response = await adminAxiosInstance.delete(`/admin/workouts/${workoutId}`);
+  const response = await axiosInstance.delete(`/_ad/admin/workouts/${workoutId}`);
   return response.data;
 };
 
@@ -244,14 +245,14 @@ export const getAllWorkouts = async ({
   limit: number;
   filter: any;
 }): Promise<WorkoutsPaginatedResponse> => {
-  const response = await adminAxiosInstance.get("/admin/workouts", {
+  const response = await axiosInstance.get("/_ad/admin/workouts", {
     params: { page, limit, filter: JSON.stringify(filter) },
   });
   return response.data;
 };
 
 export const toggleWorkoutStatus = async (workoutId: string): Promise<WorkoutResponse> => {
-  const response = await adminAxiosInstance.patch(`/admin/workouts/${workoutId}/status`);
+  const response = await axiosInstance.patch(`/_ad/admin/workouts/${workoutId}/status`);
   return response.data;
 };
 
@@ -259,7 +260,7 @@ export const addExercise = async (
   workoutId: string,
   exerciseData: Exercise
 ): Promise<Workout> => {
-  const response = await adminAxiosInstance.post(`/admin/workouts/${workoutId}/exercises`, exerciseData);
+  const response = await axiosInstance.post(`/_ad/admin/workouts/${workoutId}/exercises`, exerciseData);
   return response.data.data;
 };
 
@@ -268,8 +269,8 @@ export const updateExercise = async (
   exerciseId: string,
   exerciseData: Partial<Exercise>
 ): Promise<Workout> => {
-  const response = await adminAxiosInstance.put(
-    `/admin/workouts/${workoutId}/exercises/${exerciseId}`,
+  const response = await axiosInstance.put(
+    `/_ad/admin/workouts/${workoutId}/exercises/${exerciseId}`,
     exerciseData
   );
   return response.data.data;
@@ -279,14 +280,14 @@ export const deleteExercise = async (
   workoutId: string,
   exerciseId: string
 ): Promise<Workout> => {
-  const response = await adminAxiosInstance.delete(
-    `/admin/workouts/${workoutId}/exercises/${exerciseId}`
+  const response = await axiosInstance.delete(
+    `/_ad/admin/workouts/${workoutId}/exercises/${exerciseId}`
   );
   return response.data.data;
 };
 
 export const getWorkoutById = async (workoutId: string): Promise<WorkoutResponse> => {
-  const response = await adminAxiosInstance.get(`/admin/workouts/${workoutId}`);
+  const response = await axiosInstance.get(`/_ad/admin/workouts/${workoutId}`);
   console.log(response.data);
   return response.data;
 };
@@ -297,7 +298,7 @@ export const addMembershipPlan = async (planData: {
 	price: number;
   }): Promise<MembershipPlanResponse> => {
 	try {
-	  const response = await adminAxiosInstance.post("/admin/membership-plans", planData);
+	  const response = await axiosInstance.post("/_ad/admin/membership-plans", planData);
 	  console.log("Add membership plan response:", response.data);
 	  return {
 		success: response.data.success,
@@ -320,7 +321,7 @@ export const addMembershipPlan = async (planData: {
 	}>
   ): Promise<MembershipPlanResponse> => {
 	try {
-	  const response = await adminAxiosInstance.put(`/admin/membership-plans/${planId}`, planData);
+	  const response = await axiosInstance.put(`/_ad/admin/membership-plans/${planId}`, planData);
 	  console.log("Update membership plan response:", response.data);
 	  return {
 		success: response.data.success,
@@ -335,7 +336,7 @@ export const addMembershipPlan = async (planData: {
   
   export const deleteMembershipPlan = async (planId: string): Promise<IAxiosResponse> => {
 	try {
-	  const response = await adminAxiosInstance.delete(`/admin/membership-plans/${planId}`);
+	  const response = await axiosInstance.delete(`/_ad/admin/membership-plans/${planId}`);
 	  console.log("Delete membership plan response:", response.data);
 	  return response.data;
 	} catch (error: any) {
@@ -354,7 +355,7 @@ export const addMembershipPlan = async (planData: {
 	search: string;
   }): Promise<MembershipPlansPaginatedResponse> => {
 	try {
-	  const response = await adminAxiosInstance.get("/admin/membership-plans", {
+	  const response = await axiosInstance.get("/_ad/admin/membership-plans", {
 		params: { page, limit, searchTerm: search },
 	  });
 	  console.log("Get all membership plans response:", response.data);
@@ -381,8 +382,8 @@ export const addMembershipPlan = async (planData: {
     limit: number;
     search: string;
   }): Promise<TrainerRequestsPaginatedResponse> => {
-    const response = await adminAxiosInstance.get<IAxiosResponse<TrainerRequestsPaginatedResponse>>(
-      "/admin/trainer-requests",
+    const response = await axiosInstance.get<IAxiosResponse<TrainerRequestsPaginatedResponse>>(
+      "/_ad/admin/trainer-requests",
       {
         params: { page, limit, search },
       }
@@ -394,8 +395,8 @@ export const addMembershipPlan = async (planData: {
   export const updateTrainerRequest = async (
     data: UpdateTrainerRequestData
   ): Promise<IAxiosResponse> => {
-    const response = await adminAxiosInstance.put<IAxiosResponse>(
-      "/admin/trainer-request",
+    const response = await axiosInstance.put<IAxiosResponse>(
+      "/_ad/admin/trainer-request",
       data
     );
     return response.data;
@@ -411,7 +412,7 @@ export const getTransactionHistory = async ({
   status, // Add status parameter
 }: FetchTransactionsParams): Promise<TransactionResponse> => {
   try {
-    const response = await adminAxiosInstance.get("/admin/transactions", {
+    const response = await axiosInstance.get("/_ad/admin/transactions", {
       params: { page, limit, userId, role, search, status }, 
     });
     console.log("Get transaction history response:", response.data);
@@ -437,7 +438,7 @@ export const getUserSubscriptions = async ({
   status = "all",
 }: FetchSubscriptionsParams): Promise<SubscriptionsResponse> => {
   try {
-    const response = await adminAxiosInstance.get("/admin/user-subscriptions", {
+    const response = await axiosInstance.get("/_ad/admin/user-subscriptions", {
       params: { page, limit, search, status },
     });
     console.log("Get user subscriptions response:", response.data);

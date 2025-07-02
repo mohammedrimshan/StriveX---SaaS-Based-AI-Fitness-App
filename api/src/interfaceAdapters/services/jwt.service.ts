@@ -1,4 +1,4 @@
-// D:\StriveX\api\src\interfaceAdapters\services\jwt.service.ts
+
 import { injectable } from "tsyringe";
 import { ITokenService } from "../../entities/services/token-service.interface";
 import jwt, { JwtPayload, Secret } from "jsonwebtoken";

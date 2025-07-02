@@ -270,25 +270,27 @@ let GeminiService = class GeminiService {
     createWorkoutPrompt(client) {
         var _a, _b, _c, _d, _e, _f;
         const preferredWorkout = ((_a = client.preferredWorkout) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || "general";
-        const isSpecificCategory = [
-            "yoga",
-            "meditation",
-            "crossfit",
-            "calisthenics",
-            "pilates",
-        ].includes(preferredWorkout);
+        const isTimeBasedCategory = ["yoga", "meditation", "pilates"].includes(preferredWorkout);
+        const isMixedCategory = ["cardio", "calisthenics", "weighttraining", "general"].includes(preferredWorkout);
         const equipmentInstruction = preferredWorkout === "yoga"
             ? "Exercises must not require any equipment except a yoga mat. Focus on bodyweight yoga poses and flows suitable for the client's experience level."
             : preferredWorkout === "meditation"
                 ? "Exercises must not require any equipment. Focus on mindfulness and breathing techniques."
-                : `Exercises may use available equipment: ${((_b = client.equipmentAvailable) === null || _b === void 0 ? void 0 : _b.join(", ")) || "Basic"}.`;
-        const repsInstruction = isSpecificCategory &&
-            (preferredWorkout === "yoga" || preferredWorkout === "meditation")
-            ? "Reps must be specified as a string in the format 'X seconds' or 'X minutes' (e.g., '30 seconds', '10 minutes') for yoga or meditation exercises."
-            : "Reps must be specified as a number (e.g., 10) or a range (e.g., '10-12'). For exercises performed per leg (e.g., lunges), include 'per leg' in the notes field, not in reps. Do not use phrases like 'As many as' or 'AMRAP'; instead, use a numeric value or range and add 'As many reps as possible' to the notes field if applicable.";
-        const categoryInstruction = isSpecificCategory
+                : preferredWorkout === "pilates"
+                    ? "Exercises may use a mat or small equipment like resistance bands. Focus on controlled movements and core engagement."
+                    : preferredWorkout === "cardio"
+                        ? "Exercises may include bodyweight movements or equipment like treadmills or bikes if specified. Focus on endurance and interval-based activities."
+                        : preferredWorkout === "calisthenics"
+                            ? "Exercises must be bodyweight-based, with optional use of pull-up bars or parallel bars. Focus on strength and functional movements."
+                            : preferredWorkout === "weighttraining"
+                                ? "Exercises may use weights, barbells, or machines if specified. Focus on strength and hypertrophy."
+                                : `Exercises may use available equipment: ${((_b = client.equipmentAvailable) === null || _b === void 0 ? void 0 : _b.join(", ")) || "Basic"}.`;
+        const repsInstruction = isTimeBasedCategory
+            ? "Reps must be specified as a string in the format 'X seconds', 'X minutes', or descriptive (e.g., '100 pulses' for Pilates). Ensure clarity in notes if needed."
+            : `Reps must be specified as a number (e.g., 10) or a range (e.g., '10-12') for most exercises. For time-based exercises (e.g., planks, isometric holds, or cardio intervals in ${preferredWorkout}), use a string like 'X seconds' or 'X minutes' and include details in the notes field (e.g., 'Hold for 30 seconds'). For exercises performed per leg (e.g., lunges), include 'per leg' in the notes field, not in reps. Do not use phrases like 'As many as' or 'AMRAP'; instead, use a numeric value or range and add 'As many reps as possible' to the notes field if applicable.`;
+        const categoryInstruction = isTimeBasedCategory
             ? `Generate a comprehensive 7-day ${preferredWorkout} plan. All days must focus exclusively on ${preferredWorkout}, with progressive difficulty and variety suitable for ${preferredWorkout}. ${equipmentInstruction} ${repsInstruction}`
-            : `Generate a balanced 7-day workout plan with varied focus areas based on general fitness principles. ${equipmentInstruction} ${repsInstruction}`;
+            : `Generate a balanced 7-day ${preferredWorkout} plan with varied focus areas. Allow time-based reps for specific exercises like planks, isometric holds, or cardio intervals, following the reps rules above. ${equipmentInstruction} ${repsInstruction}`;
         const prompt = JSON.stringify({
             instruction: `Generate a detailed 7-day workout plan in strict JSON format for a client with the following details. ${categoryInstruction}`,
             requirements: {
@@ -302,11 +304,7 @@ let GeminiService = class GeminiService {
                                 {
                                     name: "string",
                                     sets: "number",
-                                    reps: isSpecificCategory &&
-                                        (preferredWorkout === "yoga" ||
-                                            preferredWorkout === "meditation")
-                                        ? "string"
-                                        : "number | string", // Allow ranges like "10-12"
+                                    reps: isTimeBasedCategory ? "string" : "number | string",
                                     restTime: "string",
                                     notes: "string",
                                 },
@@ -318,7 +316,7 @@ let GeminiService = class GeminiService {
                         },
                     ],
                 },
-                additionalRequirements: isSpecificCategory
+                additionalRequirements: isTimeBasedCategory
                     ? {
                         consistency: `All days must be ${preferredWorkout} focused`,
                         progression: "Include progressive difficulty through the week",
@@ -327,13 +325,21 @@ let GeminiService = class GeminiService {
                             ? "No equipment except a yoga mat; focus on yoga poses and flows"
                             : preferredWorkout === "meditation"
                                 ? "No equipment; focus on mindfulness techniques"
-                                : `Use available equipment: ${((_c = client.equipmentAvailable) === null || _c === void 0 ? void 0 : _c.join(", ")) || "Basic"}`,
-                        jsonValidity: "Ensure the response is valid JSON with no unescaped quotes, missing commas, or trailing commas. All reps fields must be either a number (e.g., 10) or a string range (e.g., '10-12'). Avoid phrases like 'As many as' or 'AMRAP' in reps.",
+                                : preferredWorkout === "pilates"
+                                    ? "Use a mat or small equipment; focus on controlled movements"
+                                    : `Use available equipment: ${((_c = client.equipmentAvailable) === null || _c === void 0 ? void 0 : _c.join(", ")) || "Basic"}`,
+                        jsonValidity: "Ensure the response is valid JSON with no unescaped quotes, missing commas, or trailing commas. Reps may include descriptive strings (e.g., '100 pulses') for yoga, meditation, or pilates.",
                     }
                     : {
-                        variety: "Include a mix of strength, cardio, and flexibility exercises",
+                        variety: preferredWorkout === "cardio"
+                            ? "Include a mix of steady-state and interval-based cardio exercises"
+                            : preferredWorkout === "calisthenics"
+                                ? "Include a mix of bodyweight strength and isometric exercises"
+                                : preferredWorkout === "weighttraining"
+                                    ? "Include a mix of compound and isolation strength exercises"
+                                    : "Include a mix of strength, cardio, and flexibility exercises, with yoga/pilates/cardio exercises allowing time-based reps where applicable",
                         equipment: `Use available equipment: ${((_d = client.equipmentAvailable) === null || _d === void 0 ? void 0 : _d.join(", ")) || "Basic"}`,
-                        jsonValidity: "Ensure the response is valid JSON with no unescaped quotes, missing commas, or trailing commas. All reps fields must be either a number (e.g., 10) or a string range (e.g., '10-12'). Avoid phrases like 'As many as' or 'AMRAP' in reps.",
+                        jsonValidity: "Ensure the response is valid JSON with no unescaped quotes, missing commas, or trailing commas. Reps must be a number (e.g., 10) or a range (e.g., '10-12') unless the exercise is a time-based movement (e.g., plank, cardio interval), where strings like 'X seconds' are allowed.",
                     },
             },
             client: {
@@ -346,60 +352,36 @@ let GeminiService = class GeminiService {
                 healthConditions: ((_e = client.healthConditions) === null || _e === void 0 ? void 0 : _e.join(", ")) || "None",
                 availableEquipment: preferredWorkout === "yoga"
                     ? ["yoga mat"]
-                    : ((_f = client.equipmentAvailable) === null || _f === void 0 ? void 0 : _f.join(", ")) || "Basic",
+                    : preferredWorkout === "pilates"
+                        ? ["mat", "resistance bands"]
+                        : preferredWorkout === "calisthenics"
+                            ? ["pull-up bar", "parallel bars"]
+                            : preferredWorkout === "weighttraining"
+                                ? ["dumbbells", "barbells", "bench"]
+                                : ((_f = client.equipmentAvailable) === null || _f === void 0 ? void 0 : _f.join(", ")) || "Basic",
             },
             examples: {
                 validResponse: {
                     weeklyPlan: [
                         {
                             day: "Monday",
-                            focus: preferredWorkout === "yoga"
-                                ? "Yoga Basics"
-                                : isSpecificCategory
-                                    ? `${preferredWorkout} Basics`
-                                    : "Full Body Strength",
-                            exercises: preferredWorkout === "yoga"
-                                ? [
-                                    {
-                                        name: "Downward Dog",
-                                        sets: 3,
-                                        reps: "30 seconds",
-                                        restTime: "15 seconds",
-                                        notes: "Focus on breath and alignment; use yoga mat",
-                                    },
-                                ]
-                                : preferredWorkout === "meditation"
-                                    ? [
-                                        {
-                                            name: "Mindful Breathing",
-                                            sets: 1,
-                                            reps: "10 minutes",
-                                            restTime: "N/A",
-                                            notes: "Focus on deep, steady breaths",
-                                        },
-                                    ]
-                                    : [
-                                        {
-                                            name: "Squats",
-                                            sets: 3,
-                                            reps: "10-12",
-                                            restTime: "60 seconds",
-                                            notes: "Maintain proper form; As many reps as possible within range",
-                                        },
-                                    ],
-                            warmup: preferredWorkout === "yoga"
-                                ? "5 min gentle yoga stretches"
-                                : isSpecificCategory
-                                    ? `5 min gentle ${preferredWorkout}-specific preparation`
-                                    : "10 min dynamic stretching",
-                            cooldown: preferredWorkout === "yoga"
-                                ? "5 min Savasana relaxation"
-                                : isSpecificCategory
-                                    ? `5 min ${preferredWorkout}-specific relaxation`
-                                    : "5 min static stretching",
-                            duration: preferredWorkout === "yoga" || isSpecificCategory
-                                ? "45 minutes"
-                                : "60 minutes",
+                            focus: isTimeBasedCategory
+                                ? `${preferredWorkout} Basics`
+                                : preferredWorkout === "cardio"
+                                    ? "Cardio Endurance"
+                                    : preferredWorkout === "calisthenics"
+                                        ? "Bodyweight Strength"
+                                        : preferredWorkout === "weighttraining"
+                                            ? "Strength Training"
+                                            : "Full Body Strength",
+                            exercises: this.getCategoryExerciseExample(preferredWorkout),
+                            warmup: isTimeBasedCategory
+                                ? `5 min gentle ${preferredWorkout} stretches`
+                                : "10 min dynamic stretching",
+                            cooldown: isTimeBasedCategory
+                                ? `5 min ${preferredWorkout}-specific relaxation`
+                                : "5 min static stretching",
+                            duration: isTimeBasedCategory ? "45 minutes" : "60 minutes",
                             intensity: "Moderate",
                         },
                     ],
@@ -484,6 +466,19 @@ let GeminiService = class GeminiService {
                     console.warn(`Day ${day.day || i} has no exercises and is not a rest day:`, day);
                     throw new Error(`Day ${day.day || i} must have at least one exercise unless it is a Rest or Active Rest day`);
                 }
+                const isTimeBasedDay = ["yoga", "meditation", "pilates", "core", "flexibility"].some((type) => (day.focus || "").toLowerCase().includes(type));
+                const timeBasedExercises = [
+                    "plank",
+                    "side plank",
+                    "hold",
+                    "mountain climbers",
+                    "high knees",
+                    "burpees",
+                    "sprint",
+                    "interval",
+                    "wall sit",
+                    "hundred",
+                ];
                 for (let j = 0; j < day.exercises.length; j++) {
                     const exercise = day.exercises[j];
                     if (!exercise.name ||
@@ -493,19 +488,26 @@ let GeminiService = class GeminiService {
                         console.warn(`Invalid exercise in day ${day.day || i}, index ${j}:`, exercise);
                         throw new Error(`Invalid exercise structure in day ${day.day || i}`);
                     }
-                    // Validate reps
+                    // Validate and fix reps
+                    const isTimeBasedExercise = timeBasedExercises.some((ex) => exercise.name.toLowerCase().includes(ex));
                     if (typeof exercise.reps === "string") {
-                        if (/^\d+$|^\d+\s*(seconds|minutes)$|^\d+-\d+$/.test(exercise.reps)) {
-                            // Valid: number, time-based (e.g., "30 seconds"), or range (e.g., "10-12")
+                        if ((isTimeBasedDay || isTimeBasedExercise) &&
+                            /^\d+\s*(seconds|minutes|pulses)$|^\d+-\d+\s*(seconds|minutes)$|^\d+\s*reps$/.test(exercise.reps)) {
+                            // Allow time-based or descriptive reps for Yoga, Meditation, Pilates, or specific exercises
+                            continue;
+                        }
+                        else if (/^\d+$|^\d+-\d+$/.test(exercise.reps)) {
+                            // Valid number or range
                             continue;
                         }
                         else if (exercise.reps.toLowerCase() === "amrap") {
                             exercise.notes =
                                 (exercise.notes || "") + " As many reps as possible";
                             exercise.reps = "10-12"; // Default range for AMRAP
+                            console.warn(`Fixed AMRAP reps in day ${day.day || i}, exercise ${j}:`, exercise);
                         }
                         else {
-                            const match = exercise.reps.match(/^(\d+)/);
+                            const match = exercise.reps.match(/^(\d+)/); // Try to extract a number
                             if (match) {
                                 exercise.reps = parseInt(match[1]);
                                 exercise.notes =
@@ -1058,26 +1060,6 @@ let GeminiService = class GeminiService {
                         notes: "Focus on deep, steady breaths",
                     },
                 ];
-            case "crossfit":
-                return [
-                    {
-                        name: "Burpees",
-                        sets: 4,
-                        reps: 15,
-                        restTime: "45 seconds",
-                        notes: "Explosive movement",
-                    },
-                ];
-            case "calisthenics":
-                return [
-                    {
-                        name: "Pull-ups",
-                        sets: 3,
-                        reps: 10,
-                        restTime: "60 seconds",
-                        notes: "Use controlled motion",
-                    },
-                ];
             case "pilates":
                 return [
                     {
@@ -1088,14 +1070,72 @@ let GeminiService = class GeminiService {
                         notes: "Engage core throughout",
                     },
                 ];
+            case "cardio":
+                return [
+                    {
+                        name: "High Knees",
+                        sets: 3,
+                        reps: "30 seconds",
+                        restTime: "30 seconds",
+                        notes: "Maintain high intensity",
+                    },
+                    {
+                        name: "Jumping Jacks",
+                        sets: 3,
+                        reps: "20",
+                        restTime: "30 seconds",
+                        notes: "Keep arms and legs coordinated",
+                    },
+                ];
+            case "calisthenics":
+                return [
+                    {
+                        name: "Plank",
+                        sets: 3,
+                        reps: "60 seconds",
+                        restTime: "30 seconds",
+                        notes: "Keep core engaged",
+                    },
+                    {
+                        name: "Push-ups",
+                        sets: 3,
+                        reps: "10-12",
+                        restTime: "60 seconds",
+                        notes: "Use controlled motion",
+                    },
+                ];
+            case "weighttraining":
+                return [
+                    {
+                        name: "Deadlifts",
+                        sets: 3,
+                        reps: "8-10",
+                        restTime: "90 seconds",
+                        notes: "Maintain proper form",
+                    },
+                    {
+                        name: "Isometric Squat Hold",
+                        sets: 3,
+                        reps: "30 seconds",
+                        restTime: "60 seconds",
+                        notes: "Hold at 90-degree knee angle",
+                    },
+                ];
             default:
                 return [
                     {
                         name: "Squats",
                         sets: 3,
-                        reps: 12,
+                        reps: "10-12",
                         restTime: "60 seconds",
                         notes: "Maintain proper form",
+                    },
+                    {
+                        name: "Plank",
+                        sets: 3,
+                        reps: "30 seconds",
+                        restTime: "60 seconds",
+                        notes: "Keep core engaged",
                     },
                 ];
         }
