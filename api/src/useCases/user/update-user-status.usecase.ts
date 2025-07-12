@@ -202,10 +202,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
             "Trainer blocked, reassigned to backup trainer"
           );
 
-          console.log(
-            `Reassigned slot ${slot.id} from primary trainer ${currentTrainerId} to backup trainer ${newTrainerId} for client ${clientId}`
-          );
-
           const newTrainer = await this._trainerRepository.findById(
             newTrainerId
           );
@@ -234,9 +230,6 @@ export class UpdateUserStatusUseCase implements IUpdateUserStatusUseCase {
             "Trainer blocked, no available slot with backup trainer"
           );
 
-          console.log(
-            `Canceled slot ${slot.id} for client ${clientId} due to no available backup slot.`
-          );
         }
       } catch (err) {
         console.error(`Failed to process slot ${slot.id}:`, err);

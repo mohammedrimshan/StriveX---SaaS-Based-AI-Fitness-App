@@ -36,7 +36,6 @@ export class JoinVideoCallUseCase implements IJoinVideoCallUseCase {
 
     if (role === "client") {
       const client = await this._clientRepository.findByClientNewId(userId);
-      console.log(client, "client in join video call");
       if (!client || client.id !== slot.clientId || client.selectStatus !== TrainerSelectionStatus.ACCEPTED) {
         throw new CustomError("Unauthorized client or invalid relationship", HTTP_STATUS.UNAUTHORIZED);
       }

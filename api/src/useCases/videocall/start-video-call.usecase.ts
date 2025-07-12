@@ -67,7 +67,6 @@ export class StartVideoCallUseCase implements IStartVideoCallUseCase {
     );
 
     if (!updatedSlot) {
-      console.error("StartVideoCallUseCase - Failed to update slot:", slotId);
       throw new CustomError(
         "Failed to start video call",
         HTTP_STATUS.INTERNAL_SERVER_ERROR

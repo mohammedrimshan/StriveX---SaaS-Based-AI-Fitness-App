@@ -33,9 +33,8 @@ export class GetAllTrainersUseCase implements IGetAllTrainersUseCase {
     const validPageSize = Math.max(1, pageSize);
     const skip = (validPageNumber - 1) * validPageSize;
     const limit = validPageSize;
-    console.log("Trainer filter:", filter);
     const { items:trainers, total } = await this._trainerRepository.find(filter, skip, limit);
-    console.log("Found trainers:", trainers);
+
     return {
       trainers,
       total: Math.ceil(total / validPageSize),

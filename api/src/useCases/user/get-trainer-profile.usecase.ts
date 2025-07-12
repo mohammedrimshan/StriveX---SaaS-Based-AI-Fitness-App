@@ -23,8 +23,7 @@ export class GetTrainerProfileUseCase implements IGetTrainerProfileUseCase {
     trainerId: string,
     clientId?: string
   ): Promise<TrainerProfileViewDto> {
-    console.log(clientId, "client from usecase get trainer profile");
-
+ 
     const trainer = await this._trainerRepository.findById(trainerId);
     if (!trainer) {
       throw new Error("Trainer not found");
@@ -51,8 +50,6 @@ export class GetTrainerProfileUseCase implements IGetTrainerProfileUseCase {
         this._slotRepository.findAvailableSlots(trainerId),
       ]);
 
-    console.log(performanceStats, "performance stats");
-
     const averageRating =
       allReviews.items.length > 0
         ? allReviews.items.reduce((sum, review) => sum + review.rating, 0) /
@@ -62,7 +59,6 @@ export class GetTrainerProfileUseCase implements IGetTrainerProfileUseCase {
     let canReview = false;
     if (clientId) {
       const client = await this._clientRepository.findById(clientId);
-      console.log(client, "clientfrom usecase  get trainer profile");
       if (
         client &&
         client.isPremium &&

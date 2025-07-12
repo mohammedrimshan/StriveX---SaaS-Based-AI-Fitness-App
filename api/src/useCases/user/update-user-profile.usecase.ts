@@ -160,12 +160,7 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
           HTTP_STATUS.INTERNAL_SERVER_ERROR
         );
       }
-    } else {
-      console.log(
-        "No changes in progress fields, skipping save to ClientProgressHistory."
-      );
-    }
-
+    } 
     const updatedUser = await this._clientRepository.findByIdAndUpdate(
       userId,
       data
