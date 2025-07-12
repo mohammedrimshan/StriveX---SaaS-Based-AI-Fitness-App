@@ -89,7 +89,7 @@ export class AuthController implements IAuthController {
         accessTokenName,
         refreshTokenName
       );
-      console.log(user);
+    
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.LOGIN_SUCCESS,
@@ -169,43 +169,23 @@ export class AuthController implements IAuthController {
   async logout(req: Request, res: Response): Promise<void> {
     try {
       const user = (req as CustomRequest).user;
-      console.log("User data in logout:", {
-        id: user.id,
-        role: user.role,
-        access_token: user.access_token,
-        refresh_token: user.refresh_token,
-      });
-  
       if (!user.access_token || !user.refresh_token) {
         throw new Error("Missing access or refresh token");
       }
   
       await this._blackListTokenUseCase.execute(user.access_token);
-      console.log("Access token blacklisted");
-  
+     
       await this._revokeRefreshToken.execute(user.refresh_token);
-      console.log("Refresh token revoked");
   
       const accessTokenName = `${user.role}_access_token`;
       const refreshTokenName = `${user.role}_refresh_token`;
       clearAuthCookies(res, accessTokenName, refreshTokenName);
-      console.log("Cookies cleared");
   
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.LOGOUT_SUCCESS,
       });
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Logout error:", {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          details: error instanceof ZodError ? error.errors : null,
-        });
-      } else {
-        console.error("Logout error (non-Error type):", error);
-      }
       handleErrorResponse(res, error);
     }
   }
@@ -237,7 +217,6 @@ export class AuthController implements IAuthController {
   async register(req: Request, res: Response): Promise<void> {
     try {
       const { role } = req.body as UserDTO;
-      console.log("Signup Request Body:", req.body);
 
       const schema = userSchemas[role];
 
@@ -266,7 +245,6 @@ export class AuthController implements IAuthController {
   async resetPassword(req: Request, res: Response): Promise<void> {
     try {
       const validatedData = resetPasswordValidationSchema.parse(req.body);
-      console.log(validatedData,"Validate Data")
       if (!validatedData) {
         res.status(HTTP_STATUS.BAD_REQUEST).json({
           success: false,
