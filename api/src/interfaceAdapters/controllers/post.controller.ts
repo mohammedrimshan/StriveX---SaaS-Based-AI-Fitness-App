@@ -52,7 +52,6 @@ export class PostController implements IPostController {
         req.user!.id
       );
 
-      // Fetch author details to include in the emitted post
       let author: {
         _id: string;
         firstName: string;
@@ -108,7 +107,6 @@ export class PostController implements IPostController {
         );
       }
 
-      // Map to FrontendPost format
       const frontendPost: FrontendPost = {
         id: post.id,
         authorId: post.authorId,
@@ -123,9 +121,7 @@ export class PostController implements IPostController {
         isDeleted: post.isDeleted || false,
       };
 
-      // Emit to community room
       const io = this._socketService.getIO();
-      console.log(io,"IOCREATE")
       io.to("community").emit("newPost", frontendPost);
 
       res.status(HTTP_STATUS.CREATED).json({
@@ -234,64 +230,51 @@ export class PostController implements IPostController {
     }
   }
 
-async likePost(req: Request, res: Response): Promise<void> {
-  try {
-    const { id } = req.params;
-    const userId = req.user!.id;
+  async likePost(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
 
-    console.log(`LIKE POST: postId=${id}, userId=${userId}`);
+      if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        throw new CustomError(
+          ERROR_MESSAGES.INVALID_ID,
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
 
-    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-      throw new CustomError(ERROR_MESSAGES.INVALID_ID, HTTP_STATUS.BAD_REQUEST);
-    }
+      const post = await this._likePostUseCase.execute(id, userId);
 
-    // Like or unlike the post using the use case
-    const post = await this._likePostUseCase.execute(id, userId);
+      if (!post) {
+        throw new CustomError(
+          "Failed to like/unlike the post.",
+          HTTP_STATUS.INTERNAL_SERVER_ERROR
+        );
+      }
 
-    if (!post) {
-      throw new CustomError("Failed to like/unlike the post.", HTTP_STATUS.INTERNAL_SERVER_ERROR);
-    }
+      const io = this._socketService.getIO();
 
-    console.log(`POST:`, post);
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const io = this._socketService.getIO();
+      const clients = await io.in("community").allSockets();
 
-    // ✅ Wait briefly to ensure the "community" room has updated
-    await new Promise((resolve) => setTimeout(resolve, 300));
+      if (clients.size > 0) {
+        io.to("community").emit("postLiked", {
+          postId: id,
+          userId: userId,
+          likes: Array.isArray(post.likes) ? post.likes : [],
+          hasLiked: post.likes.includes(userId),
+        });
+      }
 
-    const clients = await io.in("community").allSockets();
-    console.log(clients, "clients community");
-
-    console.log(
-      `[DEBUG] Emitting postLiked to ${clients.size} clients for post ${id}, userId=${userId}, likes:`,
-      post.likes
-    );
-
-    if (clients.size > 0) {
-      io.to("community").emit("postLiked", {
-        postId: id,
-        userId: userId,
-        likes: Array.isArray(post.likes) ? post.likes : [],
-        hasLiked: post.likes.includes(userId),
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
+        data: post,
       });
-    } else {
-      console.warn(`[WARN] No active clients in community room at emit time for post ${id}.`);
+    } catch (error: any) {
+      handleErrorResponse(res, error);
     }
-
-    res.status(HTTP_STATUS.OK).json({
-      success: true,
-      message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
-      data:post,
-    });
-  } catch (error:any) {
-    console.error(`[DEBUG] likePost error:`, {
-      message: error.message,
-      stack: error.stack,
-    });
-    handleErrorResponse(res, error);
   }
-}
-
 
   async reportPost(req: Request, res: Response): Promise<void> {
     try {

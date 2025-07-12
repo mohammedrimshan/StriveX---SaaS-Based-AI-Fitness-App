@@ -38,7 +38,6 @@ export class ReviewController implements IReviewController {
         throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
       }
 
-      console.log(reviewId,clientId,rating,comment,"from update review ");
       const updatedReview = await this.updateReviewUseCase.execute(reviewId, clientId, rating, comment);
       res.status(200).json({
         success: true,

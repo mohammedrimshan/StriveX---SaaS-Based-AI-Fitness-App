@@ -48,11 +48,6 @@ export class NotificationController implements INotificationController {
         parseInt(page as string, 10),
         parseInt(limit as string, 10)
       );
-      console.log(
-        `[${new Date().toISOString()}] Retrieved ${
-          notifications.length
-        } notifications`
-      );
       res.status(HTTP_STATUS.OK).json({
         status: "success",
         data: notifications,

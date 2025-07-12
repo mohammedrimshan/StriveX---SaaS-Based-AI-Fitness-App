@@ -158,7 +158,7 @@ export class DietWorkoutController implements IDietWorkoutController {
       if (workoutData.category && !Types.ObjectId.isValid(workoutData.category)) {
         throw new CustomError("Invalid category ID", HTTP_STATUS.BAD_REQUEST);
       }
-      console.log("Received payload:", req.body);
+      
       const files = req.body.image ? { image: req.body.image } : undefined;
       const updatedWorkout = await this._updateWorkoutUseCase.execute(workoutId, workoutData, files);
       res.status(HTTP_STATUS.OK).json({

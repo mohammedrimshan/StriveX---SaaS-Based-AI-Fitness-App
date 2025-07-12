@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { IGetChatHistoryUseCase } from "@/entities/useCaseInterfaces/chat/get-chat-history-usecase.interface";
@@ -156,9 +155,6 @@ export class ChatController implements IChatController {
       const userId = req.user?.id;
       const role = req.user?.role;
 
-      console.log(role, "role in getChatParticipants");
-      console.log(userId, "userId in getChatParticipants");
-
       if (!userId || !role) {
         throw new CustomError(
           ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
@@ -171,7 +167,6 @@ export class ChatController implements IChatController {
         role
       );
 
-      console.log(participants, "participants in getChatParticipants");
       res.status(HTTP_STATUS.OK).json({
         success: true,
         participants,
@@ -184,7 +179,6 @@ export class ChatController implements IChatController {
   async deleteMessage(req: Request, res: Response): Promise<void> {
     try {
       const { messageId } = req.params;
-      console.log(messageId, "messageId in deleteMessage");
       const userId = req.user?.id;
 
       if (!userId) {

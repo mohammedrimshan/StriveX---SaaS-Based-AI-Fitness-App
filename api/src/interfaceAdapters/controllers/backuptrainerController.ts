@@ -41,10 +41,14 @@ export class BackupTrainerController implements IBackupTrainerController {
     private getTrainerBackupClientsUseCase: IGetTrainerBackupClientsUseCase,
     @inject("IGetPendingChangeRequestsUseCase")
     private getPendingChangeRequestsUseCase: IGetPendingChangeRequestsUseCase,
-    @inject("IGetClientChangeRequestsUseCase") private getClientChangeRequestsUseCase: IGetClientChangeRequestsUseCase,
-    @inject("IGetClientBackupInvitationsUseCase") private getClientBackupInvitationsUseCase: IGetClientBackupInvitationsUseCase,
-    @inject("IGetAllChangeRequestsUseCase") private getAllChangeRequestsUseCase: IGetAllChangeRequestsUseCase,
-    @inject("IGetClientsBackupOverviewUseCase") private getClientsBackupOverviewUseCase: IGetClientsBackupOverviewUseCase
+    @inject("IGetClientChangeRequestsUseCase")
+    private getClientChangeRequestsUseCase: IGetClientChangeRequestsUseCase,
+    @inject("IGetClientBackupInvitationsUseCase")
+    private getClientBackupInvitationsUseCase: IGetClientBackupInvitationsUseCase,
+    @inject("IGetAllChangeRequestsUseCase")
+    private getAllChangeRequestsUseCase: IGetAllChangeRequestsUseCase,
+    @inject("IGetClientsBackupOverviewUseCase")
+    private getClientsBackupOverviewUseCase: IGetClientsBackupOverviewUseCase
   ) {}
 
   async assignBackupTrainer(req: Request, res: Response): Promise<void> {
@@ -108,9 +112,8 @@ export class BackupTrainerController implements IBackupTrainerController {
   async requestBackupTrainerChange(req: Request, res: Response): Promise<void> {
     try {
       const clientId = (req as CustomRequest).user.id;
-      console.log(clientId,"clientId");
+
       const { requestType, reason } = req.body;
-      console.log(requestType,reason,"requestType,reason");
 
       if (!clientId) {
         throw new CustomError(
@@ -176,21 +179,27 @@ export class BackupTrainerController implements IBackupTrainerController {
     try {
       const clientId = (req as CustomRequest).user.clientId;
       if (!clientId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
       const client = await this.getClientBackupTrainerUseCase.execute(clientId);
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-        client
+        client,
       });
     } catch (error) {
       handleErrorResponse(res, error);
     }
   }
 
-  async getTrainerBackupInvitations(req: Request, res: Response): Promise<void> {
+  async getTrainerBackupInvitations(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const trainerId = (req as CustomRequest).user.id;
       const { page = 1, limit = 10 } = req.query;
@@ -198,21 +207,37 @@ export class BackupTrainerController implements IBackupTrainerController {
       const pageSize = Number(limit);
 
       if (!trainerId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { items, total } = await this.getTrainerBackupInvitationsUseCase.execute(trainerId, (pageNumber - 1) * pageSize, pageSize);
+      const { items, total } =
+        await this.getTrainerBackupInvitationsUseCase.execute(
+          trainerId,
+          (pageNumber - 1) * pageSize,
+          pageSize
+        );
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
         invitations: items,
         totalPages: Math.ceil(total / pageSize),
         currentPage: pageNumber,
-        totalInvitations: items.length
+        totalInvitations: items.length,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -227,21 +252,37 @@ export class BackupTrainerController implements IBackupTrainerController {
       const pageSize = Number(limit);
 
       if (!trainerId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { items, total } = await this.getTrainerBackupClientsUseCase.execute(trainerId, (pageNumber - 1) * pageSize, pageSize);
+      const { items, total } =
+        await this.getTrainerBackupClientsUseCase.execute(
+          trainerId,
+          (pageNumber - 1) * pageSize,
+          pageSize
+        );
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
         clients: items,
         totalPages: Math.ceil(total / pageSize),
         currentPage: pageNumber,
-        totalClients: items.length
+        totalClients: items.length,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -256,21 +297,36 @@ export class BackupTrainerController implements IBackupTrainerController {
       const pageSize = Number(limit);
 
       if (!adminId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { items, total } = await this.getPendingChangeRequestsUseCase.execute((pageNumber - 1) * pageSize, pageSize);
+      const { items, total } =
+        await this.getPendingChangeRequestsUseCase.execute(
+          (pageNumber - 1) * pageSize,
+          pageSize
+        );
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
         requests: items,
         totalPages: Math.ceil(total / pageSize),
         currentPage: pageNumber,
-        totalRequests: items.length
+        totalRequests: items.length,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -285,21 +341,37 @@ export class BackupTrainerController implements IBackupTrainerController {
       const pageSize = Number(limit);
 
       if (!clientId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { items, total } = await this.getClientChangeRequestsUseCase.execute(clientId, (pageNumber - 1) * pageSize, pageSize);
+      const { items, total } =
+        await this.getClientChangeRequestsUseCase.execute(
+          clientId,
+          (pageNumber - 1) * pageSize,
+          pageSize
+        );
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
         requests: items,
         totalPages: Math.ceil(total / pageSize),
         currentPage: pageNumber,
-        totalRequests: total
+        totalRequests: total,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -314,21 +386,37 @@ export class BackupTrainerController implements IBackupTrainerController {
       const pageSize = Number(limit);
 
       if (!clientId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { items, total } = await this.getClientBackupInvitationsUseCase.execute(clientId, (pageNumber - 1) * pageSize, pageSize);
+      const { items, total } =
+        await this.getClientBackupInvitationsUseCase.execute(
+          clientId,
+          (pageNumber - 1) * pageSize,
+          pageSize
+        );
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
         invitations: items,
         totalPages: Math.ceil(total / pageSize),
         currentPage: pageNumber,
-        totalInvitations: total
+        totalInvitations: total,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -343,21 +431,36 @@ export class BackupTrainerController implements IBackupTrainerController {
       const pageSize = Number(limit);
 
       if (!adminId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { items, total } = await this.getAllChangeRequestsUseCase.execute((pageNumber - 1) * pageSize, pageSize, status as string);
+      const { items, total } = await this.getAllChangeRequestsUseCase.execute(
+        (pageNumber - 1) * pageSize,
+        pageSize,
+        status as string
+      );
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
         requests: items,
         totalPages: Math.ceil(total / pageSize),
         currentPage: pageNumber,
-        totalRequests: total
+        totalRequests: total,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -372,21 +475,36 @@ export class BackupTrainerController implements IBackupTrainerController {
       const pageSize = Number(limit);
 
       if (!adminId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { items, total } = await this.getClientsBackupOverviewUseCase.execute((pageNumber - 1) * pageSize, pageSize);
+      const { items, total } =
+        await this.getClientsBackupOverviewUseCase.execute(
+          (pageNumber - 1) * pageSize,
+          pageSize
+        );
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.DATA_RETRIEVED,
         clients: items,
         totalPages: Math.ceil(total / pageSize),
         currentPage: pageNumber,
-        totalClients: total
+        totalClients: total,
       });
     } catch (error) {
       handleErrorResponse(res, error);

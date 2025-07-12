@@ -9,13 +9,13 @@ import { handleErrorResponse } from "@/shared/utils/errorHandler";
 @injectable()
 export class SessionHistoryController implements ISessionHistoryController {
   constructor(
-    @inject("IGetSessionHistoryUseCase") private getSessionHistoryUseCase: IGetSessionHistoryUseCase
+    @inject("IGetSessionHistoryUseCase")
+    private getSessionHistoryUseCase: IGetSessionHistoryUseCase
   ) {}
 
   async getSessionHistory(req: Request, res: Response): Promise<void> {
     try {
       const user = (req as CustomRequest).user;
-      console.log("Controller: User role:", user.role);
       const { skip = 0, limit = 10 } = req.query;
 
       const result = await this.getSessionHistoryUseCase.execute(

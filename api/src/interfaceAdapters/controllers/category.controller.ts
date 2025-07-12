@@ -6,7 +6,11 @@ import { IGetAllPaginatedCategoryUseCase } from "@/entities/useCaseInterfaces/ad
 import { IUpdateCategoryStatusUseCase } from "@/entities/useCaseInterfaces/admin/update-category-status-usecase.interface";
 import { IUpdateCategoryUseCase } from "@/entities/useCaseInterfaces/admin/update-category-usecase.interface";
 import { IGetAllCategoriesUseCase } from "@/entities/useCaseInterfaces/common/get-all-category.interface";
-import { ERROR_MESSAGES, HTTP_STATUS, SUCCESS_MESSAGES } from "@/shared/constants";
+import {
+  ERROR_MESSAGES,
+  HTTP_STATUS,
+  SUCCESS_MESSAGES,
+} from "@/shared/constants";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
 import { CustomError } from "@/entities/utils/custom.error";
 import mongoose from "mongoose";
@@ -14,26 +18,42 @@ import mongoose from "mongoose";
 @injectable()
 export class CategoryController implements ICategoryController {
   constructor(
-    @inject("ICreateNewCategoryUseCase") private _createNewCategoryUseCase: ICreateNewCategoryUseCase,
-    @inject("IGetAllPaginatedCategoryUseCase") private _getAllPaginatedCategoryUseCase: IGetAllPaginatedCategoryUseCase,
-    @inject("IUpdateCategoryStatusUseCase") private _updateCategoryStatusUseCase: IUpdateCategoryStatusUseCase,
-    @inject("IUpdateCategoryUseCase") private _updateCategoryUseCase: IUpdateCategoryUseCase,
-    @inject("IGetAllCategoriesUseCase") private _getAllCategoriesUseCase: IGetAllCategoriesUseCase
+    @inject("ICreateNewCategoryUseCase")
+    private _createNewCategoryUseCase: ICreateNewCategoryUseCase,
+    @inject("IGetAllPaginatedCategoryUseCase")
+    private _getAllPaginatedCategoryUseCase: IGetAllPaginatedCategoryUseCase,
+    @inject("IUpdateCategoryStatusUseCase")
+    private _updateCategoryStatusUseCase: IUpdateCategoryStatusUseCase,
+    @inject("IUpdateCategoryUseCase")
+    private _updateCategoryUseCase: IUpdateCategoryUseCase,
+    @inject("IGetAllCategoriesUseCase")
+    private _getAllCategoriesUseCase: IGetAllCategoriesUseCase
   ) {}
 
   async createNewCategory(req: Request, res: Response): Promise<void> {
     try {
-      const { name,metValue, description } = req.body as { name: string; metValue: number; description?: string };
-      console.log(name,metValue, description, "category name and metValue from request body");
-      if (!name) throw new CustomError("Category name is required", HTTP_STATUS.BAD_REQUEST);
+      const { name, metValue, description } = req.body as {
+        name: string;
+        metValue: number;
+        description?: string;
+      };
 
-      await this._createNewCategoryUseCase.execute(name,metValue, description);
+      if (!name)
+        throw new CustomError(
+          "Category name is required",
+          HTTP_STATUS.BAD_REQUEST
+        );
+
+      await this._createNewCategoryUseCase.execute(name, metValue, description);
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
       });
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Category already exists")) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Category already exists")
+      ) {
         res.status(HTTP_STATUS.CONFLICT).json({
           success: false,
           message: "A category with this name already exists",
@@ -52,11 +72,24 @@ export class CategoryController implements ICategoryController {
       const pageSize = Number(limit);
       const searchTermString = typeof searchTerm === "string" ? searchTerm : "";
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid page or limit parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid page or limit parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { categories, total, all } = await this._getAllPaginatedCategoryUseCase.execute(pageNumber, pageSize, searchTermString);
+      const { categories, total, all } =
+        await this._getAllPaginatedCategoryUseCase.execute(
+          pageNumber,
+          pageSize,
+          searchTermString
+        );
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -73,15 +106,21 @@ export class CategoryController implements ICategoryController {
   async updateCategoryStatus(req: Request, res: Response): Promise<void> {
     try {
       const { categoryId } = req.params;
-      
+
       // Enhanced validation
       if (!categoryId || categoryId === "undefined") {
-        throw new CustomError(ERROR_MESSAGES.ID_NOT_PROVIDED, HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(
+          ERROR_MESSAGES.ID_NOT_PROVIDED,
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
       if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-        throw new CustomError(ERROR_MESSAGES.INVALID_ID, HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(
+          ERROR_MESSAGES.INVALID_ID,
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
-  
+
       await this._updateCategoryStatusUseCase.execute(categoryId);
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -95,12 +134,29 @@ export class CategoryController implements ICategoryController {
   async updateCategory(req: Request, res: Response): Promise<void> {
     try {
       const { categoryId } = req.params;
-      const { name, description,metValue } = req.body as { name: string; metValue: number; description?: string, };
-      console.log(name,metValue, description, "category name and metValue from request body for update");
-      if (!categoryId) throw new CustomError(ERROR_MESSAGES.ID_NOT_PROVIDED, HTTP_STATUS.BAD_REQUEST);
-      if (!name) throw new CustomError(ERROR_MESSAGES.MISSING_FIELDS, HTTP_STATUS.BAD_REQUEST);
+      const { name, description, metValue } = req.body as {
+        name: string;
+        metValue: number;
+        description?: string;
+      };
 
-      await this._updateCategoryUseCase.execute(categoryId, name, metValue,description );
+      if (!categoryId)
+        throw new CustomError(
+          ERROR_MESSAGES.ID_NOT_PROVIDED,
+          HTTP_STATUS.BAD_REQUEST
+        );
+      if (!name)
+        throw new CustomError(
+          ERROR_MESSAGES.MISSING_FIELDS,
+          HTTP_STATUS.BAD_REQUEST
+        );
+
+      await this._updateCategoryUseCase.execute(
+        categoryId,
+        name,
+        metValue,
+        description
+      );
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -110,8 +166,6 @@ export class CategoryController implements ICategoryController {
       handleErrorResponse(res, error);
     }
   }
-
-
 
   async getAllCategories(req: Request, res: Response): Promise<void> {
     try {

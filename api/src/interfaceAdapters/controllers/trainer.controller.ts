@@ -25,7 +25,6 @@ import { createStripeConnectAccountSchema } from "@/shared/validations/stripe.sc
 import { ITrainerEntity } from "@/entities/models/trainer.entity";
 import { CustomRequest } from "../middlewares/auth.middleware";
 
-
 @injectable()
 export class TrainerController implements ITrainerController {
   constructor(
@@ -41,11 +40,14 @@ export class TrainerController implements ITrainerController {
     private changeTrainerPasswordUseCase: IUpdateTrainerPasswordUseCase,
     @inject("ICreateStripeConnectAccountUseCase")
     private _createStripeConnectAccountUseCase: ICreateStripeConnectAccountUseCase,
-    @inject("IGetTrainerClientsUseCase") private _getTrainerClientsUseCase: IGetTrainerClientsUseCase,
-    @inject("ITrainerAcceptRejectRequestUseCase") private _trainerAcceptRejectRequestUseCase: ITrainerAcceptRejectRequestUseCase,
-    @inject("IGetPendingClientRequestsUseCase") private _getPendingClientRequestsUseCase: IGetPendingClientRequestsUseCase,
+    @inject("IGetTrainerClientsUseCase")
+    private _getTrainerClientsUseCase: IGetTrainerClientsUseCase,
+    @inject("ITrainerAcceptRejectRequestUseCase")
+    private _trainerAcceptRejectRequestUseCase: ITrainerAcceptRejectRequestUseCase,
+    @inject("IGetPendingClientRequestsUseCase")
+    private _getPendingClientRequestsUseCase: IGetPendingClientRequestsUseCase,
     @inject("IGetTrainerWalletUseCase")
-    private _getTrainerWalletUseCase: IGetTrainerWalletUseCase,
+    private _getTrainerWalletUseCase: IGetTrainerWalletUseCase
   ) {}
 
   /** 🔹 Get all trainers with pagination and search */
@@ -76,7 +78,6 @@ export class TrainerController implements ITrainerController {
     }
   }
 
-
   /** 🔹 Update trainer status (approve/reject) */
   async updateUserStatus(req: Request, res: Response): Promise<void> {
     try {
@@ -95,10 +96,7 @@ export class TrainerController implements ITrainerController {
   /** 🔹 Verify and approve/reject trainer */
   async trainerVerification(req: Request, res: Response): Promise<void> {
     try {
-      console.log("Received body:", req.body);
       const { clientId, approvalStatus, rejectionReason } = req.body;
-
-      console.log("Extracted:", { clientId, approvalStatus, rejectionReason });
 
       if (!clientId || !approvalStatus) {
         throw new CustomError(
@@ -169,7 +167,7 @@ export class TrainerController implements ITrainerController {
       for (const key of allowedFields) {
         if (key in validatedData && validatedData[key] !== undefined) {
           // Type-safe assignment
-          updates[key] = validatedData[key] as any; 
+          updates[key] = validatedData[key] as any;
         }
       }
 
@@ -249,11 +247,12 @@ export class TrainerController implements ITrainerController {
 
       const validatedData = createStripeConnectAccountSchema.parse(req.body);
 
-      const { accountLinkUrl } = await this._createStripeConnectAccountUseCase.execute(
-        req.user.id,
-        req.user.email,
-        validatedData
-      );
+      const { accountLinkUrl } =
+        await this._createStripeConnectAccountUseCase.execute(
+          req.user.id,
+          req.user.email,
+          validatedData
+        );
 
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
@@ -266,65 +265,82 @@ export class TrainerController implements ITrainerController {
   }
 
   async getTrainerClients(req: Request, res: Response): Promise<void> {
-  try {
-    const trainerId = (req as CustomRequest).user.id;
-    const { page = 1, limit = 10 } = req.query;
-    const pageNumber = Number(page);
-    const pageSize = Number(limit);
+    try {
+      const trainerId = (req as CustomRequest).user.id;
+      const { page = 1, limit = 10 } = req.query;
+      const pageNumber = Number(page);
+      const pageSize = Number(limit);
 
-    if (!trainerId) {
-      throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+      if (!trainerId) {
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
+      }
+
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      const { user: clients, total } =
+        await this._getTrainerClientsUseCase.execute(
+          trainerId,
+          (pageNumber - 1) * pageSize,
+          pageSize
+        );
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        clients,
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: pageNumber,
+        totalClients: clients.length,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
     }
-
-    if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-      throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
-    }
-
-    const { user: clients, total } = await this._getTrainerClientsUseCase.execute(
-      trainerId,
-      (pageNumber - 1) * pageSize, 
-      pageSize
-    );
-
-    res.status(HTTP_STATUS.OK).json({
-      success: true,
-      message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-      clients,
-      totalPages: Math.ceil(total / pageSize),
-      currentPage: pageNumber,
-      totalClients: clients.length,
-    });
-  } catch (error) {
-    handleErrorResponse(res, error);
   }
-}
 
   async acceptRejectClientRequest(req: Request, res: Response): Promise<void> {
     try {
       const trainerId = (req as CustomRequest).user.id;
-      console.log("Trainer ID",trainerId)
+
       const { clientId, action, rejectionReason } = req.body;
-      console.log("Request body:", clientId, action, rejectionReason);
-      // Log the clientId and action for debugging
-      console.log(clientId, action);
+
       if (!trainerId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
       if (!clientId || !action) {
-        throw new CustomError(ERROR_MESSAGES.MISSING_PARAMETERS, HTTP_STATUS.BAD_REQUEST);
+        throw new CustomError(
+          ERROR_MESSAGES.MISSING_PARAMETERS,
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
       if (!["accept", "reject"].includes(action)) {
         throw new CustomError("Invalid action", HTTP_STATUS.BAD_REQUEST);
       }
 
-      const updatedClient = await this._trainerAcceptRejectRequestUseCase.execute(
-        trainerId,
-        clientId,
-        action as "accept" | "reject",
-        rejectionReason
-      );
+      const updatedClient =
+        await this._trainerAcceptRejectRequestUseCase.execute(
+          trainerId,
+          clientId,
+          action as "accept" | "reject",
+          rejectionReason
+        );
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -344,18 +360,30 @@ export class TrainerController implements ITrainerController {
       const pageSize = Number(limit);
 
       if (!trainerId) {
-        throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
       }
 
-      if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(pageSize) ||
+        pageNumber < 1 ||
+        pageSize < 1
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
-      const { user: requests, total } = await this._getPendingClientRequestsUseCase.execute(
-        trainerId,
-        pageNumber,
-        pageSize
-      );
+      const { user: requests, total } =
+        await this._getPendingClientRequestsUseCase.execute(
+          trainerId,
+          pageNumber,
+          pageSize
+        );
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -370,25 +398,35 @@ export class TrainerController implements ITrainerController {
     }
   }
 
-   async getWalletHistory(req: Request, res: Response): Promise<void> {
+  async getWalletHistory(req: Request, res: Response): Promise<void> {
     try {
-       const trainerId = (req as CustomRequest).user.id;
+      const trainerId = (req as CustomRequest).user.id;
       const { page = "1", limit = "10", status } = req.query;
 
       const pageNumber = parseInt(page as string, 10);
       const limitNumber = parseInt(limit as string, 10);
-      const statusFilter = typeof status === "string" && Object.values(PaymentStatus).includes(status as PaymentStatus)
-        ? status
-        : undefined;
+      const statusFilter =
+        typeof status === "string" &&
+        Object.values(PaymentStatus).includes(status as PaymentStatus)
+          ? status
+          : undefined;
 
-      if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber <= 0 || limitNumber <= 0) {
-        throw new CustomError("Invalid pagination parameters", HTTP_STATUS.BAD_REQUEST);
+      if (
+        isNaN(pageNumber) ||
+        isNaN(limitNumber) ||
+        pageNumber <= 0 ||
+        limitNumber <= 0
+      ) {
+        throw new CustomError(
+          "Invalid pagination parameters",
+          HTTP_STATUS.BAD_REQUEST
+        );
       }
 
       const { items, total } = await this._getTrainerWalletUseCase.execute(
         trainerId,
         pageNumber,
-        limitNumber,
+        limitNumber
       );
 
       res.json({

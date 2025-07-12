@@ -297,8 +297,6 @@ export class UserController implements IUserController {
       const { trainerId } = req.params;
       const { clientId } = req.query;
 
-      console.log(clientId,"client id");
-
       if (!trainerId) {
         throw new CustomError(
           ERROR_MESSAGES.ID_NOT_PROVIDED,
@@ -321,7 +319,7 @@ export class UserController implements IUserController {
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: "Trainer profile retrieved successfully",
-        data: profile, 
+        data: profile,
       });
     } catch (error) {
       handleErrorResponse(res, error);
@@ -344,7 +342,7 @@ export class UserController implements IUserController {
       }
 
       const preferences = req.body;
-      console.log(preferences, "save preference");
+
       if (!preferences.skillsToGain || !preferences.selectionMode) {
         throw new CustomError(
           ERROR_MESSAGES.MISSING_PARAMETERS,
@@ -382,7 +380,7 @@ export class UserController implements IUserController {
       }
 
       const result = await this._autoMatchTrainerUseCase.execute(clientId);
-      console.log(result, "Auto match trainer");
+
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: SUCCESS_MESSAGES.TRAINER_ASSIGNED,
@@ -403,9 +401,7 @@ export class UserController implements IUserController {
     try {
       const clientId = (req as CustomRequest).user.id;
       const { trainerId } = req.body;
-      console.log(
-        `manualSelectTrainer: clientId=${clientId}, trainerId=${trainerId}`
-      );
+
       if (!clientId || !trainerId) {
         throw new CustomError(
           ERROR_MESSAGES.MISSING_PARAMETERS,
@@ -417,7 +413,6 @@ export class UserController implements IUserController {
         clientId,
         trainerId
       );
-      console.log(result, "Manual select trainer");
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
@@ -437,7 +432,7 @@ export class UserController implements IUserController {
     try {
       const clientId = (req as CustomRequest).user.id;
       const trainers = await this._getMatchedTrainersUseCase.execute(clientId);
-      console.log(trainers, "Get Matched Trainers");
+
       res.status(HTTP_STATUS.OK).json({
         success: true,
         data: trainers,
@@ -453,7 +448,6 @@ export class UserController implements IUserController {
     try {
       const clientId = (req as CustomRequest).user.id;
       const { selectedTrainerId } = req.body;
-      console.log(selectedTrainerId, "Selected Trainer");
       if (!clientId) {
         throw new CustomError(
           ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
@@ -502,25 +496,26 @@ export class UserController implements IUserController {
     }
   }
 
-
   async getClientTrainerInfo(req: Request, res: Response): Promise<void> {
-  try {
-    const clientId = (req as CustomRequest).user.id;
+    try {
+      const clientId = (req as CustomRequest).user.id;
 
-    if (!clientId) {
-      throw new CustomError(ERROR_MESSAGES.UNAUTHORIZED_ACCESS, HTTP_STATUS.UNAUTHORIZED);
+      if (!clientId) {
+        throw new CustomError(
+          ERROR_MESSAGES.UNAUTHORIZED_ACCESS,
+          HTTP_STATUS.UNAUTHORIZED
+        );
+      }
+
+      const result = await this.getClientTrainersInfoUseCase.execute(clientId);
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.DATA_RETRIEVED,
+        data: result,
+      });
+    } catch (error) {
+      handleErrorResponse(res, error);
     }
-
-    const result = await this.getClientTrainersInfoUseCase.execute(clientId);
-
-    res.status(HTTP_STATUS.OK).json({
-      success: true,
-      message: SUCCESS_MESSAGES.DATA_RETRIEVED,
-      data: result,
-    });
-  } catch (error) {
-    handleErrorResponse(res, error);
   }
-}
-
 }
