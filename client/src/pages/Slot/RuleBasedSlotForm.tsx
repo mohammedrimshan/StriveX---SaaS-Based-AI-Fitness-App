@@ -40,11 +40,11 @@ export const RuleBasedSlotForm: React.FC<RuleBasedSlotFormProps> = ({
     rules: {},
     fromDate: '',
     toDate: '',
-    slotDurationInMinutes: 30, // Fixed to 30 minutes
+    slotDurationInMinutes: 30, 
   });
 
   const { successToast, errorToast } = useToaster();
-  // Handle form input changes
+
   const handleInputChange = (field: keyof RuleBasedSlotInput, value: any) => {
     setFormData((prev) => ({
       ...prev,
@@ -52,7 +52,6 @@ export const RuleBasedSlotForm: React.FC<RuleBasedSlotFormProps> = ({
     }));
   };
 
-  // Handle weekday rule changes
   const handleRuleChange = (weekday: Weekday, field: 'start' | 'end', value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -66,7 +65,6 @@ export const RuleBasedSlotForm: React.FC<RuleBasedSlotFormProps> = ({
     }));
   };
 
-  // Handle weekday selection
   const handleWeekdayToggle = (weekday: Weekday, checked: boolean) => {
     setFormData((prev) => {
       const newRules = { ...prev.rules };
@@ -79,48 +77,87 @@ export const RuleBasedSlotForm: React.FC<RuleBasedSlotFormProps> = ({
     });
   };
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
 
-    // Validate form data
-    if (!formData.fromDate) {
-      errorToast('Please select a start date');
-      return;
-    }
-    if (!formData.toDate) {
-      errorToast('Please select an end date');
-      return;
-    }
-    if (new Date(formData.fromDate) > new Date(formData.toDate)) {
-      errorToast('End date must be after start date');
-      return;
-    }
-    if (Object.keys(formData.rules).length === 0) {
-      errorToast('Please select at least one weekday with valid times');
-      return;
-    }
-    for (const [weekday, times] of Object.entries(formData.rules)) {
-      if (!times.start || !times.end) {
-        errorToast(`Please set start and end times for ${weekday}`);
-        return;
-      }
-      if (times.start >= times.end) {
-        errorToast(`End time must be after start time for ${weekday}`);
-        return;
-      }
-    }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    // Ensure slotDurationInMinutes is set to 30
-    const submitData = {
-      ...formData,
-      slotDurationInMinutes: 30,
-    };
+  const startDate = new Date(formData.fromDate);
+  const endDate = new Date(formData.toDate);
 
-    onSubmit(submitData);
+  if (!formData.fromDate) {
+    errorToast('Please select a start date');
+    return;
+  }
+  if (!formData.toDate) {
+    errorToast('Please select an end date');
+    return;
+  }
+  if (startDate > endDate) {
+    errorToast('End date must be after start date');
+    return;
+  }
+  if (Object.keys(formData.rules).length === 0) {
+    errorToast('Please select at least one weekday with valid times');
+    return;
+  }
+
+  for (const [weekday, times] of Object.entries(formData.rules)) {
+    if (!times.start || !times.end) {
+      errorToast(`Please set start and end times for ${weekday}`);
+      return;
+    }
+    if (times.start >= times.end) {
+      errorToast(`End time must be after start time for ${weekday}`);
+      return;
+    }
+  }
+
+  const dayMap: { [key: string]: number } = {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
   };
 
-  // Reset form on success
+  for (const weekday in formData.rules) {
+    const weekdayIndex = dayMap[weekday.toLowerCase()];
+    let datePointer = new Date(startDate);
+    let isWeekdayInRangeAndFuture = false;
+
+    while (datePointer <= endDate) {
+      if (datePointer.getDay() === weekdayIndex) {
+        const currentDay = new Date(datePointer);
+        currentDay.setHours(0, 0, 0, 0);
+
+        if (currentDay >= today) {
+          isWeekdayInRangeAndFuture = true;
+          break;
+        }
+      }
+      datePointer.setDate(datePointer.getDate() + 1);
+    }
+
+    if (!isWeekdayInRangeAndFuture) {
+      errorToast(
+        `Cannot create slots for ${weekday.charAt(0).toUpperCase() + weekday.slice(1)} – it's either already passed or not in the selected date range.`
+      );
+      return;
+    }
+  }
+
+  const submitData = {
+    ...formData,
+    slotDurationInMinutes: 30,
+  };
+
+  onSubmit(submitData);
+};
+
   useEffect(() => {
     if (isSuccess) {
       successToast('Rule-based slots created successfully!');
@@ -129,7 +166,7 @@ export const RuleBasedSlotForm: React.FC<RuleBasedSlotFormProps> = ({
         rules: {},
         fromDate: '',
         toDate: '',
-        slotDurationInMinutes: 30, // Fixed to 30 minutes
+        slotDurationInMinutes: 30, 
       });
     }
     if (isError && error) {
