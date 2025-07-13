@@ -94,7 +94,7 @@ export class UserController implements IUserController {
           user.length === 0 ? 0 : (pageNumber - 1) * pageSize + user.length,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -130,7 +130,7 @@ export class UserController implements IUserController {
         message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -200,7 +200,7 @@ export class UserController implements IUserController {
         user: updatedUser,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -245,7 +245,7 @@ export class UserController implements IUserController {
         message: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -287,7 +287,7 @@ export class UserController implements IUserController {
             : (pageNumber - 1) * pageSize + trainers.length,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -322,7 +322,7 @@ export class UserController implements IUserController {
         data: profile,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
   /**
@@ -362,7 +362,7 @@ export class UserController implements IUserController {
         data: savedPreferences,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -390,7 +390,7 @@ export class UserController implements IUserController {
         },
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -424,7 +424,7 @@ export class UserController implements IUserController {
         },
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -438,7 +438,7 @@ export class UserController implements IUserController {
         data: trainers,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
   /**
@@ -472,7 +472,7 @@ export class UserController implements IUserController {
         data: result,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -492,7 +492,7 @@ export class UserController implements IUserController {
         profile,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -515,7 +515,7 @@ export class UserController implements IUserController {
         data: result,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

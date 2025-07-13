@@ -30,7 +30,7 @@ export class SessionHistoryController implements ISessionHistoryController {
         data: result,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

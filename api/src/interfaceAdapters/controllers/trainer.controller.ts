@@ -74,7 +74,7 @@ export class TrainerController implements ITrainerController {
         currentPage: pageNumber,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -89,7 +89,7 @@ export class TrainerController implements ITrainerController {
         message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -128,7 +128,7 @@ export class TrainerController implements ITrainerController {
         message: `Trainer ${approvalStatus.toLowerCase()} successfully`,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -181,7 +181,7 @@ export class TrainerController implements ITrainerController {
         trainer: updatedTrainer,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -225,7 +225,7 @@ export class TrainerController implements ITrainerController {
         message: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
   async createStripeConnectAccount(req: Request, res: Response): Promise<void> {
@@ -260,7 +260,7 @@ export class TrainerController implements ITrainerController {
         url: accountLinkUrl,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -306,7 +306,7 @@ export class TrainerController implements ITrainerController {
         totalClients: clients.length,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -348,7 +348,7 @@ export class TrainerController implements ITrainerController {
         client: updatedClient,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -394,7 +394,7 @@ export class TrainerController implements ITrainerController {
         totalRequests: requests.length,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -440,7 +440,7 @@ export class TrainerController implements ITrainerController {
         },
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

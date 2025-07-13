@@ -29,7 +29,7 @@ export class AdminDashboardController implements IAdminDashboardController{
       const stats = await this.getDashboardStatsUseCase.execute(year);
       res.status(HTTP_STATUS.OK).json(stats);
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -39,7 +39,7 @@ export class AdminDashboardController implements IAdminDashboardController{
       const trainers = await this.getTopPerformingTrainersUseCase.execute(limit);
       res.status(HTTP_STATUS.OK).json(trainers);
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -49,7 +49,7 @@ export class AdminDashboardController implements IAdminDashboardController{
       const workouts = await this.getPopularWorkoutsUseCase.execute(limit);
       res.status(HTTP_STATUS.OK).json(workouts);
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -60,7 +60,7 @@ export class AdminDashboardController implements IAdminDashboardController{
       const data = await this.getUserAndSessionDataUseCase.execute(year, type);
       res.status(HTTP_STATUS.OK).json(data);
     } catch (error) {
-     handleErrorResponse(res, error);
+     handleErrorResponse(req,res, error);
     }
   }
 
@@ -75,7 +75,7 @@ export class AdminDashboardController implements IAdminDashboardController{
       res.attachment(`revenue_report_${year}.csv`);
       res.send(csv);
     } catch (error) {
-     handleErrorResponse(res, error);
+     handleErrorResponse(req,res, error);
     }
   }
 
@@ -90,7 +90,7 @@ export class AdminDashboardController implements IAdminDashboardController{
       res.attachment(`session_report_${year}.csv`);
       res.send(csv);
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

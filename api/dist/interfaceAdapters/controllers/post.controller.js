@@ -114,7 +114,7 @@ let PostController = class PostController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -140,7 +140,7 @@ let PostController = class PostController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -166,7 +166,7 @@ let PostController = class PostController {
                     });
                     return;
                 }
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -194,7 +194,7 @@ let PostController = class PostController {
                     });
                     return;
                 }
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -228,7 +228,7 @@ let PostController = class PostController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -250,7 +250,7 @@ let PostController = class PostController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }

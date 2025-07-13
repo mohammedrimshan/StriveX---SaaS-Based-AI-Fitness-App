@@ -61,7 +61,7 @@ export class CategoryController implements ICategoryController {
         });
         return;
       }
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -99,7 +99,7 @@ export class CategoryController implements ICategoryController {
         totalCategory: all,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -127,7 +127,7 @@ export class CategoryController implements ICategoryController {
         message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -163,7 +163,7 @@ export class CategoryController implements ICategoryController {
         message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -175,7 +175,7 @@ export class CategoryController implements ICategoryController {
         categories,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

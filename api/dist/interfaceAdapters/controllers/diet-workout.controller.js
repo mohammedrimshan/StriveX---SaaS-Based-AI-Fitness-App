@@ -96,7 +96,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -113,7 +113,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -131,7 +131,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -157,7 +157,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -178,7 +178,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -195,7 +195,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -213,7 +213,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -232,7 +232,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -271,7 +271,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -287,7 +287,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -306,7 +306,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -322,7 +322,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -340,7 +340,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -366,7 +366,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -398,7 +398,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -423,7 +423,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -445,7 +445,7 @@ let DietWorkoutController = class DietWorkoutController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }

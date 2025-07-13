@@ -37,7 +37,7 @@ export class NotificationController implements INotificationController {
         message: "Notification sent successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -54,7 +54,7 @@ export class NotificationController implements INotificationController {
         message: "Notifications retrieved successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -74,7 +74,7 @@ export class NotificationController implements INotificationController {
         message: "User notifications retrieved successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -88,7 +88,7 @@ export class NotificationController implements INotificationController {
         message: "Notification marked as read",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -98,7 +98,7 @@ export class NotificationController implements INotificationController {
       await this.updateFCMTokenUseCase.execute(userId, fcmToken);
       res.status(HTTP_STATUS.OK).json({ message: "FCM token updated" });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

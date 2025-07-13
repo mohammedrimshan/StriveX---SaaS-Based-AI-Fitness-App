@@ -88,7 +88,7 @@ export class ChatController implements IChatController {
         limit,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -146,7 +146,7 @@ export class ChatController implements IChatController {
         chats: formattedChats,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -172,7 +172,7 @@ export class ChatController implements IChatController {
         participants,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -210,7 +210,7 @@ export class ChatController implements IChatController {
 
       res.status(HTTP_STATUS.OK).json({ success: true });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

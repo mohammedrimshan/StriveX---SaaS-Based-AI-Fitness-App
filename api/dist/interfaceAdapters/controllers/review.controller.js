@@ -44,7 +44,7 @@ let ReviewController = class ReviewController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -65,7 +65,7 @@ let ReviewController = class ReviewController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -82,7 +82,7 @@ let ReviewController = class ReviewController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }

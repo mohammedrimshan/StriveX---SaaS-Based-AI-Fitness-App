@@ -82,7 +82,7 @@ export class AdminController implements IAdminController {
         totalPlans: total,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -101,7 +101,7 @@ export class AdminController implements IAdminController {
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -129,7 +129,7 @@ export class AdminController implements IAdminController {
         message: SUCCESS_MESSAGES.UPDATE_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -153,7 +153,7 @@ export class AdminController implements IAdminController {
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -189,7 +189,7 @@ export class AdminController implements IAdminController {
         totalRequests: requests.length,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -212,7 +212,7 @@ export class AdminController implements IAdminController {
         request: updatedRequest,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -224,7 +224,7 @@ export class AdminController implements IAdminController {
         posts,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -236,7 +236,7 @@ export class AdminController implements IAdminController {
         comments,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -256,7 +256,7 @@ export class AdminController implements IAdminController {
         message: SUCCESS_MESSAGES.DELETE_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -276,7 +276,7 @@ export class AdminController implements IAdminController {
         message: SUCCESS_MESSAGES.DELETE_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -358,7 +358,7 @@ export class AdminController implements IAdminController {
         totalTransactions: total,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -422,7 +422,7 @@ export class AdminController implements IAdminController {
         totalSubscriptions: total,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

@@ -59,7 +59,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -75,7 +75,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -100,7 +100,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -145,7 +145,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -170,7 +170,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -200,7 +200,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -231,7 +231,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -257,7 +257,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -288,7 +288,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -322,7 +322,7 @@ let TrainerController = class TrainerController {
                 });
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }

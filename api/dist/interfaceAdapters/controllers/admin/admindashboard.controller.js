@@ -43,7 +43,7 @@ let AdminDashboardController = class AdminDashboardController {
                 res.status(constants_1.HTTP_STATUS.OK).json(stats);
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -55,7 +55,7 @@ let AdminDashboardController = class AdminDashboardController {
                 res.status(constants_1.HTTP_STATUS.OK).json(trainers);
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -67,7 +67,7 @@ let AdminDashboardController = class AdminDashboardController {
                 res.status(constants_1.HTTP_STATUS.OK).json(workouts);
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -80,7 +80,7 @@ let AdminDashboardController = class AdminDashboardController {
                 res.status(constants_1.HTTP_STATUS.OK).json(data);
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -97,7 +97,7 @@ let AdminDashboardController = class AdminDashboardController {
                 res.send(csv);
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }
@@ -114,7 +114,7 @@ let AdminDashboardController = class AdminDashboardController {
                 res.send(csv);
             }
             catch (error) {
-                (0, errorHandler_1.handleErrorResponse)(res, error);
+                (0, errorHandler_1.handleErrorResponse)(req, res, error);
             }
         });
     }

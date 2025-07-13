@@ -57,7 +57,7 @@ export class ClientWalletController implements IClientWalletController {
         },
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

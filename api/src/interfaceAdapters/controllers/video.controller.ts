@@ -52,7 +52,7 @@ export class VideoCallController implements IVideoCallController {
         },
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -86,7 +86,7 @@ export class VideoCallController implements IVideoCallController {
         },
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -120,7 +120,7 @@ export class VideoCallController implements IVideoCallController {
         },
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -151,7 +151,7 @@ export class VideoCallController implements IVideoCallController {
         videoCallStatus: updatedSlot.videoCallStatus,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

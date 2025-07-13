@@ -130,7 +130,7 @@ export class PostController implements IPostController {
         post,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -166,7 +166,7 @@ export class PostController implements IPostController {
         limit: limitNumber,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -194,7 +194,7 @@ export class PostController implements IPostController {
         });
         return;
       }
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -226,7 +226,7 @@ export class PostController implements IPostController {
         });
         return;
       }
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -272,7 +272,7 @@ export class PostController implements IPostController {
         data: post,
       });
     } catch (error: any) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -303,7 +303,7 @@ export class PostController implements IPostController {
         post,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

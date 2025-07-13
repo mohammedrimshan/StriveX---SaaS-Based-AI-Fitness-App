@@ -25,7 +25,7 @@ export class ReviewController implements IReviewController {
         message: "Review submitted successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -45,7 +45,7 @@ export class ReviewController implements IReviewController {
         message: "Review updated successfully",
       });
     } catch (error) {
-     handleErrorResponse(res, error);
+     handleErrorResponse(req,res, error);
     }
   }
 
@@ -64,7 +64,7 @@ export class ReviewController implements IReviewController {
         message: "Reviews retrieved successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

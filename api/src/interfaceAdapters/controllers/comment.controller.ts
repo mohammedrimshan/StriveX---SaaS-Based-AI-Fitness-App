@@ -141,7 +141,7 @@ export class CommentController implements ICommentController {
         });
         return;
       }
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -239,7 +239,7 @@ export class CommentController implements ICommentController {
         });
         return;
       }
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -274,7 +274,7 @@ export class CommentController implements ICommentController {
         comment,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -306,7 +306,7 @@ export class CommentController implements ICommentController {
         });
         return;
       }
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -339,7 +339,7 @@ export class CommentController implements ICommentController {
         comment,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

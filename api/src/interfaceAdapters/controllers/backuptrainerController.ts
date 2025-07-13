@@ -68,7 +68,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         client,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -105,7 +105,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         client,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -137,7 +137,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         request,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -171,7 +171,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         request,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -192,7 +192,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         client,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -240,7 +240,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         totalInvitations: items.length,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -285,7 +285,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         totalClients: items.length,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -329,7 +329,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         totalRequests: items.length,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -374,7 +374,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         totalRequests: total,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -419,7 +419,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         totalInvitations: total,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -463,7 +463,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         totalRequests: total,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -507,7 +507,7 @@ export class BackupTrainerController implements IBackupTrainerController {
         totalClients: total,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

@@ -99,7 +99,7 @@ export class TrainerDashboardController {
     const progress = await this.getClientProgressUsecase.execute(trainerId, limit);
     res.status(200).json(progress);
   } catch (error) {
-    handleErrorResponse(res, error);
+    handleErrorResponse(req,res, error);
   }
 }
 

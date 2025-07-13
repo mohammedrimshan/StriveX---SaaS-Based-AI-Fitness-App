@@ -110,7 +110,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: createdWorkout,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -126,7 +126,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         message: deleted ? "Workout deleted successfully" : "Workout not found",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -143,7 +143,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: updatedWorkout,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -167,7 +167,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: updatedWorkout,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -189,7 +189,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: result,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -208,7 +208,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: workoutPlan,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -224,7 +224,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: workoutPlans,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -244,7 +244,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: workouts,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -281,7 +281,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: workouts,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -297,7 +297,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: recordedProgress,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -317,7 +317,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: progress,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -333,7 +333,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: dietPlan,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -349,7 +349,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: dietPlans,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -381,7 +381,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: updateWorkout,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -417,7 +417,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: updatedWorkout,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -443,7 +443,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: updatedWorkout,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -467,7 +467,7 @@ export class DietWorkoutController implements IDietWorkoutController {
         data: workout,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

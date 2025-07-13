@@ -53,7 +53,7 @@ export class SlotController implements ISlotController {
         slot,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -79,7 +79,7 @@ export class SlotController implements ISlotController {
         slots,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -100,7 +100,7 @@ export class SlotController implements ISlotController {
         slot,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -133,7 +133,7 @@ export class SlotController implements ISlotController {
         slot,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -154,7 +154,7 @@ export class SlotController implements ISlotController {
         slot,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -169,7 +169,7 @@ export class SlotController implements ISlotController {
         slots,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -189,7 +189,7 @@ export class SlotController implements ISlotController {
         bookings,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -210,7 +210,7 @@ export class SlotController implements ISlotController {
         slots,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -240,7 +240,7 @@ export class SlotController implements ISlotController {
         slot,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -269,7 +269,7 @@ export class SlotController implements ISlotController {
         slot,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -299,7 +299,7 @@ export class SlotController implements ISlotController {
         slots,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

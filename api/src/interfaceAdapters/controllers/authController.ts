@@ -96,7 +96,7 @@ export class AuthController implements IAuthController {
         user: user,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -117,7 +117,7 @@ export class AuthController implements IAuthController {
         message: SUCCESS_MESSAGES.EMAIL_SENT_SUCCESSFULLY,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -161,7 +161,7 @@ export class AuthController implements IAuthController {
         user:user
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -186,7 +186,7 @@ export class AuthController implements IAuthController {
         message: SUCCESS_MESSAGES.LOGOUT_SUCCESS,
       });
     } catch (error: unknown) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
   
@@ -237,7 +237,7 @@ export class AuthController implements IAuthController {
         message: SUCCESS_MESSAGES.REGISTRATION_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -259,7 +259,7 @@ export class AuthController implements IAuthController {
         message: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -273,7 +273,7 @@ export class AuthController implements IAuthController {
         success: true,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -291,7 +291,7 @@ export class AuthController implements IAuthController {
         message: SUCCESS_MESSAGES.VERIFICATION_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

@@ -55,7 +55,7 @@ export class PaymentController implements IPaymentController {
         url,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -71,7 +71,7 @@ export class PaymentController implements IPaymentController {
         message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -91,7 +91,7 @@ export class PaymentController implements IPaymentController {
         plans,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -116,7 +116,7 @@ export class PaymentController implements IPaymentController {
         hasBalance: balance > 0,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -156,7 +156,7 @@ export class PaymentController implements IPaymentController {
         url,
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

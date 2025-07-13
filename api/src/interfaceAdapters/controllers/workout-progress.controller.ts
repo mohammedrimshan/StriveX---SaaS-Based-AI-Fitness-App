@@ -53,7 +53,7 @@ export class WorkoutProgressController implements IWorkoutProgressController {
         message: "Workout progress created successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -77,7 +77,7 @@ export class WorkoutProgressController implements IWorkoutProgressController {
         message: "Workout progress updated successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -100,7 +100,7 @@ export class WorkoutProgressController implements IWorkoutProgressController {
         message: "User workout progress retrieved successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -125,7 +125,7 @@ export class WorkoutProgressController implements IWorkoutProgressController {
           : "No progress found",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -147,7 +147,7 @@ export class WorkoutProgressController implements IWorkoutProgressController {
         message: "User progress metrics retrieved successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 }

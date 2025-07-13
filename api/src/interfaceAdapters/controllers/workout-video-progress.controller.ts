@@ -5,7 +5,6 @@ import { IUpdateVideoProgressUseCase } from "@/entities/useCaseInterfaces/progre
 import { IGetUserVideoProgressUseCase } from "@/entities/useCaseInterfaces/progress/get-user-video-progress.usecase.interface";
 import { IGetVideoProgressByUserAndWorkoutUseCase } from "@/entities/useCaseInterfaces/progress/get-video-progress-by-user-and-workout.usecase.interface";
 import { handleErrorResponse } from "@/shared/utils/errorHandler";
-import { CustomError } from "@/entities/utils/custom.error";
 import { HTTP_STATUS } from "@/shared/constants";
 
 @injectable()
@@ -36,7 +35,7 @@ export class WorkoutVideoProgressController implements IWorkoutVideoProgressCont
         message: "Video progress updated successfully",
       });
     } catch (error) {
-      handleErrorResponse(res, error);
+      handleErrorResponse(req,res, error);
     }
   }
 
@@ -57,7 +56,7 @@ export class WorkoutVideoProgressController implements IWorkoutVideoProgressCont
         message: "User video progress retrieved successfully",
       });
     } catch (error) {
-        handleErrorResponse(res, error);
+        handleErrorResponse(req,res, error);
     }
   }
 
@@ -73,7 +72,7 @@ export class WorkoutVideoProgressController implements IWorkoutVideoProgressCont
         message: progress ? "Video progress retrieved successfully" : "No progress found",
       });
     } catch (error) {
-        handleErrorResponse(res, error);
+        handleErrorResponse(req,res, error);
     }
   }
 }

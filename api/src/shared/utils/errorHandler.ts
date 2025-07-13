@@ -1,34 +1,52 @@
-import { Response } from "express";
 import { ZodError } from "zod";
-import { CustomError } from "@/entities/utils/custom.error";
-import { ERROR_MESSAGES, HTTP_STATUS } from "@/shared/constants";
+import { Request, Response } from "express";
+import { ERROR_MESSAGES, HTTP_STATUS } from "../constants";
+import { CustomError } from "../../entities/utils/custom.error";
+import chalk from "chalk";
+import logger from "./logger";
 
-export function handleErrorResponse(res: Response, error: unknown): void {
-  console.error(error);
+export const handleErrorResponse = (
+  req: Request,
+  res: Response,
+  error: unknown
+) => {
+  // Log with rich context
+  logger.error(`[${req.method}] ${req.url} - ${(error as Error).message}`, {
+    ip: req.ip,
+    userAgent: req.headers["user-agent"],
+    stack: (error as Error).stack,
+  });
+
+  // Optionally also print pretty console logs in dev
+  if (process.env.NODE_ENV !== "production") {
+    if (error instanceof Error) {
+      console.error(chalk.bgRedBright(error.name), ": ", error);
+    } else {
+      console.error(chalk.bgRedBright("Unknown Error: "), error);
+    }
+  }
+
   if (error instanceof ZodError) {
     const errors = error.errors.map((err) => ({
       message: err.message,
     }));
 
-    res.status(HTTP_STATUS.BAD_REQUEST).json({
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: ERROR_MESSAGES.VALIDATION_ERROR,
       errors,
     });
-    return;
   }
 
   if (error instanceof CustomError) {
-    res.status(error.statusCode).json({
+    return res.status(error.statusCode).json({
       success: false,
       message: error.message,
     });
-    return;
   }
 
-  console.log("Unhandled error:", error);
-  res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+  return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
     success: false,
     message: ERROR_MESSAGES.SERVER_ERROR,
   });
-}
+};
