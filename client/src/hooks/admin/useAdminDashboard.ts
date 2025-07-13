@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { adminAxiosInstance } from "@/api/admin.axios";
+// import { axiosInstance } from "@/api/admin.axios";
 import {
   IDashboardStats,
   ITopTrainer,
@@ -7,6 +7,7 @@ import {
   IUserAndSessionData,
 
 } from "@/types/AdminDashboard";
+import { axiosInstance } from "@/api/private.axios";
 
 interface FetchDashboardStatsParams {
   year?: number;
@@ -32,7 +33,7 @@ interface FetchReportParams {
 const fetchDashboardStats = async ({
   year = new Date().getFullYear(),
 }: FetchDashboardStatsParams): Promise<IDashboardStats> => {
-  const response = await adminAxiosInstance.get("/admin/stats", {
+  const response = await axiosInstance.get("/admin/stats", {
     params: { year },
   });
   return response.data;
@@ -41,7 +42,7 @@ const fetchDashboardStats = async ({
 const fetchTopTrainers = async ({
   limit = 5,
 }: FetchTopTrainersParams): Promise<ITopTrainer[]> => {
-  const response = await adminAxiosInstance.get("/admin/top-trainers", {
+  const response = await axiosInstance.get("/admin/top-trainers", {
     params: { limit },
   });
   return response.data;
@@ -50,7 +51,7 @@ const fetchTopTrainers = async ({
 const fetchPopularWorkouts = async ({
   limit = 5,
 }: FetchPopularWorkoutsParams): Promise<IPopularWorkout[]> => {
-  const response = await adminAxiosInstance.get("/admin/popular-workouts", {
+  const response = await axiosInstance.get("/admin/popular-workouts", {
     params: { limit },
   });
   return response.data;
@@ -60,7 +61,7 @@ const fetchUserAndSessionData = async ({
   year = new Date().getFullYear(),
   type = "daily",
 }: FetchUserAndSessionDataParams): Promise<IUserAndSessionData> => {
-  const response = await adminAxiosInstance.get("/admin/user-and-session-data", {
+  const response = await axiosInstance.get("/admin/user-and-session-data", {
     params: { year, type },
   });
   return response.data;
@@ -69,7 +70,7 @@ const fetchUserAndSessionData = async ({
 const downloadRevenueReport = async ({
   year = new Date().getFullYear(),
 }: FetchReportParams): Promise<Blob> => {
-  const response = await adminAxiosInstance.get("/admin/revenue-report", {
+  const response = await axiosInstance.get("/admin/revenue-report", {
     params: { year },
     responseType: "blob",
   });
@@ -79,7 +80,7 @@ const downloadRevenueReport = async ({
 const downloadSessionReport = async ({
   year = new Date().getFullYear(),
 }: FetchReportParams): Promise<Blob> => {
-  const response = await adminAxiosInstance.get("/admin/session-report", {
+  const response = await axiosInstance.get("/admin/session-report", {
     params: { year },
     responseType: "blob",
   });

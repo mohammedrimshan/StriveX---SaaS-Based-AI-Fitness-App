@@ -1,5 +1,4 @@
-import { clientAxiosInstance } from '@/api/client.axios';
-import { trainerAxiosInstance } from '@/api/trainer.axios';
+import { axiosInstance } from '@/api/private.axios';
 import {
   ChatHistoryResponse,
   RecentChatsResponse,
@@ -7,14 +6,12 @@ import {
 } from '@/types/Chat';
 import { UserRole } from '@/types/UserRole';
 
-const getAxiosInstance = (role: UserRole) => {
-  return role === 'trainer' ? trainerAxiosInstance : clientAxiosInstance;
-};
-
+// Helper function to get URL prefix based on role
 const getPrefix = (role: UserRole) => {
   return role === 'trainer' ? '/trainer' : '/client';
 };
 
+// Get chat history
 export const getChatHistory = async (
   role: UserRole,
   participantId: string,
@@ -22,7 +19,6 @@ export const getChatHistory = async (
   limit: number = 20
 ): Promise<ChatHistoryResponse> => {
   try {
-    const axiosInstance = getAxiosInstance(role);
     const prefix = getPrefix(role);
     const response = await axiosInstance.get<ChatHistoryResponse>(
       `${prefix}/chats/history/${participantId}`,
@@ -36,13 +32,13 @@ export const getChatHistory = async (
   }
 };
 
+// Get recent chats
 export const getRecentChats = async (
   role: UserRole,
   page: number = 1,
   limit: number = 10
 ): Promise<RecentChatsResponse> => {
   try {
-    const axiosInstance = getAxiosInstance(role);
     const prefix = getPrefix(role);
     const response = await axiosInstance.get<RecentChatsResponse>(
       `${prefix}/chats/recent`,
@@ -56,11 +52,11 @@ export const getRecentChats = async (
   }
 };
 
+// Get chat participants
 export const getChatParticipants = async (
   role: UserRole
 ): Promise<ChatParticipantsResponse> => {
   try {
-    const axiosInstance = getAxiosInstance(role);
     const prefix = getPrefix(role);
     const response = await axiosInstance.get<ChatParticipantsResponse>(
       `${prefix}/chats/participants`
@@ -73,12 +69,12 @@ export const getChatParticipants = async (
   }
 };
 
+// Delete message
 export const deleteMessage = async (
   role: UserRole,
   messageId: string
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    const axiosInstance = getAxiosInstance(role);
     const prefix = getPrefix(role);
     const response = await axiosInstance.delete<{ success: boolean; message: string }>(
       `${prefix}/chats/messages/${messageId}`

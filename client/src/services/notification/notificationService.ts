@@ -1,51 +1,43 @@
+import { axiosInstance } from "@/api/private.axios";
+import { UserRole } from "@/types/UserRole"; // "admin" | "client" | "trainer"
 
-import { clientAxiosInstance } from '@/api/client.axios';
-  import { trainerAxiosInstance } from '@/api/trainer.axios';
-  import { adminAxiosInstance } from '@/api/admin.axios'; // New Axios instance for admin
-  import { UserRole } from '@/types/UserRole';
+const getPrefix = (role: UserRole): string => {
+  if (role === "admin") return "/admin";
+  if (role === "trainer") return "/trainer";
+  return "/client";
+};
 
-  const getAxiosInstance = (role: UserRole) => {
-    if (role === 'admin') return adminAxiosInstance;
-    return role === 'trainer' ? trainerAxiosInstance : clientAxiosInstance;
-  };
+export const getUserNotifications = async (
+  role: UserRole,
+  page: number,
+  limit: number
+) => {
+  console.log("getUserNotifications called with role:", role);
+  const prefix = getPrefix(role);
+  console.log("Using prefix:", prefix);
+  const response = await axiosInstance.get(`${prefix}/notifications`, {
+    params: { page, limit },
+  });
+  return response.data.data;
+};
 
-  const getPrefix = (role: UserRole) => {
-    if (role === 'admin') return '/admin';
-    return role === 'trainer' ? '/trainer' : '/client';
-  };
 
-  export const getUserNotifications = async (
-    role: UserRole,
-    page: number,
-    limit: number
-  ) => {
-    const axiosInstance = getAxiosInstance(role);
-    const prefix = getPrefix(role);
-    const response = await axiosInstance.get(`${prefix}/notifications`, {
-      params: { page, limit },
-    });
-    console.log(response.data);
-    return response.data.data;
-  };
+export const markNotificationAsRead = async (
+  role: UserRole,
+  notificationId: string
+) => {
+  const prefix = getPrefix(role);
+  await axiosInstance.patch(`${prefix}/notifications/${notificationId}/read`);
+};
 
-  export const markNotificationAsRead = async (
-    role: UserRole,
-    notificationId: string
-  ) => {
-    const axiosInstance = getAxiosInstance(role);
-    const prefix = getPrefix(role);
-    await axiosInstance.patch(`${prefix}/notifications/${notificationId}/read`);
-  };
-
-  export const updateFCMToken = async (
-    role: UserRole,
-    userId: string,
-    fcmToken: string
-  ) => {
-    const axiosInstance = getAxiosInstance(role);
-    const prefix = getPrefix(role);
-    await axiosInstance.post(`${prefix}/update-fcm-token`, {
-      userId,
-      fcmToken,
-    });
-  };
+export const updateFCMToken = async (
+  role: UserRole,
+  userId: string,
+  fcmToken: string
+) => {
+  const prefix = getPrefix(role);
+  await axiosInstance.post(`${prefix}/update-fcm-token`, {
+    userId,
+    fcmToken,
+  });
+};

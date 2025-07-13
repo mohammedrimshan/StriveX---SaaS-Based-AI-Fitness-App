@@ -1,4 +1,3 @@
-// import { clientAxiosInstance } from "@/api/_cl/client.axios";
 import { IAuthResponse } from "@/types/Response";
 import { ClientTrainersResponse, IClient } from "@/types/User";
 import { IAxiosResponse } from "@/types/Response";
@@ -6,7 +5,6 @@ import { UpdatePasswordData } from "@/hooks/client/useClientPasswordChange";
 import { CategoryResponse } from "@/hooks/admin/useAllCategory";
 import { IWorkoutPlan } from "@/types/Workout";
 import { IDietPlan } from "@/types/Diet";
-// import { PaginatedResult } from "@/types/Workout";
 import { Review, ReviewInput, TrainerProfile, TrainerProfileType, UpdateReviewInput } from "@/types/trainer";
 
 import { IWorkoutProgressEntity } from "../progress/workoutProgressService";
@@ -98,7 +96,7 @@ export const updateClientProfile = async (
   profileData: Partial<IClient>
 ): Promise<IAuthResponse> => {
   const response = await axiosInstance.put(
-    `/_cl/client/${profileData.id}/profile`,
+    `/client/${profileData.id}/profile`,
     profileData
   );
   console.log(response.data);
@@ -110,7 +108,7 @@ export const updateClientPassword = async ({
   newPassword,
 }: UpdatePasswordData) => {
   const response = await axiosInstance.put<IAxiosResponse>(
-    "/_cl/client/update-password",
+    "/client/update-password",
     {
       currentPassword,
       newPassword,
@@ -122,7 +120,7 @@ export const updateClientPassword = async ({
 
 export const getAllCategoriesForClient = async () => {
   const response = await axiosInstance.get<CategoryResponse>(
-    "/_cl/client/getallcategory"
+    "/client/getallcategory"
   );
   return response.data;
 };
@@ -132,7 +130,7 @@ export const generateWorkoutPlan = async (
   data: any
 ): Promise<IWorkoutPlan> => {
   const response = await axiosInstance.post<IWorkoutPlan>(
-    `/_cl/client/${userId}/workout-plans`,
+    `/client/${userId}/workout-plans`,
 
     data
   );
@@ -147,7 +145,7 @@ export const generateDietPlan = async (
   data: any
 ): Promise<IDietPlan> => {
   const response = await axiosInstance.post<IDietPlan>(
-    `/_cl/client/${userId}/diet-plans`,
+    `/client/${userId}/diet-plans`,
     data
   );
   console.log("Diet plan generated:", response.data);
@@ -159,14 +157,14 @@ export const getWorkoutPlans = async (
 ): Promise<IWorkoutPlan[]> => {
   const response = await axiosInstance.get<
     IAxiosResponse<IWorkoutPlan[]>
-  >(`/_cl/client/${userId}/workout-plans`);
+  >(`/client/${userId}/workout-plans`);
   console.log(response.data, "GET WORKOUT");
   return response.data.data;
 };
 
 export const getDietPlans = async (userId: string): Promise<IDietPlan[]> => {
   const response = await axiosInstance.get<IAxiosResponse<IDietPlan[]>>(
-    `/_cl/client/${userId}/diet-plans`
+    `/client/${userId}/diet-plans`
   );
   console.log(response.data, "GET diet");
   return response.data.data;
@@ -177,7 +175,7 @@ export const getUserProgress = async (
 ): Promise<IWorkoutProgressEntity[]> => {
   const response = await axiosInstance.get<
     IAxiosResponse<IWorkoutProgressEntity[]>
-  >(`/_cl/client/${userId}/progress`);
+  >(`/client/${userId}/progress`);
   console.log("User progress:", response.data);
   return response.data.data;
 };
@@ -187,7 +185,7 @@ export const getWorkoutsByCategory = async (
 ): Promise<IWorkoutEntity[]> => {
   const response = await axiosInstance.get<
     IAxiosResponse<IWorkoutEntity[]>
-  >(`/_cl/client/workouts/category/${categoryId}`);
+  >(`/client/workouts/category/${categoryId}`);
   console.log("Workouts by category:", response.data);
   return response.data.data;
 };
@@ -199,7 +197,7 @@ export const getAllWorkouts = async (
 ): Promise<PaginatedResponse<WorkoutDetailsPro>> => {
   const response = await axiosInstance.get<
     IAxiosResponse<PaginatedResponse<WorkoutDetailsPro>>
-  >(`/_cl/client/workouts`, {
+  >(`/client/workouts`, {
     params: { page, limit, filter: JSON.stringify(filter) },
   });
   const rawData = response.data.data;
@@ -237,7 +235,7 @@ export const getAllTrainers = async (
   search: string = ""
 ): Promise<PaginatedTrainersResponse> => {
   const response = await axiosInstance.get<PaginatedTrainersResponse>(
-    "/_cl/client/trainers",
+    "/client/trainers",
     {
       params: { page, limit, search },
     }
@@ -248,7 +246,7 @@ export const getAllTrainers = async (
 
 export const getAllCategoriesForClients = async () => {
   const response = await axiosInstance.get<CategoryResponse>(
-    "/_cl/client/getallcategory"
+    "/client/getallcategory"
   );
   console.log(response.data, "fdd");
   return response.data;
@@ -260,7 +258,7 @@ export const getTrainerProfile = async (
 ): Promise<TrainerProfileType> => {
   try {
     const response = await axiosInstance.get<any>(
-      `/_cl/client/trainers/${trainerId}`,
+      `/client/trainers/${trainerId}`,
        { params: { clientId } }
     );
     console.log("Raw Response Status:", response.status);
@@ -290,7 +288,7 @@ export const getAllMembershipPlans = async ({
   search: string;
 }): Promise<MembershipPlansPaginatedResponse> => {
   try {
-    const response = await axiosInstance.get("/_cl/client/payment/plans", {
+    const response = await axiosInstance.get("/client/payment/plans", {
       params: { page, limit, searchTerm: search },
     });
     console.log("Get all membership plans response:", response.data);
@@ -314,7 +312,7 @@ export const createCheckoutSession = async (
 ): Promise<CheckoutSessionResponse> => {
   try {
     const response = await axiosInstance.post<CheckoutSessionResponse>(
-      "/_cl/client/payment/checkout",
+      "/client/payment/checkout",
       data
     );
     console.log("Checkout session created:", response.data);
@@ -332,14 +330,14 @@ export const saveTrainerSelectionPreferences = async (
 ): Promise<TrainerSelectionResponse> => {
   const response = await axiosInstance.post<
     IAxiosResponse<TrainerSelectionResponse>
-  >("/_cl/client/trainer-preferences", data);
+  >("/client/trainer-preferences", data);
   return response.data.data;
 };
 
 export const autoMatchTrainer = async (): Promise<TrainerSelectionResponse> => {
   const response = await axiosInstance.post<
     IAxiosResponse<TrainerSelectionResponse>
-  >("/_cl/client/auto-match-trainer");
+  >("/client/auto-match-trainer");
   return response.data.data;
 };
 
@@ -348,7 +346,7 @@ export const manualSelectTrainer = async (
 ): Promise<TrainerSelectionResponse> => {
   const response = await axiosInstance.post<
     IAxiosResponse<TrainerSelectionResponse>
-  >("/_cl/client/manual-select-trainer", data);
+  >("/client/manual-select-trainer", data);
   console.log(response.data, "MANUAL SELECT TRAINER RESPONSE");
   return response.data;
 };
@@ -360,7 +358,7 @@ export interface MatchedTrainersResponse {
 }
 
 export const getMatchedTrainers = async (): Promise<MatchedTrainersResponse> => {
-  const response = await axiosInstance.get<MatchedTrainersResponse>("/_cl/client/matched-trainers");
+  const response = await axiosInstance.get<MatchedTrainersResponse>("/client/matched-trainers");
   return response.data;
 };
 
@@ -374,7 +372,7 @@ export const selectTrainerFromMatchedList = async (
 ): Promise<SelectTrainerResponse> => {
   const response = await axiosInstance.post<
     IAxiosResponse<SelectTrainerResponse>
-  >("/_cl/client/select-trainer", {
+  >("/client/select-trainer", {
     selectedTrainerId: trainerId,
   });
   return response.data.data;
@@ -383,7 +381,7 @@ export const selectTrainerFromMatchedList = async (
 export const getTrainerSlots = async (): Promise<SlotsResponse> => {
   try {
     const response = await axiosInstance.get<SlotsResponse>(
-      `/_cl/client/trainerslots`
+      `/client/trainerslots`
     );
     console.log("Trainer slots:", response.data);
     return response.data;
@@ -399,7 +397,7 @@ export const getTrainerSlots = async (): Promise<SlotsResponse> => {
 export const bookSlot = async (data: BookSlotData): Promise<SlotsResponse> => {
   try {
     const response = await axiosInstance.post<SlotsResponse>(
-      "/_cl/client/book",
+      "/client/book",
       data
     );
     console.log("Slot booked:", response.data);
@@ -416,7 +414,7 @@ export const cancelBooking = async (
 ): Promise<SlotsResponse> => {
   try {
     const response = await axiosInstance.post<SlotsResponse>(
-      "/_cl/client/cancel",
+      "/client/cancel",
       data
     );
     console.log("Booking cancelled:", response.data);
@@ -432,7 +430,7 @@ export const cancelBooking = async (
 export const getBookingDetials = async (): Promise<UserBookingsResponse> => {
   try {
     const response = await axiosInstance.get<UserBookingsResponse>(
-      `/_cl/client/bookings`
+      `/client/bookings`
     );
     console.log("Booking:", response.data);
     return response.data;
@@ -453,7 +451,7 @@ export const createPost = async (data: {
 }): Promise<IPost> => {
   try {
     const response = await axiosInstance.post<IAxiosResponse<IPost>>(
-      '/_cl/client/community/posts',
+      '/client/community/posts',
       data
     );
     console.log('Post created:', response.data);
@@ -478,7 +476,7 @@ export const getPosts = async (
   limit: number = 10
 ): Promise<PaginatedPostsResponse> => {
   try {
-    const response = await axiosInstance.get('/_cl/client/community/posts', {
+    const response = await axiosInstance.get('/client/community/posts', {
       params: { category, sortBy, skip, limit },
     });
     console.log('getPosts raw response:', response.data);
@@ -498,7 +496,7 @@ export const getPosts = async (
 export const getPost = async (id: string): Promise<IPost> => {
   try {
     const response = await axiosInstance.get<IAxiosResponse<IPost>>(
-      `/_cl/client/community/posts/${id}`
+      `/client/community/posts/${id}`
     );
     console.log('[DEBUG] Post fetched:', {
       success: response.data.success,
@@ -525,7 +523,7 @@ export const getPost = async (id: string): Promise<IPost> => {
 export const deletePost = async (id: string, role: string): Promise<void> => {
   try {
     const response = await axiosInstance.delete<IAxiosResponse>(
-      `/_cl/client/community/posts/${id}`,
+      `/client/community/posts/${id}`,
       { data: { role } } // Send role in request body
     );
     console.log('Post deleted:', response.data);
@@ -538,7 +536,7 @@ export const deletePost = async (id: string, role: string): Promise<void> => {
 export const likePost = async (id: string, role: string): Promise<IPost> => {
   try {
     const response = await axiosInstance.patch<IAxiosResponse<IPost>>(
-      `/_cl/client/community/posts/${id}/like`,
+      `/client/community/posts/${id}/like`,
       { role }
     );
 
@@ -585,7 +583,7 @@ export const reportPost = async (
 ): Promise<IPost> => {
   try {
     const response = await axiosInstance.post<IAxiosResponse<IPost>>(
-      `/_cl/client/community/posts/${id}/report`,
+      `/client/community/posts/${id}/report`,
       { reason, role }
     );
     console.log('Post reported:', response.data);
@@ -604,7 +602,7 @@ export const createComment = async (
 ): Promise<IComment> => {
   try {
     const response = await axiosInstance.post<IAxiosResponse<IComment>>(
-      `/_cl/client/community/posts/${postId}/comments`,
+      `/client/community/posts/${postId}/comments`,
       { textContent, role }
     );
     console.log('Comment created:', response.data);
@@ -618,7 +616,7 @@ export const createComment = async (
 export const likeComment = async (id: string, role: string): Promise<IComment> => {
   try {
     const response = await axiosInstance.patch<IAxiosResponse<IComment>>(
-      `/_cl/client/community/comments/${id}/like`,
+      `/client/community/comments/${id}/like`,
       { role }
     );
     console.log('Comment liked:', response.data);
@@ -632,7 +630,7 @@ export const likeComment = async (id: string, role: string): Promise<IComment> =
 export const deleteComment = async (id: string, role: string): Promise<void> => {
   try {
     const response = await axiosInstance.delete<IAxiosResponse>(
-      `/_cl/client/community/comments/${id}`,
+      `/client/community/comments/${id}`,
       { data: { role } }
     );
     console.log('Comment deleted:', response.data);
@@ -649,7 +647,7 @@ export const reportComment = async (
 ): Promise<IComment> => {
   try {
     const response = await axiosInstance.post<IAxiosResponse<IComment>>(
-      `/_cl/client/community/comments/${id}/report`,
+      `/client/community/comments/${id}/report`,
       { reason, role }
     );
     console.log('Comment reported:', response.data);
@@ -678,7 +676,7 @@ export const getComments = async (
 ): Promise<PaginatedCommentsResponse> => {
   try {
     const response = await axiosInstance.get<PaginatedCommentsResponse>(
-      `/_cl/client/community/posts/${postId}/comments`,
+      `/client/community/posts/${postId}/comments`,
       {
         params: { page, limit },
       }
@@ -696,7 +694,7 @@ export const upgradeSubscription = async (
 ): Promise<CheckoutSessionResponse> => {
   try {
     const response = await axiosInstance.put<CheckoutSessionResponse>(
-      "/_cl/client/upgrade",
+      "/client/upgrade",
       data
     );
     console.log("Subscription upgrade session created:", response.data);
@@ -712,7 +710,7 @@ export const upgradeSubscription = async (
 export const getClientProfile = async (clientId: string): Promise<IClient> => {
   try {
     const response = await axiosInstance.get<IAxiosResponse<IClient>>(
-      `/_cl/client/${clientId}/profile`
+      `/client/${clientId}/profile`
     );
     console.log("Client profile fetched:", response.data);
     return response.data?.profile;
@@ -727,7 +725,7 @@ export const getClientProfile = async (clientId: string): Promise<IClient> => {
 export const submitReview = async (review: ReviewInput): Promise<Review> => {
   try {
     const response = await axiosInstance.put<{ success: boolean; data: Review }>(
-      `/_cl/client/submitreview`,
+      `/client/submitreview`,
       review
     );
     if (!response.data.success || !response.data.data) {
@@ -747,7 +745,7 @@ export const fetchTrainerReviews = async (
 ): Promise<{ items: Review[]; total: number }> => {
   try {
     const response = await axiosInstance.get<{ success: boolean; data: { items: Review[]; total: number } }>(
-      `/_cl/client/reviews/${trainerId}`,
+      `/client/reviews/${trainerId}`,
       { params: { skip, limit } }
     );
     if (!response.data.success || !response.data.data) {
@@ -763,7 +761,7 @@ export const fetchTrainerReviews = async (
 export const updateReview = async (review: UpdateReviewInput & { clientId: string }): Promise<Review> => {
   try {
     const response = await axiosInstance.put<{ success: boolean; data: Review }>(
-      `/_cl/client/updatereview`,
+      `/client/updatereview`,
       review
     );
     if (!response.data.success || !response.data.data) {
@@ -782,14 +780,14 @@ export const getClientTrainersInfo = async (): Promise<ClientTrainersResponse> =
     success: boolean; 
     message: string; 
     data: ClientTrainersResponse; 
-  }>("/_cl/client/trainers-info");
+  }>("/client/trainers-info");
 
   return response.data.data;
 };
 
 
 export const checkWalletBalance = async (): Promise<CheckoutSessionResponse> => {
-  const response = await axiosInstance.get<CheckoutSessionResponse>("/_cl/client/walletbalance");
+  const response = await axiosInstance.get<CheckoutSessionResponse>("/client/walletbalance");
   return response.data;
 };
 
@@ -800,7 +798,7 @@ export const getClientWalletDetails = async (
   page: number = 1,
   limit: number = 10
 ): Promise<IWalletDetailsResponse> => {
-  const res = await axiosInstance.get("/_cl/client/wallet", {
+  const res = await axiosInstance.get("/client/wallet", {
     params: { year, month, page, limit },
   });
   return res.data.data;

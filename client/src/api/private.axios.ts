@@ -1,4 +1,3 @@
-// D:\StriveX\client\src\api\private.axios.ts
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import toast from "react-hot-toast";
 import { store } from "@/store/store";
@@ -18,8 +17,8 @@ interface ErrorResponse {
 }
 
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_PRIVATE_API_URL, 
-  withCredentials: true,
+  baseURL: import.meta.env.VITE_PRIVATE_API_URL,
+  withCredentials: true, 
 });
 
 let isRefreshing = false;
@@ -44,25 +43,24 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError<ErrorResponse>) => {
     const originalRequest = error.config as CustomAxiosRequestConfig | undefined;
 
-    // If no config or URL, reject immediately
     if (!originalRequest || !originalRequest.url) {
       console.error("No original request or URL:", error);
       return Promise.reject(error);
     }
 
-    // Extract role from URL prefix
+    // Extract role from URL path
     const url = originalRequest.url;
     const urlPrefix = url.split("/")[1] || "";
     let role: Role = "";
 
     switch (urlPrefix) {
-      case "_ad":
+      case "admin":
         role = "admin";
         break;
-      case "_cl":
+      case "client":
         role = "client";
         break;
-      case "_tra":
+      case "trainer":
         role = "trainer";
         break;
       default:
@@ -72,30 +70,26 @@ axiosInstance.interceptors.response.use(
 
     const message = error.response?.data?.message ?? "";
 
-    // Handle token expired & retry with refresh
+    // Token expired → try refresh
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      (message === "Token Expired" || message === "Unauthorized" || !message) // Handle multiple cases
+      (message === "Token Expired" || message === "Unauthorized" || !message)
     ) {
       originalRequest._retry = true;
 
       if (!isRefreshing) {
         isRefreshing = true;
         try {
-          const refreshEndpoint = `/${urlPrefix}/${role}/refresh-token`; // e.g., /_ad/admin/refresh-token
-          console.log(`Attempting token refresh for ${role} at ${import.meta.env.VITE_PRIVATE_API_URL}${refreshEndpoint}`);
-          const response = await axiosInstance.post(refreshEndpoint);
-          console.log(`Token refresh successful for ${role}:`, response.data);
+          const refreshEndpoint = `/${role}/refresh-token`; // e.g., /client/refresh-token
+          console.log(`Attempting token refresh for ${role} at ${refreshEndpoint}`);
+          await axiosInstance.post(refreshEndpoint); // Token will be set via cookie
+          console.log(`Token refresh successful for ${role}`);
           isRefreshing = false;
           processQueue(null);
           return axiosInstance(originalRequest);
         } catch (refreshError: any) {
-          console.error(`Token refresh failed for ${role}:`, {
-            status: refreshError.response?.status,
-            data: refreshError.response?.data,
-            message: refreshError.message,
-          });
+          console.error(`Token refresh failed for ${role}:`, refreshError.response?.data || refreshError.message);
           isRefreshing = false;
           processQueue(refreshError);
           handleLogout(role);
@@ -103,21 +97,19 @@ axiosInstance.interceptors.response.use(
         }
       }
 
-      // Queue the request until refresh is complete
-      console.log(`Queuing request for ${url} during refresh`);
+      // Queue request during refresh
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       }).then(() => axiosInstance(originalRequest));
     }
 
-    // Handle blacklisted or blocked tokens
+    // Blacklisted or blocked token
     if (
       error.response?.status === 403 &&
       !originalRequest._retry &&
       ["Token is blacklisted", "Access denied: Your account has been blocked"].includes(message)
     ) {
       originalRequest._retry = true;
-      console.log(`Handling 403 error for ${role}: ${message}`);
       handleLogout(role);
       return Promise.reject(error);
     }
@@ -129,12 +121,10 @@ axiosInstance.interceptors.response.use(
 
 function handleLogout(role: Role) {
   if (!role) {
-    console.warn("No role specified for logout");
-    toast.error("Session expired. Please login again.", { duration: 3000 });
+    toast.error("Session expired. Please login again.");
     return;
   }
 
-  console.log(`Logging out role: ${role}`);
   switch (role) {
     case "admin":
       store.dispatch(adminLogout());
@@ -150,5 +140,5 @@ function handleLogout(role: Role) {
       break;
   }
 
-  toast.error("Please login again.", { duration: 3000 });
+  toast.error("Please login again.");
 }

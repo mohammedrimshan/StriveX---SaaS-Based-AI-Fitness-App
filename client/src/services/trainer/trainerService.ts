@@ -1,4 +1,4 @@
-// import { trainerAxiosInstance } from "@/api/_tra/trainer.axios";
+
 import { IClient, ITrainer } from "@/types/User";
 import { CategoryResponse } from "@/hooks/admin/useAllCategory";
 import { IAxiosResponse } from "@/types/Response";
@@ -81,7 +81,7 @@ export interface ClientRequestActionResponse {
 
 // Get trainer profile information
 export const getTrainerProfile = async (): Promise<any> => {
-  const response = await axiosInstance.get("/_tra/trainer/profile");
+  const response = await axiosInstance.get("/trainer/profile");
   return response.data;
 };
 
@@ -91,7 +91,7 @@ export const updateTrainerProfile = async (
   profileData: Partial<ITrainer>
 ): Promise<{ success: boolean; message: string; trainer: ITrainer }> => {
   const response = await axiosInstance.put(
-    `/_tra/trainer/${trainerId}/profile`,
+    `/trainer/${trainerId}/profile`,
     profileData
   );
   console.log("Update trainer profile response:", response.data);
@@ -103,7 +103,7 @@ export const updateTrainerPassword = async ({
   newPassword,
 }: UpdatePasswordData) => {
   const response = await axiosInstance.put<IAxiosResponse>(
-    "/_tra/trainer/update-password",
+    "/trainer/update-password",
     {
       currentPassword,
       newPassword,
@@ -118,7 +118,7 @@ export const uploadTrainerCredential = async (
   credentialData: FormData
 ): Promise<any> => {
   const response = await axiosInstance.post(
-    "/_tra/trainer/credentials",
+    "/trainer/credentials",
     credentialData,
     {
       headers: {
@@ -131,7 +131,7 @@ export const uploadTrainerCredential = async (
 
 export const getAllCategoriesForTrainer = async () => {
   const response = await axiosInstance.get<CategoryResponse>(
-    "/_tra/trainer/getallcategory"
+    "/trainer/getallcategory"
   );
   return response.data;
 };
@@ -142,7 +142,7 @@ export const getTrainerClients = async (
 ): Promise<TrainerClientsPaginatedResponse> => {
   const response =
     await axiosInstance.get<TrainerClientsPaginatedResponse>(
-      "/_tra/trainer/clients",
+      "/trainer/clients",
       {
         params: { page, limit },
       }
@@ -157,7 +157,7 @@ export const getPendingClientRequests = async (
 ): Promise<PendingClientRequestsResponse> => {
   const response =
     await axiosInstance.get<PendingClientRequestsResponse>(
-      "/_tra/trainer/pending-requests",
+      "/trainer/pending-requests",
       {
         params: { page, limit },
       }
@@ -179,7 +179,7 @@ export const acceptRejectClientRequest = async (
 
   console.log("Sending accept/reject request with payload:", payload);
   const response = await axiosInstance.post<ClientRequestActionResponse>(
-    "/_tra/trainer/client-request",
+    "/trainer/client-request",
     payload
   );
 
@@ -192,7 +192,7 @@ export const createSlot = async (
 ): Promise<SlotsResponse> => {
   try {
     const response = await axiosInstance.post<SlotsResponse>(
-      "/_tra/trainer/create",
+      "/trainer/create",
       data
     );
     console.log("Slot created:", response.data);
@@ -207,7 +207,7 @@ export const createSlot = async (
 export const getTrainerOwnSlots = async (): Promise<SlotsResponse> => {
   try {
     const response = await axiosInstance.get<SlotsResponse>(
-      "/_tra/trainer/_tra/trainerslots"
+      "/trainer/trainerownslots"
     );
     console.log("Trainer's own slots:", response.data);
     return response.data;
@@ -227,7 +227,7 @@ export const getTrainerBookedAndCancelledSlots = async ({
 }: GetTrainerSlotsParams): Promise<SlotsResponse> => {
   try {
     const response = await axiosInstance.get<SlotsResponse>(
-      "/_tra/trainer/slotbooks",
+      "/trainer/slotbooks",
       {
         params: { trainerId, date, page, limit },
       }
@@ -250,7 +250,7 @@ export const getTrainerWalletHistory = async (
 ): Promise<WalletHistoryResponse> => {
   try {
     const response = await axiosInstance.get<WalletHistoryResponse>(
-      "/_tra/trainer/wallet-history",
+      "/trainer/wallet-history",
       {
         params: { page, limit, status },
       }
@@ -289,13 +289,13 @@ export const getTrainerDashboardStats = async (
 ): Promise<ITrainerDashboardStats> => {
   try {
     const response = await axiosInstance.get(
-      `/_tra/trainer/${trainerId}/stats`,
+      `/trainer/${trainerId}/stats`,
       { params: { year, month } }
     );
-    logResponse(`/_tra/trainer/${trainerId}/stats`, response);
+    logResponse(`/trainer/${trainerId}/stats`, response);
     return response.data; // Return response.data directly
   } catch (error: any) {
-    logError(`/_tra/trainer/${trainerId}/stats`, error);
+    logError(`/trainer/${trainerId}/stats`, error);
     throw new Error(error.response?.data?.error || "Failed to fetch dashboard stats");
   }
 };
@@ -306,13 +306,13 @@ export const getUpcomingSessions = async (
 ): Promise<IUpcomingSession[]> => {
   try {
     const response = await axiosInstance.get(
-      `/_tra/trainer/${trainerId}/upcoming-sessions`,
+      `/trainer/${trainerId}/upcoming-sessions`,
       { params: { limit } }
     );
-    logResponse(`/_tra/trainer/${trainerId}/upcoming-sessions`, response);
+    logResponse(`/trainer/${trainerId}/upcoming-sessions`, response);
     return response.data || []; // Return response.data or empty array
   } catch (error: any) {
-    logError(`/_tra/trainer/${trainerId}/upcoming-sessions`, error);
+    logError(`/trainer/${trainerId}/upcoming-sessions`, error);
     throw new Error(error.response?.data?.error || "Failed to fetch upcoming sessions");
   }
 };
@@ -324,13 +324,13 @@ export const getWeeklySessionStats = async (
 ): Promise<IWeeklySessionStats[]> => {
   try {
     const response = await axiosInstance.get(
-      `/_tra/trainer/${trainerId}/weekly-stats`,
+      `/trainer/${trainerId}/weekly-stats`,
       { params: { year, month } }
     );
-    logResponse(`/_tra/trainer/${trainerId}/weekly-stats`, response);
+    logResponse(`/trainer/${trainerId}/weekly-stats`, response);
     return response.data || []; // Return response.data or empty array
   } catch (error: any) {
-    logError(`/_tra/trainer/${trainerId}/weekly-stats`, error);
+    logError(`/trainer/${trainerId}/weekly-stats`, error);
     throw new Error(error.response?.data?.error || "Failed to fetch weekly session stats");
   }
 };
@@ -341,13 +341,13 @@ export const getClientFeedback = async (
 ): Promise<IClientFeedback[]> => {
   try {
     const response = await axiosInstance.get(
-      `/_tra/trainer/${trainerId}/feedback`,
+      `/trainer/${trainerId}/feedback`,
       { params: { limit } }
     );
-    logResponse(`/_tra/trainer/${trainerId}/feedback`, response);
+    logResponse(`/trainer/${trainerId}/feedback`, response);
     return response.data || []; // Return response.data or empty array
   } catch (error: any) {
-    logError(`/_tra/trainer/${trainerId}/feedback`, error);
+    logError(`/trainer/${trainerId}/feedback`, error);
     throw new Error(error.response?.data?.error || "Failed to fetch client feedback");
   }
 };
@@ -359,13 +359,13 @@ export const getEarningsReport = async (
 ): Promise<IEarningsReport> => {
   try {
     const response = await axiosInstance.get(
-      `/_tra/trainer/${trainerId}/earnings`,
+      `/trainer/${trainerId}/earnings`,
       { params: { year, month } }
     );
-    logResponse(`/_tra/trainer/${trainerId}/earnings`, response);
+    logResponse(`/trainer/${trainerId}/earnings`, response);
     return response.data; // Return response.data directly
   } catch (error: any) {
-    logError(`/_tra/trainer/${trainerId}/earnings`, error);
+    logError(`/trainer/${trainerId}/earnings`, error);
     throw new Error(error.response?.data?.error || "Failed to fetch earnings report");
   }
 };
@@ -376,13 +376,13 @@ export const getClientProgress = async (
 ): Promise<IClientProgress[]> => {
   try {
     const response = await axiosInstance.get(
-      `/_tra/trainer/${trainerId}/client-progress`,
+      `/trainer/${trainerId}/client-progress`,
       { params: { limit } }
     );
-    logResponse(`/_tra/trainer/${trainerId}/client-progress`, response);
+    logResponse(`/trainer/${trainerId}/client-progress`, response);
     return response.data || []; // Return response.data or empty array
   } catch (error: any) {
-    logError(`/_tra/trainer/${trainerId}/client-progress`, error);
+    logError(`/trainer/${trainerId}/client-progress`, error);
     throw new Error(error.response?.data?.error || "Failed to fetch client progress");
   }
 };
@@ -393,13 +393,13 @@ export const getSessionHistory = async (
 ): Promise<ISessionHistory[]> => {
   try {
     const response = await axiosInstance.get(
-      `/_tra/trainer/${trainerId}/session-history`,
+      `/trainer/${trainerId}/session-history`,
       { params: filters }
     );
-    logResponse(`/_tra/trainer/${trainerId}/session-history`, response);
+    logResponse(`/trainer/${trainerId}/session-history`, response);
     return response.data || []; // Return response.data or empty array
   } catch (error: any) {
-    logError(`/_tra/trainer/${trainerId}/session-history`, error);
+    logError(`/trainer/${trainerId}/session-history`, error);
     throw new Error(error.response?.data?.error || "Failed to fetch session history");
   }
 };
@@ -411,7 +411,7 @@ export const fetchTrainerReviews = async (
 ): Promise<{ items: Review[]; total: number }> => {
   try {
     const response = await axiosInstance.get<{ success: boolean; data: { items: Review[]; total: number } }>(
-      `/_tra/trainer/reviews/${trainerId}`,
+      `/trainer/reviews/${trainerId}`,
       { params: { skip, limit } }
     );
     if (!response.data.success || !response.data.data) {
@@ -428,7 +428,7 @@ export const fetchTrainerReviews = async (
 export const cancelTrainerSlot = async (
   payload: CancelSlotData
 ): Promise<CancelSlotResponse> => {
-  const response = await axiosInstance.post("/_tra/trainer/cancel-slot", payload);
+  const response = await axiosInstance.post("/trainer/cancel-slot", payload);
   return response.data;
 };
 
@@ -438,7 +438,7 @@ export const createSlotsFromRule = async (
 ): Promise<SlotsResponse> => {
   try {
     const response = await axiosInstance.post<SlotsResponse>(
-      "/_tra/trainer/slots/rule",
+      "/trainer/slots/rule",
       data
     );
     console.log("Slots created from rule:", response.data);

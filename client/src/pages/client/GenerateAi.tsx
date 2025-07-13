@@ -38,30 +38,26 @@ export default function PlanGenerator() {
   const { data: workoutPlans, isLoading: workoutLoading } = useWorkoutPlans();
   const { data: dietPlans, isLoading: dietLoading } = useDietPlans();
 
-  const handleGenerate = async () => {
-    try {
-      if (activeTab === "workout") {
-        await generateWorkout({});
-        console.log('Workout generated successfully'); // Debug log
-      } else {
-        await generateDiet({});
-        console.log('Diet generated successfully'); // Debug log
-      }
-      successToast(
-        `${
-          activeTab === "workout" ? "Workout" : "Diet"
-        } plan generated successfully!`
-      );
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : (err as any)?.response?.data?.message || "Failed to generate plan";
-      errorToast(errorMessage);
+ const handleGenerate = async () => {
+  try {
+    if (activeTab === "workout") {
+      await generateWorkout({});
+      console.log('Workout generated successfully'); // Debug log
+    } else {
+      await generateDiet({});
+      console.log('Diet generated successfully'); // Debug log
     }
-  };
+
+    successToast(
+      `${activeTab === "workout" ? "Workout" : "Diet"} plan generated successfully!`
+    );
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  } catch (err) {
+   errorToast("Our AI is currently busy. Please try again after some time.");
+  }
+};
+
 
   const isLoading =
     activeTab === "workout"

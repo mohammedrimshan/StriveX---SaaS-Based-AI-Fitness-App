@@ -1,4 +1,4 @@
-import { clientAxiosInstance } from "@/api/client.axios";
+import { axiosInstance } from "@/api/private.axios";
 import { IAxiosResponse } from "@/types/Response";
 import { ProgressMetricsResponse } from "@/types/progressMetrics";
 
@@ -88,7 +88,7 @@ export const createWorkoutProgress = async (
       throw new Error("Invalid or missing duration");
     }
     console.log("Creating workout progress with data:", data);
-    const response = await clientAxiosInstance.post<
+    const response = await axiosInstance.post<
       IAxiosResponse<IWorkoutProgressEntity>
     >("/client/progress/workout", data);
     console.log("Workout progress created:", response.data);
@@ -111,7 +111,7 @@ export const updateWorkoutProgress = async (
   data: UpdateWorkoutProgressData
 ): Promise<IWorkoutProgressEntity> => {
   try {
-    const response = await clientAxiosInstance.patch<
+    const response = await axiosInstance.patch<
       IAxiosResponse<IWorkoutProgressEntity>
     >(`/client/progress/workout/${progressId}`, data);
     console.log("Workout progress updated:", response.data);
@@ -133,7 +133,7 @@ export const getUserWorkoutProgress = async (
       return [];
     }
 
-    const response = await clientAxiosInstance.get<
+    const response = await axiosInstance.get<
       IAxiosResponse<IWorkoutProgressEntity[]>
     >(`/client/progress/workout/user/${userId}`);
     console.log("User workout progress:", response.data);
@@ -158,7 +158,7 @@ export const getWorkoutProgressByUserAndWorkout = async (
       return [];
     }
 
-    const response = await clientAxiosInstance.get<
+    const response = await axiosInstance.get<
       IAxiosResponse<IWorkoutProgressEntity[]>
     >(`/client/progress/workout/user/${userId}/workout/${workoutId}`);
     console.log("Workout progress by user and workout:", response.data);
@@ -192,7 +192,7 @@ export const updateWorkoutVideoProgress = async (
 
     console.log("Sending video progress update:", data);
 
-    const response = await clientAxiosInstance.patch<
+    const response = await axiosInstance.patch<
       IAxiosResponse<IWorkoutVideoProgressEntity>
     >("/client/progress/video", data);
     console.log("Video progress updated:", response.data);
@@ -219,7 +219,7 @@ export const getUserWorkoutVideoProgress = async (
       return [];
     }
 
-    const response = await clientAxiosInstance.get<
+    const response = await axiosInstance.get<
       IAxiosResponse<IWorkoutVideoProgressEntity[]>
     >(`/client/progress/video/user/${userId}`);
     console.log("User video progress:", response.data);
@@ -244,7 +244,7 @@ export const getWorkoutVideoProgressByUserAndWorkout = async (
       throw new Error("userId and workoutId are required");
     }
 
-    const response = await clientAxiosInstance.get<
+    const response = await axiosInstance.get<
       IAxiosResponse<IWorkoutVideoProgressEntity>
     >(`/client/progress/video/user/${userId}/workout/${workoutId}`);
     console.log("Video progress by user and workout:", response.data);
@@ -269,7 +269,7 @@ export const getUserProgressMetrics = async (
       throw new Error("userId is required");
     }
 
-    const response = await clientAxiosInstance.get<ProgressMetricsResponse>(
+    const response = await axiosInstance.get<ProgressMetricsResponse>(
       `/client/progress/workout/metrics/${userId}`
     );
     console.log("User progress metrics response:", response.data);

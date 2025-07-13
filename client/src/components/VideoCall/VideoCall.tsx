@@ -5,8 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import { io, type Socket } from "socket.io-client"
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt"
 import { useNavigate } from "react-router-dom"
-import { clientAxiosInstance } from "@/api/client.axios"
-import { trainerAxiosInstance } from "@/api/trainer.axios"
+import { axiosInstance } from "@/api/private.axios"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -47,10 +46,7 @@ const SOCKET_PATH = "/socket.io/video"
 const ZEGO_APP_ID = Number.parseInt(import.meta.env.VITE_ZEGO_APP_ID || "201333030")
 const ZEGO_SERVER_SECRET = import.meta.env.VITE_ZEGO_SERVER_SECRET || "dba3a1533b1aff4cb9ecc3350401a713"
 
-const getAxiosInstance = (role: "trainer" | "client") => {
-  return role === "trainer" ? trainerAxiosInstance : clientAxiosInstance
-}
-
+// Helper function to get URL prefix based on role
 const getPrefix = (role: "trainer" | "client") => {
   return role === "trainer" ? "/trainer" : "/client"
 }
@@ -139,7 +135,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
     const fetchVideoCallDetails = async () => {
       try {
         setIsLoading(true)
-        const axiosInstance = getAxiosInstance(role)
         const prefix = getPrefix(role)
         const endpoint = `${prefix}/video-call/${slotId}`
         logWithTimestamp(`Fetching video call details for ${role} at endpoint:`, {
@@ -263,7 +258,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
   const handleStartCall = async () => {
     try {
       logWithTimestamp(`Starting video call for slot ${slotId} as ${role}`)
-      const axiosInstance = getAxiosInstance(role)
       const prefix = getPrefix(role)
       const response = await axiosInstance.post(`${prefix}/video-call/start/${slotId}`, { userId, role })
       logWithTimestamp("Start call response:", response.data)
@@ -282,7 +276,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
   const handleJoinCall = async () => {
     try {
       logWithTimestamp(`Joining video call for slot ${slotId} as ${role}`)
-      const axiosInstance = getAxiosInstance(role)
       const prefix = getPrefix(role)
       const response = await axiosInstance.post(`${prefix}/video-call/join/${slotId}`, { userId, role })
       logWithTimestamp("Join call response:", response.data)
@@ -300,7 +293,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
   const handleEndCall = async () => {
     try {
       logWithTimestamp(`Ending video call for slot ${slotId} as ${role}`)
-      const axiosInstance = getAxiosInstance(role)
       const prefix = getPrefix(role)
       const response = await axiosInstance.post(`${prefix}/video-call/${slotId}/end`, { userId, role })
       logWithTimestamp("End call response:", response.data)
@@ -336,7 +328,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
         logWithTimestamp("Attempting to initialize ZegoUIKit with token")
 
         let kitToken = videoCallDetails.token
-        console.log(kitToken," kitToken from videoCallDetails")
+        console.log(kitToken, " kitToken from videoCallDetails")
         if (ZEGO_APP_ID && ZEGO_SERVER_SECRET) {
           try {
             kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
@@ -394,7 +386,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ slotId, userId, role, userInfo })
           onUserJoin: (users) => logWithTimestamp("Users joined:", users),
           onUserLeave: (users) => logWithTimestamp("Users left:", users),
           // @ts-ignore
-          onError: (error:any) => {
+          onError: (error: any) => {
             console.error("Zego SDK Error:", error)
             setError(`Zego SDK Error: ${error.message || "Unknown error"}`)
             logWithTimestamp("Zego SDK Error:", error)
