@@ -32,7 +32,7 @@ export class AdminRoutes extends BaseRoute {
 
     // logout
     router.post(
-      "/admin/logout",
+      "/logout",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -41,7 +41,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/users",
+      "/users",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -50,7 +50,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.patch(
-      "/admin/user-status",
+      "/user-status",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -59,7 +59,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.post(
-      "/admin/refresh-token",
+      "/refresh-token",
       decodeToken,
       (req: Request, res: Response) => {
         authController.handleTokenRefresh(req, res);
@@ -67,7 +67,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.patch(
-      "/admin/trainer-approval",
+      "/trainer-approval",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -76,7 +76,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router
-      .route("/admin/categories")
+      .route("/categories")
       .get(
         verifyAuth,
         authorizeRole(["admin"]),
@@ -93,7 +93,7 @@ export class AdminRoutes extends BaseRoute {
       );
 
     router
-      .route("/admin/categories/:categoryId")
+      .route("/categories/:categoryId")
       .patch(
         verifyAuth,
         authorizeRole(["admin"]),
@@ -110,7 +110,7 @@ export class AdminRoutes extends BaseRoute {
       );
 
     router.post(
-      "/admin/workouts",
+      "/workouts",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -119,7 +119,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/admin/workouts/:workoutId",
+      "/workouts/:workoutId",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -128,7 +128,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.patch(
-      "/admin/workouts/:workoutId/status",
+      "/workouts/:workoutId/status",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -137,7 +137,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.put(
-      "/admin/workouts/:workoutId",
+      "/workouts/:workoutId",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -146,7 +146,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/workouts",
+      "/workouts",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -155,7 +155,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.post(
-      "/admin/workouts/:workoutId/exercises",
+      "/workouts/:workoutId/exercises",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -164,7 +164,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.put(
-      "/admin/workouts/:workoutId/exercises/:exerciseId",
+      "/workouts/:workoutId/exercises/:exerciseId",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -173,7 +173,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/admin/workouts/:workoutId/exercises/:exerciseId",
+      "/workouts/:workoutId/exercises/:exerciseId",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -182,7 +182,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/workouts/:workoutId",
+      "/workouts/:workoutId",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -192,7 +192,7 @@ export class AdminRoutes extends BaseRoute {
 
     // Membership Plan Routes
     router.post(
-      "/admin/membership-plans",
+      "/membership-plans",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -201,7 +201,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.put(
-      "/admin/membership-plans/:planId",
+      "/membership-plans/:planId",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -210,7 +210,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/admin/membership-plans/:planId",
+      "/membership-plans/:planId",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -219,7 +219,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/membership-plans",
+      "/membership-plans",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -229,7 +229,7 @@ export class AdminRoutes extends BaseRoute {
 
     // Trainer Request Routes
     router.get(
-      "/admin/trainer-requests",
+      "/trainer-requests",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -238,7 +238,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.put(
-      "/admin/trainer-request",
+      "/trainer-request",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -247,7 +247,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/community/reports/posts",
+      "/community/reports/posts",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -256,7 +256,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/community/reports/comments",
+      "/community/reports/comments",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -265,7 +265,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/admin/community/posts/:id",
+      "/community/posts/:id",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -274,7 +274,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/admin/community/comments/:id",
+      "/community/comments/:id",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -283,7 +283,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/transactions",
+      "/transactions",
       verifyAuth,
       authorizeRole(["admin"]),
       (req: Request, res: Response) => {
@@ -292,7 +292,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.post(
-      "/admin/update-fcm-token",
+      "/update-fcm-token",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -302,7 +302,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.patch(
-      "/admin/notifications/:notificationId/read",
+      "/notifications/:notificationId/read",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -312,7 +312,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/notifications",
+      "/notifications",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -322,7 +322,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/session-history",
+      "/session-history",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -332,7 +332,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/stats",
+      "/stats",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -342,7 +342,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/top-trainers",
+      "/top-trainers",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -352,7 +352,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/popular-workouts",
+      "/popular-workouts",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -362,7 +362,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/user-and-session-data",
+      "/user-and-session-data",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -372,7 +372,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/revenue-report",
+      "/revenue-report",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -382,7 +382,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/session-report",
+      "/session-report",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -392,7 +392,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/user-subscriptions",
+      "/user-subscriptions",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -402,7 +402,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.post(
-      "/admin/backup-trainer/resolve-request",
+      "/backup-trainer/resolve-request",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -412,7 +412,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/backup-trainer/change-requests",
+      "/backup-trainer/change-requests",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -422,7 +422,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.get(
-      "/admin/backup-trainer/clients-overview",
+      "/backup-trainer/clients-overview",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -432,7 +432,7 @@ export class AdminRoutes extends BaseRoute {
     );
 
     router.post(
-      "/admin/reassign-trainer",
+      "/reassign-trainer",
       verifyAuth,
       authorizeRole(["admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,

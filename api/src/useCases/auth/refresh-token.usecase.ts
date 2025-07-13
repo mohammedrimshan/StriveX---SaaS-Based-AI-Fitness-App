@@ -8,23 +8,39 @@ import { JwtPayload } from "jsonwebtoken";
 @injectable()
 export class RefreshTokenUseCase implements IRefreshTokenUseCase {
   constructor(
-	@inject("ITokenService") private _tokenService: ITokenService
-) {}
-  execute(refreshToken: string): { role: string; accessToken: string } {
+    @inject("ITokenService") private _tokenService: ITokenService
+  ) {}
+
+  execute(refreshToken: string): { role: string; accessToken: string; refreshToken: string } {
     const payload = this._tokenService.verifyRefreshToken(refreshToken);
+
     if (!payload) {
       throw new CustomError(
         ERROR_MESSAGES.INVALID_TOKEN,
         HTTP_STATUS.BAD_REQUEST
       );
     }
+
+    const userPayload = payload as JwtPayload;
+
+    // Generate new access token
+    const newAccessToken = this._tokenService.generateAccessToken({
+      id: userPayload.id,
+      email: userPayload.email,
+      role: userPayload.role,
+    });
+
+    // Generate new refresh token (rotate)
+    const newRefreshToken = this._tokenService.generateRefreshToken({
+      id: userPayload.id,
+      email: userPayload.email,
+      role: userPayload.role,
+    });
+
     return {
-      role: (payload as JwtPayload).role,
-      accessToken: this._tokenService.generateAccessToken({
-        id: (payload as JwtPayload).id,
-        email: (payload as JwtPayload).email,
-        role: (payload as JwtPayload).role,
-      }),
+      role: userPayload.role!,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     };
   }
 }

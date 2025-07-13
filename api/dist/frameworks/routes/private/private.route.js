@@ -11,10 +11,10 @@ class PrivateRoutes extends base_route_1.BaseRoute {
         super();
     }
     initializeRoutes() {
-        this.router.use("/_cl", new client_route_1.ClientRoutes().router);
-        this.router.use("/_ad", new admin_route_1.AdminRoutes().router);
-        this.router.use("/_tra", new trainer_route_1.TrainerRoutes().router);
-        this.router.use("/_pay", new payment_route_1.PaymentRoutes().router);
+        this.router.use("/client", new client_route_1.ClientRoutes().router);
+        this.router.use("/admin", new admin_route_1.AdminRoutes().router);
+        this.router.use("/trainer", new trainer_route_1.TrainerRoutes().router);
+        this.router.use("/payment", new payment_route_1.PaymentRoutes().router);
     }
 }
 exports.PrivateRoutes = PrivateRoutes;

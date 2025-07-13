@@ -76,15 +76,21 @@ export const verifyAuth = async (
 const extractToken = (
 	req: Request
 ): { access_token: string; refresh_token: string } | null => {
-	const userType = req.path.split("/")[1];
+	const pathSegments = req.originalUrl.split("?")[0].split("/");
+	const pvtIndex = pathSegments.indexOf("pvt");
+	console.log("pvtIndex:", pvtIndex);
 
-	if (!userType) return null;
+	if (pvtIndex === -1 || !pathSegments[pvtIndex + 1]) return null;
+
+	const userType = pathSegments[pvtIndex + 1];
+	console.log("userType:", userType);
 
 	return {
 		access_token: req.cookies?.[`${userType}_access_token`] ?? null,
 		refresh_token: req.cookies?.[`${userType}_refresh_token`] ?? null,
 	};
 };
+
 
 const isBlacklisted = async (token: string): Promise<boolean> => {
 	try {

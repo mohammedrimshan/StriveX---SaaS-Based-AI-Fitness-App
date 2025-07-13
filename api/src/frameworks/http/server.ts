@@ -8,6 +8,7 @@ import fileUpload from "express-fileupload";
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from "../config/swagger";
 import { config } from "../../shared/config";
+
 import { AuthRoutes } from "../routes/auth/auth.route";
 import { PrivateRoutes } from "../routes/private/private.route";
 import { ChatRoutes } from "../routes/chat/chat.route";
@@ -18,6 +19,7 @@ import { errorHandler } from "../../interfaceAdapters/middlewares/error.middlewa
 
 export class Server {
   private _app: Application;
+
   constructor() {
     this._app = express();
     this.configureMiddleware();
@@ -63,8 +65,8 @@ export class Server {
     this._app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     this._app.use("/api/v1/auth", new AuthRoutes().router);
     this._app.use("/api/v1/pvt", new PrivateRoutes().router);
-    this._app.use("/api/v1/pvt/_cl/chats", new ChatRoutes().router);
-    this._app.use("/api/v1/pvt/_tra/chats", new ChatRoutes().router);
+    this._app.use("/api/v1/pvt/client/chats", new ChatRoutes().router);  // If chats differ per role, adjust accordingly
+    this._app.use("/api/v1/pvt/trainer/chats", new ChatRoutes().router);
     this._app.use("/api/v1", new HealthRoute().router);
     this._app.use("*", notFound);
   }

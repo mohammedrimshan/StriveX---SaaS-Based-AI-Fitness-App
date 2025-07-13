@@ -54,8 +54,8 @@ class Server {
         this._app.use('/api/v1/docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec));
         this._app.use("/api/v1/auth", new auth_route_1.AuthRoutes().router);
         this._app.use("/api/v1/pvt", new private_route_1.PrivateRoutes().router);
-        this._app.use("/api/v1/pvt/_cl/chats", new chat_route_1.ChatRoutes().router);
-        this._app.use("/api/v1/pvt/_tra/chats", new chat_route_1.ChatRoutes().router);
+        this._app.use("/api/v1/pvt/client/chats", new chat_route_1.ChatRoutes().router); // If chats differ per role, adjust accordingly
+        this._app.use("/api/v1/pvt/trainer/chats", new chat_route_1.ChatRoutes().router);
         this._app.use("/api/v1", new health_route_1.HealthRoute().router);
         this._app.use("*", not_found_middleware_1.notFound);
     }

@@ -25,13 +25,23 @@ let RefreshTokenUseCase = class RefreshTokenUseCase {
         if (!payload) {
             throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.INVALID_TOKEN, constants_1.HTTP_STATUS.BAD_REQUEST);
         }
+        const userPayload = payload;
+        // Generate new access token
+        const newAccessToken = this._tokenService.generateAccessToken({
+            id: userPayload.id,
+            email: userPayload.email,
+            role: userPayload.role,
+        });
+        // Generate new refresh token (rotate)
+        const newRefreshToken = this._tokenService.generateRefreshToken({
+            id: userPayload.id,
+            email: userPayload.email,
+            role: userPayload.role,
+        });
         return {
-            role: payload.role,
-            accessToken: this._tokenService.generateAccessToken({
-                id: payload.id,
-                email: payload.email,
-                role: payload.role,
-            }),
+            role: userPayload.role,
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
         };
     }
 };

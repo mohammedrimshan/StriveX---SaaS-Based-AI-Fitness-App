@@ -191,27 +191,47 @@ export class AuthController implements IAuthController {
   }
   
   //*                  🔄 Token Refresh
-  handleTokenRefresh(req: Request, res: Response): void {
-    try {
-      const refreshToken = (req as CustomRequest).user.refresh_token;
-      const newTokens = this._refreshTokenUseCase.execute(refreshToken);
-      const accessTokenName = `${newTokens.role}_access_token`;
-      updateCookieWithAccessToken(res, newTokens.accessToken, accessTokenName);
-      res.status(HTTP_STATUS.OK).json({
-        success: true,
-        message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
-      });
-    } catch (error) {
-      clearAuthCookies(
-        res,
-        `${(req as CustomRequest).user.role}_access_token`,
-        `${(req as CustomRequest).user.role}_refresh_token`
-      );
-      res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: ERROR_MESSAGES.INVALID_TOKEN,
-      });
+ handleTokenRefresh(req: Request, res: Response): void {
+  try {
+    const pathSegments = req.originalUrl.split("?")[0].split("/");
+    const userTypeIndex = pathSegments.indexOf("auth") + 1;
+    const userType = pathSegments[userTypeIndex]; // e.g., 'admin', 'client', etc.
+    
+    if (!userType) throw new Error("Invalid user type");
+
+    const refreshToken = req.cookies?.[`${userType}_refresh_token`];
+
+    if (!refreshToken) {
+      throw new Error("Refresh token missing");
     }
+
+    const newTokens = this._refreshTokenUseCase.execute(refreshToken);
+
+    const accessTokenName = `${newTokens.role}_access_token`;
+    const refreshTokenName = `${newTokens.role}_refresh_token`;
+
+    updateCookieWithAccessToken(res, newTokens.accessToken, accessTokenName);
+    updateCookieWithAccessToken(res, newTokens.refreshToken, refreshTokenName); // optional, if you rotate it
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: SUCCESS_MESSAGES.OPERATION_SUCCESS,
+    });
+  } catch (error) {
+    const userType = req.path.split("/")[3] || "unknown"; // fallback
+    clearAuthCookies(
+      res,
+      `${userType}_access_token`,
+      `${userType}_refresh_token`
+    );
+
+    res.status(HTTP_STATUS.UNAUTHORIZED).json({
+      success: false,
+      message: ERROR_MESSAGES.INVALID_TOKEN,
+    });
   }
+}
+
 
   //*                  📝 User Registration
   async register(req: Request, res: Response): Promise<void> {

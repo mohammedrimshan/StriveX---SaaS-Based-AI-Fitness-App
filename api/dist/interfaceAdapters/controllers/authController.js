@@ -147,19 +147,32 @@ let AuthController = class AuthController {
     }
     //*                  🔄 Token Refresh
     handleTokenRefresh(req, res) {
+        var _a;
         try {
-            const refreshToken = req.user.refresh_token;
+            const pathSegments = req.originalUrl.split("?")[0].split("/");
+            const userTypeIndex = pathSegments.indexOf("auth") + 1;
+            const userType = pathSegments[userTypeIndex]; // e.g., 'admin', 'client', etc.
+            if (!userType)
+                throw new Error("Invalid user type");
+            const refreshToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a[`${userType}_refresh_token`];
+            if (!refreshToken) {
+                throw new Error("Refresh token missing");
+            }
             const newTokens = this._refreshTokenUseCase.execute(refreshToken);
             const accessTokenName = `${newTokens.role}_access_token`;
+            const refreshTokenName = `${newTokens.role}_refresh_token`;
             (0, cookieHelper_1.updateCookieWithAccessToken)(res, newTokens.accessToken, accessTokenName);
+            (0, cookieHelper_1.updateCookieWithAccessToken)(res, newTokens.refreshToken, refreshTokenName); // optional, if you rotate it
             res.status(constants_1.HTTP_STATUS.OK).json({
                 success: true,
                 message: constants_1.SUCCESS_MESSAGES.OPERATION_SUCCESS,
             });
         }
         catch (error) {
-            (0, cookieHelper_1.clearAuthCookies)(res, `${req.user.role}_access_token`, `${req.user.role}_refresh_token`);
+            const userType = req.path.split("/")[3] || "unknown"; // fallback
+            (0, cookieHelper_1.clearAuthCookies)(res, `${userType}_access_token`, `${userType}_refresh_token`);
             res.status(constants_1.HTTP_STATUS.UNAUTHORIZED).json({
+                success: false,
                 message: constants_1.ERROR_MESSAGES.INVALID_TOKEN,
             });
         }

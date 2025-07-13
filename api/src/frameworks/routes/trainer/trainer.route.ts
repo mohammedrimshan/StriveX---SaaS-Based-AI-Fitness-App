@@ -33,7 +33,7 @@ export class TrainerRoutes extends BaseRoute {
 
     // logout
     router.post(
-      "/trainer/logout",
+      "/logout",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -43,7 +43,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.put(
-      "/trainer/:trainerId/profile",
+      "/:trainerId/profile",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -54,7 +54,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/refresh-token",
+      "/refresh-token",
       decodeToken,
       (req: Request, res: Response) => {
         console.log("refreshing trainer", req.body);
@@ -63,7 +63,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/getallcategory",
+      "/getallcategory",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -74,7 +74,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.put(
-      "/trainer/update-password",
+      "/update-password",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -85,7 +85,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/stripe-connect",
+      "/stripe-connect",
       verifyAuth,
       authorizeRole(["trainer", "admin"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -95,7 +95,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/clients",
+      "/clients",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -105,7 +105,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/pending-requests",
+      "/pending-requests",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -115,7 +115,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/client-request",
+      "/client-request",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -125,7 +125,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/create",
+      "/create",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -135,7 +135,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/trainerslots",
+      "/trainerownslots",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -146,7 +146,7 @@ export class TrainerRoutes extends BaseRoute {
 
     //chat
     router.get(
-      "/trainer/chats/history/:trainerId",
+      "/chats/history/:trainerId",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -156,7 +156,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/chats/recent",
+      "/chats/recent",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -166,7 +166,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/chats/participants",
+      "/chats/participants",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -176,7 +176,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/trainer/chats/messages/:messageId",
+      "/chats/messages/:messageId",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -186,7 +186,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router
-      .route("/trainer/community/posts")
+      .route("/community/posts")
       .post(
         verifyAuth,
         authorizeRole(["trainer"]),
@@ -205,7 +205,7 @@ export class TrainerRoutes extends BaseRoute {
       );
 
     router
-      .route("/trainer/community/posts/:id")
+      .route("/community/posts/:id")
       .get(
         verifyAuth,
         authorizeRole(["trainer"]),
@@ -224,7 +224,7 @@ export class TrainerRoutes extends BaseRoute {
       );
 
     router.patch(
-      "/trainer/community/posts/:id/like",
+      "/community/posts/:id/like",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -234,7 +234,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/community/posts/:id/report",
+      "/community/posts/:id/report",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -245,7 +245,7 @@ export class TrainerRoutes extends BaseRoute {
 
     // Community Comment Routes
     router.post(
-      "/trainer/community/posts/:id/comments",
+      "/community/posts/:id/comments",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -255,7 +255,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.patch(
-      "/trainer/community/comments/:id/like",
+      "/community/comments/:id/like",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -265,7 +265,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/trainer/community/comments/:id",
+      "/community/comments/:id",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -275,7 +275,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/community/comments/:id/report",
+      "/community/comments/:id/report",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -285,7 +285,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/slotbooks",
+      "/slotbooks",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -295,7 +295,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/video-call/start/:slotId",
+      "/video-call/start/:slotId",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -305,7 +305,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/video-call/join/:slotId",
+      "/video-call/join/:slotId",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -315,7 +315,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/video-call/:slotId",
+      "/video-call/:slotId",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -325,7 +325,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/video-call/:slotId/end",
+      "/video-call/:slotId/end",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -335,7 +335,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/update-fcm-token",
+      "/update-fcm-token",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -345,7 +345,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.patch(
-      "/trainer/notifications/:notificationId/read",
+      "/notifications/:notificationId/read",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -355,7 +355,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/notifications",
+      "/notifications",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -365,7 +365,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/session-history",
+      "/session-history",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -375,7 +375,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/wallet-history",
+      "/wallet-history",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -385,7 +385,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/:trainerId/stats",
+      "/:trainerId/stats",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -395,7 +395,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/:trainerId/upcoming-sessions",
+      "/:trainerId/upcoming-sessions",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -405,7 +405,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/:trainerId/weekly-stats",
+      "/:trainerId/weekly-stats",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -415,7 +415,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/:trainerId/feedback",
+      "/:trainerId/feedback",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -425,7 +425,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/:trainerId/earnings",
+      "/:trainerId/earnings",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -435,7 +435,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/:trainerId/client-progress",
+      "/:trainerId/client-progress",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -445,7 +445,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/:trainerId/session-history",
+      "/:trainerId/session-history",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -455,7 +455,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/reviews/:trainerId",
+      "/reviews/:trainerId",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -465,7 +465,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/backup-trainer/invitation",
+      "/backup-trainer/invitation",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -475,7 +475,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/backup-trainer/invitation",
+      "/backup-trainer/invitation",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -485,7 +485,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.get(
-      "/trainer/backup-trainer/clients",
+      "/backup-trainer/clients",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -495,7 +495,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/cancel-slot",
+      "/cancel-slot",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -505,7 +505,7 @@ export class TrainerRoutes extends BaseRoute {
     );
 
     router.post(
-      "/trainer/slots/rule",
+      "/slots/rule",
       verifyAuth,
       authorizeRole(["trainer"]),
       blockStatusMiddleware.checkStatus as RequestHandler,

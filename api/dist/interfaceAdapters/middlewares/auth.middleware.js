@@ -64,9 +64,13 @@ const verifyAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 exports.verifyAuth = verifyAuth;
 const extractToken = (req) => {
     var _a, _b, _c, _d;
-    const userType = req.path.split("/")[1];
-    if (!userType)
+    const pathSegments = req.originalUrl.split("?")[0].split("/");
+    const pvtIndex = pathSegments.indexOf("pvt");
+    console.log("pvtIndex:", pvtIndex);
+    if (pvtIndex === -1 || !pathSegments[pvtIndex + 1])
         return null;
+    const userType = pathSegments[pvtIndex + 1];
+    console.log("userType:", userType);
     return {
         access_token: (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a[`${userType}_access_token`]) !== null && _b !== void 0 ? _b : null,
         refresh_token: (_d = (_c = req.cookies) === null || _c === void 0 ? void 0 : _c[`${userType}_refresh_token`]) !== null && _d !== void 0 ? _d : null,

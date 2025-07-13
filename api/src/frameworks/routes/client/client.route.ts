@@ -38,7 +38,7 @@ export class ClientRoutes extends BaseRoute {
 
     /**
      * @swagger
-     * /api/v1/pvt/_cl/client/logout:
+     * /api/v1/pvt/_cl/logout:
      *   post:
      *     summary: Log out a client
      *     tags: [Client]
@@ -62,7 +62,7 @@ export class ClientRoutes extends BaseRoute {
      *         description: Unauthorized
      */
     router.post(
-      "/client/logout",
+      "/logout",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -73,7 +73,7 @@ export class ClientRoutes extends BaseRoute {
 
     /**
      * @swagger
-     * /api/v1/pvt/_cl/client/refresh-token:
+     * /api/v1/pvt/_cl/refresh-token:
      *   post:
      *     summary: Refresh client JWT token
      *     tags: [Client]
@@ -113,7 +113,7 @@ export class ClientRoutes extends BaseRoute {
      */
 
     router.post(
-      "/client/refresh-token",
+      "/refresh-token",
       decodeToken,
       (req: Request, res: Response) => {
         console.log("refreshing client", req.body);
@@ -123,7 +123,7 @@ export class ClientRoutes extends BaseRoute {
 
     /**
      * @swagger
-     * /api/v1/pvt/_cl/client/{userId}/profile:
+     * /api/v1/pvt/_cl/{userId}/profile:
      *   put:
      *     summary: Update client profile
      *     tags: [Client]
@@ -164,7 +164,7 @@ export class ClientRoutes extends BaseRoute {
      *         description: User not found
      */
     router.put(
-      "/client/:userId/profile",
+      "/:userId/profile",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -176,7 +176,7 @@ export class ClientRoutes extends BaseRoute {
 
     /**
      * @swagger
-     * /api/v1/pvt/_cl/client/update-password:
+     * /api/v1/pvt/_cl/update-password:
      *   put:
      *     summary: Update client password
      *     tags: [Client]
@@ -214,7 +214,7 @@ export class ClientRoutes extends BaseRoute {
      */
 
     router.put(
-      "/client/update-password",
+      "/update-password",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -226,7 +226,7 @@ export class ClientRoutes extends BaseRoute {
 
     /**
      * @swagger
-     * /api/v1/pvt/_cl/client/getallcategory:
+     * /api/v1/pvt/_cl/getallcategory:
      *   get:
      *     summary: Get all categories
      *     tags: [Client, Category]
@@ -254,7 +254,7 @@ export class ClientRoutes extends BaseRoute {
      *         description: Unauthorized
      */
     router.get(
-      "/client/getallcategory",
+      "/getallcategory",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -265,7 +265,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/:userId/workout-plans",
+      "/:userId/workout-plans",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -276,7 +276,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/:userId/diet-plans",
+      "/:userId/diet-plans",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -287,7 +287,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/:userId/workout-plans",
+      "/:userId/workout-plans",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -297,7 +297,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/:userId/diet-plans",
+      "/:userId/diet-plans",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -308,7 +308,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Get workouts by category
     router.get(
-      "/client/workouts/category/:categoryId",
+      "/workouts/category/:categoryId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -319,7 +319,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Get all workouts (paginated)
     router.get(
-      "/client/workouts",
+      "/workouts",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -329,7 +329,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/trainers",
+      "/trainers",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -339,7 +339,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/trainers/:trainerId",
+      "/trainers/:trainerId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -349,7 +349,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/payment/plans",
+      "/payment/plans",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -359,7 +359,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/payment/checkout",
+      "/payment/checkout",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -368,13 +368,13 @@ export class ClientRoutes extends BaseRoute {
       }
     );
 
-    router.post("/client/payment/webhook", (req: Request, res: Response) => {
+    router.post("/payment/webhook", (req: Request, res: Response) => {
       paymentController.handleWebhook(req, res);
     });
 
     // Save trainer selection preferences
     router.post(
-      "/client/trainer-preferences",
+      "/trainer-preferences",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -385,7 +385,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Auto-match trainer
     router.post(
-      "/client/auto-match-trainer",
+      "/auto-match-trainer",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -394,7 +394,7 @@ export class ClientRoutes extends BaseRoute {
       }
     );
     router.get(
-      "/client/matched-trainers",
+      "/matched-trainers",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -405,7 +405,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Auto-match trainer
     router.post(
-      "/client/select-trainer",
+      "/select-trainer",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -416,7 +416,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Manual select trainer
     router.post(
-      "/client/manual-select-trainer",
+      "/manual-select-trainer",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -426,7 +426,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/trainerslots",
+      "/trainerslots",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -437,7 +437,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Book a slot (client only)
     router.post(
-      "/client/book",
+      "/book",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -448,7 +448,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Cancel a booking (client only)
     router.post(
-      "/client/cancel",
+      "/cancel",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -458,7 +458,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/bookings",
+      "/bookings",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -469,7 +469,7 @@ export class ClientRoutes extends BaseRoute {
 
     //chat
     router.get(
-      "/client/chats/history/:trainerId",
+      "/chats/history/:trainerId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -479,7 +479,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/chats/recent",
+      "/chats/recent",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -489,7 +489,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/chats/participants",
+      "/chats/participants",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -499,7 +499,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/client/chats/messages/:messageId",
+      "/chats/messages/:messageId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -510,7 +510,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Create workout progress
     router.post(
-      "/client/progress/workout",
+      "/progress/workout",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -521,7 +521,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Update workout progress
     router.patch(
-      "/client/progress/workout/:id",
+      "/progress/workout/:id",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -532,7 +532,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Get user workout progress
     router.get(
-      "/client/progress/workout/user/:userId",
+      "/progress/workout/user/:userId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -543,7 +543,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Get workout progress by user and workout
     router.get(
-      "/client/progress/workout/user/:userId/workout/:workoutId",
+      "/progress/workout/user/:userId/workout/:workoutId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -554,7 +554,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Get user progress metrics
     router.get(
-      "/client/progress/workout/metrics/:userId",
+      "/progress/workout/metrics/:userId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -565,7 +565,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Workout Video Progress Routes
     router.patch(
-      "/client/progress/video",
+      "/progress/video",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -575,7 +575,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/progress/video/user/:userId",
+      "/progress/video/user/:userId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -586,7 +586,7 @@ export class ClientRoutes extends BaseRoute {
 
     //not used yet
     router.get(
-      "/client/progress/video/user/:userId/workout/:workoutId",
+      "/progress/video/user/:userId/workout/:workoutId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -599,7 +599,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router
-      .route("/client/community/posts")
+      .route("/community/posts")
       .post(
         verifyAuth,
         authorizeRole(["client"]),
@@ -618,7 +618,7 @@ export class ClientRoutes extends BaseRoute {
       );
 
     router
-      .route("/client/community/posts/:id")
+      .route("/community/posts/:id")
       .get(
         verifyAuth,
         authorizeRole(["client"]),
@@ -637,7 +637,7 @@ export class ClientRoutes extends BaseRoute {
       );
 
     router.patch(
-      "/client/community/posts/:id/like",
+      "/community/posts/:id/like",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -647,7 +647,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/community/posts/:id/report",
+      "/community/posts/:id/report",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -658,7 +658,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Community Comment Routes
     router.post(
-      "/client/community/posts/:id/comments",
+      "/community/posts/:id/comments",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -668,7 +668,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.patch(
-      "/client/community/comments/:id/like",
+      "/community/comments/:id/like",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -678,7 +678,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.delete(
-      "/client/community/comments/:id",
+      "/community/comments/:id",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -688,7 +688,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/community/comments/:id/report",
+      "/community/comments/:id/report",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -698,7 +698,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/community/posts/:id/comments",
+      "/community/posts/:id/comments",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -708,7 +708,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/update-fcm-token",
+      "/update-fcm-token",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -718,7 +718,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.patch(
-      "/client/notifications/:notificationId/read",
+      "/notifications/:notificationId/read",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -728,7 +728,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/notifications",
+      "/notifications",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -738,7 +738,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/video-call/start/:slotId",
+      "/video-call/start/:slotId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -748,7 +748,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/video-call/join/:slotId",
+      "/video-call/join/:slotId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -758,7 +758,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/video-call/:slotId",
+      "/video-call/:slotId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -768,7 +768,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/video-call/:slotId/end",
+      "/video-call/:slotId/end",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -778,7 +778,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/session-history",
+      "/session-history",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -788,7 +788,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.put(
-      "/client/upgrade",
+      "/upgrade",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -799,7 +799,7 @@ export class ClientRoutes extends BaseRoute {
 
     // Get client profile
     router.get(
-      "/client/:clientId/profile",
+      "/:clientId/profile",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -809,7 +809,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.put(
-      "/client/submitreview",
+      "/submitreview",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -819,7 +819,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/reviews/:trainerId",
+      "/reviews/:trainerId",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -829,7 +829,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.put(
-      "/client/updatereview",
+      "/updatereview",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -839,7 +839,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/backup-trainer/assign",
+      "/backup-trainer/assign",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -849,7 +849,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.post(
-      "/client/backup-trainer/request",
+      "/backup-trainer/request",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -859,7 +859,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/backup-trainer/getrequests",
+      "/backup-trainer/getrequests",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -869,7 +869,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/backup-trainer/invitations",
+      "/backup-trainer/invitations",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -879,7 +879,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/trainers-info",
+      "/trainers-info",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -889,7 +889,7 @@ export class ClientRoutes extends BaseRoute {
     );
 
     router.get(
-      "/client/wallet",
+      "/wallet",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
@@ -900,7 +900,7 @@ export class ClientRoutes extends BaseRoute {
 
 
     router.get(
-      "/client/walletbalance",
+      "/walletbalance",
       verifyAuth,
       authorizeRole(["client"]),
       blockStatusMiddleware.checkStatus as RequestHandler,
