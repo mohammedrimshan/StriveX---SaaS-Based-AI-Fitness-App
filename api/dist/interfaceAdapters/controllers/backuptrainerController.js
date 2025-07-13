@@ -87,9 +87,7 @@ let BackupTrainerController = class BackupTrainerController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const clientId = req.user.id;
-                console.log(clientId, "clientId");
                 const { requestType, reason } = req.body;
-                console.log(requestType, reason, "requestType,reason");
                 if (!clientId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
@@ -142,7 +140,7 @@ let BackupTrainerController = class BackupTrainerController {
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     message: constants_1.SUCCESS_MESSAGES.DATA_RETRIEVED,
-                    client
+                    client,
                 });
             }
             catch (error) {
@@ -160,7 +158,10 @@ let BackupTrainerController = class BackupTrainerController {
                 if (!trainerId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { items, total } = yield this.getTrainerBackupInvitationsUseCase.execute(trainerId, (pageNumber - 1) * pageSize, pageSize);
@@ -170,7 +171,7 @@ let BackupTrainerController = class BackupTrainerController {
                     invitations: items,
                     totalPages: Math.ceil(total / pageSize),
                     currentPage: pageNumber,
-                    totalInvitations: items.length
+                    totalInvitations: items.length,
                 });
             }
             catch (error) {
@@ -188,7 +189,10 @@ let BackupTrainerController = class BackupTrainerController {
                 if (!trainerId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { items, total } = yield this.getTrainerBackupClientsUseCase.execute(trainerId, (pageNumber - 1) * pageSize, pageSize);
@@ -198,7 +202,7 @@ let BackupTrainerController = class BackupTrainerController {
                     clients: items,
                     totalPages: Math.ceil(total / pageSize),
                     currentPage: pageNumber,
-                    totalClients: items.length
+                    totalClients: items.length,
                 });
             }
             catch (error) {
@@ -216,7 +220,10 @@ let BackupTrainerController = class BackupTrainerController {
                 if (!adminId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { items, total } = yield this.getPendingChangeRequestsUseCase.execute((pageNumber - 1) * pageSize, pageSize);
@@ -226,7 +233,7 @@ let BackupTrainerController = class BackupTrainerController {
                     requests: items,
                     totalPages: Math.ceil(total / pageSize),
                     currentPage: pageNumber,
-                    totalRequests: items.length
+                    totalRequests: items.length,
                 });
             }
             catch (error) {
@@ -244,7 +251,10 @@ let BackupTrainerController = class BackupTrainerController {
                 if (!clientId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { items, total } = yield this.getClientChangeRequestsUseCase.execute(clientId, (pageNumber - 1) * pageSize, pageSize);
@@ -254,7 +264,7 @@ let BackupTrainerController = class BackupTrainerController {
                     requests: items,
                     totalPages: Math.ceil(total / pageSize),
                     currentPage: pageNumber,
-                    totalRequests: total
+                    totalRequests: total,
                 });
             }
             catch (error) {
@@ -272,7 +282,10 @@ let BackupTrainerController = class BackupTrainerController {
                 if (!clientId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { items, total } = yield this.getClientBackupInvitationsUseCase.execute(clientId, (pageNumber - 1) * pageSize, pageSize);
@@ -282,7 +295,7 @@ let BackupTrainerController = class BackupTrainerController {
                     invitations: items,
                     totalPages: Math.ceil(total / pageSize),
                     currentPage: pageNumber,
-                    totalInvitations: total
+                    totalInvitations: total,
                 });
             }
             catch (error) {
@@ -300,7 +313,10 @@ let BackupTrainerController = class BackupTrainerController {
                 if (!adminId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { items, total } = yield this.getAllChangeRequestsUseCase.execute((pageNumber - 1) * pageSize, pageSize, status);
@@ -310,7 +326,7 @@ let BackupTrainerController = class BackupTrainerController {
                     requests: items,
                     totalPages: Math.ceil(total / pageSize),
                     currentPage: pageNumber,
-                    totalRequests: total
+                    totalRequests: total,
                 });
             }
             catch (error) {
@@ -328,7 +344,10 @@ let BackupTrainerController = class BackupTrainerController {
                 if (!adminId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { items, total } = yield this.getClientsBackupOverviewUseCase.execute((pageNumber - 1) * pageSize, pageSize);
@@ -338,7 +357,7 @@ let BackupTrainerController = class BackupTrainerController {
                     clients: items,
                     totalPages: Math.ceil(total / pageSize),
                     currentPage: pageNumber,
-                    totalClients: total
+                    totalClients: total,
                 });
             }
             catch (error) {

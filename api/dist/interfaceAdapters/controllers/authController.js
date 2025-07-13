@@ -31,7 +31,6 @@ const otp_mail_validation_schema_1 = require("./auth/validations/otp-mail.valida
 const errorHandler_1 = require("@/shared/utils/errorHandler");
 const forgot_password_validation_schema_1 = require("./auth/validations/forgot-password.validation.schema");
 const reset_password_validation_schema_1 = require("./auth/validations/reset-password.validation.schema");
-const zod_1 = require("zod");
 let AuthController = class AuthController {
     constructor(_googleUseCase, _generateTokenUseCase, _loginUserUseCase, _blackListTokenUseCase, _revokeRefreshToken, _refreshTokenUseCase, _registerUserUseCase, _sendOtpEmailUseCase, _verifyOtpUseCase, _forgotPasswordUseCase, _resetPasswordUseCase) {
         this._googleUseCase = _googleUseCase;
@@ -59,7 +58,6 @@ let AuthController = class AuthController {
                 const accessTokenName = `${user.role}_access_token`;
                 const refreshTokenName = `${user.role}_refresh_token`;
                 (0, cookieHelper_1.setAuthCookies)(res, tokens.accessToken, tokens.refreshToken, accessTokenName, refreshTokenName);
-                console.log(user);
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     message: constants_1.SUCCESS_MESSAGES.LOGIN_SUCCESS,
@@ -99,7 +97,6 @@ let AuthController = class AuthController {
             try {
                 const data = req.body;
                 const validatedData = user_login_validation_schema_1.loginSchema.parse(data);
-                console.log("req.body12121", req.body);
                 if (!validatedData) {
                     res.status(constants_1.HTTP_STATUS.BAD_REQUEST).json({
                         success: false,
@@ -130,40 +127,20 @@ let AuthController = class AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = req.user;
-                console.log("User data in logout:", {
-                    id: user.id,
-                    role: user.role,
-                    access_token: user.access_token,
-                    refresh_token: user.refresh_token,
-                });
                 if (!user.access_token || !user.refresh_token) {
                     throw new Error("Missing access or refresh token");
                 }
                 yield this._blackListTokenUseCase.execute(user.access_token);
-                console.log("Access token blacklisted");
                 yield this._revokeRefreshToken.execute(user.refresh_token);
-                console.log("Refresh token revoked");
                 const accessTokenName = `${user.role}_access_token`;
                 const refreshTokenName = `${user.role}_refresh_token`;
                 (0, cookieHelper_1.clearAuthCookies)(res, accessTokenName, refreshTokenName);
-                console.log("Cookies cleared");
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     message: constants_1.SUCCESS_MESSAGES.LOGOUT_SUCCESS,
                 });
             }
             catch (error) {
-                if (error instanceof Error) {
-                    console.error("Logout error:", {
-                        name: error.name,
-                        message: error.message,
-                        stack: error.stack,
-                        details: error instanceof zod_1.ZodError ? error.errors : null,
-                    });
-                }
-                else {
-                    console.error("Logout error (non-Error type):", error);
-                }
                 (0, errorHandler_1.handleErrorResponse)(res, error);
             }
         });
@@ -192,7 +169,6 @@ let AuthController = class AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { role } = req.body;
-                console.log("Signup Request Body:", req.body);
                 const schema = user_signup_validation_schema_1.userSchemas[role];
                 if (!schema) {
                     res.status(constants_1.HTTP_STATUS.BAD_REQUEST).json({
@@ -218,7 +194,6 @@ let AuthController = class AuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const validatedData = reset_password_validation_schema_1.resetPasswordValidationSchema.parse(req.body);
-                console.log(validatedData, "Validate Data");
                 if (!validatedData) {
                     res.status(constants_1.HTTP_STATUS.BAD_REQUEST).json({
                         success: false,

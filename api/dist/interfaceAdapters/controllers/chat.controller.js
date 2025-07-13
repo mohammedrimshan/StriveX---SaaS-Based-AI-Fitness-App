@@ -142,13 +142,10 @@ let ChatController = class ChatController {
             try {
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 const role = (_b = req.user) === null || _b === void 0 ? void 0 : _b.role;
-                console.log(role, "role in getChatParticipants");
-                console.log(userId, "userId in getChatParticipants");
                 if (!userId || !role) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
                 const participants = yield this._getChatParticipantsUseCase.execute(userId, role);
-                console.log(participants, "participants in getChatParticipants");
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     participants,
@@ -164,7 +161,6 @@ let ChatController = class ChatController {
             var _a, _b;
             try {
                 const { messageId } = req.params;
-                console.log(messageId, "messageId in deleteMessage");
                 const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
                 if (!userId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);

@@ -57,7 +57,6 @@ let ReviewController = class ReviewController {
                 if (!clientId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                console.log(reviewId, clientId, rating, comment, "from update review ");
                 const updatedReview = yield this.updateReviewUseCase.execute(reviewId, clientId, rating, comment);
                 res.status(200).json({
                     success: true,

@@ -33,7 +33,6 @@ let SessionHistoryController = class SessionHistoryController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = req.user;
-                console.log("Controller: User role:", user.role);
                 const { skip = 0, limit = 10 } = req.query;
                 const result = yield this.getSessionHistoryUseCase.execute(user.id, user.role, Number(skip), Number(limit));
                 res.status(constants_1.HTTP_STATUS.OK).json({

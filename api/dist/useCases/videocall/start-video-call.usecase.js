@@ -59,7 +59,6 @@ let StartVideoCallUseCase = class StartVideoCallUseCase {
             const roomName = `StriveX-${slotId}`;
             const updatedSlot = yield this._slotRepository.updateVideoCallStatus(slotId, constants_1.VideoCallStatus.IN_PROGRESS, roomName);
             if (!updatedSlot) {
-                console.error("StartVideoCallUseCase - Failed to update slot:", slotId);
                 throw new custom_error_1.CustomError("Failed to start video call", constants_2.HTTP_STATUS.INTERNAL_SERVER_ERROR);
             }
             if (role === "trainer") {

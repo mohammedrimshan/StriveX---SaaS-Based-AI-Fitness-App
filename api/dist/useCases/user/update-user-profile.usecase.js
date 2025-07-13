@@ -126,9 +126,6 @@ let UpdateUserProfileUseCase = class UpdateUserProfileUseCase {
                     throw new custom_error_1.CustomError("Failed to save progress history", constants_1.HTTP_STATUS.INTERNAL_SERVER_ERROR);
                 }
             }
-            else {
-                console.log("No changes in progress fields, skipping save to ClientProgressHistory.");
-            }
             const updatedUser = yield this._clientRepository.findByIdAndUpdate(userId, data);
             if (!updatedUser) {
                 throw new custom_error_1.CustomError("Failed to update user profile", constants_1.HTTP_STATUS.INTERNAL_SERVER_ERROR);

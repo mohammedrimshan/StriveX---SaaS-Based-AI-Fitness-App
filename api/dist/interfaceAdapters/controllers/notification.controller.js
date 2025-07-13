@@ -56,7 +56,6 @@ let NotificationController = class NotificationController {
             try {
                 const { page = "1", size, limit = "10" } = req.query;
                 const notifications = yield this.getNotifications.execute(parseInt(page, 10), parseInt(limit, 10));
-                console.log(`[${new Date().toISOString()}] Retrieved ${notifications.length} notifications`);
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     status: "success",
                     data: notifications,

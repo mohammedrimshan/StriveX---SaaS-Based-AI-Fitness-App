@@ -148,7 +148,6 @@ let DietWorkoutController = class DietWorkoutController {
                 if (workoutData.category && !mongoose_1.Types.ObjectId.isValid(workoutData.category)) {
                     throw new custom_error_1.CustomError("Invalid category ID", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
-                console.log("Received payload:", req.body);
                 const files = req.body.image ? { image: req.body.image } : undefined;
                 const updatedWorkout = yield this._updateWorkoutUseCase.execute(workoutId, workoutData, files);
                 res.status(constants_1.HTTP_STATUS.OK).json({

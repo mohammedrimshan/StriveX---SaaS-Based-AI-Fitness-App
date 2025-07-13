@@ -48,7 +48,6 @@ let JoinVideoCallUseCase = class JoinVideoCallUseCase {
             }
             if (role === "client") {
                 const client = yield this._clientRepository.findByClientNewId(userId);
-                console.log(client, "client in join video call");
                 if (!client || client.id !== slot.clientId || client.selectStatus !== constants_1.TrainerSelectionStatus.ACCEPTED) {
                     throw new custom_error_1.CustomError("Unauthorized client or invalid relationship", constants_2.HTTP_STATUS.UNAUTHORIZED);
                 }

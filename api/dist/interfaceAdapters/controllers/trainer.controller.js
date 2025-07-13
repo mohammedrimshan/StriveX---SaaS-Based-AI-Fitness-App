@@ -83,9 +83,7 @@ let TrainerController = class TrainerController {
     trainerVerification(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log("Received body:", req.body);
                 const { clientId, approvalStatus, rejectionReason } = req.body;
-                console.log("Extracted:", { clientId, approvalStatus, rejectionReason });
                 if (!clientId || !approvalStatus) {
                     throw new custom_error_1.CustomError("Client ID and approval status are required", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
@@ -216,7 +214,10 @@ let TrainerController = class TrainerController {
                 if (!trainerId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { user: clients, total } = yield this._getTrainerClientsUseCase.execute(trainerId, (pageNumber - 1) * pageSize, pageSize);
@@ -238,11 +239,7 @@ let TrainerController = class TrainerController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const trainerId = req.user.id;
-                console.log("Trainer ID", trainerId);
                 const { clientId, action, rejectionReason } = req.body;
-                console.log("Request body:", clientId, action, rejectionReason);
-                // Log the clientId and action for debugging
-                console.log(clientId, action);
                 if (!trainerId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
@@ -274,7 +271,10 @@ let TrainerController = class TrainerController {
                 if (!trainerId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { user: requests, total } = yield this._getPendingClientRequestsUseCase.execute(trainerId, pageNumber, pageSize);
@@ -299,10 +299,14 @@ let TrainerController = class TrainerController {
                 const { page = "1", limit = "10", status } = req.query;
                 const pageNumber = parseInt(page, 10);
                 const limitNumber = parseInt(limit, 10);
-                const statusFilter = typeof status === "string" && Object.values(constants_1.PaymentStatus).includes(status)
+                const statusFilter = typeof status === "string" &&
+                    Object.values(constants_1.PaymentStatus).includes(status)
                     ? status
                     : undefined;
-                if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber <= 0 || limitNumber <= 0) {
+                if (isNaN(pageNumber) ||
+                    isNaN(limitNumber) ||
+                    pageNumber <= 0 ||
+                    limitNumber <= 0) {
                     throw new custom_error_1.CustomError("Invalid pagination parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { items, total } = yield this._getTrainerWalletUseCase.execute(trainerId, pageNumber, limitNumber);

@@ -271,7 +271,12 @@ let GeminiService = class GeminiService {
         var _a, _b, _c, _d, _e, _f;
         const preferredWorkout = ((_a = client.preferredWorkout) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || "general";
         const isTimeBasedCategory = ["yoga", "meditation", "pilates"].includes(preferredWorkout);
-        const isMixedCategory = ["cardio", "calisthenics", "weighttraining", "general"].includes(preferredWorkout);
+        const isMixedCategory = [
+            "cardio",
+            "calisthenics",
+            "weighttraining",
+            "general",
+        ].includes(preferredWorkout);
         const equipmentInstruction = preferredWorkout === "yoga"
             ? "Exercises must not require any equipment except a yoga mat. Focus on bodyweight yoga poses and flows suitable for the client's experience level."
             : preferredWorkout === "meditation"
@@ -466,7 +471,13 @@ let GeminiService = class GeminiService {
                     console.warn(`Day ${day.day || i} has no exercises and is not a rest day:`, day);
                     throw new Error(`Day ${day.day || i} must have at least one exercise unless it is a Rest or Active Rest day`);
                 }
-                const isTimeBasedDay = ["yoga", "meditation", "pilates", "core", "flexibility"].some((type) => (day.focus || "").toLowerCase().includes(type));
+                const isTimeBasedDay = [
+                    "yoga",
+                    "meditation",
+                    "pilates",
+                    "core",
+                    "flexibility",
+                ].some((type) => (day.focus || "").toLowerCase().includes(type));
                 const timeBasedExercises = [
                     "plank",
                     "side plank",

@@ -34,7 +34,6 @@ let GetTrainerProfileUseCase = class GetTrainerProfileUseCase {
     }
     execute(trainerId, clientId) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(clientId, "client from usecase get trainer profile");
             const trainer = yield this._trainerRepository.findById(trainerId);
             if (!trainer) {
                 throw new Error("Trainer not found");
@@ -55,7 +54,6 @@ let GetTrainerProfileUseCase = class GetTrainerProfileUseCase {
                 this._sessionHistoryRepository.getPerformanceStats(trainerId),
                 this._slotRepository.findAvailableSlots(trainerId),
             ]);
-            console.log(performanceStats, "performance stats");
             const averageRating = allReviews.items.length > 0
                 ? allReviews.items.reduce((sum, review) => sum + review.rating, 0) /
                     allReviews.items.length
@@ -63,7 +61,6 @@ let GetTrainerProfileUseCase = class GetTrainerProfileUseCase {
             let canReview = false;
             if (clientId) {
                 const client = yield this._clientRepository.findById(clientId);
-                console.log(client, "clientfrom usecase  get trainer profile");
                 if (client &&
                     client.isPremium &&
                     client.selectedTrainerId === trainerId &&

@@ -214,7 +214,6 @@ let UserController = class UserController {
             try {
                 const { trainerId } = req.params;
                 const { clientId } = req.query;
-                console.log(clientId, "client id");
                 if (!trainerId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.ID_NOT_PROVIDED, constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
@@ -244,7 +243,6 @@ let UserController = class UserController {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
                 const preferences = req.body;
-                console.log(preferences, "save preference");
                 if (!preferences.skillsToGain || !preferences.selectionMode) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.MISSING_PARAMETERS, constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
@@ -271,7 +269,6 @@ let UserController = class UserController {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }
                 const result = yield this._autoMatchTrainerUseCase.execute(clientId);
-                console.log(result, "Auto match trainer");
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     message: constants_1.SUCCESS_MESSAGES.TRAINER_ASSIGNED,
@@ -294,12 +291,10 @@ let UserController = class UserController {
             try {
                 const clientId = req.user.id;
                 const { trainerId } = req.body;
-                console.log(`manualSelectTrainer: clientId=${clientId}, trainerId=${trainerId}`);
                 if (!clientId || !trainerId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.MISSING_PARAMETERS, constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const result = yield this._manualSelectTrainerUseCase.execute(clientId, trainerId);
-                console.log(result, "Manual select trainer");
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     message: constants_1.SUCCESS_MESSAGES.TRAINER_ASSIGNED,
@@ -320,7 +315,6 @@ let UserController = class UserController {
             try {
                 const clientId = req.user.id;
                 const trainers = yield this._getMatchedTrainersUseCase.execute(clientId);
-                console.log(trainers, "Get Matched Trainers");
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     data: trainers,
@@ -339,7 +333,6 @@ let UserController = class UserController {
             try {
                 const clientId = req.user.id;
                 const { selectedTrainerId } = req.body;
-                console.log(selectedTrainerId, "Selected Trainer");
                 if (!clientId) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.UNAUTHORIZED_ACCESS, constants_1.HTTP_STATUS.UNAUTHORIZED);
                 }

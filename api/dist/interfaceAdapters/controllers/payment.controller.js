@@ -50,7 +50,7 @@ let PaymentController = class PaymentController {
                     planId: validatedData.planId,
                     successUrl: validatedData.successUrl,
                     cancelUrl: validatedData.cancelUrl,
-                    useWalletBalance: validatedData.useWalletBalance, // Pass useWalletBalance
+                    useWalletBalance: validatedData.useWalletBalance,
                 });
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
@@ -68,8 +68,6 @@ let PaymentController = class PaymentController {
             try {
                 const rawBody = req.rawBody;
                 const signature = req.headers["stripe-signature"];
-                console.log("Webhook raw body:", rawBody.toString());
-                console.log("Stripe signature header:", signature);
                 yield this.handleWebhookUseCase.execute(rawBody, signature);
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
@@ -77,7 +75,6 @@ let PaymentController = class PaymentController {
                 });
             }
             catch (error) {
-                console.error("Webhook error:", error);
                 (0, errorHandler_1.handleErrorResponse)(res, error);
             }
         });
@@ -137,10 +134,7 @@ let PaymentController = class PaymentController {
                     });
                     return;
                 }
-                // Validate request body
                 const validatedData = payment_schema_1.createCheckoutSessionSchema.parse(req.body);
-                console.log("Validated request data:", validatedData);
-                // Call use case
                 const url = yield this.upgradeSubscriptionUseCase.execute({
                     clientId: req.user.id,
                     newPlanId: validatedData.planId,
@@ -148,7 +142,6 @@ let PaymentController = class PaymentController {
                     cancelUrl: validatedData.cancelUrl,
                     useWalletBalance: (_a = validatedData.useWalletBalance) !== null && _a !== void 0 ? _a : false,
                 });
-                // If URL is empty string => no payment required, upgrade done
                 if (!url) {
                     res.status(constants_1.HTTP_STATUS.OK).json({
                         success: true,
@@ -157,7 +150,6 @@ let PaymentController = class PaymentController {
                     });
                     return;
                 }
-                // Otherwise, return Stripe checkout URL
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     message: constants_1.SUCCESS_MESSAGES.OPERATION_SUCCESS,

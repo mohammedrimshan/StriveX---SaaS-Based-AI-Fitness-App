@@ -42,7 +42,6 @@ let CategoryController = class CategoryController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { name, metValue, description } = req.body;
-                console.log(name, metValue, description, "category name and metValue from request body");
                 if (!name)
                     throw new custom_error_1.CustomError("Category name is required", constants_1.HTTP_STATUS.BAD_REQUEST);
                 yield this._createNewCategoryUseCase.execute(name, metValue, description);
@@ -52,7 +51,8 @@ let CategoryController = class CategoryController {
                 });
             }
             catch (error) {
-                if (error instanceof Error && error.message.includes("Category already exists")) {
+                if (error instanceof Error &&
+                    error.message.includes("Category already exists")) {
                     res.status(constants_1.HTTP_STATUS.CONFLICT).json({
                         success: false,
                         message: "A category with this name already exists",
@@ -71,7 +71,10 @@ let CategoryController = class CategoryController {
                 const pageNumber = Number(page);
                 const pageSize = Number(limit);
                 const searchTermString = typeof searchTerm === "string" ? searchTerm : "";
-                if (isNaN(pageNumber) || isNaN(pageSize) || pageNumber < 1 || pageSize < 1) {
+                if (isNaN(pageNumber) ||
+                    isNaN(pageSize) ||
+                    pageNumber < 1 ||
+                    pageSize < 1) {
                     throw new custom_error_1.CustomError("Invalid page or limit parameters", constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
                 const { categories, total, all } = yield this._getAllPaginatedCategoryUseCase.execute(pageNumber, pageSize, searchTermString);
@@ -115,7 +118,6 @@ let CategoryController = class CategoryController {
             try {
                 const { categoryId } = req.params;
                 const { name, description, metValue } = req.body;
-                console.log(name, metValue, description, "category name and metValue from request body for update");
                 if (!categoryId)
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.ID_NOT_PROVIDED, constants_1.HTTP_STATUS.BAD_REQUEST);
                 if (!name)

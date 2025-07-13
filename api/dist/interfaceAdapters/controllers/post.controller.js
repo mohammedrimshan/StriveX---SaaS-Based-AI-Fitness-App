@@ -48,7 +48,6 @@ let PostController = class PostController {
                 if (!textContent)
                     throw new custom_error_1.CustomError("Post content is required", constants_1.HTTP_STATUS.BAD_REQUEST);
                 const post = yield this._createPostUseCase.execute({ textContent, mediaUrl }, req.user.id);
-                // Fetch author details to include in the emitted post
                 let author = null;
                 const role = req.user.role;
                 if (role === "client") {
@@ -93,7 +92,6 @@ let PostController = class PostController {
                 if (!author) {
                     throw new custom_error_1.CustomError("Failed to fetch author details", constants_1.HTTP_STATUS.INTERNAL_SERVER_ERROR);
                 }
-                // Map to FrontendPost format
                 const frontendPost = {
                     id: post.id,
                     authorId: post.authorId,
@@ -107,9 +105,7 @@ let PostController = class PostController {
                     createdAt: post.createdAt.toISOString(),
                     isDeleted: post.isDeleted || false,
                 };
-                // Emit to community room
                 const io = this._socketService.getIO();
-                console.log(io, "IOCREATE");
                 io.to("community").emit("newPost", frontendPost);
                 res.status(constants_1.HTTP_STATUS.CREATED).json({
                     success: true,
@@ -207,22 +203,16 @@ let PostController = class PostController {
             try {
                 const { id } = req.params;
                 const userId = req.user.id;
-                console.log(`LIKE POST: postId=${id}, userId=${userId}`);
                 if (!id || !mongoose_1.default.Types.ObjectId.isValid(id)) {
                     throw new custom_error_1.CustomError(constants_1.ERROR_MESSAGES.INVALID_ID, constants_1.HTTP_STATUS.BAD_REQUEST);
                 }
-                // Like or unlike the post using the use case
                 const post = yield this._likePostUseCase.execute(id, userId);
                 if (!post) {
                     throw new custom_error_1.CustomError("Failed to like/unlike the post.", constants_1.HTTP_STATUS.INTERNAL_SERVER_ERROR);
                 }
-                console.log(`POST:`, post);
                 const io = this._socketService.getIO();
-                // ✅ Wait briefly to ensure the "community" room has updated
                 yield new Promise((resolve) => setTimeout(resolve, 300));
                 const clients = yield io.in("community").allSockets();
-                console.log(clients, "clients community");
-                console.log(`[DEBUG] Emitting postLiked to ${clients.size} clients for post ${id}, userId=${userId}, likes:`, post.likes);
                 if (clients.size > 0) {
                     io.to("community").emit("postLiked", {
                         postId: id,
@@ -231,9 +221,6 @@ let PostController = class PostController {
                         hasLiked: post.likes.includes(userId),
                     });
                 }
-                else {
-                    console.warn(`[WARN] No active clients in community room at emit time for post ${id}.`);
-                }
                 res.status(constants_1.HTTP_STATUS.OK).json({
                     success: true,
                     message: constants_1.SUCCESS_MESSAGES.OPERATION_SUCCESS,
@@ -241,10 +228,6 @@ let PostController = class PostController {
                 });
             }
             catch (error) {
-                console.error(`[DEBUG] likePost error:`, {
-                    message: error.message,
-                    stack: error.stack,
-                });
                 (0, errorHandler_1.handleErrorResponse)(res, error);
             }
         });
