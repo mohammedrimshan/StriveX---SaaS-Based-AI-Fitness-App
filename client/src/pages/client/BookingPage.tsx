@@ -1,57 +1,84 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { SlotList } from "./SlotManagement/SlotList"
-import { format, isAfter, startOfDay } from "date-fns"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { SlotFilter } from "@/types/Slot"
-import { useToaster } from "@/hooks/ui/useToaster"
-import { Loader2, Info, CalendarIcon, Clock, Filter, Calendar } from "lucide-react"
-import { useTrainerSlots } from "@/hooks/slot/useTrainerSlots"
-import { useBookSlot } from "@/hooks/slot/useBookSlot"
-import { useUserBookings } from "@/hooks/slot/useUserBookings"
-import AnimatedTitle from "@/components/Animation/AnimatedTitle"
-import EmptyStateAnimation from "@/components/Animation/EmptyStateAnimation"
-import { CustomCalendar } from "@/pages/client/SlotManagement/CustomCalendar"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { motion } from "framer-motion"
-import { UserBookings } from "./SlotManagement/UserBookings"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import AnimatedBackground from "@/components/Animation/AnimatedBackgorund"
-import { useSelector } from "react-redux"
-import type { RootState } from "@/store/store"
-import { useClientProfile } from "@/hooks/client/useClientProfile"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { SlotList } from "./SlotManagement/SlotList";
+import { format, isAfter, startOfDay } from "date-fns";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { SlotFilter } from "@/types/Slot";
+import { useToaster } from "@/hooks/ui/useToaster";
+import {
+  Loader2,
+  Info,
+  CalendarIcon,
+  Clock,
+  Filter,
+  Calendar,
+} from "lucide-react";
+import { useTrainerSlots } from "@/hooks/slot/useTrainerSlots";
+import { useBookSlot } from "@/hooks/slot/useBookSlot";
+import { useUserBookings } from "@/hooks/slot/useUserBookings";
+import AnimatedTitle from "@/components/Animation/AnimatedTitle";
+import EmptyStateAnimation from "@/components/Animation/EmptyStateAnimation";
+import { CustomCalendar } from "@/pages/client/SlotManagement/CustomCalendar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { motion } from "framer-motion";
+import { UserBookings } from "./SlotManagement/UserBookings";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AnimatedBackground from "@/components/Animation/AnimatedBackgorund";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import { useClientProfile } from "@/hooks/client/useClientProfile";
+import { useNavigate } from "react-router-dom";
 
 interface BookingPageProps {
-  trainerId?: string
+  trainerId?: string;
 }
 
 export default function BookingPage({ trainerId }: BookingPageProps) {
-  const navigate = useNavigate()
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [filter, setFilter] = useState<SlotFilter>({
     date: format(new Date(), "yyyy-MM-dd"),
     status: "all",
-  })
-  const [trainerName, setTrainerName] = useState<string>("Your Trainer")
-  const [activeTab, setActiveTab] = useState<string>("book")
+  });
+  const [trainerName, setTrainerName] = useState<string>("Your Trainer");
+  const [activeTab, setActiveTab] = useState<string>("book");
 
   // Initialize toast
-  const { successToast, errorToast } = useToaster()
+  const { successToast, errorToast } = useToaster();
 
   // Get client data from Redux store
   const { client } = useSelector((state: RootState) => ({
     client: state.client.client,
-  }))
+  }));
 
   // Get client profile to check premium status
-  const { data: clientProfile, isLoading: profileLoading, error: profileError } = useClientProfile(client?.id || null)
+  const {
+    data: clientProfile,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useClientProfile(client?.id || null);
 
   // Get trainer slots
-  const { data: slotsData, isLoading: slotsLoading, isError: slotsError, refetch: refetchSlots } = useTrainerSlots()
+  const {
+    data: slotsData,
+    isLoading: slotsLoading,
+    isError: slotsError,
+    refetch: refetchSlots,
+  } = useTrainerSlots();
 
   // Get user bookings
   const {
@@ -59,7 +86,7 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
     isLoading: bookingsLoading,
     isError: bookingsError,
     refetch: refetchBookings,
-  } = useUserBookings()
+  } = useUserBookings();
 
   // Book a slot
   const {
@@ -68,108 +95,127 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
     isSuccess: bookingSuccess,
     isError: bookingError,
     error: bookingErrorData,
-  } = useBookSlot()
+  } = useBookSlot();
 
   // Generate dates with available slots for the dot indicator
   const datesWithSlots =
     slotsData?.slots?.reduce((acc: Date[], slot) => {
       if (slot.isAvailable && !slot.isBooked) {
-        const [year, month, day] = slot.date.split("-").map(Number)
-        acc.push(new Date(year, month - 1, day))
+        const [year, month, day] = slot.date.split("-").map(Number);
+        acc.push(new Date(year, month - 1, day));
       }
-      return acc
-    }, []) || []
+      return acc;
+    }, []) || [];
 
   // Filter slots based on selected date and status
   const filteredSlots =
     slotsData?.slots?.filter((slot) => {
-      const matchesDate = slot.date === filter.date
+      const matchesDate = slot.date === filter.date;
 
-      if (filter.status === "all") return matchesDate
-      if (filter.status === "available") return matchesDate && slot.isAvailable && !slot.isBooked
-      if (filter.status === "booked") return matchesDate && slot.isBooked
+      if (filter.status === "all") return matchesDate;
+      if (filter.status === "available")
+        return matchesDate && slot.isAvailable && !slot.isBooked;
+      if (filter.status === "booked") return matchesDate && slot.isBooked;
 
-      return matchesDate
-    }) || []
+      return matchesDate;
+    }) || [];
 
   // Sort user bookings by date (most recent first)
   const sortedUserBookings = userBookingsData?.bookings
     ? [...userBookingsData.bookings].sort((a, b) => {
-        const dateA = new Date(`${a.date}T${a.startTime}`)
-        const dateB = new Date(`${b.date}T${b.startTime}`)
-        return dateA.getTime() - dateB.getTime()
+        const dateA = new Date(`${a.date}T${a.startTime}`);
+        const dateB = new Date(`${b.date}T${b.startTime}`);
+        return dateA.getTime() - dateB.getTime();
       })
-    : []
+    : [];
 
   // Get upcoming bookings
   const upcomingBookings = sortedUserBookings.filter((booking) => {
-    const [year, month, day] = booking.date.split("-").map(Number)
-    const [hour, minute] = booking.startTime.split(":").map(Number)
-    const bookingDate = new Date(year, month - 1, day, hour, minute)
-    return bookingDate >= new Date()
-  })
+    const [year, month, day] = booking.date.split("-").map(Number);
+    const [hour, minute] = booking.startTime.split(":").map(Number);
+    const bookingDate = new Date(year, month - 1, day, hour, minute);
+    return bookingDate >= new Date();
+  });
 
   // Update filter when date changes
   useEffect(() => {
     setFilter((prev) => ({
       ...prev,
       date: format(selectedDate, "yyyy-MM-dd"),
-    }))
-    setSelectedSlot(null)
-  }, [selectedDate])
+    }));
+    setSelectedSlot(null);
+  }, [selectedDate]);
 
   // Handle success/error from booking
   useEffect(() => {
     if (bookingSuccess) {
-      successToast("Your booking has been confirmed")
-      setSelectedSlot(null)
-      refetchSlots()
-      refetchBookings()
-      setActiveTab("bookings")
+      successToast("Your booking has been confirmed");
+      setSelectedSlot(null);
+      refetchSlots();
+      refetchBookings();
+      setActiveTab("bookings");
     }
 
     if (bookingError && bookingErrorData) {
-      errorToast(bookingErrorData?.message || "Something went wrong")
+      errorToast(bookingErrorData?.message || "Something went wrong");
     }
-  }, [bookingSuccess, bookingError, bookingErrorData, refetchSlots, refetchBookings, successToast, errorToast])
+  }, [
+    bookingSuccess,
+    bookingError,
+    bookingErrorData,
+    refetchSlots,
+    refetchBookings,
+    successToast,
+    errorToast,
+  ]);
 
   // Extract trainer name from slots data when available
   useEffect(() => {
     if (slotsData?.slots && slotsData.slots.length > 0) {
-      const anyTrainerSlot = slotsData.slots.find((slot) => slot.trainerName)
+      const anyTrainerSlot = slotsData.slots.find((slot) => slot.trainerName);
       if (anyTrainerSlot && anyTrainerSlot.trainerName) {
-        setTrainerName(anyTrainerSlot.trainerName)
+        setTrainerName(anyTrainerSlot.trainerName);
       }
     }
-  }, [slotsData, trainerId])
+  }, [slotsData, trainerId]);
 
   // Handle slot selection
   const handleSelectSlot = (slotId: string) => {
-    setSelectedSlot(slotId)
-  }
+    setSelectedSlot(slotId);
+  };
 
   // Handle booking confirmation
   const handleBooking = () => {
-    if (!selectedSlot) return
-    bookSlot({ slotId: selectedSlot })
-  }
+    if (!selectedSlot) return;
+    bookSlot({ slotId: selectedSlot });
+  };
 
-  const todayStart = startOfDay(new Date())
+  const todayStart = startOfDay(new Date());
 
   // Handle profile errors or no user
-  if (profileError || !client) {
+  if (profileError) {
+    return (
+      <div className="py-16 text-center text-red-500">
+        {profileError?.message || "Error loading profile"}
+      </div>
+    );
+  }
+
+  if (!client) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
         <div className="text-center p-8 bg-white rounded-xl shadow-lg">
           <div className="text-5xl mb-4">👋</div>
-          <h2 className="text-2xl font-semibold text-slate-800 mb-2">Welcome</h2>
-          <p className="text-slate-600">{profileError?.message || "Please log in to access bookings"}</p>
+          <h2 className="text-2xl font-semibold text-slate-800 mb-2">
+            Welcome
+          </h2>
+          <p className="text-slate-600">
+            Please log in to access trainer management
+          </p>
         </div>
       </div>
-    )
+    );
   }
-
-  // Check if user is premium and has accepted status
   if (profileLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
@@ -178,32 +224,78 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
           <p className="text-slate-600 font-medium">Checking your account...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (clientProfile && (!clientProfile.isPremium || clientProfile.selectStatus !== "accepted")) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-slate-50/50 backdrop-blur-sm z-50">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="text-center p-8 bg-white rounded-xl shadow-2xl max-w-md border border-violet-100"
-        >
-          <div className="text-5xl mb-4">🔒</div>
-          <h2 className="text-2xl font-semibold text-slate-800 mb-2">Premium Feature</h2>
-          <p className="text-slate-600 mb-6">
-            Please select a trainer and upgrade to premium to access booking features
-          </p>
-          <Button
-            onClick={() => navigate('/premium')} 
-            className="px-6 py-3 bg-gradient-to-r from-[#6d28d9] to-[#a21caf] hover:from-[#5b21b6] hover:to-[#86198f] text-white rounded-lg transition-all transform hover:scale-105"
-          >
-            Upgrade to Premium
-          </Button>
-        </motion.div>
-      </div>
-    )
+  if (clientProfile) {
+    if (!clientProfile.isPremium) {
+      return (
+        <div className="flex items-center justify-center h-screen bg-slate-50">
+          <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-2xl font-semibold text-slate-800 mb-2">
+              Premium Feature
+            </h2>
+            <p className="text-slate-600 mb-4">
+              Please upgrade to premium to access trainer management
+            </p>
+            <button
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              onClick={() => navigate("/premium")}
+            >
+              Upgrade Now
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (
+      clientProfile.isPremium &&
+      clientProfile.selectedTrainerId &&
+      clientProfile.selectStatus === "pending"
+    ) {
+      return (
+        <div className="flex items-center justify-center h-screen bg-slate-50">
+          <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+            <div className="text-4xl mb-4">⏳</div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+              Waiting for Approval
+            </h2>
+            <p className="text-gray-600 mb-4">
+              You have selected a trainer. Please wait for the trainer to
+              approve your request.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (
+      clientProfile.isPremium &&
+      (!clientProfile.selectedTrainerId ||
+        clientProfile.selectStatus !== "accepted")
+    ) {
+      return (
+        <div className="flex items-center justify-center h-screen bg-slate-50">
+          <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+            <div className="text-5xl mb-4">🤝</div>
+            <h2 className="text-2xl font-semibold text-slate-800 mb-2">
+              Select a Trainer
+            </h2>
+            <p className="text-slate-600 mb-4">
+              To manage your trainer sessions, please select a trainer first.
+            </p>
+            <button
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              onClick={() => navigate("/trainer-selection-prompt")}
+            >
+              Select Trainer
+            </button>
+          </div>
+        </div>
+      );
+    }
   }
 
   return (
@@ -235,7 +327,10 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                           <Select
                             value={filter.status}
                             onValueChange={(value) =>
-                              setFilter((prev) => ({ ...prev, status: value as "all" | "available" | "booked" }))
+                              setFilter((prev) => ({
+                                ...prev,
+                                status: value as "all" | "available" | "booked",
+                              }))
                             }
                           >
                             <SelectTrigger className="w-32 bg-white border-violet-200 hover:border-violet-400 transition-colors h-8 px-2 text-xs">
@@ -246,8 +341,12 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">All slots</SelectItem>
-                              <SelectItem value="available">Available only</SelectItem>
-                              <SelectItem value="booked">Booked only</SelectItem>
+                              <SelectItem value="available">
+                                Available only
+                              </SelectItem>
+                              <SelectItem value="booked">
+                                Booked only
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <motion.div
@@ -316,7 +415,11 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
             className="md:col-span-2"
           >
             <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-6 transition-all hover:shadow-2xl border border-blue-100">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
                 <TabsList className="grid w-full grid-cols-2 mb-6 p-1 bg-gray-100 rounded-full">
                   <TabsTrigger
                     value="book"
@@ -324,7 +427,9 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                   >
                     <motion.div
                       initial={{ scale: 1 }}
-                      animate={{ scale: activeTab === "book" ? [1, 1.2, 1] : 1 }}
+                      animate={{
+                        scale: activeTab === "book" ? [1, 1.2, 1] : 1,
+                      }}
                       transition={{ duration: 0.3 }}
                     >
                       <Calendar className="h-4 w-4 mr-2" />
@@ -337,7 +442,9 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                   >
                     <motion.div
                       initial={{ scale: 1 }}
-                      animate={{ scale: activeTab === "bookings" ? [1, 1.2, 1] : 1 }}
+                      animate={{
+                        scale: activeTab === "bookings" ? [1, 1.2, 1] : 1,
+                      }}
                       transition={{ duration: 0.3 }}
                     >
                       <Clock className="h-4 w-4 mr-2" />
@@ -379,8 +486,15 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                             ],
                           }}
                           transition={{
-                            rotate: { duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" },
-                            boxShadow: { duration: 2, repeat: Number.POSITIVE_INFINITY },
+                            rotate: {
+                              duration: 2,
+                              repeat: Number.POSITIVE_INFINITY,
+                              ease: "linear",
+                            },
+                            boxShadow: {
+                              duration: 2,
+                              repeat: Number.POSITIVE_INFINITY,
+                            },
                           }}
                           className="p-3 rounded-full"
                         >
@@ -389,7 +503,9 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                       </div>
                     ) : slotsError ? (
                       <div className="text-center p-8">
-                        <p className="text-red-500 mb-4">Failed to load available slots</p>
+                        <p className="text-red-500 mb-4">
+                          Failed to load available slots
+                        </p>
                         <Button
                           onClick={() => refetchSlots()}
                           className="bg-gradient-to-r from-[#6d28d9] to-[#a21caf] hover:from-[#5b21b6] hover:to-[#86198f] text-white"
@@ -404,7 +520,11 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                       />
                     ) : (
                       <>
-                        <SlotList slots={filteredSlots} selectedSlot={selectedSlot} onSelectSlot={handleSelectSlot} />
+                        <SlotList
+                          slots={filteredSlots}
+                          selectedSlot={selectedSlot}
+                          onSelectSlot={handleSelectSlot}
+                        />
 
                         {selectedSlot && (
                           <motion.div
@@ -458,8 +578,15 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                             ],
                           }}
                           transition={{
-                            rotate: { duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" },
-                            boxShadow: { duration: 2, repeat: Number.POSITIVE_INFINITY },
+                            rotate: {
+                              duration: 2,
+                              repeat: Number.POSITIVE_INFINITY,
+                              ease: "linear",
+                            },
+                            boxShadow: {
+                              duration: 2,
+                              repeat: Number.POSITIVE_INFINITY,
+                            },
                           }}
                           className="p-3 rounded-full"
                         >
@@ -468,7 +595,9 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                       </div>
                     ) : bookingsError ? (
                       <div className="text-center p-8">
-                        <p className="text-red-500 mb-4">Please Book your Slot</p>
+                        <p className="text-red-500 mb-4">
+                          Please Book your Slot
+                        </p>
                         <Button
                           onClick={() => refetchBookings()}
                           className="bg-gradient-to-r from-[#e11d48] to-[#f97316] hover:from-[#be123c] hover:to-[#ea580c] text-white"
@@ -486,8 +615,8 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
                         <UserBookings
                           bookings={sortedUserBookings}
                           onBookingCancelled={() => {
-                            refetchBookings()
-                            refetchSlots()
+                            refetchBookings();
+                            refetchSlots();
                           }}
                         />
                       </div>
@@ -500,5 +629,5 @@ export default function BookingPage({ trainerId }: BookingPageProps) {
         </div>
       </div>
     </AnimatedBackground>
-  )
+  );
 }

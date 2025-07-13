@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
@@ -18,7 +18,6 @@ export default function TrainerManagement() {
   }));
   const { data: clientProfile, error: profileError } = useClientProfile(client?.id || null);
 
-  // Redirect or show restricted message if user is not premium
   if (profileError) {
     return (
       <div className="py-16 text-center text-red-500">
@@ -39,26 +38,70 @@ export default function TrainerManagement() {
     );
   }
 
-  if (clientProfile && (!clientProfile.isPremium || clientProfile.selectStatus !== "accepted")) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-slate-50">
-        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
-          <div className="text-5xl mb-4">🔒</div>
-          <h2 className="text-2xl font-semibold text-slate-800 mb-2">Premium Feature</h2>
-          <p className="text-slate-600 mb-4">
-            Please select a trainer and upgrade to premium to access trainer management
-          </p>
-          <button
-            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-            onClick={() => navigate("/premium")}
-          >
-            Upgrade Now
-          </button>
+  if (clientProfile) {
+    if (!clientProfile.isPremium) {
+      return (
+        <div className="flex items-center justify-center h-screen bg-slate-50">
+          <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+            <div className="text-5xl mb-4">🔒</div>
+            <h2 className="text-2xl font-semibold text-slate-800 mb-2">Premium Feature</h2>
+            <p className="text-slate-600 mb-4">
+              Please upgrade to premium to access trainer management
+            </p>
+            <button
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              onClick={() => navigate("/premium")}
+            >
+              Upgrade Now
+            </button>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+
+    if (
+      clientProfile.isPremium &&
+      clientProfile.selectedTrainerId &&
+      clientProfile.selectStatus === "pending"
+    ) {
+      return (
+        <div className="flex items-center justify-center h-screen bg-slate-50">
+          <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+            <div className="text-4xl mb-4">⏳</div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Waiting for Approval</h2>
+            <p className="text-gray-600 mb-4">
+              You have selected a trainer. Please wait for the trainer to approve your request.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (
+      clientProfile.isPremium &&
+      (!clientProfile.selectedTrainerId || clientProfile.selectStatus !== "accepted")
+    ) {
+      return (
+        <div className="flex items-center justify-center h-screen bg-slate-50">
+          <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+            <div className="text-5xl mb-4">🤝</div>
+            <h2 className="text-2xl font-semibold text-slate-800 mb-2">Select a Trainer</h2>
+            <p className="text-slate-600 mb-4">
+              To manage your trainer sessions, please select a trainer first.
+            </p>
+            <button
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              onClick={() => navigate("/trainer-selection-prompt")}
+            >
+              Select Trainer
+            </button>
+          </div>
+        </div>
+      );
+    }
   }
 
+  // Main trainer management UI
   return (
     <AnimatedBackground>
       <div className="min-h-screen mt-15">

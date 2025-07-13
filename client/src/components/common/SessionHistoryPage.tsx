@@ -19,10 +19,10 @@ const SessionHistoryPage: React.FC = () => {
   const userRole: UserRole = admin
     ? "admin"
     : trainer
-      ? "trainer"
-      : client
-        ? "client"
-        : "client";
+    ? "trainer"
+    : client
+    ? "client"
+    : "client";
 
   const { data: clientProfile, isLoading: profileLoading, error: profileError } = useClientProfile(
     userRole === "client" && client ? client.id : null
@@ -40,7 +40,6 @@ const SessionHistoryPage: React.FC = () => {
     );
   }
 
-  // Show loading state while checking profile
   if (userRole === "client" && profileLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
@@ -52,8 +51,31 @@ const SessionHistoryPage: React.FC = () => {
     );
   }
 
-  // Check if client is premium and has accepted status
-  if (userRole === "client" && clientProfile && (!clientProfile.isPremium || clientProfile.selectStatus !== "accepted")) {
+  if (
+    userRole === "client" &&
+    clientProfile &&
+    clientProfile.isPremium &&
+    clientProfile.selectedTrainerId &&
+    clientProfile.selectStatus === "pending"
+  ) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+          <div className="text-4xl mb-4">⏳</div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Waiting for Approval</h2>
+          <p className="text-gray-600 mb-4">
+            You have selected a trainer. Please wait for the trainer to approve your request.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    userRole === "client" &&
+    clientProfile &&
+    (!clientProfile.isPremium || !clientProfile.selectedTrainerId || clientProfile.selectStatus !== "accepted")
+  ) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-slate-50/50 backdrop-blur-sm z-50">
         <motion.div
@@ -68,7 +90,7 @@ const SessionHistoryPage: React.FC = () => {
             Please select a trainer and upgrade to premium to access session history
           </p>
           <Button
-            onClick={() => navigate('/premium')} 
+            onClick={() => navigate('/premium')}
             className="px-6 py-3 bg-gradient-to-r from-[#6d28d9] to-[#a21caf] hover:from-[#5b21b6] hover:to-[#86198f] text-white rounded-lg transition-all transform hover:scale-105"
           >
             Upgrade to Premium
