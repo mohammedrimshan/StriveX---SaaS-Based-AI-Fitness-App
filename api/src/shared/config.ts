@@ -13,7 +13,7 @@ const env = cleanEnv(process.env, {
   JWT_ACCESS_KEY: str({ default: "access-secret-key" }),
   JWT_REFRESH_KEY: str({ default: "refresh-secret-key" }),
   JWT_RESET_KEY: str({ default: "reset-secret-key" }),
-  JWT_ACCESS_EXPIRES_IN: str({ default: "15m" }),
+  JWT_ACCESS_EXPIRES_IN: str({ default: "2d" }),
   JWT_REFRESH_EXPIRES_IN: str({ default: "7d" }),
   JWT_RESET_EXPIRES_IN: str({ default: "24h" }),
   REDIS_USERNAME: str({ default: "default" }),
