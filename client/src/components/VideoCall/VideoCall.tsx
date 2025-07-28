@@ -43,8 +43,8 @@ interface VideoCallDetails {
 
 const SOCKET_URL = "https://api.strivex.rimshan.in" // Update with your actual socket URL
 const SOCKET_PATH = "/socket.io/video"
-const ZEGO_APP_ID = Number.parseInt(import.meta.env.VITE_ZEGO_APP_ID || "201333030")
-const ZEGO_SERVER_SECRET = import.meta.env.VITE_ZEGO_SERVER_SECRET || "dba3a1533b1aff4cb9ecc3350401a713"
+const ZEGO_APP_ID = Number.parseInt(import.meta.env.VITE_ZEGO_APP_ID || "1814077952")
+const ZEGO_SERVER_SECRET = import.meta.env.VITE_ZEGO_SERVER_SECRET || "fc9ddd3b722ea2114179efa09a5221da"
 
 // Helper function to get URL prefix based on role
 const getPrefix = (role: "trainer" | "client") => {
